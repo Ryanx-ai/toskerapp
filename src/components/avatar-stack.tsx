@@ -1,1 +1,0 @@
-export function AvatarStack({ initials }: { initials: string[] }) { return <div className="avatar-stack" aria-label={`${initials.length} members shown`}>{initials.map((value, index) => <span className={`avatar avatar-${["gold", "pink", "yellow", "blue"][index % 4]}`} key={value}>{value}</span>)}</div>; }

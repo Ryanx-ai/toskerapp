@@ -1,12 +1,53 @@
 # Tosker Roadmap
 
-- **Milestone 0 — Repository + foundation:** project, assets, fonts, tokens, docs, and shell.
-- **Milestone 1 — Baseline product world (current):** Home, mock Realms, creation entry, representative Realm, responsive navigation, and personality.
-- **Milestone 2 — Functional event room:** Realm creation, context, announcements, people, and local state.
-- **Milestone 3 — Chat:** conversation model, messaging UX, persistence, and realtime decision.
-- **Milestone 4 — Plan:** smallest useful collaborative planning primitive, informed by testing.
-- **Milestone 5 — Persistence + identity:** database, authentication, membership, invitations, permissions.
-- **Milestone 6 — Private alpha:** real events and measures for creation, joins, activity, return usage, completion, and confusion.
-- **Milestone 7 — Public alpha:** deployment, analytics, onboarding, public invitations, and reliability.
+> Every milestone must earn the next one. Do not build Tosker according to the size of the dream; build according to what users demonstrate they need.
 
-Marketplace, plugin, app-runtime, and creator-ecosystem work is intentionally unscheduled until event-first rooms produce evidence of demand.
+Every numbered milestone ends with founder review before the next begins.
+
+## Milestone 1 — Product shell (locked)
+
+Canonical brand foundation, messaging-first shell, My Room, personal conversations, Rooms, functional local chat UX, Hall, translation UX prototype, collapsible desktop navigation, top-level product IA, mobile baseline, product vision, and Vibeguide.
+
+**Goal:** Tosker immediately feels like communication software with room to grow.
+
+## Milestone 2 — First-time user experience
+
+Explore first launch, empty conversation lists, creating and joining a first Room, invitations, witty empty states, lightweight onboarding, understanding My Room, discovering Hall, and initial product education. No backend is required unless evidence makes it necessary.
+
+**Goal:** A completely new person understands Tosker without founder explanation.
+
+## Milestone 3 — Room creation + invites
+
+Make Room creation genuinely usable: create a Room, invitation link, join state, guest identity, Room ownership, and a basic membership model. Introduce persistence only when required.
+
+**Goal:** One person can make a Tosker and bring another person into it.
+
+## Milestone 4 — Real chat
+
+Introduce production messaging architecture: persistence, authentication, realtime communication, message model, identity, and reliability.
+
+**Goal:** Two real people can reliably talk inside a Tosker.
+
+## Milestone 5 — Translation
+
+Implement real text translation while preserving access to original messages.
+
+**Goal:** Two people who do not share a language can comfortably communicate inside Tosker.
+
+## Milestone 6 — Hall
+
+Turn Hall into a genuinely useful shared-information surface by testing notes, pinned information, announcements, simple board behavior, and permissions.
+
+**Goal:** Important information stays understandable outside chat history.
+
+## Milestone 7 — First Room app
+
+Choose one collaborative capability based on prior testing. Candidates include Poll, Map, Kanban, Image Board, or Schedule; do not select one until evidence exists.
+
+**Goal:** Prove that Tosker can expand a Room beyond messaging.
+
+## Future platform — not numbered commitments
+
+Explore, Marketplace, Studio, apps, plugins, first-party capabilities, customisation, skins, templates, games, creator economy, mobile apps, cross-border finance, and voice translation remain long-term directions. They are deliberately unscheduled.
+
+Mobile navigation optimisation is also a later UX milestone; Milestone 1 preserves the usable list-to-conversation baseline.

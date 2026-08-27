@@ -1,3 +1,0 @@
-import Link from "next/link";
-import { ToskerLogo } from "./logo";
-export function AppShell({ children }: { children: React.ReactNode }) { return <div className="app-shell"><header className="topbar"><ToskerLogo /><nav className="topnav" aria-label="Primary navigation"><Link className="nav-link active" href="/">Your Toskers</Link><Link className="nav-link" href="/create">Create</Link></nav><button className="profile-chip" type="button" aria-label="Open profile menu"><span className="avatar avatar-gold">RY</span><span className="profile-name">Ryan</span><span aria-hidden="true">⌄</span></button></header>{children}</div>; }

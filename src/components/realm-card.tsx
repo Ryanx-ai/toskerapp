@@ -1,0 +1,4 @@
+import Link from "next/link";
+import type { Realm } from "@/data/mock-data";
+import { AvatarStack } from "./avatar-stack";
+export function RealmCard({ realm, index }: { realm: Realm; index: number }) { return <Link href="/realm/tokyo-2027" className={`realm-card card-${realm.palette}`} style={{ "--delay": `${index * 80}ms` } as React.CSSProperties}><div className="realm-art" aria-hidden="true"><span className="realm-orbit orbit-one" /><span className="realm-orbit orbit-two" /><span className="realm-symbol">{realm.kind === "Trip" ? "東京" : realm.kind === "Event" ? "✦" : "◒"}</span></div><div className="realm-card-body"><span className="kind-pill">{realm.kind}</span><h3>{realm.name}</h3><p>{realm.note}</p><div className="realm-meta"><AvatarStack initials={realm.members} /><span>{realm.people} people</span><span className="meta-dot">·</span><span>{realm.timing}</span></div></div><span className="card-arrow" aria-hidden="true">↗</span></Link>; }

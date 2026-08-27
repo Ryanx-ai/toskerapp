@@ -1,36 +1,37 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Tosker
 
-## Getting Started
+Tosker is a shared digital room that becomes whatever the people inside it need.
 
-First, run the development server:
+The immediate wedge is simple: **Every event deserves a Tosker.** The product begins event-first, grows room-first, and may eventually support programmable rooms. This repository currently contains the static, founder-reviewable Milestone 1 product world—no backend, authentication, persistence, or realtime messaging.
+
+## Stack
+
+- Next.js 16 App Router, React 19, TypeScript, Tailwind CSS 4, npm
+- Founder-supplied local Mermaid and Montserrat fonts
+
+## Run and validate
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). Validate with `npm run lint`, `npm run typecheck`, and `npm run build`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `src/app` — routes, metadata, global tokens, and local fonts
+- `src/components` — reusable product UI
+- `src/data` — typed Milestone 1 mock data
+- `public/brand` — founder-supplied SVG identity assets
+- `docs` — vision, vibeguide, UI references, and roadmap
 
-## Learn More
+## Brand asset map
 
-To learn more about Next.js, take a look at the following resources:
+- Primary full logo: `toskerlogo-full-white.svg` on dark UI; `toskerlogo-full-dark.svg` on light UI
+- Primary wordmark: matching `toskerlogo-wordmark-white.svg` / `-dark.svg`
+- Primary squirrel/logomark: `toskerlogo-icon-main.svg`
+- Light/dark variants: filenames ending in `white` / `dark`
+- Favicon/app-icon candidate: `toskerlogo-icon-main` (PNG metadata icon; SVG retained in `public/brand`)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+`icon-variation` and `icon1` are retained as founder-supplied alternatives pending hierarchy review.

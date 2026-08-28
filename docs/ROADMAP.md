@@ -10,9 +10,9 @@ Canonical brand foundation, messaging-first shell, My Room, personal conversatio
 
 **Goal:** Tosker immediately feels like communication software with room to grow.
 
-## Milestone 2 — First-time user experience
+## Milestone 2 — First-time user experience (in progress / founder review)
 
-Explore first launch, empty conversation lists, creating and joining a first Room, invitations, witty empty states, lightweight onboarding, understanding My Room, discovering Hall, and initial product education. No backend is required unless evidence makes it necessary.
+The current founder-review build covers first launch, genuine empty states, self-messaging, locally persisted Room creation and messages, invitation and Add-to-Room prototypes, Hall discovery, and high-fidelity previews of Explore, Marketplace, Studio, Settings, and Help. These are UX-validation surfaces, not platform architecture.
 
 **Goal:** A completely new person understands Tosker without founder explanation.
 

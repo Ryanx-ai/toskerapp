@@ -11,6 +11,11 @@ Tosker should feel playful, social, warm, crafted, and alive—modern American t
 - **Dark, but not gamer-only.** Warm foundations welcome trips, weddings, workshops, creators, and gamers.
 - **Personality without clutter.** Motion is brief, backgrounds subtle, and message contrast excellent.
 - **No forced lore.** Avoid fantasy, medieval, mythological, or overly conceptual product vocabulary.
+- **Teach by doing.** First-run guidance belongs beside the interaction it explains; avoid detached onboarding tours.
+- **Human empty states.** Prefer “Quiet in here” to system-status prose. Keep wit brief and let utility win.
+- **Prototype honesty.** Future surfaces should feel believable while clearly labelling actions that do not work yet.
+- **Personal, not repetitive.** Use the person’s name at meaningful orientation moments such as the Dashboard and greeting; do not insert it mechanically.
+- **Complete short thoughts.** Keep concise desktop headings and helper copy on one line when space permits. Avoid intentionally stacked sentence fragments.
 
 ## Conceptual lessons
 
@@ -23,3 +28,9 @@ Tosker should feel playful, social, warm, crafted, and alive—modern American t
 These are lessons, not templates. Tosker must not clone their layouts, branding, or illustration systems.
 
 Tosker Black `#080D10`, Tosker Ivory `#F4EFE6`, Squirrel Gold `#C89C5D`, Action Pink `#FF4F91`, and Action Yellow `#FFD84D` remain provisional semantic tokens.
+
+Milestone 2 reserves generous illustration zones using abstract geometry and existing brand marks. These are scaffolds for a future illustration system, not permanent mascot art.
+
+## Reference-led layout direction
+
+The Milestone 2 founder reference locks a compact dark shell, dense conversational surfaces, light differentiated Hall notes, browsable capability grids, small creator listings, modest radii, thin borders, and restrained atmospheric layers. Future artwork may occupy Chat backdrops, empty states, Explore hero space, invitation and error screens, but must remain separable from content and interaction layers. The supplied forest, squirrel, branch, and lantern imagery is art direction only and is not an implementation asset.

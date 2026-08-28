@@ -44,6 +44,8 @@ Tosker remains responsible for canonical Room identity, members, permissions, co
 
 **Studio** may become a creation workspace where developers build Tosker apps, designers build skins, creators configure templates, and ordinary people make lightweight interactive experiences.
 
+Milestone 2 gives these three areas believable visual prototypes so the product can be judged holistically. They deliberately contain no installation, publishing, payment, ownership, or runtime architecture.
+
 Potential first-party capabilities include Bulletin/Hall, Kanban, Notes Board, Image Board, Polls, Map, Calendar/Schedule, Files, Playlist, Shared Tasks, and simple games. Tosker must validate which are genuinely needed before becoming a utility suite. Game-runtime architecture is intentionally undecided.
 
 Rooms may eventually support themes, backgrounds, skins, typography, layouts, visual environments, app arrangements, and templates. Designers may publish or sell these, but no customisation engine exists today.
@@ -63,5 +65,7 @@ Extensible Rooms will eventually need deliberate controls for owners, admins, mo
 ## Brand narrative and future landing page
 
 Ratatoskr moving along the World Tree and connecting distant places is meaningful internal brand inspiration. It may influence illustration, mascot development, brand storytelling, and a future landing-page concept without introducing Norse language or lore into product UI.
+
+The approved future art direction is warm, curious, adventurous, subtly mystical, and occasionally surreal: branches, tiny pathways and doors, floating lights, lanterns, stars, strange plants, hidden objects, and small character moments. This world must never turn the interface into high fantasy, medieval roleplay, a Disney imitation, or children’s software. Ordinary product language remains the anchor.
 
 The founder’s current landing-page idea is **The Climbing Squirrel**: as a visitor scrolls, the supplied Tosker squirrel climbs an illustrated tree, moving between branches that reveal people, Rooms, activities, and increasingly capable shared spaces. Any eventual implementation must remain performant, accessible, responsive, single-page, and understandable without animation. It is not part of Milestone 1.

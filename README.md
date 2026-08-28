@@ -46,3 +46,5 @@ The primary dark-interface logo is `toskerlogo-full-white.svg`; `toskerlogo-icon
 The sidebar’s clearly labelled **Prototype state** control resets the browser to a fresh account or restores the populated demo. This is walkthrough infrastructure, not production account state.
 
 On desktop, Tosker owns the viewport: navigation and utility regions remain anchored while conversation history, Hall, and product canvases scroll independently. Mobile retains its focused list-to-conversation layout.
+
+Milestone 2.1 adds client-side conversation search, compact reusable conversation rows, contextual actions, attachment placeholders, emoji entry, guarded destructive actions, and predictable chat-scroll behavior. These interactions remain local prototype state unless explicitly described otherwise.

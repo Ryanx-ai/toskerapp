@@ -62,6 +62,8 @@ Cross-border finance—shared expenses, requests, event payments, collections, c
 
 Extensible Rooms will eventually need deliberate controls for owners, admins, moderators, members, guests, app permissions, posting, Hall editing, customisation, installation, and public/private visibility. Permissions should be designed alongside persistence and identity rather than patched in later.
 
+Personal conversations and Rooms must make privacy understandable at a glance. Future access control should define visibility, invitations, posting, Hall editing, installation, export, and removal rights; private Dashboard content stays inaccessible to others by default. Subrooms should inherit or explicitly override parent access rather than creating ambiguous privacy boundaries.
+
 ## Brand narrative and future landing page
 
 Ratatoskr moving along the World Tree and connecting distant places is meaningful internal brand inspiration. It may influence illustration, mascot development, brand storytelling, and a future landing-page concept without introducing Norse language or lore into product UI.

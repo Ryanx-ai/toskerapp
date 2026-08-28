@@ -28,5 +28,12 @@
 | `TOS.ART.RESERVE.01` | Chat, empty states, Explore hero | Neutral zones reserved for future founder-directed artwork |
 | `TOS.APP.VIEWPORT.01` | Desktop application routes | Fixed viewport shell with independently scrolling work areas |
 | `TOS.DASHBOARD.PERSONAL.01` | `/` | Prototype-user dashboard label and greeting |
+| `TOS.APP.SEARCH.01` | Expanded sidebar | Client-side filtering in Personal or Rooms |
+| `TOS.CONVERSATION.ROW.02` | Conversation lists | Compact reusable row and overflow menu |
+| `TOS.MESSAGE.MENU.01` | Message overflow or right-click | Context actions and guarded removal |
+| `TOS.COMPOSER.MEDIA.01` | Chat composer | Image, file, emoji, and send affordances |
+| `TOS.CHAT.SCROLL.01` | Tokyo 2027 | Predictable long-history scrolling |
+| `TOS.EMPTY.SHADOW.01` | No selection | Quiet shadow-graphic atmosphere |
+| `TOS.ROOM.SUBROOM.01` | Add to Room | Future Subroom concept |
 
 Milestone 1 Realm references and the dashboard-first Home are deprecated by the messaging-first founder IA refinement. Milestone 1.2 locks the shell and spatial Hall treatment. Milestone 2 references are in founder review and must not be treated as committed product architecture. The supplied MS2 concept boards guide layout, hierarchy, density, and future art direction only; their artwork is not bundled or reproduced.

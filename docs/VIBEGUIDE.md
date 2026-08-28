@@ -27,6 +27,14 @@ Tosker should feel playful, social, warm, crafted, and alive—modern American t
 
 These are lessons, not templates. Tosker must not clone their layouts, branding, or illustration systems.
 
+## Two-tier art direction
+
+**Shadow graphics** support quiet functional spaces. They use monochrome charcoal or muted-ivory linework at very low contrast, creating atmosphere without competing with communication.
+
+**Environmental artwork** is reserved for higher-emotion moments such as onboarding, invitations, Explore heroes, celebrations, marketing, and Room skins. It may be richer, warmer, playful, mystical, and more detailed. This tier is not implemented in Milestone 2.1.
+
+Tooltips use one compact, delayed treatment on pointer devices. Context menus appear from overflow controls and right-click, destructive choices require confirmation, and nameplates remain structurally customisable without permanent decorative artwork.
+
 Tosker Black `#080D10`, Tosker Ivory `#F4EFE6`, Squirrel Gold `#C89C5D`, Action Pink `#FF4F91`, and Action Yellow `#FFD84D` remain provisional semantic tokens.
 
 Milestone 2 reserves generous illustration zones using abstract geometry and existing brand marks. These are scaffolds for a future illustration system, not permanent mascot art.

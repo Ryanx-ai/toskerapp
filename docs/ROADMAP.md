@@ -51,3 +51,7 @@ Choose one collaborative capability based on prior testing. Candidates include P
 Explore, Marketplace, Studio, apps, plugins, first-party capabilities, customisation, skins, templates, games, creator economy, mobile apps, cross-border finance, and voice translation remain long-term directions. They are deliberately unscheduled.
 
 Mobile navigation optimisation is also a later UX milestone; Milestone 1 preserves the usable list-to-conversation baseline.
+
+## Milestone 2.1 — Communication refinement
+
+Founder review refines the messaging shell before production architecture: denser navigation, dynamic Dashboard identity, functional search, resilient chat scrolling, representative message types, contextual actions, composer affordances, Subroom placement, responsive behavior, and quieter atmospheric empty states.

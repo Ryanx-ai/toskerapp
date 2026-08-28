@@ -1,13 +1,13 @@
 export type PrototypeUser = {
-  name: string;
+  displayName: string;
   initials: string;
   role: string;
 };
 
 export const prototypeUser: PrototypeUser = {
-  name: "Ryan",
+  displayName: "Ryan",
   initials: "RY",
   role: "Founder preview",
 };
 
-export const dashboardLabel = (user: PrototypeUser) => `${user.name}'s Dashboard`;
+export const dashboardLabel = (user: PrototypeUser) => `${user.displayName}'s Dashboard`;

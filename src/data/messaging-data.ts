@@ -11,6 +11,8 @@ export type Message = {
   mine?: boolean;
   language?: Language;
   translation?: string;
+  attachment?: { type: "image" | "file"; name: string; meta: string };
+  replyTo?: string;
 };
 
 export type Conversation = {
@@ -57,13 +59,23 @@ export const conversations: Conversation[] = [
   {
     slug: "tokyo-2027", kind: "room", name: "Tokyo 2027", initials: "東京", color: "gold", preview: "Theo: This trip is operating at peak efficiency", time: "7:53 PM", unread: 4, context: "6 people · Tokyo, Japan",
     messages: [
-      { id: "tokyo-1", author: "Mika", initials: "MK", body: "Okay, important question: first-night ramen or tiny listening bar?", time: "7:42 PM", color: "pink" },
-      { id: "tokyo-2", author: "Lin", initials: "林", body: "我觉得我们应该先去吃拉面，然后再去听音乐。", time: "7:43 PM", color: "blue", language: "Chinese", translation: "I think we should get ramen first, then go listen to music." },
-      { id: "tokyo-3", author: "Hana", initials: "花", body: "両方行くのが正解だと思う！", time: "7:44 PM", color: "yellow", language: "Japanese", translation: "I think going to both is the right answer!" },
-      { id: "tokyo-4", author: "Ryan", initials: "RY", body: "I’ve added the ramen shortlist. Vote with your stomach.", time: "7:46 PM", color: "gold", mine: true },
-      { id: "tokyo-5", author: "Ayu", initials: "AY", body: "Aku menemukan kedai kopi kecil dekat penginapan kita.", time: "7:49 PM", color: "purple", language: "Indonesian", translation: "I found a small coffee shop near where we’re staying." },
-      { id: "tokyo-6", author: "Nok", initials: "NK", body: "ฉันจะเอากล้องฟิล์มไปด้วย", time: "7:51 PM", color: "green", language: "Thai", translation: "I’ll bring my film camera too." },
-      { id: "tokyo-7", author: "Theo", initials: "TH", body: "This trip is already operating at peak efficiency.", time: "7:53 PM", color: "green" },
+      { id: "tokyo-01", author: "Mika", initials: "MK", body: "I moved the flight details into Hall so nobody has to hunt for them again", time: "9:08 AM", color: "pink" },
+      { id: "tokyo-02", author: "Ryan", initials: "RY", body: "Heroic. I was three scrolls away from giving up", time: "9:10 AM", color: "gold", mine: true, replyTo: "Flight details are now in Hall" },
+      { id: "tokyo-03", author: "Theo", initials: "TH", body: "The shared itinerary is here: https://example.com/tokyo-plan", time: "9:14 AM", color: "green" },
+      { id: "tokyo-04", author: "Ayu", initials: "AY", body: "Aku menemukan kedai kopi kecil dekat penginapan kita", time: "9:22 AM", color: "purple", language: "Indonesian", translation: "I found a small coffee shop near where we’re staying" },
+      { id: "tokyo-05", author: "Ryan", initials: "RY", body: "Saving that for the jet-lag morning", time: "9:24 AM", color: "gold", mine: true },
+      { id: "tokyo-06", author: "Lin", initials: "林", body: "我把地址和营业时间放在这里了", time: "10:03 AM", color: "blue", language: "Chinese", translation: "I put the address and opening hours here" },
+      { id: "tokyo-07", author: "Lin", initials: "林", body: "Coffee shop details", time: "10:04 AM", color: "blue", attachment: { type: "file", name: "Kissa shortlist.pdf", meta: "PDF · 1.8 MB" } },
+      { id: "tokyo-08", author: "Hana", initials: "花", body: "この景色を見て！", time: "11:18 AM", color: "yellow", language: "Japanese", translation: "Look at this view!", attachment: { type: "image", name: "shimokitazawa-evening.jpg", meta: "Image preview placeholder" } },
+      { id: "tokyo-09", author: "Mika", initials: "MK", body: "Okay, important question: first-night ramen or tiny listening bar?", time: "12:42 PM", color: "pink" },
+      { id: "tokyo-10", author: "Nok", initials: "NK", body: "ฉันจะเอากล้องฟิล์มไปด้วย", time: "12:51 PM", color: "green", language: "Thai", translation: "I’ll bring my film camera too" },
+      { id: "tokyo-11", author: "Ryan", initials: "RY", body: "Both. This is not a trip for sensible compromises", time: "1:02 PM", color: "gold", mine: true, replyTo: "ramen or tiny listening bar?" },
+      { id: "tokyo-12", author: "Theo", initials: "TH", body: "Poll says ramen first by a landslide 🍜", time: "2:16 PM", color: "green" },
+      { id: "tokyo-13", author: "Mika", initials: "MK", body: "Booked six seats for 7:30. Details are pinned", time: "3:08 PM", color: "pink" },
+      { id: "tokyo-14", author: "Hana", initials: "花", body: "完璧！その後レコード屋にも行こう", time: "4:31 PM", color: "yellow", language: "Japanese", translation: "Perfect! Let’s visit the record shop after that too" },
+      { id: "tokyo-15", author: "Ryan", initials: "RY", body: "I’ve added the record-store shortlist. Vote with your wallet", time: "5:12 PM", color: "gold", mine: true },
+      { id: "tokyo-16", author: "Ayu", initials: "AY", body: "Tiny update: the weather looks clear on Thursday", time: "6:04 PM", color: "purple" },
+      { id: "tokyo-17", author: "Theo", initials: "TH", body: "This trip is already operating at peak efficiency", time: "7:53 PM", color: "green" },
     ],
   },
   {

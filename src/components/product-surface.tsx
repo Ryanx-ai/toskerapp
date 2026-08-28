@@ -1,9 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
-import { dashboardLabel, prototypeUser } from "@/data/prototype-user";
 
 type Surface = "explore" | "marketplace" | "studio" | "settings" | "help";
-const nav = [[dashboardLabel(prototypeUser), "/"], ["Explore", "/explore"], ["Marketplace", "/marketplace"], ["Studio", "/studio"]];
+const nav = [["Explore", "/explore"], ["Marketplace", "/marketplace"], ["Studio", "/studio"]];
 const exploreCards = [
   ["◒", "Quick Poll", "Popular now", "Ask the Room."], ["▦", "Kanban Board", "Popular now", "Organise lightly."], ["⌖", "Shared Map", "Popular now", "Plan together."], ["▧", "Photo Wall", "Popular now", "Collect it here."],
   ["▤", "Itinerary", "For trips", "Plan each day."], ["▣", "Packing List", "For trips", "Don’t forget it."], ["$", "Budget Tracker", "For trips", "Split the useful bits."], ["☁", "Weather", "For trips", "Check the forecast."],

@@ -4,6 +4,8 @@
 
 Interaction should feel quiet, immediate, and warm: subtle gold focus, low-motion hover lift, compact menus, and short supporting copy. Room markers may glow gently; Sandbox and personal spaces should not inherit Room decoration. Empty Hall states stay to two useful lines and one restrained symbol.
 
+Functional controls use Lucide’s quiet rounded stroke language at consistent 15–18px sizes and predictable hit areas. Standard controls should look standard. Future authored atmosphere belongs in banner and surface art slots, never inside interaction geometry.
+
 Tosker should feel playful, social, warm, crafted, and alive—modern American technology with an editorial streak. The visual world can feel imaginative; the interface language stays ordinary.
 
 ## Principles

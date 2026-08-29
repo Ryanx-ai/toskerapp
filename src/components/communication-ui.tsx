@@ -16,6 +16,22 @@ import {
 } from "@/data/messaging-data";
 import { prototypeUser, sandboxLabel } from "@/data/prototype-user";
 import { prototypeStore } from "@/lib/prototype-store";
+import {
+  CalendarDays,
+  File,
+  ImageIcon,
+  Laugh,
+  MoreHorizontal,
+  Paperclip,
+  Phone,
+  Plus,
+  Reply,
+  Search,
+  Send,
+  Settings,
+  Smile,
+  Video,
+} from "lucide-react";
 
 const reactions = ["❤️", "👍", "😂", "🔥", "✨", "👀"];
 const utilityCopy: Record<string, string> = {
@@ -67,11 +83,11 @@ function openLayer() {
 
 function UtilityButton({
   label,
-  icon,
+  icon: Icon,
   onOpen,
 }: {
   label: string;
-  icon: string;
+  icon: React.ComponentType<{ size?: number }>;
   onOpen: (label: string) => void;
 }) {
   return (
@@ -81,7 +97,7 @@ function UtilityButton({
       aria-label={label}
       onClick={() => onOpen(label)}
     >
-      <span aria-hidden="true">{icon}</span>
+      <Icon size={16} />
     </button>
   );
 }
@@ -98,21 +114,21 @@ export function SurfaceHeader({
   const [panel, setPanel] = useState<string | null>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   useDismissLayer(Boolean(panel), () => setPanel(null), popoverRef);
-  const utilities =
+  const utilities: Array<[string, React.ComponentType<{ size?: number }>]> =
     conversation.kind === "my-room"
       ? [
-          ["Search", "⌕"],
-          ["Calendar", "▦"],
-          ["Settings", "⚙"],
-          ["More", "•••"],
+          ["Search", Search],
+          ["Calendar", CalendarDays],
+          ["Settings", Settings],
+          ["More", MoreHorizontal],
         ]
       : [
-          ["Search", "⌕"],
-          ["Voice", "◖"],
-          ["Video", "▹"],
-          ["Calendar", "▦"],
-          ["Settings", "⚙"],
-          ["More", "•••"],
+          ["Search", Search],
+          ["Voice", Phone],
+          ["Video", Video],
+          ["Calendar", CalendarDays],
+          ["Settings", Settings],
+          ["More", MoreHorizontal],
         ];
   const showPanel = (label: string) => {
     openLayer();
@@ -267,7 +283,13 @@ function MessageBubble({
             <p>{message.body}</p>
             {message.attachment ? (
               <div className="message-attachment">
-                <span>{message.attachment.type === "image" ? "▧" : "▤"}</span>
+                <span>
+                  {message.attachment.type === "image" ? (
+                    <ImageIcon size={20} />
+                  ) : (
+                    <File size={20} />
+                  )}
+                </span>
                 <div>
                   <strong>{message.attachment.name}</strong>
                   <small>{message.attachment.meta}</small>
@@ -291,13 +313,13 @@ function MessageBubble({
           </div>
           <div className="message-hover-actions">
             <button aria-label="React" onClick={showPicker}>
-              ♡
+              <Laugh size={14} />
             </button>
             <button aria-label="Reply" onClick={() => onReply(message)}>
-              ↩
+              <Reply size={14} />
             </button>
             <button aria-label="More message actions" onClick={showMenu}>
-              •••
+              <MoreHorizontal size={15} />
             </button>
           </div>
         </div>
@@ -372,9 +394,18 @@ function Composer({
       ) : null}
       <div className="composer">
         <div className="composer-tools">
-          <button aria-label="Add image">▧</button>
-          <button aria-label="Add file">▤</button>
-          <button aria-label="Add emoji">☺</button>
+          <button aria-label="Attach">
+            <Paperclip size={17} />
+          </button>
+          <button aria-label="Add image">
+            <ImageIcon size={17} />
+          </button>
+          <button aria-label="Add file">
+            <File size={17} />
+          </button>
+          <button aria-label="Add emoji">
+            <Smile size={17} />
+          </button>
         </div>
         <textarea
           value={value}
@@ -395,7 +426,7 @@ function Composer({
           onClick={send}
           aria-label="Send message"
         >
-          ↑
+          <Send size={17} />
         </button>
       </div>
     </div>
@@ -556,7 +587,7 @@ function HallCard({ notice }: { notice: (typeof hallNotices)[number] }) {
         }}
         aria-label={`Actions for ${notice.title}`}
       >
-        •••
+        <MoreHorizontal size={15} />
       </button>
       {open ? (
         <div ref={ref} className="context-menu hall-context">
@@ -609,7 +640,9 @@ export function HallSurface({
             {empty ? "Pin the stuff everyone should know" : contextual.support}
           </p>
         </div>
-        <button className="new-hall-note">＋ New note</button>
+        <button className="new-hall-note">
+          <Plus size={15} /> New note
+        </button>
       </header>
       {empty ? null : (
         <div className="notice-list">

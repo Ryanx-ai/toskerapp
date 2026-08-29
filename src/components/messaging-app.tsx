@@ -12,20 +12,36 @@ import {
   ProductSurface,
   type ProductWorkspace,
 } from "@/components/product-surface";
+import { WorkspaceBanner } from "@/components/workspace-banner";
 import {
   ChatSurface,
   HallSurface,
   SurfaceHeader,
   useDismissLayer,
 } from "@/components/communication-ui";
+import {
+  Bell,
+  ChevronLeft,
+  ChevronRight,
+  CircleHelp,
+  Compass,
+  MessageCircle,
+  Plus,
+  Search,
+  Settings,
+  ShoppingBag,
+  Sparkles,
+  UsersRound,
+  WandSparkles,
+} from "lucide-react";
 
 export type AppWorkspace = ProductWorkspace | "friends" | "create";
 type Overlay = "choose" | "chat" | "room" | "invite" | "add" | null;
 const nav = [
-  { label: "Explore", icon: "⌕", href: "/explore" },
-  { label: "Friends", icon: "◎", href: "/friends" },
-  { label: "Marketplace", icon: "◇", href: "/marketplace" },
-  { label: "Studio", icon: "✦", href: "/studio" },
+  { label: "Explore", icon: Compass, href: "/explore" },
+  { label: "Friends", icon: UsersRound, href: "/friends" },
+  { label: "Marketplace", icon: ShoppingBag, href: "/marketplace" },
+  { label: "Studio", icon: WandSparkles, href: "/studio" },
 ];
 const friends = [
   {
@@ -63,6 +79,30 @@ const friends = [
 ];
 const things = ["Poll", "Schedule", "Map", "Board"];
 const roomTags = ["TRIP", "EVENT", "WORK", "GAMING", "FAMILY"];
+const COLLAPSE_KEY = "tosker.sidebar.collapsed";
+const collapseStore = {
+  subscribe(listener: () => void) {
+    window.addEventListener("tosker:sidebar", listener);
+    window.addEventListener("storage", listener);
+    return () => {
+      window.removeEventListener("tosker:sidebar", listener);
+      window.removeEventListener("storage", listener);
+    };
+  },
+  getSnapshot() {
+    return window.localStorage.getItem(COLLAPSE_KEY) === "true";
+  },
+  getServerSnapshot() {
+    return false;
+  },
+  toggle() {
+    window.localStorage.setItem(
+      COLLAPSE_KEY,
+      String(!collapseStore.getSnapshot()),
+    );
+    window.dispatchEvent(new Event("tosker:sidebar"));
+  },
+};
 
 function nameOf(item: Conversation) {
   return item.kind === "my-room" ? sandboxLabel(prototypeUser) : item.name;
@@ -207,13 +247,18 @@ function ConversationRow({
       onPointerCancel={endPress}
       onPointerLeave={endPress}
     >
-      <Link href={hrefOf(item)} className="conversation-row">
+      <Link
+        href={hrefOf(item)}
+        className="conversation-row"
+        aria-label={nameOf(item)}
+        data-name={nameOf(item)}
+      >
         <Avatar item={item} />
         <span className="conversation-copy">
           <span className="conversation-name">
             {item.kind === "room" ? (
               <i className="room-mark" aria-label="Room">
-                ✦
+                <Sparkles size={11} />
               </i>
             ) : null}
             {nameOf(item)}{" "}
@@ -242,18 +287,8 @@ function ConversationRow({
 }
 
 function ProfileRegion({ mode }: { mode: "new" | "demo" }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  const close = useCallback(() => setOpen(false), []);
-  useDismissLayer(open, close, ref);
   return (
     <div className="sidebar-bottom">
-      <div className="utility-nav">
-        <Link href="/help">
-          <span>?</span>
-          <strong>Help &amp; Feedback</strong>
-        </Link>
-      </div>
       <div className="profile-nameplate">
         <span className="avatar avatar-gold">{prototypeUser.initials}</span>
         <span>
@@ -261,32 +296,27 @@ function ProfileRegion({ mode }: { mode: "new" | "demo" }) {
           <small>{prototypeUser.role}</small>
         </span>
         <div className="profile-actions">
-          <button
-            aria-label="Notifications and recent activity"
-            onClick={() => {
-              window.dispatchEvent(new Event("tosker:close-popovers"));
-              setOpen(true);
-            }}
+          <Link
+            href="/notifications"
+            aria-label="Notifications"
+            data-tip="Notifications"
+            className="has-tip profile-notifications"
           >
-            ♢
-          </button>
+            <Bell size={16} />
+            <i aria-hidden="true" />
+          </Link>
           <Link href="/settings" aria-label="Settings">
-            ⚙
+            <Settings size={16} />
+          </Link>
+          <Link
+            href="/help"
+            aria-label="Help & Feedback"
+            data-tip="Help & Feedback"
+            className="has-tip"
+          >
+            <CircleHelp size={16} />
           </Link>
         </div>
-        {open ? (
-          <div ref={ref} className="notification-popover">
-            <strong>Recent activity</strong>
-            {[
-              "Mika replied",
-              "Mentioned in Tokyo 2027",
-              "New Hall note",
-              "Room invite accepted",
-            ].map((item) => (
-              <span key={item}>{item}</span>
-            ))}
-          </div>
-        ) : null}
       </div>
       <div className="walkthrough-controls">
         <span>Prototype state</span>
@@ -311,10 +341,14 @@ function AppSidebar({
   selected,
   workspace,
   onCreate,
+  collapsed,
+  onToggleCollapse,
 }: {
   selected?: Conversation;
   workspace?: AppWorkspace;
   onCreate: () => void;
+  collapsed: boolean;
+  onToggleCollapse: () => void;
 }) {
   const state = useSyncExternalStore(
     prototypeStore.subscribe,
@@ -386,24 +420,47 @@ function AppSidebar({
             height={72}
             priority
           />
+          <Image
+            className="mark-logo"
+            src="/brand/toskerlogo-icon-main.svg"
+            alt=""
+            width={38}
+            height={38}
+          />
         </Link>
+        <button
+          className="collapse-button has-tip"
+          data-tip={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          onClick={onToggleCollapse}
+        >
+          {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+        </button>
       </div>
       <nav className="product-nav" aria-label="Tosker destinations">
-        {nav.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={`product-nav-item ${workspace === item.label.toLowerCase() ? "active" : ""}`}
-          >
-            <span>{item.icon}</span>
-            <strong>{item.label}</strong>
-          </Link>
-        ))}
+        {nav.map((item) => {
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              aria-label={item.label}
+              className={`product-nav-item ${workspace === item.label.toLowerCase() ? "active" : ""}`}
+            >
+              <span>
+                <Icon size={17} />
+              </span>
+              <strong>{item.label}</strong>
+            </Link>
+          );
+        })}
       </nav>
       <section className="conversation-section">
         <div className="unified-search">
           <label>
-            <span>⌕</span>
+            <span>
+              <Search size={15} />
+            </span>
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
@@ -416,7 +473,7 @@ function AppSidebar({
             onClick={onCreate}
             aria-label="Start a chat or create a Room"
           >
-            ＋
+            <Plus size={17} />
           </button>
         </div>
         <div className="conversation-list">
@@ -453,21 +510,23 @@ function FriendsSurface({
   );
   return (
     <section className="friends-surface workspace-scroll">
-      <header>
-        <div>
-          <p className="eyebrow">Friends</p>
-          <h1>Your people</h1>
-        </div>
-        <button
-          onClick={() =>
-            document
-              .querySelector<HTMLInputElement>(".friends-search input")
-              ?.focus()
-          }
-        >
-          ＋ Add friend
-        </button>
-      </header>
+      <WorkspaceBanner
+        eyebrow="Friends"
+        title="Your people"
+        body="The conversations and connections you keep close."
+        intensity="quiet"
+        action={
+          <button
+            onClick={() =>
+              document
+                .querySelector<HTMLInputElement>(".friends-search input")
+                ?.focus()
+            }
+          >
+            <Plus size={15} /> Add friend
+          </button>
+        }
+      />
       <label className="friends-search">
         <span>⌕</span>
         <input
@@ -808,19 +867,40 @@ function MobileNav() {
   return (
     <nav className="mobile-app-nav" aria-label="Mobile destinations">
       <Link href="/">
-        <span>◉</span>Chats
+        <span>
+          <MessageCircle size={17} />
+        </span>
+        Chats
       </Link>
       <Link href="/explore">
-        <span>⌕</span>Explore
+        <span>
+          <Compass size={17} />
+        </span>
+        Explore
       </Link>
       <Link href="/friends">
-        <span>◎</span>Friends
+        <span>
+          <UsersRound size={17} />
+        </span>
+        Friends
       </Link>
       <Link href="/marketplace">
-        <span>◇</span>Market
+        <span>
+          <ShoppingBag size={17} />
+        </span>
+        Market
       </Link>
       <Link href="/studio">
-        <span>✦</span>Studio
+        <span>
+          <WandSparkles size={17} />
+        </span>
+        Studio
+      </Link>
+      <Link href="/notifications">
+        <span>
+          <Bell size={17} />
+        </span>
+        Alerts
       </Link>
     </nav>
   );
@@ -843,6 +923,11 @@ export function MessagingApp({
   const router = useRouter();
   const [overlay, setOverlay] = useState<Overlay>(
     workspace === "create" ? "room" : null,
+  );
+  const collapsed = useSyncExternalStore(
+    collapseStore.subscribe,
+    collapseStore.getSnapshot,
+    collapseStore.getServerSnapshot,
   );
   const canonical = selectedSlug
     ? conversations.find((item) => item.slug === selectedSlug)
@@ -885,12 +970,14 @@ export function MessagingApp({
   };
   return (
     <main
-      className={`messaging-app ${selected ? "has-selection" : "list-only"}`}
+      className={`messaging-app ${selected ? "has-selection" : "list-only"} ${collapsed ? "sidebar-collapsed" : ""}`}
     >
       <AppSidebar
         selected={selected}
         workspace={workspace}
         onCreate={() => setOverlay("choose")}
+        collapsed={collapsed}
+        onToggleCollapse={collapseStore.toggle}
       />
       <div className="working-surface">
         {selected ? (

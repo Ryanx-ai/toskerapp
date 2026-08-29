@@ -6,6 +6,14 @@
 - Hall interaction lock: contextual Sandbox/personal/Room copy, compact notice cards, prototype note actions, and restrained empty states.
 - Art integration remains structurally separate through surface-level layers; final artwork is intentionally deferred.
 
+## Milestone 2.5 — final shell pass
+
+- Notifications and recent activity share one prototype workspace entered through the profile bell.
+- Notifications, Settings, and Help & Feedback live together in the profile nameplate.
+- Desktop rail collapse is restored and persisted locally; mobile retains independent navigation.
+- Product destinations share one responsive banner architecture with contextual intensity.
+- Lucide provides production-grade functional icons. Authored atmosphere art remains deferred pending founder approval.
+
 > Every milestone must earn the next one. Do not build Tosker according to the size of the dream; build according to what users demonstrate they need.
 
 Every numbered milestone ends with founder review before the next begins.

@@ -1,5 +1,7 @@
 # Tosker Vision
 
+Notifications are a durable attention surface inside the communication shell, not a transient popover and not a claim of backend capability. The bell is the single entry point for notification and activity prototype content.
+
 ## Living communication spaces
 
 Chat is the live conversation, Hall is the durable shared memory, and Add extends a space without changing its identity. This model now applies consistently to a private Sandbox, a personal conversation, and a multi-person Room. Future atmosphere art can evolve independently behind these functional layers.

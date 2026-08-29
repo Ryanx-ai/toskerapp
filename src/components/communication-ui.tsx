@@ -18,6 +18,7 @@ import { prototypeUser, sandboxLabel } from "@/data/prototype-user";
 import { prototypeStore } from "@/lib/prototype-store";
 import {
   CalendarDays,
+  ArrowLeft,
   File,
   ImageIcon,
   Laugh,
@@ -85,16 +86,19 @@ function UtilityButton({
   label,
   icon: Icon,
   onOpen,
+  expanded,
 }: {
   label: string;
   icon: React.ComponentType<{ size?: number }>;
   onOpen: (label: string) => void;
+  expanded: boolean;
 }) {
   return (
     <button
       className="action-icon"
       data-tip={label}
       aria-label={label}
+      aria-expanded={expanded}
       onClick={() => onOpen(label)}
     >
       <Icon size={16} />
@@ -137,7 +141,7 @@ export function SurfaceHeader({
   return (
     <header className="conversation-header">
       <Link href="/" className="mobile-back" aria-label="Back to chats">
-        ←
+        <ArrowLeft size={18} />
       </Link>
       <span
         className={`avatar avatar-${conversation.color} avatar-pattern avatar-large`}
@@ -151,18 +155,21 @@ export function SurfaceHeader({
       <nav className="surface-tabs" aria-label="Space surfaces">
         <Link
           className={surface === "chat" ? "active" : ""}
+          aria-current={surface === "chat" ? "page" : undefined}
           href={baseHref(conversation)}
         >
           Chat
         </Link>
         <Link
           className={surface === "hall" ? "active" : ""}
+          aria-current={surface === "hall" ? "page" : undefined}
           href={`${baseHref(conversation)}/hall`}
         >
           Hall
         </Link>
         <button onClick={onAdd}>
-          ＋<small>Add</small>
+          <Plus size={15} />
+          <small>Add</small>
         </button>
       </nav>
       <div className="header-utilities">
@@ -172,6 +179,7 @@ export function SurfaceHeader({
             label={label}
             icon={icon}
             onOpen={showPanel}
+            expanded={panel === label}
           />
         ))}
       </div>

@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 import { WorkspaceBanner } from "@/components/workspace-banner";
 import {
@@ -307,6 +308,7 @@ const notificationItems = [
     title: "Mika replied to you",
     context: "Personal · That listening bar looks perfect.",
     time: "4m",
+    href: "/personal/mika-tan",
   },
   {
     type: "Rooms",
@@ -314,6 +316,7 @@ const notificationItems = [
     title: "You were mentioned in Tokyo 2027",
     context: "Theo asked about Thursday's plan.",
     time: "18m",
+    href: "/room/tokyo-2027",
   },
   {
     type: "Activity",
@@ -321,6 +324,7 @@ const notificationItems = [
     title: "A Hall note was pinned",
     context: "Flight details updated · Tokyo 2027",
     time: "1h",
+    href: "/room/tokyo-2027/hall",
   },
   {
     type: "Rooms",
@@ -328,6 +332,7 @@ const notificationItems = [
     title: "Someone joined Design Hack Night",
     context: "Anika is now in the Room.",
     time: "2h",
+    href: "/room/design-hack-night",
   },
   {
     type: "Activity",
@@ -335,6 +340,7 @@ const notificationItems = [
     title: "A Room invite was accepted",
     context: "Jordan joined Friday Pokémon.",
     time: "Yesterday",
+    href: "/room/friday-pokemon",
   },
   {
     type: "Activity",
@@ -342,6 +348,7 @@ const notificationItems = [
     title: "A reaction was added to your message",
     context: "Mika reacted ❤️ in Tokyo 2027.",
     time: "Yesterday",
+    href: "/room/tokyo-2027",
   },
 ];
 
@@ -365,6 +372,7 @@ function Notifications() {
             <button
               key={item}
               className={filter === item ? "active" : ""}
+              aria-pressed={filter === item}
               onClick={() => setFilter(item)}
             >
               {item}
@@ -384,7 +392,7 @@ function Notifications() {
                   <p>{item.context}</p>
                 </div>
                 <time>{item.time}</time>
-                <button>Open</button>
+                <Link href={item.href}>Open</Link>
               </article>
             );
           })}

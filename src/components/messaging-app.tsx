@@ -26,6 +26,7 @@ import {
   CircleHelp,
   Compass,
   MessageCircle,
+  MoreHorizontal,
   Plus,
   Search,
   Settings,
@@ -33,6 +34,7 @@ import {
   Sparkles,
   UsersRound,
   WandSparkles,
+  X,
 } from "lucide-react";
 
 export type AppWorkspace = ProductWorkspace | "friends" | "create";
@@ -275,6 +277,19 @@ function ConversationRow({
           ) : null}
         </span>
       </Link>
+      {item.kind !== "my-room" ? (
+        <button
+          className="row-options"
+          aria-label={`Actions for ${nameOf(item)}`}
+          aria-expanded={open}
+          onClick={() => {
+            window.dispatchEvent(new Event("tosker:close-popovers"));
+            setOpen(true);
+          }}
+        >
+          <MoreHorizontal size={15} />
+        </button>
+      ) : null}
       {open ? (
         <ContextMenu
           item={item}
@@ -286,7 +301,13 @@ function ConversationRow({
   );
 }
 
-function ProfileRegion({ mode }: { mode: "new" | "demo" }) {
+function ProfileRegion({
+  mode,
+  workspace,
+}: {
+  mode: "new" | "demo";
+  workspace?: AppWorkspace;
+}) {
   return (
     <div className="sidebar-bottom">
       <div className="profile-nameplate">
@@ -301,11 +322,18 @@ function ProfileRegion({ mode }: { mode: "new" | "demo" }) {
             aria-label="Notifications"
             data-tip="Notifications"
             className="has-tip profile-notifications"
+            aria-current={workspace === "notifications" ? "page" : undefined}
           >
             <Bell size={16} />
             <i aria-hidden="true" />
           </Link>
-          <Link href="/settings" aria-label="Settings">
+          <Link
+            href="/settings"
+            aria-label="Settings"
+            data-tip="Settings"
+            className="has-tip"
+            aria-current={workspace === "settings" ? "page" : undefined}
+          >
             <Settings size={16} />
           </Link>
           <Link
@@ -313,6 +341,7 @@ function ProfileRegion({ mode }: { mode: "new" | "demo" }) {
             aria-label="Help & Feedback"
             data-tip="Help & Feedback"
             className="has-tip"
+            aria-current={workspace === "help" ? "page" : undefined}
           >
             <CircleHelp size={16} />
           </Link>
@@ -356,6 +385,16 @@ function AppSidebar({
     prototypeStore.getServerSnapshot,
   );
   const [query, setQuery] = useState("");
+  const [expandedForSearch, setExpandedForSearch] = useState(false);
+  const sidebarRouter = useRouter();
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const openCollapsedSearch = () => {
+    setExpandedForSearch(true);
+    onToggleCollapse();
+    window.requestAnimationFrame(() =>
+      window.requestAnimationFrame(() => searchInputRef.current?.focus()),
+    );
+  };
   const standard =
     state.mode === "demo"
       ? conversations
@@ -432,6 +471,7 @@ function AppSidebar({
           className="collapse-button has-tip"
           data-tip={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-expanded={!collapsed}
           onClick={onToggleCollapse}
         >
           {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
@@ -445,6 +485,9 @@ function AppSidebar({
               key={item.href}
               href={item.href}
               aria-label={item.label}
+              aria-current={
+                workspace === item.label.toLowerCase() ? "page" : undefined
+              }
               className={`product-nav-item ${workspace === item.label.toLowerCase() ? "active" : ""}`}
             >
               <span>
@@ -457,17 +500,38 @@ function AppSidebar({
       </nav>
       <section className="conversation-section">
         <div className="unified-search">
-          <label>
-            <span>
+          {collapsed ? (
+            <button
+              className="collapsed-search-trigger has-tip"
+              data-tip="Search"
+              aria-label="Search conversations"
+              onClick={openCollapsedSearch}
+            >
               <Search size={15} />
-            </span>
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search"
-              aria-label="Search"
-            />
-          </label>
+            </button>
+          ) : (
+            <label>
+              <span>
+                <Search size={15} />
+              </span>
+              <input
+                ref={searchInputRef}
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Escape" && expandedForSearch) {
+                    setExpandedForSearch(false);
+                    onToggleCollapse();
+                  }
+                  if (event.key === "Enter" && ordered[0]) {
+                    sidebarRouter.push(hrefOf(ordered[0]));
+                  }
+                }}
+                placeholder="Search"
+                aria-label="Search"
+              />
+            </label>
+          )}
           <button
             className="create-trigger"
             onClick={onCreate}
@@ -491,7 +555,7 @@ function AppSidebar({
           ) : null}
         </div>
       </section>
-      <ProfileRegion mode={state.mode} />
+      <ProfileRegion mode={state.mode} workspace={workspace} />
     </aside>
   );
 }
@@ -528,17 +592,19 @@ function FriendsSurface({
         }
       />
       <label className="friends-search">
-        <span>⌕</span>
+        <Search size={16} aria-hidden="true" />
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Search name, username or TID"
+          aria-label="Search friends"
         />
       </label>
       <nav>
         {["All", "Online", "Requests"].map((item) => (
           <button
             className={tab === item ? "active" : ""}
+            aria-pressed={tab === item}
             onClick={() => setTab(item)}
             key={item}
           >
@@ -645,7 +711,7 @@ function CreationOverlay({
         aria-modal="true"
       >
         <button className="overlay-close" onClick={onClose} aria-label="Close">
-          ×
+          <X size={17} />
         </button>
         {mode === "choose" ? (
           <>
@@ -670,7 +736,7 @@ function CreationOverlay({
             <p className="eyebrow">Start a chat</p>
             <h2>Who are you looking for?</h2>
             <label className="friends-search">
-              <span>⌕</span>
+              <Search size={16} aria-hidden="true" />
               <input
                 autoFocus
                 value={friendQuery}
@@ -1027,8 +1093,12 @@ export function MessagingApp({
       {overlay === "add" ? (
         <div className="overlay-backdrop">
           <section className="creation-panel">
-            <button className="overlay-close" onClick={() => setOverlay(null)}>
-              ×
+            <button
+              className="overlay-close"
+              onClick={() => setOverlay(null)}
+              aria-label="Close"
+            >
+              <X size={17} />
             </button>
             <h2>Add something</h2>
             <p>Add to this space.</p>

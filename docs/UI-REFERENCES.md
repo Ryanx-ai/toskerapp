@@ -1,5 +1,11 @@
 # UI References
 
+## Milestone 2 shell lock
+
+Sandbox is visually neutral and private, personal conversations remain person-led, and Rooms receive a gold sparkle plus a stronger uppercase tag. All three space types share Chat, Hall, and Add. Topbar utilities prioritize search and communication actions while lower-priority controls collapse on narrower desktop widths.
+
+Hall cards use a consistent three-column desktop system, two columns at intermediate widths, and one column on mobile. Artwork must be mounted through the independent `art-layer-ready` surface layer so content and interaction structure never depend on illustration assets.
+
 | Reference | Route / state | Surface |
 | --- | --- | --- |
 | `TOS.APP.01` | `/` and all conversation routes | Main messaging shell |

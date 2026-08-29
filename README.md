@@ -1,5 +1,9 @@
 # Tosker
 
+## Milestone 2 communication shell
+
+The local prototype now uses one persistent communication model across Sandbox, personal conversations, and Rooms: every space exposes Chat, Hall, and Add; desktop conversation rows can be reordered; message menus support replies and reactions; and the Hall uses a compact, contextual notice-card system. Prototype data is versioned in local storage and remains local-only.
+
 Tosker is a messaging-first application built around Rooms: familiar conversation on the surface, with space for much more inside each Room.
 
 Milestone 1 is locked. Milestone 2 is **in progress / founder review** and adds a complete first-time journey, local prototype Room creation, prototype invitation and Add-to-Room interactions, and believable Explore, Marketplace, Studio, Settings, and Help surfaces. There is still no backend, authentication, realtime infrastructure, payment system, plugin runtime, or production translation service.

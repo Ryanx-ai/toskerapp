@@ -1,5 +1,9 @@
 # Tosker Vision
 
+## Living communication spaces
+
+Chat is the live conversation, Hall is the durable shared memory, and Add extends a space without changing its identity. This model now applies consistently to a private Sandbox, a personal conversation, and a multi-person Room. Future atmosphere art can evolve independently behind these functional layers.
+
 Tosker is a shared digital Room that becomes whatever the people inside it need.
 
 ## Product direction

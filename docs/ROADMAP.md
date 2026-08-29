@@ -1,5 +1,11 @@
 # Tosker Roadmap
 
+## Milestone 2.3 + 2.4 — complete
+
+- Communication interaction lock: shared topbar utilities, dismissible menus, reply context, reactions, message actions, and persistent desktop ordering.
+- Hall interaction lock: contextual Sandbox/personal/Room copy, compact notice cards, prototype note actions, and restrained empty states.
+- Art integration remains structurally separate through surface-level layers; final artwork is intentionally deferred.
+
 > Every milestone must earn the next one. Do not build Tosker according to the size of the dream; build according to what users demonstrate they need.
 
 Every numbered milestone ends with founder review before the next begins.

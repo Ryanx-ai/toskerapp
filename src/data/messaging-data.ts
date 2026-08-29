@@ -13,6 +13,7 @@ export type Message = {
   translation?: string;
   attachment?: { type: "image" | "file"; name: string; meta: string };
   replyTo?: string;
+  reactions?: string[];
 };
 
 export type Conversation = {
@@ -29,7 +30,7 @@ export type Conversation = {
   tag?: string;
 };
 
-export type HallNotice = { id: string; icon: string; category: "Announcement" | "Decision" | "Reminder" | "Link" | "Poll result"; title: string; body: string; author: string; time: string; accent: "gold" | "pink" | "yellow" | "blue"; pinned?: boolean };
+export type HallNotice = { id: string; icon: string; category: "Announcement" | "Decision" | "Reminder" | "Link" | "Poll result" | "Details"; title: string; body: string; author: string; time: string; accent: "gold" | "pink" | "yellow" | "blue"; pinned?: boolean };
 
 export const conversations: Conversation[] = [
   {
@@ -95,6 +96,7 @@ export const hallNotices: HallNotice[] = [
   { id: "passport", icon: "!", category: "Reminder", title: "Bring passports tomorrow", body: "We need them for the rail-pass collection at Tokyo Station.", author: "Ryan", time: "Yesterday", accent: "yellow" },
   { id: "itinerary", icon: "↗", category: "Link", title: "Shared itinerary", body: "The latest day-by-day plan, arrival details, and saved places live here.", author: "Ayu", time: "Yesterday", accent: "blue" },
   { id: "poll", icon: "◒", category: "Poll result", title: "Team chose Shibuya", body: "Five votes to one. Thursday afternoon is now officially record-store time.", author: "Tosker", time: "Monday", accent: "gold" },
+  { id: "checkin", icon: "⌂", category: "Details", title: "Check-in after 3 PM", body: "Shibuya Stay, 5-12-8 Dogenzaka. The booking is under Ryan.", author: "Ryan", time: "Monday", accent: "blue" },
 ];
 
 export function getConversation(slug: string) {

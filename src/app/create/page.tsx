@@ -1,2 +1,2 @@
-import { CreateRoomForm } from "@/components/create-room-form";
-export default function CreateRoom() { return <CreateRoomForm />; }
+import { MessagingApp } from "@/components/messaging-app";
+export default function CreateRoom() { return <MessagingApp workspace="create" />; }

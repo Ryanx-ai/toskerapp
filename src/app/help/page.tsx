@@ -1,2 +1,2 @@
-import { ProductSurface } from "@/components/product-surface";
-export default function HelpPage() { return <ProductSurface surface="help" />; }
+import { MessagingApp } from "@/components/messaging-app";
+export default function HelpPage() { return <MessagingApp workspace="help" />; }

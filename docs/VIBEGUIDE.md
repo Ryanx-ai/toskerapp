@@ -14,7 +14,10 @@ Tosker should feel playful, social, warm, crafted, and alive—modern American t
 - **Teach by doing.** First-run guidance belongs beside the interaction it explains; avoid detached onboarding tours.
 - **Human empty states.** Prefer “Quiet in here” to system-status prose. Keep wit brief and let utility win.
 - **Prototype honesty.** Future surfaces should feel believable while clearly labelling actions that do not work yet.
-- **Personal, not repetitive.** Use the person’s name at meaningful orientation moments such as the Dashboard and greeting; do not insert it mechanically.
+- **Personal, not repetitive.** Use the person’s name at meaningful orientation moments such as Sandbox and the greeting; do not insert it mechanically.
+
+- **Two lines are usually enough.** Functional empty states use one restrained serif thought and one quiet sans-serif support line. Do not stack an eyebrow, hero headline, and explanation by default.
+- **Human software language.** Prefer Search, Start a chat, Add people, Skip for now, and Copy link. A rare memorable phrase such as Nuke conversation is welcome; clarity still wins.
 - **Complete short thoughts.** Keep concise desktop headings and helper copy on one line when space permits. Avoid intentionally stacked sentence fragments.
 
 ## Conceptual lessons

@@ -1,2 +1,2 @@
-import { ProductSurface } from "@/components/product-surface";
-export default function ExplorePage() { return <ProductSurface surface="explore" />; }
+import { MessagingApp } from "@/components/messaging-app";
+export default function ExplorePage() { return <MessagingApp workspace="explore" />; }

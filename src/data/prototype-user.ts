@@ -10,4 +10,4 @@ export const prototypeUser: PrototypeUser = {
   role: "Founder preview",
 };
 
-export const dashboardLabel = (user: PrototypeUser) => `${user.displayName}'s Dashboard`;
+export const sandboxLabel = (user: PrototypeUser) => `${user.displayName}'s Sandbox`;

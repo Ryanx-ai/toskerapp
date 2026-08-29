@@ -55,3 +55,7 @@ Mobile navigation optimisation is also a later UX milestone; Milestone 1 preserv
 ## Milestone 2.1 — Communication refinement
 
 Founder review refines the messaging shell before production architecture: denser navigation, dynamic Dashboard identity, functional search, resilient chat scrolling, representative message types, contextual actions, composer affordances, Subroom placement, responsive behavior, and quieter atmospheric empty states.
+
+## Milestone 2.2 — Persistent communication architecture
+
+The conversation rail becomes Tosker's stable product spine across Chat, Hall, Explore, Friends, Marketplace, Studio, Settings, and Help. Personal conversations and Rooms share one compact list, the permanent private space becomes Sandbox, and Room identity uses lightweight tags. Local prototypes cover pinning, Friends/TID discovery, Personal Chat creation, and a fast Room flow with optional tags, things, people, invite link, and QR. Mobile keeps messaging primary through a compact five-destination bottom navigation. These flows validate product structure; they are not backend or identity architecture.

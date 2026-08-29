@@ -26,13 +26,14 @@ export type Conversation = {
   unread?: number;
   context: string;
   messages: Message[];
+  tag?: string;
 };
 
 export type HallNotice = { id: string; icon: string; category: "Announcement" | "Decision" | "Reminder" | "Link" | "Poll result"; title: string; body: string; author: string; time: string; accent: "gold" | "pink" | "yellow" | "blue"; pinned?: boolean };
 
 export const conversations: Conversation[] = [
   {
-    slug: "my-room", kind: "my-room", name: "My Room", initials: "RY", color: "gold", preview: "A private place for your thoughts", time: "Now", context: "Private · Just you",
+    slug: "my-room", kind: "my-room", name: "My Room", initials: "RY", color: "gold", preview: "Links, thoughts, notes", time: "Now", context: "Private · Just you",
     messages: [
       { id: "mine-welcome", author: "Tosker", initials: "✦", body: "This is your room. Send yourself something.", time: "9:00 AM", color: "gold" },
       { id: "mine-note", author: "Ryan", initials: "RY", body: "Ideas for Tokyo: quiet coffee, record stores, and one completely unplanned afternoon.", time: "9:14 AM", color: "gold", mine: true },
@@ -57,7 +58,7 @@ export const conversations: Conversation[] = [
     messages: [{ id: "anika-1", author: "Anika", initials: "AN", body: "Perfect, see you Friday!", time: "Monday", color: "blue" }],
   },
   {
-    slug: "tokyo-2027", kind: "room", name: "Tokyo 2027", initials: "東京", color: "gold", preview: "Theo: This trip is operating at peak efficiency", time: "7:53 PM", unread: 4, context: "6 people · Tokyo, Japan",
+    slug: "tokyo-2027", kind: "room", name: "Tokyo 2027", initials: "東京", color: "gold", preview: "Theo: This trip is operating at peak efficiency", time: "7:53 PM", unread: 4, context: "6 people · Tokyo, Japan", tag: "TRIP",
     messages: [
       { id: "tokyo-01", author: "Mika", initials: "MK", body: "I moved the flight details into Hall so nobody has to hunt for them again", time: "9:08 AM", color: "pink" },
       { id: "tokyo-02", author: "Ryan", initials: "RY", body: "Heroic. I was three scrolls away from giving up", time: "9:10 AM", color: "gold", mine: true, replyTo: "Flight details are now in Hall" },
@@ -79,11 +80,11 @@ export const conversations: Conversation[] = [
     ],
   },
   {
-    slug: "design-hack-night", kind: "room", name: "Design Hack Night", initials: "✦", color: "pink", preview: "Sofia: Doors open at seven", time: "3:12 PM", context: "24 people · Tomorrow, 7:00 PM",
+    slug: "design-hack-night", kind: "room", name: "Design Hack Night", initials: "✦", color: "pink", preview: "Sofia: Doors open at seven", time: "3:12 PM", context: "24 people · Tomorrow, 7:00 PM", tag: "EVENT",
     messages: [{ id: "hack-1", author: "Sofia", initials: "SO", body: "Doors open at seven. Bring a charger and one strange idea.", time: "3:12 PM", color: "purple" }],
   },
   {
-    slug: "friday-pokemon", kind: "room", name: "Friday Pokémon", initials: "◒", color: "yellow", preview: "Chris: I finished the bracket", time: "Fri", context: "8 people · Friday",
+    slug: "friday-pokemon", kind: "room", name: "Friday Pokémon", initials: "◒", color: "yellow", preview: "Chris: I finished the bracket", time: "Fri", context: "8 people · Friday", tag: "GAMING",
     messages: [{ id: "pokemon-1", author: "Chris", initials: "CH", body: "I finished the bracket. No complaints about the seeding until snacks arrive.", time: "Friday", color: "yellow" }],
   },
 ];

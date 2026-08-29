@@ -11,7 +11,7 @@ The interface begins with a mental model people already understand: conversation
 Tosker’s current hierarchy is:
 
 - **Tosker:** the application
-- **My Room:** a private, permanent personal space
+- **Sandbox:** a private, permanent personal space that always anchors the communication list
 - **Personal:** direct conversations
 - **Rooms:** shared group spaces
 - **Chat:** ongoing conversation inside a Room
@@ -62,7 +62,9 @@ Cross-border finance—shared expenses, requests, event payments, collections, c
 
 Extensible Rooms will eventually need deliberate controls for owners, admins, moderators, members, guests, app permissions, posting, Hall editing, customisation, installation, and public/private visibility. Permissions should be designed alongside persistence and identity rather than patched in later.
 
-Personal conversations and Rooms must make privacy understandable at a glance. Future access control should define visibility, invitations, posting, Hall editing, installation, export, and removal rights; private Dashboard content stays inaccessible to others by default. Subrooms should inherit or explicitly override parent access rather than creating ambiguous privacy boundaries.
+Personal conversations and Rooms must make privacy understandable at a glance. Future access control should define visibility, invitations, posting, Hall editing, installation, export, and removal rights; private Sandbox content stays inaccessible to others by default. Subrooms should inherit or explicitly override parent access rather than creating ambiguous privacy boundaries.
+
+TID (Tosker ID) is the working concept for a human-readable unique identity reference. MS2.2 uses representative local TIDs only; assignment, lookup, authentication, phone discovery, and privacy policy remain future architecture.
 
 ## Brand narrative and future landing page
 

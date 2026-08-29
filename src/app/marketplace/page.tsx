@@ -1,2 +1,2 @@
-import { ProductSurface } from "@/components/product-surface";
-export default function MarketplacePage() { return <ProductSurface surface="marketplace" />; }
+import { MessagingApp } from "@/components/messaging-app";
+export default function MarketplacePage() { return <MessagingApp workspace="marketplace" />; }

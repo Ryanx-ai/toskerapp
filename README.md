@@ -19,7 +19,8 @@ Open [http://localhost:3000](http://localhost:3000). Validate with `npm run lint
 ## Routes
 
 - `/` — messaging shell and conversation list
-- `/personal/my-room` — private My Room
+- `/personal/my-room` — permanent private Sandbox
+- `/friends` — local Friends, requests, TID search, and chat creation prototype
 - `/personal/[slug]` — personal conversation
 - `/room/[slug]` — shared Room, opening directly into Chat
 - `/room/[slug]/hall` — Room Hall
@@ -37,7 +38,7 @@ Route changes preserve a persistent shell component while allowing direct links 
 - `src/components/messaging-app.tsx` — persistent shell and local interactive messaging
 - `src/data/messaging-data.ts` — typed conversations, multilingual messages, translations, and Hall notices
 - `src/data/prototype-user.ts` — central prototype identity used for personalisation
-- `src/lib/prototype-store.ts` — versioned localStorage state for fresh/demo mode, My Room messages, and locally created Rooms
+- `src/lib/prototype-store.ts` — versioned localStorage state for Sandbox messages, local chats and Rooms, tags, pinning, and archives
 - `public/brand` — founder-supplied canonical SVG identity assets
 - `docs` — product vision, vibeguide, UI references, and roadmap
 
@@ -48,3 +49,5 @@ The sidebar’s clearly labelled **Prototype state** control resets the browser 
 On desktop, Tosker owns the viewport: navigation and utility regions remain anchored while conversation history, Hall, and product canvases scroll independently. Mobile retains its focused list-to-conversation layout.
 
 Milestone 2.1 adds client-side conversation search, compact reusable conversation rows, contextual actions, attachment placeholders, emoji entry, guarded destructive actions, and predictable chat-scroll behavior. These interactions remain local prototype state unless explicitly described otherwise.
+
+Milestone 2.2 makes the communication rail the persistent application spine. Explore, Friends, Marketplace, Studio, Settings, and Help are workspaces inside that shell. The unified list keeps Sandbox first, uses Room tags as compact metadata, and supports local search and pinning. The pink creation action branches into a Personal Chat flow or a fast optional-step Room flow.

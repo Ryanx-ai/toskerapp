@@ -31,7 +31,6 @@ import {
   Search,
   Settings,
   ShoppingBag,
-  Sparkles,
   UsersRound,
   WandSparkles,
   X,
@@ -116,12 +115,12 @@ function Avatar({
   item,
   large = false,
 }: {
-  item: Pick<Conversation, "initials" | "color">;
+  item: Pick<Conversation, "initials" | "color" | "kind">;
   large?: boolean;
 }) {
   return (
     <span
-      className={`avatar avatar-${item.color} avatar-pattern ${large ? "avatar-large" : ""}`}
+      className={`avatar avatar-${item.color} avatar-pattern ${item.kind === "room" ? "avatar-room" : ""} ${large ? "avatar-large" : ""}`}
     >
       {item.initials}
     </span>
@@ -252,17 +251,12 @@ function ConversationRow({
       <Link
         href={hrefOf(item)}
         className="conversation-row"
-        aria-label={nameOf(item)}
+        aria-label={`${nameOf(item)}${item.kind === "room" ? ", Room" : ""}`}
         data-name={nameOf(item)}
       >
         <Avatar item={item} />
         <span className="conversation-copy">
           <span className="conversation-name">
-            {item.kind === "room" ? (
-              <i className="room-mark" aria-label="Room">
-                <Sparkles size={11} />
-              </i>
-            ) : null}
             {nameOf(item)}{" "}
             {item.kind === "room" ? <small>{item.tag ?? "ROOM"}</small> : null}
           </span>

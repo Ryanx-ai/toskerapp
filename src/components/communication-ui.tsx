@@ -144,7 +144,13 @@ export function SurfaceHeader({
         <ArrowLeft size={18} />
       </Link>
       <span
-        className={`avatar avatar-${conversation.color} avatar-pattern avatar-large`}
+        className={`avatar avatar-${conversation.color} avatar-pattern ${conversation.kind === "room" ? "avatar-room" : ""} avatar-large`}
+        role={conversation.kind === "room" ? "img" : undefined}
+        aria-label={
+          conversation.kind === "room"
+            ? `${titleOf(conversation)} Room`
+            : undefined
+        }
       >
         {conversation.initials}
       </span>

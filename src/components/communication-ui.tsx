@@ -110,12 +110,10 @@ function UtilityButton({
 export function SurfaceHeader({
   conversation,
   surface,
-  onSurfaceChange,
   onAdd,
 }: {
   conversation: Conversation;
   surface: "chat" | "hall";
-  onSurfaceChange?: (surface: "chat" | "hall") => void;
   onAdd: () => void;
 }) {
   const [panel, setPanel] = useState<string | null>(null);
@@ -162,41 +160,20 @@ export function SurfaceHeader({
         <span>{conversation.context}</span>
       </div>
       <nav className="surface-tabs" aria-label="Space surfaces">
-        {onSurfaceChange ? (
-          <>
-            <button
-              className={surface === "chat" ? "active" : ""}
-              aria-pressed={surface === "chat"}
-              onClick={() => onSurfaceChange("chat")}
-            >
-              Chat
-            </button>
-            <button
-              className={surface === "hall" ? "active" : ""}
-              aria-pressed={surface === "hall"}
-              onClick={() => onSurfaceChange("hall")}
-            >
-              Hall
-            </button>
-          </>
-        ) : (
-          <>
-            <Link
-              className={surface === "chat" ? "active" : ""}
-              aria-current={surface === "chat" ? "page" : undefined}
-              href={baseHref(conversation)}
-            >
-              Chat
-            </Link>
-            <Link
-              className={surface === "hall" ? "active" : ""}
-              aria-current={surface === "hall" ? "page" : undefined}
-              href={`${baseHref(conversation)}/hall`}
-            >
-              Hall
-            </Link>
-          </>
-        )}
+        <Link
+          className={surface === "chat" ? "active" : ""}
+          aria-current={surface === "chat" ? "page" : undefined}
+          href={baseHref(conversation)}
+        >
+          Chat
+        </Link>
+        <Link
+          className={surface === "hall" ? "active" : ""}
+          aria-current={surface === "hall" ? "page" : undefined}
+          href={`${baseHref(conversation)}/hall`}
+        >
+          Hall
+        </Link>
         <button onClick={onAdd}>
           <Plus size={15} />
           <small>Add</small>

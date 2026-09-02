@@ -2,17 +2,19 @@
 
 Milestone 3 shipped as the locked first-time and desktop-workspace baseline. Production infrastructure remains intentionally local/prototype-only until a later milestone explicitly introduces it.
 
-## Sidebar
+## Shipped workspace
 
-The desktop workspace bar always exposes a keyboard-accessible **Show sidebar** / **Hide sidebar** control. The saved preference is local to the browser. When hidden, a focusable left-edge affordance may reveal the sidebar temporarily; leaving dismisses it and never changes the saved preference.
+Desktop keeps one persistent navigation rail and one primary working surface. The Tosker mark is the explicit, keyboard-accessible control for switching the rail between expanded and compact states, and the saved preference is local to the browser. The compact rail keeps destination icons, conversation identity, and the signed-in person's essential controls reachable.
 
-Mobile does not inherit the desktop top bar, hover reveal, or split workspace.
+Mobile remains a single-pane communication experience with five primary destinations.
 
-## Pane model
+## Reverted workspace experiment
 
-Tosker supports one primary pane and at most one secondary pane. **Open beside** is available from a conversation context menu on desktop. The latest secondary context replaces the previous one, panes divide the available width evenly, and narrow desktop widths fall back to one visible pane. Closing the primary promotes the secondary.
+During MS3, Tosker tested an additional top workspace bar, local Back/Forward history, two simultaneous conversation panes, and an edge-hover sidebar reveal. Founder review found that this increased visible chrome and interaction complexity while weakening the clarity of the core communication shell. The experiment was removed before the milestone lock.
 
-Chat, Hall, and Add stay available per pane. Pane content scrolls independently.
+That model may be reconsidered later as an optional power-user workspace, but it is not part of the shipped MS3 baseline.
+
+**Product principle:** Add workspace chrome only when it makes the primary communication task more obvious, not merely more capable.
 
 ## Prototype states
 
@@ -20,4 +22,4 @@ Chat, Hall, and Add stay available per pane. Pane content scrolls independently.
 - **Demo:** representative conversations, Rooms, and activity for walkthroughs.
 - **Returning:** representative product state while preserving locally created conversations and Rooms.
 
-These controls are intentionally quiet prototype utilities and are not production account architecture.
+The state model remains an internal prototype and is not production account architecture. The visible product opens in the representative demo state by default; Fresh remains available for focused first-time testing without adding mode switches to the customer-facing sidebar.

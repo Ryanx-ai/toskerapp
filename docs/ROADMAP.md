@@ -42,12 +42,12 @@ The current founder-review build covers first launch, genuine empty states, self
 ## Milestone 3 — First-time experience + desktop workspace evolution (FINAL-LOCKED)
 
 - Fresh, demonstration, and returning prototype states make learnability testable without introducing production identity or backend systems.
-- Desktop adds a compact workspace bar with explicit persistent sidebar control, local Back/Forward history, and active-pane context.
-- A hidden sidebar can also reveal temporarily from the left edge, but hover is supplementary and never the only recovery path.
-- Conversations support a maximum of two panes through **Open beside**. Each pane scrolls independently and keeps Chat, Hall, and Add reachable.
+- Desktop keeps the established persistent navigation rail, with the Tosker mark as the explicit expanded/compact control and one clear primary working surface.
+- The experimental top workspace bar, local Back/Forward history, two-pane conversation model, and edge-hover reveal were evaluated and reverted after founder review because they added complexity without improving the core communication task.
+- Contextual nested flows use a quiet inline Back affordance; browser and workspace navigation remain outside the product shell.
 - Mobile remains a single-pane communication experience with exactly five primary destinations.
 
-**Goal:** A new person can orient themselves quickly while desktop users can compare two communication contexts without turning Tosker into a dashboard.
+**Goal:** A new person can orient themselves quickly while the desktop shell stays focused, calm, and communication-first.
 
 ## Milestone 4 — Real chat
 

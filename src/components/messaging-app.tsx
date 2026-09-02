@@ -3,14 +3,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { useCallback, useRef, useState, useSyncExternalStore } from "react";
+import { useRouter } from "next/navigation";
 import { conversations, type Conversation } from "@/data/messaging-data";
 import { prototypeUser, sandboxLabel } from "@/data/prototype-user";
 import { prototypeStore } from "@/lib/prototype-store";
@@ -27,13 +21,11 @@ import {
 } from "@/components/communication-ui";
 import {
   ArrowLeft,
-  ArrowRight,
   Bell,
   CircleHelp,
   Compass,
   MessageCircle,
   MoreHorizontal,
-  PanelLeft,
   Plus,
   Search,
   Settings,
@@ -88,9 +80,6 @@ const friends = [
 const things = ["Poll", "Schedule", "Map", "Board"];
 const roomTags = ["TRIP", "EVENT", "WORK", "GAMING", "FAMILY"];
 const COLLAPSE_KEY = "tosker.sidebar.collapsed";
-const SECONDARY_KEY = "tosker.workspace.secondary";
-const HISTORY_KEY = "tosker.workspace.history.v1";
-type WorkspaceHistoryState = { entries: string[]; index: number };
 const collapseStore = {
   subscribe(listener: () => void) {
     window.addEventListener("tosker:sidebar", listener);
@@ -140,12 +129,10 @@ function Avatar({
 function ContextMenu({
   item,
   pinned,
-  onOpenBeside,
   onClose,
 }: {
   item: Conversation;
   pinned: boolean;
-  onOpenBeside: (item: Conversation) => void;
   onClose: () => void;
 }) {
   const [confirming, setConfirming] = useState(false);
@@ -190,16 +177,6 @@ function ContextMenu({
     );
   return (
     <div ref={ref} className="context-menu conversation-context" role="menu">
-      <button
-        className="desktop-only-action"
-        role="menuitem"
-        onClick={() => {
-          onOpenBeside(item);
-          onClose();
-        }}
-      >
-        Open beside
-      </button>
       {action(pinned ? "Unpin" : "Pin to top", () =>
         prototypeStore.togglePinned(item.slug),
       )}
@@ -220,15 +197,11 @@ function ConversationRow({
   item,
   active,
   pinned,
-  onOpenBeside,
-  onSelect,
   onDropItem,
 }: {
   item: Conversation;
   active: boolean;
   pinned: boolean;
-  onOpenBeside: (item: Conversation) => void;
-  onSelect: (event: React.MouseEvent, item: Conversation) => void;
   onDropItem: (source: string, target: string) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -276,7 +249,6 @@ function ConversationRow({
     >
       <Link
         href={hrefOf(item)}
-        onClick={(event) => onSelect(event, item)}
         className="conversation-row"
         aria-label={`${nameOf(item)}${item.kind === "room" ? ", Room" : ""}`}
         data-name={nameOf(item)}
@@ -315,7 +287,6 @@ function ConversationRow({
         <ContextMenu
           item={item}
           pinned={pinned}
-          onOpenBeside={onOpenBeside}
           onClose={() => setOpen(false)}
         />
       ) : null}
@@ -324,10 +295,8 @@ function ConversationRow({
 }
 
 function ProfileRegion({
-  mode,
   workspace,
 }: {
-  mode: "new" | "demo" | "returning";
   workspace?: AppWorkspace;
 }) {
   return (
@@ -369,27 +338,6 @@ function ProfileRegion({
           </Link>
         </div>
       </div>
-      <div className="walkthrough-controls">
-        <span>Prototype state</span>
-        <button
-          className={mode === "new" ? "active" : ""}
-          onClick={() => prototypeStore.setMode("new")}
-        >
-          Fresh
-        </button>
-        <button
-          className={mode === "demo" ? "active" : ""}
-          onClick={() => prototypeStore.setMode("demo")}
-        >
-          Demo
-        </button>
-        <button
-          className={mode === "returning" ? "active" : ""}
-          onClick={() => prototypeStore.setMode("returning")}
-        >
-          Returning
-        </button>
-      </div>
     </div>
   );
 }
@@ -398,14 +346,14 @@ function AppSidebar({
   selected,
   workspace,
   onCreate,
-  onOpenBeside,
-  onSelect,
+  collapsed,
+  onToggleCollapse,
 }: {
   selected?: Conversation;
   workspace?: AppWorkspace;
   onCreate: () => void;
-  onOpenBeside: (item: Conversation) => void;
-  onSelect: (event: React.MouseEvent, item: Conversation) => void;
+  collapsed: boolean;
+  onToggleCollapse: () => void;
 }) {
   const state = useSyncExternalStore(
     prototypeStore.subscribe,
@@ -413,8 +361,16 @@ function AppSidebar({
     prototypeStore.getServerSnapshot,
   );
   const [query, setQuery] = useState("");
+  const [expandedForSearch, setExpandedForSearch] = useState(false);
   const sidebarRouter = useRouter();
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const openCollapsedSearch = () => {
+    setExpandedForSearch(true);
+    onToggleCollapse();
+    window.requestAnimationFrame(() =>
+      window.requestAnimationFrame(() => searchInputRef.current?.focus()),
+    );
+  };
   const standard =
     state.mode === "new"
       ? conversations.filter((item) => item.kind === "my-room")
@@ -487,6 +443,20 @@ function AppSidebar({
             height={38}
           />
         </Link>
+        <button
+          className="collapse-button has-tip"
+          data-tip={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-expanded={!collapsed}
+          onClick={onToggleCollapse}
+        >
+          <Image
+            src="/brand/toskerlogo-icon-main.svg"
+            alt=""
+            width={24}
+            height={24}
+          />
+        </button>
       </div>
       <nav className="product-nav" aria-label="Tosker destinations">
         {nav.map((item) => {
@@ -511,7 +481,17 @@ function AppSidebar({
       </nav>
       <section className="conversation-section">
         <div className="unified-search">
-          <label>
+          {collapsed ? (
+            <button
+              className="collapsed-search-trigger has-tip"
+              data-tip="Search"
+              aria-label="Search conversations"
+              onClick={openCollapsedSearch}
+            >
+              <Search size={15} />
+            </button>
+          ) : (
+            <label>
               <span>
                 <Search size={15} />
               </span>
@@ -520,6 +500,10 @@ function AppSidebar({
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 onKeyDown={(event) => {
+                  if (event.key === "Escape" && expandedForSearch) {
+                    setExpandedForSearch(false);
+                    onToggleCollapse();
+                  }
                   if (event.key === "Enter" && ordered[0]) {
                     sidebarRouter.push(hrefOf(ordered[0]));
                   }
@@ -527,7 +511,8 @@ function AppSidebar({
                 placeholder="Search"
                 aria-label="Search"
               />
-          </label>
+            </label>
+          )}
           <button
             className="create-trigger"
             onClick={onCreate}
@@ -543,8 +528,6 @@ function AppSidebar({
               item={item}
               active={selected?.slug === item.slug}
               pinned={state.pinned.includes(item.slug)}
-              onOpenBeside={onOpenBeside}
-              onSelect={onSelect}
               onDropItem={prototypeStore.reorder}
             />
           ))}
@@ -553,7 +536,7 @@ function AppSidebar({
           ) : null}
         </div>
       </section>
-      <ProfileRegion mode={state.mode} workspace={workspace} />
+      <ProfileRegion workspace={workspace} />
     </aside>
   );
 }
@@ -649,7 +632,7 @@ function FriendsSurface({
                 >
                   {friend.initials}
                 </span>
-                <div>
+                <div className="friend-nameplate">
                   <button
                     className="friend-name"
                     onClick={() => setProfile(friend)}
@@ -941,8 +924,11 @@ function CreationOverlay({
             {step < 5 ? (
               <div className="wizard-actions">
                 {step > 1 ? (
-                  <button onClick={() => setStep((current) => current - 1)}>
-                    Back
+                  <button
+                    className="inline-back"
+                    onClick={() => setStep((current) => current - 1)}
+                  >
+                    <ArrowLeft size={15} /> Back
                   </button>
                 ) : (
                   <button onClick={onClose}>Cancel</button>
@@ -1007,172 +993,6 @@ function MobileNav() {
   );
 }
 
-function useWorkspaceHistory(pathname: string) {
-  const router = useRouter();
-  const [history, setHistory] = useState<WorkspaceHistoryState>({
-    entries: [pathname],
-    index: 0,
-  });
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      let stored: WorkspaceHistoryState = { entries: [], index: -1 };
-      try {
-        const raw = window.sessionStorage.getItem(HISTORY_KEY);
-        if (raw) stored = JSON.parse(raw) as WorkspaceHistoryState;
-      } catch {
-        // A malformed prototype history safely restarts at the current route.
-      }
-      const entries = stored.entries.filter(
-        (entry, index, all) => entry && entry !== all[index - 1],
-      );
-      const existing = entries.lastIndexOf(pathname);
-      const next =
-        existing >= 0
-          ? { entries, index: existing }
-          : {
-              entries: [...entries.slice(0, stored.index + 1), pathname].slice(
-                -24,
-              ),
-              index: Math.min(entries.length, stored.index + 1),
-            };
-      next.index = next.entries.indexOf(pathname);
-      window.sessionStorage.setItem(HISTORY_KEY, JSON.stringify(next));
-      setHistory(next);
-    }, 0);
-    return () => window.clearTimeout(timer);
-  }, [pathname]);
-  const move = (direction: -1 | 1) => {
-    const index = history.index + direction;
-    if (index < 0 || index >= history.entries.length) return;
-    const next = { ...history, index };
-    window.sessionStorage.setItem(HISTORY_KEY, JSON.stringify(next));
-    setHistory(next);
-    router.push(next.entries[index], { scroll: false });
-  };
-  return {
-    canBack: history.index > 0,
-    canForward: history.index < history.entries.length - 1,
-    back: () => move(-1),
-    forward: () => move(1),
-  };
-}
-
-function WorkspaceTopbar({
-  sidebarOpen,
-  onToggleSidebar,
-  history,
-  primary,
-  secondary,
-  activePane,
-  onActivate,
-  onClosePrimary,
-  onCloseSecondary,
-}: {
-  sidebarOpen: boolean;
-  onToggleSidebar: () => void;
-  history: ReturnType<typeof useWorkspaceHistory>;
-  primary?: Conversation;
-  secondary?: Conversation;
-  activePane: 0 | 1;
-  onActivate: (pane: 0 | 1) => void;
-  onClosePrimary: () => void;
-  onCloseSecondary: () => void;
-}) {
-  return (
-    <header className="workspace-topbar">
-      <button
-        className="workspace-icon-button"
-        onClick={onToggleSidebar}
-        aria-label={sidebarOpen ? "Hide sidebar" : "Show sidebar"}
-        aria-expanded={sidebarOpen}
-        data-tip={sidebarOpen ? "Hide sidebar" : "Show sidebar"}
-      >
-        <PanelLeft size={17} />
-      </button>
-      <span className="workspace-history-controls">
-        <button aria-label="Back" onClick={history.back} disabled={!history.canBack}>
-          <ArrowLeft size={15} />
-        </button>
-        <button aria-label="Forward" onClick={history.forward} disabled={!history.canForward}>
-          <ArrowRight size={15} />
-        </button>
-      </span>
-      <div className="workspace-contexts" aria-label="Open workspace panes">
-        {primary ? (
-          <div
-            className={activePane === 0 ? "active" : ""}
-          >
-            <button onClick={() => onActivate(0)}>{nameOf(primary)}</button>
-            {secondary ? (
-              <button
-                className="workspace-context-close"
-                aria-label={`Close ${nameOf(primary)}`}
-                onClick={onClosePrimary}
-              >
-                <X size={12} />
-              </button>
-            ) : null}
-          </div>
-        ) : (
-          <span className="workspace-context-label">Workspace</span>
-        )}
-        {secondary ? (
-          <div
-            className={activePane === 1 ? "active" : ""}
-          >
-            <button onClick={() => onActivate(1)}>{nameOf(secondary)}</button>
-            <button
-              className="workspace-context-close"
-              aria-label={`Close ${nameOf(secondary)}`}
-              onClick={onCloseSecondary}
-            >
-              <X size={12} />
-            </button>
-          </div>
-        ) : null}
-      </div>
-    </header>
-  );
-}
-
-function ConversationPane({
-  conversation,
-  surface,
-  active,
-  onActivate,
-  onSurfaceChange,
-  onAdd,
-  empty = false,
-}: {
-  conversation: Conversation;
-  surface: "chat" | "hall";
-  active: boolean;
-  onActivate: () => void;
-  onSurfaceChange?: (surface: "chat" | "hall") => void;
-  onAdd: () => void;
-  empty?: boolean;
-}) {
-  return (
-    <section
-      className={`workspace-pane ${active ? "active" : ""}`}
-      onPointerDown={onActivate}
-      onFocusCapture={onActivate}
-    >
-      <SurfaceHeader
-        conversation={conversation}
-        surface={surface}
-        onSurfaceChange={onSurfaceChange}
-        onAdd={onAdd}
-      />
-      {surface === "hall" ? (
-        <HallSurface conversation={conversation} empty={empty} />
-      ) : (
-        <ChatSurface key={conversation.slug} conversation={conversation} />
-      )}
-    </section>
-  );
-}
-
 export function MessagingApp({
   selectedSlug,
   surface = "chat",
@@ -1188,8 +1008,6 @@ export function MessagingApp({
     prototypeStore.getServerSnapshot,
   );
   const router = useRouter();
-  const pathname = usePathname();
-  const workspaceHistory = useWorkspaceHistory(pathname);
   const [overlay, setOverlay] = useState<Overlay>(
     workspace === "create" ? "room" : null,
   );
@@ -1198,18 +1016,6 @@ export function MessagingApp({
     collapseStore.getSnapshot,
     collapseStore.getServerSnapshot,
   );
-  const [temporarySidebar, setTemporarySidebar] = useState(false);
-  const dismissSidebarTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [activePane, setActivePane] = useState<0 | 1>(0);
-  const [secondarySlug, setSecondarySlug] = useState<string | null>(null);
-  const [secondarySurface, setSecondarySurface] = useState<"chat" | "hall">("chat");
-  useEffect(() => {
-    const timer = window.setTimeout(
-      () => setSecondarySlug(window.localStorage.getItem(SECONDARY_KEY)),
-      0,
-    );
-    return () => window.clearTimeout(timer);
-  }, []);
   const canonical = selectedSlug
     ? conversations.find((item) => item.slug === selectedSlug)
     : undefined;
@@ -1245,143 +1051,38 @@ export function MessagingApp({
         : selectedSlug
           ? conversations[0]
           : undefined);
-  const resolveConversation = (slug: string | null) => {
-    if (!slug) return undefined;
-    const known = conversations.find((item) => item.slug === slug);
-    const room = state.rooms.find((item) => item.slug === slug);
-    const chat = state.chats.find((item) => item.slug === slug);
-    if (known) return known;
-    if (room)
-      return {
-        slug: room.slug,
-        kind: "room" as const,
-        name: room.name,
-        initials: room.name.slice(0, 2).toUpperCase(),
-        color: "green",
-        preview: "Room's ready",
-        time: room.createdAt,
-        context: `${Math.max(1, room.people.length + 1)} people`,
-        messages: room.messages,
-        tag: room.tags[0] ?? "ROOM",
-      };
-    if (chat)
-      return {
-        slug: chat.slug,
-        kind: "personal" as const,
-        name: chat.name,
-        initials: chat.initials,
-        color: chat.color,
-        preview: "Start the conversation",
-        time: "Now",
-        context: chat.tid,
-        messages: chat.messages,
-      };
-    return undefined;
-  };
-  const secondaryCandidate = resolveConversation(secondarySlug);
-  const secondary =
-    selected && secondaryCandidate?.slug !== selected.slug
-      ? secondaryCandidate
-      : undefined;
-  const setSecondary = (item?: Conversation) => {
-    const slug = item?.slug ?? null;
-    setSecondarySlug(slug);
-    if (slug) window.localStorage.setItem(SECONDARY_KEY, slug);
-    else window.localStorage.removeItem(SECONDARY_KEY);
-  };
-  const openBeside = (item: Conversation) => {
-    if (selected?.slug === item.slug) return;
-    setSecondary(item);
-    setSecondarySurface("chat");
-    setActivePane(1);
-  };
-  const selectConversation = (event: React.MouseEvent, item: Conversation) => {
-    if (activePane !== 1 || !secondary) return;
-    event.preventDefault();
-    setSecondary(item);
-  };
-  const scheduleTemporaryDismiss = () => {
-    if (dismissSidebarTimer.current) clearTimeout(dismissSidebarTimer.current);
-    dismissSidebarTimer.current = setTimeout(() => setTemporarySidebar(false), 220);
-  };
   const messageFriend = (friend: (typeof friends)[number]) => {
     const chat = prototypeStore.createChat(friend);
     router.push(`/personal/${chat.slug}`);
   };
   return (
     <main
-      className={`messaging-app ${selected ? "has-selection" : "list-only"} ${collapsed ? "sidebar-collapsed" : ""} ${temporarySidebar ? "sidebar-temporary" : ""}`}
+      className={`messaging-app ${selected ? "has-selection" : "list-only"} ${collapsed ? "sidebar-collapsed" : ""}`}
     >
-      <div
-        className="sidebar-hover-zone"
-        tabIndex={collapsed ? 0 : -1}
-        aria-label="Temporarily show sidebar"
-        onMouseEnter={() => collapsed && setTemporarySidebar(true)}
-        onFocus={() => collapsed && setTemporarySidebar(true)}
+      <AppSidebar
+        selected={selected}
+        workspace={workspace}
+        onCreate={() => setOverlay("choose")}
+        collapsed={collapsed}
+        onToggleCollapse={collapseStore.toggle}
       />
-      <div
-        className="sidebar-layer"
-        onMouseEnter={() => {
-          if (dismissSidebarTimer.current) clearTimeout(dismissSidebarTimer.current);
-        }}
-        onMouseLeave={() => collapsed && scheduleTemporaryDismiss()}
-      >
-        <AppSidebar
-          selected={selected}
-          workspace={workspace}
-          onCreate={() => setOverlay("choose")}
-          onOpenBeside={openBeside}
-          onSelect={selectConversation}
-        />
-      </div>
       <div className="working-surface">
-        <WorkspaceTopbar
-          sidebarOpen={!collapsed}
-          onToggleSidebar={() => {
-            setTemporarySidebar(false);
-            collapseStore.toggle();
-          }}
-          history={workspaceHistory}
-          primary={selected}
-          secondary={secondary}
-          activePane={activePane}
-          onActivate={setActivePane}
-          onClosePrimary={() => {
-            if (!secondary) return;
-            router.push(hrefOf(secondary));
-            setSecondary(undefined);
-            setActivePane(0);
-          }}
-          onCloseSecondary={() => {
-            setSecondary(undefined);
-            setActivePane(0);
-          }}
-        />
         {selected ? (
-          <div className={`workspace-panes ${secondary ? "has-secondary" : ""}`}>
-            <ConversationPane
+          <>
+            <SurfaceHeader
               conversation={selected}
               surface={surface}
-              active={activePane === 0}
-              onActivate={() => setActivePane(0)}
               onAdd={() => setOverlay("add")}
-              empty={Boolean(prototypeRoom && !canonical)}
             />
-            {secondary ? (
-              <ConversationPane
-                conversation={secondary}
-                surface={secondarySurface}
-                active={activePane === 1}
-                onActivate={() => setActivePane(1)}
-                onSurfaceChange={setSecondarySurface}
-                onAdd={() => setOverlay("add")}
-                empty={Boolean(
-                  state.rooms.some((room) => room.slug === secondary.slug) &&
-                    !conversations.some((item) => item.slug === secondary.slug),
-                )}
+            {surface === "hall" ? (
+              <HallSurface
+                conversation={selected}
+                empty={Boolean(prototypeRoom && !canonical)}
               />
-            ) : null}
-          </div>
+            ) : (
+              <ChatSurface key={selected.slug} conversation={selected} />
+            )}
+          </>
         ) : workspace === "friends" ? (
           <FriendsSurface onMessage={messageFriend} />
         ) : workspace && workspace !== "create" ? (

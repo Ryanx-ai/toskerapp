@@ -13,8 +13,8 @@ const V1_KEY = "tosker.prototype.v1";
 const DEFAULT_ORDER = ["mika-tan", "jordan-lee", "anika-rai", "tokyo-2027", "design-hack-night", "friday-pokemon"];
 const listeners = new Set<() => void>();
 const blank = (mode: PrototypeState["mode"]): PrototypeState => ({ version: 3, mode, sandboxMessages: [], rooms: [], chats: [], pinned: [], archived: [], order: [] });
-const serverState = blank("new");
-let memoryState = blank("new");
+const serverState = blank("demo");
+let memoryState = blank("demo");
 let loaded = false;
 
 function fromV2(state: V2State): PrototypeState { return { ...state, version: 3, order: [] }; }
@@ -24,15 +24,15 @@ function read(): PrototypeState {
   loaded = true;
   try {
     const saved = window.localStorage.getItem(STORAGE_KEY);
-    if (saved) { const parsed = JSON.parse(saved) as PrototypeState; if (parsed.version === 3) memoryState = parsed; return memoryState; }
+    if (saved) { const parsed = JSON.parse(saved) as PrototypeState; if (parsed.version === 3) memoryState = { ...parsed, mode: parsed.mode === "returning" ? "returning" : "demo" }; return memoryState; }
     const v2 = window.localStorage.getItem(V2_KEY);
     if (v2) { memoryState = fromV2(JSON.parse(v2) as V2State); return memoryState; }
     const v1 = window.localStorage.getItem(V1_KEY);
     if (v1) {
       const parsed = JSON.parse(v1) as { mode?: "new" | "demo"; myRoomMessages?: Message[]; rooms?: Array<{ slug: string; name: string; createdAt: string; messages: Message[] }> };
-      memoryState = { ...blank(parsed.mode === "demo" ? "demo" : "new"), sandboxMessages: parsed.myRoomMessages ?? [], rooms: (parsed.rooms ?? []).map((room) => ({ ...room, tags: ["ROOM"], people: [], things: [] })) };
+      memoryState = { ...blank(parsed.mode === "new" ? "new" : "demo"), sandboxMessages: parsed.myRoomMessages ?? [], rooms: (parsed.rooms ?? []).map((room) => ({ ...room, tags: ["ROOM"], people: [], things: [] })) };
     }
-  } catch { memoryState = blank("new"); }
+  } catch { memoryState = blank("demo"); }
   return memoryState;
 }
 

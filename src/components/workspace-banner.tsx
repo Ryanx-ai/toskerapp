@@ -7,7 +7,7 @@ export function WorkspaceBanner({
 }: {
   eyebrow: string;
   title: string;
-  body: string;
+  body?: string;
   intensity?: "quiet" | "medium" | "hero";
   action?: React.ReactNode;
 }) {
@@ -16,7 +16,7 @@ export function WorkspaceBanner({
       <div className="workspace-banner-copy">
         <p className="eyebrow">{eyebrow}</p>
         <h1>{title}</h1>
-        <p>{body}</p>
+        {body ? <p>{body}</p> : null}
         {action}
       </div>
       <div className="workspace-banner-art" aria-hidden="true">

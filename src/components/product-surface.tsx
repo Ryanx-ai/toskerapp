@@ -60,9 +60,19 @@ function Explore() {
       <WorkspaceBanner
         eyebrow="Explore"
         title="Make your Room more than chat."
-        body="Find useful, social, and wonderfully specific things to add."
         intensity="hero"
-        action={<button disabled>Browse all</button>}
+        action={
+          <button
+            onClick={() =>
+              document.querySelector(".filter-pills")?.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+              })
+            }
+          >
+            Browse all
+          </button>
+        }
       />
       <div className="filter-pills">
         <button className="active">Featured</button>
@@ -103,8 +113,7 @@ function Marketplace() {
     <ProductChrome current="marketplace">
       <WorkspaceBanner
         eyebrow="Marketplace"
-        title="Made for Rooms, by people with ideas"
-        body="A first look at the things creators could make for Tosker."
+        title="Made for Rooms, by people with ideas."
       />
       <section className="surface-section">
         <div className="section-title">
@@ -148,7 +157,6 @@ function Studio() {
       <WorkspaceBanner
         eyebrow="Studio"
         title="Make something people want in a Room"
-        body="For designers, developers, tinkerers, and people with one very specific idea."
         action={
           <button className="button button-primary" disabled>
             Create something <span>＋</span>
@@ -215,8 +223,7 @@ function Settings() {
     <ProductChrome current="settings">
       <WorkspaceBanner
         eyebrow="Settings"
-        title="Make Tosker yours."
-        body="The controls are taking shape. These are visual settings only for now."
+        title="Settings"
         intensity="quiet"
       />
       <div className="settings-list">
@@ -257,9 +264,8 @@ function Help() {
   return (
     <ProductChrome current="help">
       <WorkspaceBanner
-        eyebrow="Help & Feedback"
-        title="Tell us what feels odd."
-        body="Or delightful. Especially delightful."
+        eyebrow="Help"
+        title="Help & Feedback"
         intensity="quiet"
       />
       <div className="help-grid">
@@ -365,8 +371,7 @@ function Notifications({ empty = false }: { empty?: boolean }) {
     <ProductChrome current="notifications">
       <WorkspaceBanner
         eyebrow="Notifications"
-        title="What needs your attention"
-        body="Replies, Rooms, and recent activity — together."
+        title="Notifications"
         intensity="quiet"
       />
       <section className="notifications-workspace">

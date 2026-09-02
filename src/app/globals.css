@@ -363,3 +363,52 @@ h1,h2,h3 { font-family:var(--font-mermaid),Georgia,serif; font-weight:400; lette
   .product-canvas > .workspace-banner,.friends-surface > .workspace-banner { width:calc(100% - 28px); margin:14px auto 20px; }
   .friends-surface > :not(.workspace-banner) { width:calc(100% - 28px); margin-left:auto; margin-right:auto; }
 }
+
+/* Final MS3 visual-rhythm and interaction-affordance patch. */
+.product-canvas,.friends-surface { --workspace-content-max:1180px; --workspace-content-gutter:clamp(24px,4vw,56px); }
+.product-canvas > .workspace-banner,.friends-surface > .workspace-banner,
+.product-canvas > :not(.workspace-banner),.friends-surface > :not(.workspace-banner) { width:min(var(--workspace-content-max),calc(100% - 2 * var(--workspace-content-gutter))); margin-left:auto; margin-right:auto; }
+.product-canvas > .filter-pills { padding:22px 0; }
+.product-canvas > .surface-section { padding:38px 0; }
+.product-canvas > .surface-section.compact-section { padding-top:20px; }
+.product-canvas > .settings-list,.product-canvas > .notifications-workspace { width:min(var(--workspace-content-max),calc(100% - 2 * var(--workspace-content-gutter))); }
+.product-canvas > .help-grid { padding:36px 0; }
+.product-canvas > .help-note { width:min(var(--workspace-content-max),calc(100% - 2 * var(--workspace-content-gutter))); }
+
+.workspace-banner,.banner-hero,.banner-quiet { min-height:210px; padding:32px clamp(28px,4vw,52px); grid-template-columns:minmax(0,3fr) minmax(150px,1fr); }
+.workspace-banner-copy { min-width:0; }
+.workspace-banner h1 { max-width:900px; margin:7px 0 0; font-size:clamp(42px,4.2vw,64px); line-height:1; text-wrap:balance; }
+.workspace-banner-copy > p:last-of-type:not(.eyebrow) { margin-top:10px; }
+.workspace-banner-copy > button { margin:0; position:absolute; z-index:2; right:clamp(28px,4vw,52px); bottom:32px; }
+.collapse-button svg { display:block; stroke-width:1.8; }
+
+:where(.creation-choices button,.option-grid button:not(:disabled),.friend-list button:not(:disabled),.filter-pills button:not(:disabled),.market-tabs button:not(:disabled),.notification-list article > a,.workspace-banner button:not(:disabled),.sidebar-brand button,.product-nav-item,.create-trigger,.collapsed-search-trigger,.profile-actions a,.action-icon,.hall-card-more,.context-menu button,.header-popover button:not(:disabled),.message-hover-actions button,.reaction-picker button,.message-reactions button,.namecard-body button:not(:disabled),.first-run-actions button:not(:disabled)) { cursor:pointer; transition:background-color .16s,color .16s,filter .16s,transform .16s,box-shadow .16s; }
+
+@media (hover:hover) {
+  :where(.creation-choices button,.option-grid button:not(:disabled),.friend-list button:not(:disabled),.notification-list article > a):hover { background-color:var(--surface-hover); color:var(--text-primary); filter:brightness(1.12); transform:translateY(-1px); }
+  :where(.filter-pills button:not(:disabled),.market-tabs button:not(:disabled)):hover { border-color:#46565e; background:var(--surface-hover); color:var(--text-primary); }
+  :where(.workspace-banner button:not(:disabled),.create-trigger):hover { filter:brightness(1.1); transform:translateY(-1px); }
+  :where(.sidebar-brand button,.profile-actions a,.action-icon,.hall-card-more,.message-hover-actions button,.reaction-picker button,.message-reactions button):hover { background:var(--surface-hover); color:var(--text-primary); }
+  :where(.friend-name,.context-menu button,.header-popover button:not(:disabled)):hover { color:var(--text-primary); }
+}
+
+:where(.creation-choices button,.option-grid button:not(:disabled),.friend-list button:not(:disabled),.notification-list article > a):focus-visible { background-color:var(--surface-hover); color:var(--text-primary); filter:brightness(1.12); }
+:where(.creation-choices button,.option-grid button:not(:disabled),.friend-list button:not(:disabled),.notification-list article > a):active { transform:translateY(0) scale(.99); }
+.option-grid button.active,.option-grid button[aria-pressed="true"] { border-color:var(--brand-gold); background:rgba(200,156,93,.14); color:var(--text-primary); }
+
+:where(.workspace-banner button:disabled,.studio-create:disabled,.creation-types button:disabled,.settings-list button:disabled,.help-grid button:disabled,.namecard-body button:disabled) { cursor:default; opacity:.56; filter:saturate(.7); box-shadow:none; transform:none; }
+
+@media (prefers-reduced-motion:reduce) {
+  :where(.creation-choices button,.option-grid button,.friend-list button,.notification-list article > a,.workspace-banner button,.create-trigger) { transition:none; }
+}
+
+@media (max-width:640px) {
+  .product-canvas,.friends-surface { --workspace-content-gutter:14px; }
+  .product-canvas > .workspace-banner,.friends-surface > .workspace-banner,
+  .product-canvas > :not(.workspace-banner),.friends-surface > :not(.workspace-banner) { width:calc(100% - 2 * var(--workspace-content-gutter)); }
+  .workspace-banner,.banner-hero,.banner-quiet { min-height:170px; padding:24px 20px; grid-template-columns:minmax(0,1fr) 58px; }
+  .workspace-banner h1 { font-size:clamp(31px,9.5vw,40px); line-height:1.02; }
+  .workspace-banner-copy > button { margin-top:20px; position:static; }
+  .product-canvas > .filter-pills { padding:16px 0; }
+  .product-canvas > .surface-section,.product-canvas > .help-grid { padding:28px 0; }
+}

@@ -26,6 +26,8 @@ import {
   Compass,
   MessageCircle,
   MoreHorizontal,
+  PanelLeftClose,
+  PanelLeftOpen,
   Plus,
   Search,
   Settings,
@@ -450,12 +452,7 @@ function AppSidebar({
           aria-expanded={!collapsed}
           onClick={onToggleCollapse}
         >
-          <Image
-            src="/brand/toskerlogo-icon-main.svg"
-            alt=""
-            width={24}
-            height={24}
-          />
+          {collapsed ? <PanelLeftOpen size={19} /> : <PanelLeftClose size={19} />}
         </button>
       </div>
       <nav className="product-nav" aria-label="Tosker destinations">
@@ -580,8 +577,7 @@ function FriendsSurface({
     <section className="friends-surface workspace-scroll">
       <WorkspaceBanner
         eyebrow="Friends"
-        title="Your people"
-        body="The conversations and connections you keep close."
+        title="Your Friends"
         intensity="quiet"
         action={
           <button
@@ -820,8 +816,9 @@ function CreationOverlay({
                 <h2>Add tags</h2>
                 <p>Optional. Keep it easy to spot.</p>
                 <div className="option-grid tags">
-                  {roomTags.map((tag) => (
+                  {roomTags.map((tag, index) => (
                     <button
+                      autoFocus={index === 0}
                       className={tags.includes(tag) ? "active" : ""}
                       onClick={() =>
                         setTags((current) =>
@@ -843,8 +840,9 @@ function CreationOverlay({
                 <h2>Add things</h2>
                 <p>Optional. You can do this later.</p>
                 <div className="option-grid">
-                  {things.map((thing) => (
+                  {things.map((thing, index) => (
                     <button
+                      autoFocus={index === 0}
                       className={selectedThings.includes(thing) ? "active" : ""}
                       onClick={() =>
                         setThings((current) =>
@@ -866,7 +864,7 @@ function CreationOverlay({
                 <h2>Add people</h2>
                 <p>Optional. Friends can join later.</p>
                 <div className="friend-list compact">
-                  {friends.map((friend) => (
+                  {friends.map((friend, index) => (
                     <article key={friend.tid}>
                       <span className={`avatar avatar-${friend.color}`}>
                         {friend.initials}
@@ -876,6 +874,7 @@ function CreationOverlay({
                         <small>{friend.username}</small>
                       </div>
                       <button
+                        autoFocus={index === 0}
                         className={
                           people.includes(friend.tid) ? "selected" : ""
                         }
@@ -1011,6 +1010,7 @@ export function MessagingApp({
   const [overlay, setOverlay] = useState<Overlay>(
     workspace === "create" ? "room" : null,
   );
+  const [addedSurfaces, setAddedSurfaces] = useState<string[]>([]);
   const collapsed = useSyncExternalStore(
     collapseStore.subscribe,
     collapseStore.getSnapshot,
@@ -1130,8 +1130,22 @@ export function MessagingApp({
             <h2>Add something</h2>
             <p>Add to this space.</p>
             <div className="option-grid">
-              {[...things, "Photo Wall", "Subroom"].map((item) => (
-                <button key={item}>{item}</button>
+              {[...things, "Photo Wall", "Subroom"].map((item, index) => (
+                <button
+                  autoFocus={index === 0}
+                  key={item}
+                  className={addedSurfaces.includes(item) ? "active" : ""}
+                  aria-pressed={addedSurfaces.includes(item)}
+                  onClick={() =>
+                    setAddedSurfaces((current) =>
+                      current.includes(item)
+                        ? current.filter((surface) => surface !== item)
+                        : [...current, item],
+                    )
+                  }
+                >
+                  {item}
+                </button>
               ))}
             </div>
           </section>

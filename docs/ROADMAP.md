@@ -24,11 +24,20 @@ Canonical brand foundation, messaging-first shell, My Room, personal conversatio
 
 **Goal:** Tosker immediately feels like communication software with room to grow.
 
-## Milestone 2 — First-time user experience (in progress / founder review)
+## Milestone 2 — First-time user experience (FINAL-LOCKED)
 
 The current founder-review build covers first launch, genuine empty states, self-messaging, locally persisted Room creation and messages, invitation and Add-to-Room prototypes, Hall discovery, and high-fidelity previews of Explore, Marketplace, Studio, Settings, and Help. These are UX-validation surfaces, not platform architecture.
 
 **Goal:** A completely new person understands Tosker without founder explanation.
+
+### Milestone 3 handoff
+
+- MVP productisation stays focused on Friends/People, Chat/Rooms, and Explore/Plugins/Gizmos.
+- Marketplace and Studio remain preserved future-facing prototype surfaces; they are post-MVP and must not become backend dependencies.
+- Explore is the discovery/use layer. Marketplace is a future distribution and commercial layer. Studio is future creator infrastructure.
+- Approved art direction: low-poly 3D, tactile, dark Tosker world, soft glow, geometric construction, and cartoonised characters. Ratatoskr uses rust/orange fur, expressive eyes, an angular tail, teal traveller cloak, and gold detail.
+- Sequence: formal art lock → production art generation → Milestone 3 development and integration.
+- Milestone 3 may populate the prepared banner, Explore, Room-cover, profile/namecard, chat-wall, empty-state, Ratatoskr, and mobile-crop surfaces. Milestone 2 does not mass-integrate that library.
 
 ## Milestone 3 — Room creation + invites
 

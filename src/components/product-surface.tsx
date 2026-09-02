@@ -16,20 +16,20 @@ import {
 } from "lucide-react";
 
 export type ProductWorkspace =
-  "explore" | "marketplace" | "studio" | "settings" | "help" | "notifications";
+  | "explore"
+  | "marketplace"
+  | "studio"
+  | "settings"
+  | "help"
+  | "notifications"
+  | "profile";
 const exploreCards = [
   ["◒", "Quick Poll", "Popular now", "Ask the Room."],
   ["▦", "Kanban Board", "Popular now", "Organise lightly."],
   ["⌖", "Shared Map", "Popular now", "Plan together."],
   ["▧", "Photo Wall", "Popular now", "Collect it here."],
-  ["▤", "Itinerary", "For trips", "Plan each day."],
-  ["▣", "Packing List", "For trips", "Don’t forget it."],
-  ["$", "Budget Tracker", "For trips", "Split the useful bits."],
-  ["☁", "Weather", "For trips", "Check the forecast."],
-  ["?", "Trivia Quiz", "For fun", "Test your knowledge."],
-  ["◉", "Spin the Wheel", "For fun", "Make the decision."],
-  ["♟", "Mini Games", "For fun", "Play together."],
-  ["♫", "Music Player", "For fun", "Listen in sync."],
+  ["▤", "Schedule", "Plan together", "Keep the next moment clear."],
+  ["♟", "Game Night", "Play together", "Make room for something fun."],
 ];
 const marketCards = [
   ["skin", "Midnight Garden", "Room skin", "Mina Vale", "$2"],
@@ -83,8 +83,10 @@ function Explore() {
         <div className="explore-grid">
           {exploreCards.map(([icon, title, category, body], index) => (
             <article key={title} className={`explore-card card-${index + 1}`}>
-              <span>{icon}</span>
-              <div>
+              <div className="explore-card-art" aria-hidden="true">
+                <span>{icon}</span>
+              </div>
+              <div className="explore-card-copy">
                 <small>{category}</small>
                 <h3>{title}</h3>
                 <p>{body}</p>
@@ -411,7 +413,32 @@ function Notifications() {
   );
 }
 
+function Profile() {
+  return (
+    <ProductChrome current="profile">
+      <section className="profile-surface">
+        <div className="namecard namecard-own">
+          <div className="namecard-banner" aria-hidden="true" />
+          <span className="avatar avatar-gold namecard-avatar">RY</span>
+          <div className="namecard-body">
+            <p className="eyebrow">My profile</p>
+            <h1>Ryan</h1>
+            <strong>@ryan</strong>
+            <span className="presence">Online · Founder preview</span>
+            <p>
+              Building shared digital Rooms where people can talk, plan, and
+              make things together.
+            </p>
+            <button disabled>Edit profile · Prototype</button>
+          </div>
+        </div>
+      </section>
+    </ProductChrome>
+  );
+}
+
 export function ProductSurface({ surface }: { surface: ProductWorkspace }) {
+  if (surface === "profile") return <Profile />;
   if (surface === "explore") return <Explore />;
   if (surface === "marketplace") return <Marketplace />;
   if (surface === "studio") return <Studio />;

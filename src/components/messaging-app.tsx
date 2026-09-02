@@ -20,9 +20,8 @@ import {
   useDismissLayer,
 } from "@/components/communication-ui";
 import {
+  ArrowLeft,
   Bell,
-  ChevronLeft,
-  ChevronRight,
   CircleHelp,
   Compass,
   MessageCircle,
@@ -468,7 +467,12 @@ function AppSidebar({
           aria-expanded={!collapsed}
           onClick={onToggleCollapse}
         >
-          {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+          <Image
+            src="/brand/toskerlogo-icon-main.svg"
+            alt=""
+            width={24}
+            height={24}
+          />
         </button>
       </div>
       <nav className="product-nav" aria-label="Tosker destinations">
@@ -561,11 +565,34 @@ function FriendsSurface({
 }) {
   const [tab, setTab] = useState("All");
   const [query, setQuery] = useState("");
+  const [profile, setProfile] = useState<(typeof friends)[number] | null>(null);
   const shown = friends.filter((friend) =>
     `${friend.name} ${friend.username} ${friend.tid}`
       .toLowerCase()
       .includes(query.toLowerCase()),
   );
+  if (profile)
+    return (
+      <section className="profile-surface workspace-scroll">
+        <button className="nested-back" onClick={() => setProfile(null)}>
+          <ArrowLeft size={17} /> Back to Friends
+        </button>
+        <div className="namecard">
+          <div className="namecard-banner" aria-hidden="true" />
+          <span className={`avatar avatar-${profile.color} namecard-avatar`}>
+            {profile.initials}
+          </span>
+          <div className="namecard-body">
+            <p className="eyebrow">Friend profile</p>
+            <h1>{profile.name}</h1>
+            <strong>{profile.username}</strong>
+            <span className="presence">{profile.status}</span>
+            <p>Keeping good people and good conversations close.</p>
+            <button onClick={() => onMessage(profile)}>Message</button>
+          </div>
+        </div>
+      </section>
+    );
   return (
     <section className="friends-surface workspace-scroll">
       <WorkspaceBanner
@@ -623,7 +650,12 @@ function FriendsSurface({
                   {friend.initials}
                 </span>
                 <div>
-                  <strong>{friend.name}</strong>
+                  <button
+                    className="friend-name"
+                    onClick={() => setProfile(friend)}
+                  >
+                    {friend.name}
+                  </button>
                   <small>
                     {friend.username} · {friend.tid}
                   </small>
@@ -707,6 +739,21 @@ function CreationOverlay({
         <button className="overlay-close" onClick={onClose} aria-label="Close">
           <X size={17} />
         </button>
+        {mode !== "choose" ? (
+          <button
+            className="overlay-back"
+            onClick={() => {
+              if (mode === "room" && step > 1 && step < 5)
+                setStep((current) => current - 1);
+              else {
+                setMode("choose");
+                setStep(1);
+              }
+            }}
+          >
+            <ArrowLeft size={16} /> Back
+          </button>
+        ) : null}
         {mode === "choose" ? (
           <>
             <h2>Make something</h2>
@@ -736,6 +783,7 @@ function CreationOverlay({
                 value={friendQuery}
                 onChange={(event) => setFriendQuery(event.target.value)}
                 placeholder="Name, username or TID"
+                aria-label="Find a friend to chat with"
               />
             </label>
             <div className="friend-list compact">
@@ -779,6 +827,7 @@ function CreationOverlay({
                     value={name}
                     onChange={(event) => setName(event.target.value)}
                     placeholder="Sunday Dinner"
+                    aria-label="Room name"
                   />
                 </label>
               </>
@@ -932,35 +981,27 @@ function MobileNav() {
         </span>
         Chats
       </Link>
-      <Link href="/explore">
-        <span>
-          <Compass size={17} />
-        </span>
-        Explore
-      </Link>
       <Link href="/friends">
         <span>
           <UsersRound size={17} />
         </span>
         Friends
       </Link>
-      <Link href="/marketplace">
-        <span>
-          <ShoppingBag size={17} />
-        </span>
-        Market
-      </Link>
-      <Link href="/studio">
-        <span>
-          <WandSparkles size={17} />
-        </span>
-        Studio
-      </Link>
       <Link href="/notifications">
         <span>
           <Bell size={17} />
         </span>
-        Alerts
+        Notifications
+      </Link>
+      <Link href="/explore">
+        <span>
+          <Compass size={17} />
+        </span>
+        Explore
+      </Link>
+      <Link href="/profile">
+        <span className="mobile-profile-avatar">{prototypeUser.initials}</span>
+        Profile
       </Link>
     </nav>
   );

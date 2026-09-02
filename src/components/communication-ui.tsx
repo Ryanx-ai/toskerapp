@@ -32,6 +32,7 @@ import {
   Settings,
   Smile,
   Video,
+  X,
 } from "lucide-react";
 
 const reactions = ["❤️", "👍", "😂", "🔥", "✨", "👀"];
@@ -402,7 +403,7 @@ function Composer({
             <span>{reply.body}</span>
           </div>
           <button onClick={onCancelReply} aria-label="Cancel reply">
-            ×
+            <X size={15} />
           </button>
         </div>
       ) : null}

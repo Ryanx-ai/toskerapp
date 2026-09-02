@@ -39,11 +39,15 @@ The current founder-review build covers first launch, genuine empty states, self
 - Sequence: formal art lock → production art generation → Milestone 3 development and integration.
 - Milestone 3 may populate the prepared banner, Explore, Room-cover, profile/namecard, chat-wall, empty-state, Ratatoskr, and mobile-crop surfaces. Milestone 2 does not mass-integrate that library.
 
-## Milestone 3 — Room creation + invites
+## Milestone 3 — First-time experience + desktop workspace evolution (FINAL-LOCKED)
 
-Make Room creation genuinely usable: create a Room, invitation link, join state, guest identity, Room ownership, and a basic membership model. Introduce persistence only when required.
+- Fresh, demonstration, and returning prototype states make learnability testable without introducing production identity or backend systems.
+- Desktop adds a compact workspace bar with explicit persistent sidebar control, local Back/Forward history, and active-pane context.
+- A hidden sidebar can also reveal temporarily from the left edge, but hover is supplementary and never the only recovery path.
+- Conversations support a maximum of two panes through **Open beside**. Each pane scrolls independently and keeps Chat, Hall, and Add reachable.
+- Mobile remains a single-pane communication experience with exactly five primary destinations.
 
-**Goal:** One person can make a Tosker and bring another person into it.
+**Goal:** A new person can orient themselves quickly while desktop users can compare two communication contexts without turning Tosker into a dashboard.
 
 ## Milestone 4 — Real chat
 

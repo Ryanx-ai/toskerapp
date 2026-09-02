@@ -354,10 +354,11 @@ const notificationItems = [
   },
 ];
 
-function Notifications() {
+function Notifications({ empty = false }: { empty?: boolean }) {
   const [filter, setFilter] = useState("All");
-  const shown =
-    filter === "All"
+  const shown = empty
+    ? []
+    : filter === "All"
       ? notificationItems
       : notificationItems.filter((item) => item.type === filter);
   return (
@@ -437,12 +438,18 @@ function Profile() {
   );
 }
 
-export function ProductSurface({ surface }: { surface: ProductWorkspace }) {
+export function ProductSurface({
+  surface,
+  mode = "demo",
+}: {
+  surface: ProductWorkspace;
+  mode?: "new" | "demo" | "returning";
+}) {
   if (surface === "profile") return <Profile />;
   if (surface === "explore") return <Explore />;
   if (surface === "marketplace") return <Marketplace />;
   if (surface === "studio") return <Studio />;
   if (surface === "settings") return <Settings />;
-  if (surface === "notifications") return <Notifications />;
+  if (surface === "notifications") return <Notifications empty={mode === "new"} />;
   return <Help />;
 }

@@ -4,7 +4,7 @@ import type { Message } from "@/data/messaging-data";
 
 export type PrototypeRoom = { slug: string; name: string; createdAt: string; messages: Message[]; tags: string[]; people: string[]; things: string[] };
 export type PrototypeChat = { slug: string; name: string; initials: string; color: string; tid: string; messages: Message[] };
-export type PrototypeState = { version: 3; mode: "new" | "demo"; sandboxMessages: Message[]; rooms: PrototypeRoom[]; chats: PrototypeChat[]; pinned: string[]; archived: string[]; order: string[] };
+export type PrototypeState = { version: 3; mode: "new" | "demo" | "returning"; sandboxMessages: Message[]; rooms: PrototypeRoom[]; chats: PrototypeChat[]; pinned: string[]; archived: string[]; order: string[] };
 type V2State = Omit<PrototypeState, "version" | "order"> & { version: 2 };
 
 const STORAGE_KEY = "tosker.prototype.v3";
@@ -43,7 +43,10 @@ export const prototypeStore = {
   subscribe(listener: () => void) { listeners.add(listener); return () => listeners.delete(listener); },
   getSnapshot: read,
   getServerSnapshot: () => serverState,
-  setMode(mode: PrototypeState["mode"]) { write(blank(mode)); },
+  setMode(mode: PrototypeState["mode"]) {
+    const current = read();
+    write(mode === "returning" ? { ...current, mode } : blank(mode));
+  },
   addSandboxMessage(message: Message) { const state = read(); write({ ...state, sandboxMessages: [...state.sandboxMessages, message] }); },
   createRoom(input: { name: string; tags?: string[]; people?: string[]; things?: string[] }) { const state = read(); const base = slugify(input.name); const slug = state.rooms.some((room) => room.slug === base) ? `${base}-${Date.now()}` : base; const room: PrototypeRoom = { slug, name: input.name.trim(), createdAt: "Now", messages: [], tags: input.tags?.length ? input.tags : ["ROOM"], people: input.people ?? [], things: input.things ?? [] }; write({ ...state, rooms: [...state.rooms, room], order: [...state.order, slug] }); return room; },
   createChat(input: { name: string; initials: string; color: string; tid: string }) { const state = read(); const existing = state.chats.find((chat) => chat.tid === input.tid); if (existing) return existing; const chat: PrototypeChat = { slug: slugify(input.name), ...input, messages: [] }; write({ ...state, chats: [...state.chats, chat], order: [...state.order, chat.slug] }); return chat; },

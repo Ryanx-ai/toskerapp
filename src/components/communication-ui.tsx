@@ -150,29 +150,31 @@ export function SurfaceHeader({
   };
   return (
     <header className="conversation-header">
-      <Link href="/" className="mobile-back" aria-label="Back">
-        <ArrowLeft size={18} />
-      </Link>
-      <span
-        className={`avatar avatar-${conversation.color} avatar-pattern ${conversation.kind === "room" ? "avatar-room" : ""} avatar-large`}
-        role={conversation.kind === "room" ? "img" : undefined}
-        aria-label={
-          conversation.kind === "room"
-            ? `${titleOf(conversation)} Room`
-            : undefined
-        }
-      >
-        {conversation.initials}
-      </span>
-      <div className="active-copy">
-        <h2>{titleOf(conversation)}</h2>
-        <span>{conversation.context}</span>
+      <div className="header-identity-zone">
+        <Link href="/" className="mobile-back" aria-label="Back">
+          <ArrowLeft size={18} />
+        </Link>
+        <span
+          className={`avatar avatar-${conversation.color} avatar-pattern ${conversation.kind === "room" ? "avatar-room" : ""} avatar-large`}
+          role={conversation.kind === "room" ? "img" : undefined}
+          aria-label={
+            conversation.kind === "room"
+              ? `${titleOf(conversation)} Room`
+              : undefined
+          }
+        >
+          {conversation.initials}
+        </span>
+        <div className="active-copy">
+          <h2>{titleOf(conversation)}</h2>
+          {conversation.kind === "room" ? <span>{conversation.context}</span> : null}
+        </div>
+        {conversation.kind === "room" && onInvite ? (
+          <button className="invite-button primary-action" onClick={onInvite}>
+            Invite
+          </button>
+        ) : null}
       </div>
-      {conversation.kind === "room" && onInvite ? (
-        <button className="invite-button primary-action" onClick={onInvite}>
-          Invite
-        </button>
-      ) : null}
       <nav className="surface-tabs" aria-label="Space surfaces">
         <Link
           className={surface === "chat" ? "active" : ""}

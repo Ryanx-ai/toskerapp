@@ -531,3 +531,97 @@ h1,h2,h3 { font-family:var(--font-mermaid),Georgia,serif; font-weight:400; lette
   .namecard-body h2 { font-size:36px; }
   .settings-identity { width:calc(100% - 28px); margin-top:14px; }
 }
+
+/* MS4.1 communication header lock: identity / surfaces / utilities. */
+@media (min-width:641px) {
+  .conversation-header {
+    display:grid;
+    grid-template-columns:minmax(190px,1fr) auto minmax(190px,1fr);
+    align-items:stretch;
+    gap:16px;
+    padding:0 22px;
+  }
+  .header-identity-zone {
+    min-width:0;
+    display:flex;
+    align-items:center;
+    gap:11px;
+  }
+  .header-identity-zone .active-copy {
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:3px;
+  }
+  .header-identity-zone .active-copy h2 { margin:0; line-height:1.15; }
+  .header-identity-zone .active-copy span { line-height:1.25; }
+  .header-identity-zone .invite-button {
+    margin:0 0 0 5px;
+    min-height:34px;
+  }
+  .conversation-header .surface-tabs {
+    height:100%;
+    margin:0;
+    padding:0;
+    border:0;
+    border-radius:0;
+    align-self:stretch;
+    display:flex;
+    align-items:stretch;
+    gap:2px;
+    overflow:hidden;
+    background:transparent;
+  }
+  .conversation-header .surface-tabs a,
+  .conversation-header .surface-tabs button {
+    min-width:58px;
+    height:auto;
+    min-height:100%;
+    padding:1px 12px 0;
+    border:0;
+    border-radius:0;
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    line-height:1;
+    background:transparent;
+    color:var(--text-secondary);
+  }
+  .conversation-header .surface-tabs a::after {
+    content:"";
+    position:absolute;
+    left:12px;
+    right:12px;
+    bottom:0;
+    height:2px;
+    border-radius:2px 2px 0 0;
+    background:transparent;
+  }
+  .conversation-header .surface-tabs a.active {
+    background:transparent;
+    color:var(--text-primary);
+  }
+  .conversation-header .surface-tabs a.active::after { background:var(--brand-gold); }
+  .conversation-header .surface-tabs button { min-width:52px; padding-inline:10px; }
+  .conversation-header .surface-tabs button small { font-size:9px; line-height:1; }
+  .conversation-header .header-utilities {
+    min-width:0;
+    margin:0;
+    justify-self:end;
+    align-self:center;
+    display:flex;
+    align-items:center;
+    gap:2px;
+  }
+}
+
+@media (max-width:640px) {
+  .conversation-header { display:flex; align-items:center; }
+  .header-identity-zone { min-width:0; flex:1; display:flex; align-items:center; gap:8px; }
+  .header-identity-zone .active-copy { min-width:0; display:flex; flex-direction:column; justify-content:center; }
+  .header-identity-zone .invite-button { margin-left:auto; }
+  .conversation-header .surface-tabs { align-self:stretch; align-items:center; }
+  .conversation-header .surface-tabs a,.conversation-header .surface-tabs button { align-self:center; }
+}

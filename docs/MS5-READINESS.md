@@ -71,6 +71,17 @@ This is deliberately boring infrastructure: one application, one relational data
 - Local prototype data must never silently merge across real accounts.
 - Voice, video, calendar and Gizmos need explicit contracts and should not inflate the foundational backend wave.
 
+## Future Room architecture guardrails
+
+The current runtime stays intentionally simple: a Room has one primary Chat conversation, Hall is its high-signal shared surface, and installed Gizmos are Room capabilities. MS5 must preserve this product while avoiding schema assumptions that make later expansion impossible.
+
+- **Room:** the primary shared world and membership/ownership boundary.
+- **Subroom:** a future place or context inside a Room, such as General, Organisers, Finance Team, Day 1, Speakers, or Study Group. Subrooms are not Gizmos. A future Room/Subroom selector may expose this hierarchy, and visibility may depend on Subroom-specific access. Do not implement that hierarchy or permissions in the foundational MS5 wave.
+- **Gizmo:** an installed tool or capability attached to the current Room or future Subroom context, such as Stocks, Schedule, Map, Poll, Meme Board, or Photo Wall. Gizmos belong in the central surface navigation beside Chat and Hall. Capability count must not be hard-capped; the UI may later use horizontal scrolling or an overflow menu.
+- **Resource collection:** content accumulated automatically from conversation—Images, Files, Links, and Videos—not an installed Gizmo. Future More/Room-info surfaces may expose those collections, Members, and Settings.
+
+Do not collapse Room, Subroom, Gizmo, and resource collection into one generic channel abstraction. Conversely, do not pre-build a speculative hierarchy now. The Conversation model should allow an optional future context/container reference rather than assume every Room will forever have exactly one flat conversation or that all content attaches directly to the Room.
+
 ## Recommended first MS5 execution prompt
 
 “Implement MS5.0 only: inspect the locked MS4 repository, compare two boring production-grade Postgres/auth options for this Vercel Next.js app, record the architecture decision, define the initial relational schema and authorization invariants, and prepare environment/migration scaffolding. Do not migrate UI state, enable authentication, or implement product features until the founder approves the architecture checkpoint.”

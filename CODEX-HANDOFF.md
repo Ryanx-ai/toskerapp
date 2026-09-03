@@ -15,7 +15,8 @@ MS5 — Identity + Persistence + Real Chat. MS5.5 is complete. The founder-revie
 - MS5.3 `1d96553` — persistent conversations/messages
 - MS5.4 `9db7257` — Friends, Hall, Room capabilities, notifications
 - MS5.5 — this final hardening checkpoint; inspect `git log -1` for its hash
-- MS5 founder-review label — current HEAD; inspect `git log -1` for its hash
+- MS5 founder-review label `ab13fa0` — version marker and deployment handoff
+- MS5 founder-review auth correction `c9fb9de` — canonical redirect origin
 
 ## Environment and release boundary
 
@@ -25,6 +26,7 @@ MS5 — Identity + Persistence + Real Chat. MS5.5 is complete. The founder-revie
 - Release state: DEPLOYED FOR FOUNDER REVIEW at <https://toskerapp.vercel.app/>
 - The canonical review deployment intentionally uses the isolated Development Neon and Clerk resources; it is not a production-data environment.
 - Clerk redirect origins explicitly allow localhost and the canonical founder-review URL.
+- The public auth gate and embedded Clerk sign-in load on the canonical URL. Complete the final authenticated production walkthrough in a fresh founder browser session; an existing Development-browser home origin may redirect its session back to localhost.
 - Preview and Production databases are not provisioned.
 - `toskerArt/` remains untracked, untouched, and unintegrated.
 

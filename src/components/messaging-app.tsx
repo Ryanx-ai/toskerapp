@@ -9,6 +9,7 @@ import { SignOutButton } from "@clerk/nextjs";
 import { conversations, type Conversation } from "@/data/messaging-data";
 import { prototypeUser } from "@/data/prototype-user";
 import { prototypeStore } from "@/lib/prototype-store";
+import { APP_VERSION_LABEL } from "@/config/app";
 import {
   ProductSurface,
   type ProductWorkspace,
@@ -363,6 +364,7 @@ function ProfileRegion({
           </SignOutButton>
         </div>
       </div>
+      <small className="app-version-marker">{APP_VERSION_LABEL}</small>
     </div>
   );
 }

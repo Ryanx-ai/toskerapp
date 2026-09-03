@@ -4,7 +4,7 @@ Repository and Git are authoritative. Read this file first when resuming develop
 
 ## Current milestone
 
-MS5 — Identity + Persistence + Real Chat. MS5.5 is the final hardening/founder-readiness checkpoint. Do not begin MS6 and do not deploy MS5 to production without founder approval.
+MS5 — Identity + Persistence + Real Chat. MS5.5 is complete. The founder-review deployment is authorized and labelled `Version MS-5.0.0 - Dev Proto`. Do not begin MS6.
 
 ## Checkpoints
 
@@ -15,13 +15,15 @@ MS5 — Identity + Persistence + Real Chat. MS5.5 is the final hardening/founder
 - MS5.3 `1d96553` — persistent conversations/messages
 - MS5.4 `9db7257` — Friends, Hall, Room capabilities, notifications
 - MS5.5 — this final hardening checkpoint; inspect `git log -1` for its hash
+- MS5 founder-review label — current HEAD; inspect `git log -1` for its hash
 
 ## Environment and release boundary
 
 - Development database: Neon `neon-byzantine-jacket`
 - Development auth: Clerk Development
 - Canonical production: <https://toskerapp.vercel.app/>
-- Production stays on MS4.1 `ef84e8835cef243079799bf62c3fad42f817f3cd`
+- Release state: DEPLOYED FOR FOUNDER REVIEW at <https://toskerapp.vercel.app/>
+- The canonical review deployment intentionally uses the isolated Development Neon and Clerk resources; it is not a production-data environment.
 - Preview and Production databases are not provisioned.
 - `toskerArt/` remains untracked, untouched, and unintegrated.
 
@@ -35,6 +37,6 @@ See `docs/MS5-HARDENING.md` for the source-of-truth, authorization, security, in
 
 1. Run `git status` and `git log --oneline -8`.
 2. Preserve all completed checkpoint commits; do not squash or amend them.
-3. Keep production on MS4.1 until founder approval.
+3. Treat the canonical deployment as an MS5 development prototype pending founder review.
 4. Do not touch `toskerArt/`.
 5. Stop after founder review preparation; do not begin MS6.

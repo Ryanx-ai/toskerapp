@@ -1,5 +1,6 @@
 import {
   index,
+  boolean,
   pgEnum,
   pgTable,
   primaryKey,
@@ -100,9 +101,13 @@ export const rooms = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "restrict" }),
     name: text("name").notNull(),
+    slug: text("slug").notNull(),
     ...timestamps,
   },
-  (table) => [index("rooms_owner_idx").on(table.ownerId)],
+  (table) => [
+    index("rooms_owner_idx").on(table.ownerId),
+    uniqueIndex("rooms_slug_unique").on(table.slug),
+  ],
 );
 
 export const roomTags = pgTable(
@@ -174,6 +179,7 @@ export const conversations = pgTable(
     roomId: uuid("room_id").references(() => rooms.id, {
       onDelete: "cascade",
     }),
+    isPrimary: boolean("is_primary").default(false).notNull(),
     title: text("title"),
     ...timestamps,
   },
@@ -182,6 +188,9 @@ export const conversations = pgTable(
     uniqueIndex("conversations_sandbox_owner_unique")
       .on(table.ownerId)
       .where(sql`${table.kind} = 'sandbox'`),
+    uniqueIndex("conversations_primary_room_unique")
+      .on(table.roomId)
+      .where(sql`${table.kind} = 'room' and ${table.isPrimary} = true`),
   ],
 );
 

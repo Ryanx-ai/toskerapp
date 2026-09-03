@@ -1,13 +1,16 @@
 import "server-only";
 
 import { randomBytes } from "node:crypto";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 
 import { getDatabase } from "@/server/db/client";
 import {
   conversationParticipants,
   conversations,
   profiles,
+  roomMemberships,
+  rooms,
+  roomTags,
   users,
 } from "@/server/db/schema";
 
@@ -48,6 +51,13 @@ export type CanonicalIdentity = {
   tid: string;
   avatarUrl: string | null;
   sandboxConversationId: string;
+  rooms: Array<{
+    id: string;
+    slug: string;
+    name: string;
+    role: "owner" | "member";
+    tag: string;
+  }>;
 };
 
 export async function ensureToskerAccount(
@@ -55,7 +65,7 @@ export async function ensureToskerAccount(
 ): Promise<CanonicalIdentity> {
   const db = getDatabase();
 
-  return db.transaction(async (tx) => {
+  const account = await db.transaction(async (tx) => {
     let [user] = await tx
       .select({ id: users.id, tid: users.tid })
       .from(users)
@@ -188,4 +198,29 @@ export async function ensureToskerAccount(
       sandboxConversationId: sandbox.id,
     };
   });
+
+  const memberships = await db
+    .select({
+      id: rooms.id,
+      slug: rooms.slug,
+      name: rooms.name,
+      role: roomMemberships.role,
+    })
+    .from(roomMemberships)
+    .innerJoin(rooms, eq(rooms.id, roomMemberships.roomId))
+    .where(eq(roomMemberships.userId, account.userId));
+  const tags = memberships.length
+    ? await db
+        .select({ roomId: roomTags.roomId, value: roomTags.value })
+        .from(roomTags)
+        .where(inArray(roomTags.roomId, memberships.map((room) => room.id)))
+    : [];
+
+  return {
+    ...account,
+    rooms: memberships.map((room) => ({
+      ...room,
+      tag: tags.find((tag) => tag.roomId === room.id)?.value ?? "ROOM",
+    })),
+  };
 }

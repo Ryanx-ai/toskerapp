@@ -3,7 +3,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { SignOutButton } from "@clerk/nextjs";
 import { conversations, type Conversation } from "@/data/messaging-data";
@@ -16,7 +16,8 @@ import {
 import { WorkspaceBanner } from "@/components/workspace-banner";
 import { FakeQr } from "@/components/fake-qr";
 import { IdentityCard } from "@/components/identity-card";
-import { useCurrentToskerUser } from "@/components/tosker-identity";
+import { useCurrentToskerUser, useToskerIdentity } from "@/components/tosker-identity";
+import { createRoomAction, createRoomInviteAction } from "@/server/rooms/actions";
 import {
   ChatSurface,
   HallSurface,
@@ -376,6 +377,7 @@ function AppSidebar({
   collapsed: boolean;
   onToggleCollapse: () => void;
 }) {
+  const identity = useToskerIdentity();
   const user = useCurrentToskerUser() ?? prototypeUser;
   const state = useSyncExternalStore(
     prototypeStore.subscribe,
@@ -393,8 +395,9 @@ function AppSidebar({
       window.requestAnimationFrame(() => searchInputRef.current?.focus()),
     );
   };
-  const standard =
-    state.mode === "new"
+  const standard = identity
+    ? conversations.filter((item) => item.kind === "my-room")
+    : state.mode === "new"
       ? conversations.filter((item) => item.kind === "my-room")
       : conversations;
   const standardSlugs = new Set(standard.map((item) => item.slug));
@@ -412,6 +415,18 @@ function AppSidebar({
       messages: room.messages,
       tag: room.tags[0] ?? "ROOM",
     }));
+  const serverRooms: Conversation[] = (identity?.rooms ?? []).map((room) => ({
+    slug: room.slug,
+    kind: "room",
+    name: room.name,
+    initials: room.name.slice(0, 2).toUpperCase(),
+    color: "green",
+    preview: room.role === "owner" ? "You own this Room" : "Room member",
+    time: "Now",
+    context: room.role === "owner" ? "Room owner" : "Room member",
+    messages: [],
+    tag: room.tag,
+  }));
   const localChats: Conversation[] = state.chats
     .filter((chat) => !standardSlugs.has(chat.slug))
     .map((chat) => ({
@@ -425,7 +440,7 @@ function AppSidebar({
       context: chat.tid,
       messages: chat.messages,
     }));
-  const all = [...standard, ...localChats, ...localRooms].filter(
+  const all = [...standard, ...serverRooms, ...(identity ? [] : localChats), ...(identity ? [] : localRooms)].filter(
     (item) => !state.archived.includes(item.slug),
   );
   const filtered = all.filter((item) =>
@@ -672,11 +687,17 @@ function InviteOverlay({
   onClose: () => void;
 }) {
   const [copied, setCopied] = useState(false);
+  const [token, setToken] = useState<string | null>(null);
+  const [error, setError] = useState("");
   const panelRef = useRef<HTMLElement>(null);
   useDismissLayer(true, onClose, panelRef);
-  const tag = room.tag ?? "ROOM";
-  const invitePath = `/join/${room.slug}?name=${encodeURIComponent(nameOf(room))}&tag=${encodeURIComponent(tag)}&owner=Ryan`;
-  const inviteUrl = `https://toskerapp.vercel.app${invitePath}`;
+  useEffect(() => {
+    createRoomInviteAction(room.slug)
+      .then((result) => setToken(result.inviteToken))
+      .catch(() => setError("Could not create an invitation."));
+  }, [room.slug]);
+  const invitePath = token ? `/join/${token}` : "";
+  const inviteUrl = token && typeof window !== "undefined" ? `${window.location.origin}${invitePath}` : "";
   return (
     <div className="overlay-backdrop">
       <section
@@ -697,10 +718,11 @@ function InviteOverlay({
           <div>
             <label className="invite-link">
               Invitation link
-              <input readOnly value={inviteUrl} />
+              <input readOnly value={inviteUrl || "Creating secure link…"} />
             </label>
             <button
               className="primary-action"
+              disabled={!inviteUrl}
               onClick={() => {
                 navigator.clipboard?.writeText(inviteUrl);
                 setCopied(true);
@@ -708,12 +730,10 @@ function InviteOverlay({
             >
               {copied ? "Copied" : "Copy link"}
             </button>
-            <Link href={invitePath}>Preview invitation</Link>
+            {invitePath ? <Link href={invitePath}>Preview invitation</Link> : null}
           </div>
         </div>
-        <small className="prototype-note">
-          Created by Ryan · You’re the Room owner · Prototype only
-        </small>
+        <small className="prototype-note">{error || "Secure invitation · Expires in 14 days"}</small>
       </section>
     </div>
   );
@@ -733,7 +753,10 @@ function CreationOverlay({
   const [tags, setTags] = useState<string[]>([]);
   const [selectedThings, setThings] = useState<string[]>([]);
   const [people, setPeople] = useState<string[]>([]);
-  const [room, setRoom] = useState<{ slug: string; name: string; tags: string[] } | null>(null);
+  const user = useCurrentToskerUser() ?? prototypeUser;
+  const [room, setRoom] = useState<{ slug: string; name: string; tags: string[]; inviteToken: string } | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
   const [friendQuery, setFriendQuery] = useState("");
   const [invitee, setInvitee] = useState("");
   const [copied, setCopied] = useState(false);
@@ -745,18 +768,27 @@ function CreationOverlay({
     router.push(`/personal/${chat.slug}`);
     onClose();
   };
-  const finishRoom = () => {
-    const created = prototypeStore.createRoom({
-      name,
-      tags,
-      people,
-      things: selectedThings,
-    });
-    setRoom(created);
-    setStep(5);
+  const finishRoom = async () => {
+    setSaving(true);
+    setSaveError("");
+    try {
+      const created = await createRoomAction({
+        name,
+        tags,
+        capabilities: selectedThings,
+        recipientHint: people[0] ?? null,
+      });
+      setRoom(created);
+      setStep(5);
+      router.refresh();
+    } catch {
+      setSaveError("Could not create the Room. Please try again.");
+    } finally {
+      setSaving(false);
+    }
   };
   const nextRoom = () => {
-    if (step === 4) finishRoom();
+    if (step === 4) void finishRoom();
     else setStep((current) => current + 1);
   };
   return (
@@ -987,14 +1019,14 @@ function CreationOverlay({
             ) : null}
             {step === 5 && room ? (
               <div className="room-ready">
-                <FakeQr value={`https://toskerapp.vercel.app/join/${room.slug}?name=${encodeURIComponent(room.name)}&tag=${encodeURIComponent(room.tags[0] ?? "ROOM")}&owner=Ryan`} />
+                <FakeQr value={`${typeof window !== "undefined" ? window.location.origin : ""}/join/${room.inviteToken}`} />
                 <h2>Room's ready</h2>
-                <p>{room.name} · Created by Ryan</p>
+                <p>{room.name} · Created by {user.displayName}</p>
                 <div>
                   <button
                     onClick={() => {
                       navigator.clipboard?.writeText(
-                        `https://toskerapp.vercel.app/join/${room.slug}?name=${encodeURIComponent(room.name)}&tag=${encodeURIComponent(room.tags[0] ?? "ROOM")}&owner=Ryan`,
+                        `${window.location.origin}/join/${room.inviteToken}`,
                       );
                       setCopied(true);
                     }}
@@ -1003,7 +1035,7 @@ function CreationOverlay({
                   </button>
                   <Link
                     className="room-ready-preview"
-                    href={`/join/${room.slug}?name=${encodeURIComponent(room.name)}&tag=${encodeURIComponent(room.tags[0] ?? "ROOM")}&owner=Ryan`}
+                    href={`/join/${room.inviteToken}`}
                   >
                     Preview
                   </Link>
@@ -1016,7 +1048,7 @@ function CreationOverlay({
                     Open Room
                   </button>
                 </div>
-                <small>Prototype invite · local only</small>
+                <small>Secure invitation · Expires in 14 days</small>
               </div>
             ) : null}
             {step < 5 ? (
@@ -1024,14 +1056,15 @@ function CreationOverlay({
                 <button
                   className="button button-primary primary-action"
                   onClick={nextRoom}
-                  disabled={step === 1 && !name.trim()}
+                  disabled={saving || (step === 1 && !name.trim())}
                 >
                   {step === 1
                     ? "Next"
                     : step === 4
-                      ? "Create Room"
+                      ? saving ? "Creating…" : "Create Room"
                       : "Next"}
                 </button>
+                {saveError ? <p role="alert">{saveError}</p> : null}
               </div>
             ) : null}
           </>
@@ -1087,6 +1120,7 @@ export function MessagingApp({
   workspace?: AppWorkspace;
 }) {
   const user = useCurrentToskerUser() ?? prototypeUser;
+  const identity = useToskerIdentity();
   const state = useSyncExternalStore(
     prototypeStore.subscribe,
     prototypeStore.getSnapshot,
@@ -1109,8 +1143,23 @@ export function MessagingApp({
     : undefined;
   const prototypeRoom = state.rooms.find((room) => room.slug === selectedSlug);
   const prototypeChat = state.chats.find((chat) => chat.slug === selectedSlug);
+  const serverRoom = identity?.rooms.find((room) => room.slug === selectedSlug);
   const selected =
-    canonical ??
+    (identity && canonical?.kind !== "my-room" ? undefined : canonical) ??
+    (serverRoom
+      ? {
+          slug: serverRoom.slug,
+          kind: "room" as const,
+          name: serverRoom.name,
+          initials: serverRoom.name.slice(0, 2).toUpperCase(),
+          color: "green",
+          preview: "Room's ready",
+          time: "Now",
+          context: serverRoom.role === "owner" ? "Room owner" : "Room member",
+          messages: [],
+          tag: serverRoom.tag,
+        }
+      :
     (prototypeRoom
       ? {
           slug: prototypeRoom.slug,
@@ -1138,7 +1187,7 @@ export function MessagingApp({
           }
         : selectedSlug
           ? conversations[0]
-          : undefined);
+          : undefined));
   const messageFriend = (friend: (typeof friends)[number]) => {
     const chat = prototypeStore.createChat(friend);
     router.push(`/personal/${chat.slug}`);

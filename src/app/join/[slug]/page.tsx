@@ -1,22 +1,15 @@
 import { JoinRoom } from "@/components/join-room";
 import Link from "next/link";
+import { getInviteDetails } from "@/server/rooms/actions";
 
 export default async function JoinRoomPage({
   params,
-  searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { slug } = await params;
-  const query = await searchParams;
-  const value = (key: string, fallback: string) => {
-    const item = query[key];
-    return typeof item === "string" && item.trim() ? item.trim() : fallback;
-  };
-  const invitationName = value("name", "");
-  const valid = /^[a-z0-9][a-z0-9-]{0,79}$/.test(slug) && invitationName.length > 0;
-  if (!valid)
+  const invitation = await getInviteDetails(slug);
+  if (!invitation)
     return (
       <main className="join-page">
         <section className="join-card invite-unavailable">
@@ -30,9 +23,10 @@ export default async function JoinRoomPage({
   return (
     <JoinRoom
       slug={slug}
-      name={invitationName}
-      tag={value("tag", "ROOM")}
-      owner={value("owner", "Ryan")}
+      roomSlug={invitation.roomSlug}
+      name={invitation.roomName}
+      tag={invitation.tag}
+      owner={invitation.ownerName}
     />
   );
 }

@@ -1,9 +1,13 @@
 "use client";
 
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { Show, SignInButton, SignUpButton } from "@clerk/nextjs";
 
 export function AuthGate({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  if (pathname.startsWith("/join/")) return children;
+
   return (
     <Show
       when="signed-in"

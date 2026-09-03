@@ -2,33 +2,44 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useSyncExternalStore } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { SignInButton, useAuth } from "@clerk/nextjs";
 import { ArrowRight, UsersRound } from "lucide-react";
 import { FakeQr } from "@/components/fake-qr";
-import { prototypeStore } from "@/lib/prototype-store";
+import { acceptRoomInviteAction } from "@/server/rooms/actions";
+import { useToskerIdentity } from "@/components/tosker-identity";
 
 export function JoinRoom({
   slug,
+  roomSlug,
   name,
   tag,
   owner,
 }: {
   slug: string;
+  roomSlug: string;
   name: string;
   tag: string;
   owner: string;
 }) {
   const router = useRouter();
-  const state = useSyncExternalStore(
-    prototypeStore.subscribe,
-    prototypeStore.getSnapshot,
-    prototypeStore.getServerSnapshot,
-  );
-  const joined = state.rooms.some((room) => room.slug === slug);
-  const join = () => {
-    prototypeStore.joinRoom({ slug, name, tag, owner });
-    router.push(`/room/${slug}`);
+  const { isLoaded, isSignedIn } = useAuth();
+  const identity = useToskerIdentity();
+  const joined = identity?.rooms.some((room) => room.slug === roomSlug) ?? false;
+  const [joining, setJoining] = useState(false);
+  const [error, setError] = useState("");
+  const join = async () => {
+    setJoining(true);
+    setError("");
+    try {
+      const result = await acceptRoomInviteAction(slug);
+      router.push(`/room/${result.roomSlug}`);
+      router.refresh();
+    } catch {
+      setError("This invitation could not be accepted.");
+      setJoining(false);
+    }
   };
   return (
     <main className="join-page">
@@ -58,16 +69,21 @@ export function JoinRoom({
         {joined ? (
           <div className="join-complete" role="status">
             <strong>Already joined.</strong>
-            <Link href={`/room/${slug}`}>
+            <Link href={`/room/${roomSlug}`}>
               Open Room <ArrowRight size={16} />
             </Link>
           </div>
-        ) : (
-          <button className="primary-action" onClick={join}>
-            Join Room
+        ) : !isLoaded ? null : isSignedIn ? (
+          <button className="primary-action" onClick={() => void join()} disabled={joining}>
+            {joining ? "Joining…" : "Join Room"}
           </button>
+        ) : (
+          <SignInButton mode="modal" forceRedirectUrl={`/join/${slug}`}>
+            <button className="primary-action">Sign in to join</button>
+          </SignInButton>
         )}
-        <small>Prototype invitation · No account required for this preview</small>
+        {error ? <p role="alert">{error}</p> : null}
+        <small>Secure invitation · Authentication required to join</small>
       </section>
     </main>
   );

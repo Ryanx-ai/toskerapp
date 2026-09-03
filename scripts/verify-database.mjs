@@ -27,8 +27,11 @@ const expectedIndexes = [
   "conversation_participants_conversation_id_user_id_pk",
   "invites_token_hash_unique",
   "messages_conversation_order_idx",
+  "conversations_primary_room_unique",
+  "conversations_sandbox_owner_unique",
   "room_capabilities_room_id_capability_key_pk",
   "room_memberships_room_id_user_id_pk",
+  "rooms_slug_unique",
   "users_auth_identity_unique",
   "users_tid_unique",
 ];

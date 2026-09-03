@@ -13,8 +13,8 @@ Milestone 5 moves Tosker from one-browser prototype state to durable multi-user 
 | Profile / Namecard / Settings identity | A | Real User/Profile data and session identity. |
 | Friends / Connections | A | Real connection records and lookup contract. |
 | Notifications | A | Foundation records for invites, mentions and membership events. |
-| Hall | B | Persist `note` and `pinned-message` item types with source references. |
-| Add / Gizmos | B | Durable unique Room capability installations; capability runtime later. |
+| Hall | A | `note` and `pinned-message` items persist against authorized conversations with canonical source references. |
+| Add / Gizmos | A | Unique Room capability installations are durable; capability runtime remains later. |
 | Search | B | Define authorized search scope; basic server query may follow core persistence. |
 | Explore / Marketplace / Studio | C | Remain intentional discovery prototypes until capability commerce/creation waves. |
 | Voice / Video | C | Requires presence, WebRTC/signalling, device permissions and call lifecycle; later wave. |

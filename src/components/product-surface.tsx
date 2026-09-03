@@ -59,6 +59,15 @@ function ProductChrome({
 }
 
 function Explore() {
+  const [filter, setFilter] = useState("Featured");
+  const exploreFilters: Record<string, string[]> = {
+    Featured: exploreCards.map((card) => card[1]),
+    "Popular this week": ["Quick Poll", "Kanban Board", "Shared Map"],
+    "For trips": ["Shared Map", "Photo Wall", "Schedule"],
+    "For friends": ["Quick Poll", "Photo Wall", "Game Night"],
+    "For work": ["Kanban Board", "Schedule"],
+    "For fun": ["Game Night", "Quick Poll"],
+  };
   return (
     <ProductChrome current="explore">
       <WorkspaceBanner
@@ -79,12 +88,7 @@ function Explore() {
         }
       />
       <div className="filter-pills">
-        <button className="active">Featured</button>
-        <button>Popular this week</button>
-        <button>For trips</button>
-        <button>For friends</button>
-        <button>For work</button>
-        <button>For fun</button>
+        {Object.keys(exploreFilters).map((item) => <button key={item} className={filter === item ? "active" : ""} aria-pressed={filter === item} onClick={() => setFilter(item)}>{item}</button>)}
       </div>
       <section className="surface-section compact-section">
         <div className="section-title">
@@ -95,7 +99,7 @@ function Explore() {
           <span>Concept previews</span>
         </div>
         <div className="explore-grid">
-          {exploreCards.map(([icon, title, category, body], index) => (
+          {exploreCards.filter((card) => exploreFilters[filter].includes(card[1])).map(([icon, title, category, body], index) => (
             <article key={title} className={`explore-card card-${index + 1}`}>
               <div className="explore-card-art" aria-hidden="true">
                 <span>{icon}</span>
@@ -113,6 +117,7 @@ function Explore() {
   );
 }
 function Marketplace() {
+  const [filter, setFilter] = useState("All");
   return (
     <ProductChrome current="marketplace">
       <WorkspaceBanner
@@ -126,15 +131,11 @@ function Marketplace() {
             <h2>From the future community</h2>
           </div>
           <div className="market-tabs">
-            <button className="active">All</button>
-            <button>Skins</button>
-            <button>Apps</button>
-            <button>Games</button>
-            <button>Templates</button>
+            {["All", "Skins", "Apps", "Games", "Templates"].map((item) => <button key={item} className={filter === item ? "active" : ""} aria-pressed={filter === item} onClick={() => setFilter(item)}>{item}</button>)}
           </div>
         </div>
         <div className="market-grid">
-          {marketCards.map(([style, title, kind, creator, price]) => (
+          {marketCards.filter((card) => filter === "All" || card[2].toLowerCase().includes(filter.slice(0, -1).toLowerCase())).map(([style, title, kind, creator, price]) => (
             <article key={title} className="market-card">
               <div className={`market-art art-${style}`}>
                 <span>{title.slice(0, 1)}</span>

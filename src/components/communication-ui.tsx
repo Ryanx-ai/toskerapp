@@ -232,7 +232,7 @@ function MessageMenu({
   message: Message;
   onReply: () => void;
   onReact: () => void;
-  onDelete: () => void;
+  onDelete?: () => void;
   onPin?: () => void;
   onClose: () => void;
 }) {
@@ -250,17 +250,10 @@ function MessageMenu({
       >
         Copy text
       </button>
-      <button onClick={onClose}>
-        Save <small>Prototype</small>
-      </button>
-      <button onClick={onClose}>More</button>
       {onPin ? <button onClick={onPin}>Pin to Hall</button> : null}
-      {message.mine ? (
+      {message.mine && onDelete ? (
         <>
           <hr />
-          <button onClick={onClose}>
-            Edit <small>Prototype</small>
-          </button>
           <button className="danger" onClick={onDelete}>
             Nuke message
           </button>
@@ -280,7 +273,7 @@ function MessageBubble({
   message: Message;
   onReply: (message: Message) => void;
   onReaction: (id: string, reaction: string) => void;
-  onDelete: (id: string) => void;
+  onDelete?: (id: string) => void;
   onPin?: (message: Message) => void;
 }) {
   const [translated, setTranslated] = useState(false);
@@ -366,7 +359,7 @@ function MessageBubble({
         {message.reactions?.length ? (
           <div className="message-reactions">
             {message.reactions.map((reaction, index) => (
-              <button key={`${reaction}-${index}`}>{reaction}</button>
+              <span key={`${reaction}-${index}`}>{reaction}</span>
             ))}
           </div>
         ) : null}
@@ -379,7 +372,7 @@ function MessageBubble({
             setMenu(false);
           }}
           onReact={showPicker}
-          onDelete={() => onDelete(message.id)}
+          onDelete={onDelete ? () => onDelete(message.id) : undefined}
           onPin={
             onPin
               ? () => {
@@ -422,6 +415,7 @@ function Composer({
   onSend: (body: string) => void;
 }) {
   const [value, setValue] = useState("");
+  const [toolNote, setToolNote] = useState("");
   const send = () => {
     if (!value.trim()) return;
     onSend(value.trim());
@@ -442,16 +436,16 @@ function Composer({
       ) : null}
       <div className="composer">
         <div className="composer-tools">
-          <button aria-label="Attach">
+          <button aria-label="Attach" onClick={() => setToolNote("Attachments are planned for a later milestone.")}>
             <Paperclip size={17} />
           </button>
-          <button aria-label="Add image">
+          <button aria-label="Add image" onClick={() => setToolNote("Image sharing is planned for a later milestone.")}>
             <ImageIcon size={17} />
           </button>
-          <button aria-label="Add file">
+          <button aria-label="Add file" onClick={() => setToolNote("File sharing is planned for a later milestone.")}>
             <File size={17} />
           </button>
-          <button aria-label="Add emoji">
+          <button aria-label="Add emoji" onClick={() => setToolNote("Emoji picking is planned for a later milestone.")}>
             <Smile size={17} />
           </button>
         </div>
@@ -477,6 +471,7 @@ function Composer({
           <Send size={17} />
         </button>
       </div>
+      {toolNote ? <p className="composer-hint" role="status">{toolNote}</p> : null}
     </div>
   );
 }
@@ -593,7 +588,7 @@ export function ChatSurface({ conversation }: { conversation: Conversation }) {
                 message={message}
                 onReply={setReply}
                 onReaction={react}
-                onDelete={(id) =>
+                onDelete={conversation.databaseId ? undefined : (id) =>
                   setMessages((current) =>
                     current.filter((item) => item.id !== id),
                   )
@@ -679,16 +674,9 @@ function HallCard({ notice }: { notice: (typeof hallNotices)[number] }) {
       </button>
       {open ? (
         <div ref={ref} className="context-menu hall-context">
-          <button>Pin</button>
-          <button>Save</button>
-          <button onClick={() => navigator.clipboard?.writeText(notice.title)}>
-            Copy link
+          <button onClick={() => { navigator.clipboard?.writeText(notice.title); setOpen(false); }}>
+            Copy title
           </button>
-          <button>
-            Edit <small>Own notes</small>
-          </button>
-          <hr />
-          <button className="danger">Nuke note</button>
         </div>
       ) : null}
     </article>
@@ -711,20 +699,20 @@ export function HallSurface({
   const [creating, setCreating] = useState(false);
   const [noteTitle, setNoteTitle] = useState("");
   const [noteBody, setNoteBody] = useState("");
-  const [persistentItems, setPersistentItems] = useState<Array<{ id: string; kind: "note" | "pinned_message"; title: string | null; body: string; author: string; createdAt: string }>>([]);
+  const [persistentItems, setPersistentItems] = useState<Array<{ id: string; kind: "note" | "pinned_message"; title: string | null; body: string; author: string; createdAt: string; sourceMessageId?: string | null }>>([]);
   const [hallError, setHallError] = useState("");
   const noteRef = useRef<HTMLElement>(null);
   useDismissLayer(creating, () => setCreating(false), noteRef);
   const localItems = room?.hallItems ?? [];
   useEffect(() => {
-    if (!conversation.databaseId || conversation.kind !== "room") return;
+    if (!conversation.databaseId) return;
     let active = true;
     listHallItemsAction(conversation.databaseId)
       .then((items) => active && setPersistentItems(items))
       .catch(() => active && setHallError("Hall couldn't be loaded."));
     return () => { active = false; };
-  }, [conversation.databaseId, conversation.kind]);
-  const displayedItems = conversation.databaseId && conversation.kind === "room" ? persistentItems : localItems;
+  }, [conversation.databaseId]);
+  const displayedItems = conversation.databaseId ? persistentItems : localItems;
   const contextual =
     conversation.kind === "my-room"
       ? {
@@ -747,17 +735,14 @@ export function HallSurface({
     >
       <header>
         <div>
-          <h2>{isEmpty ? "Nothing here yet" : contextual.title}</h2>
-          <p>
-            {isEmpty ? "Pin the stuff everyone should know" : contextual.support}
-          </p>
+          <h2>{contextual.title}</h2>
+          <p>{contextual.support}</p>
         </div>
-        <button className="new-hall-note primary-action" onClick={() => setCreating(true)}>
-          <Plus size={15} /> New
-        </button>
       </header>
-      {isEmpty ? null : (
-        <div className="notice-list">
+      <div className="notice-list">
+          <button className="new-hall-card" onClick={() => setCreating(true)}>
+            <Plus size={16} /> New Note
+          </button>
           {displayedItems.map((item) => (
             <article className={`notice-card hall-local-${item.kind}`} key={item.id}>
               <span className="notice-icon">{item.kind === "note" ? "✎" : "⌖"}</span>
@@ -767,6 +752,7 @@ export function HallSurface({
                 <p>{item.body}</p>
                 <footer>{item.author} · {"time" in item ? item.time : new Date(item.createdAt).toLocaleString()}</footer>
               </div>
+              {"sourceMessageId" in item && item.sourceMessageId ? <Link className="hall-source-link" href={`${baseHref(conversation)}#message-${item.sourceMessageId}`}>Open source Chat</Link> : null}
             </article>
           ))}
           {!empty
@@ -775,7 +761,6 @@ export function HallSurface({
               ))
             : null}
         </div>
-      )}
       {creating ? (
         <div className="overlay-backdrop">
           <section ref={noteRef} className="creation-panel hall-note-panel" role="dialog" aria-modal="true" aria-labelledby="hall-note-title">
@@ -785,7 +770,7 @@ export function HallSurface({
             <label className="wizard-field"><span>Title</span><input autoFocus value={noteTitle} onChange={(event) => setNoteTitle(event.target.value)} maxLength={80} /></label>
             <label className="wizard-field"><span>Note</span><textarea value={noteBody} onChange={(event) => setNoteBody(event.target.value)} rows={4} /></label>
             <div className="wizard-actions"><button className="button button-primary primary-action" disabled={!noteTitle.trim()} onClick={async () => {
-              if (conversation.databaseId && conversation.kind === "room") {
+              if (conversation.databaseId) {
                 try {
                   await createHallNoteAction({ conversationId: conversation.databaseId, title: noteTitle, body: noteBody });
                   setPersistentItems(await listHallItemsAction(conversation.databaseId));

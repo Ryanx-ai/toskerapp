@@ -1,2 +1,5 @@
 import { MessagingApp } from "@/components/messaging-app";
-export default async function RoomHallPage({ params }: { params: Promise<{ slug: string }> }) { const { slug } = await params; return <MessagingApp selectedSlug={slug} surface="hall" />; }
+import { auth } from "@clerk/nextjs/server";
+import { notFound } from "next/navigation";
+import { canAccessRoom } from "@/server/auth/routes";
+export default async function RoomHallPage({ params }: { params: Promise<{ slug: string }> }) { const { slug } = await params; const { userId } = await auth(); if (userId && !(await canAccessRoom(userId, slug))) notFound(); return <MessagingApp selectedSlug={slug} surface="hall" />; }

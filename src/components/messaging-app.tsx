@@ -459,7 +459,7 @@ function AppSidebar({
       messages: chat.messages,
     }));
   const all = [...standard, ...serverChats, ...serverRooms, ...(identity ? [] : localChats), ...(identity ? [] : localRooms)].filter(
-    (item) => !state.archived.includes(item.slug),
+    (item) => Boolean(identity) || !state.archived.includes(item.slug),
   );
   const filtered = all.filter((item) =>
     `${nameOf(item, user.displayName)} ${item.name} ${item.tag ?? ""}`
@@ -467,9 +467,11 @@ function AppSidebar({
       .includes(query.trim().toLowerCase()),
   );
   const rank = (item: Conversation) =>
-    state.order.indexOf(item.slug) < 0
+    identity
       ? Number.MAX_SAFE_INTEGER
-      : state.order.indexOf(item.slug);
+      : state.order.indexOf(item.slug) < 0
+        ? Number.MAX_SAFE_INTEGER
+        : state.order.indexOf(item.slug);
   const ordered = [...filtered].sort((a, b) =>
     a.kind === "my-room"
       ? -1
@@ -577,8 +579,8 @@ function AppSidebar({
               key={item.slug}
               item={item}
               active={selected?.slug === item.slug}
-              pinned={state.pinned.includes(item.slug)}
-              onDropItem={prototypeStore.reorder}
+              pinned={!identity && state.pinned.includes(item.slug)}
+              onDropItem={identity ? () => undefined : prototypeStore.reorder}
               displayName={user.displayName}
             />
           ))}

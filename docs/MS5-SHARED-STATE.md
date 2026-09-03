@@ -8,7 +8,7 @@ Connections support `pending` and `accepted`. A sorted unique pair key prevents 
 
 ## Hall
 
-Room members may create Hall-native notes. Pinning stores a Hall item that references the original message ID; the message stays in Chat and its body is not copied into Hall storage. A unique source-message index makes repeat pinning idempotent.
+Authorized conversation participants may create Hall-native notes in Room, Personal, and Sandbox Hall surfaces. Room Hall additionally enforces Room membership. Pinning stores a Hall item that references the original message ID; the message stays in Chat and its body is not copied into Hall storage. A unique source-message index makes repeat pinning idempotent.
 
 ## Capabilities
 

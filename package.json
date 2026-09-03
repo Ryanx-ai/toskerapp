@@ -15,7 +15,8 @@
     "db:smoke": "NODE_OPTIONS=--conditions=react-server dotenv -e .env.local -- tsx scripts/smoke-database.ts",
     "db:verify-bootstrap": "NODE_OPTIONS=--conditions=react-server dotenv -e .env.local -- tsx scripts/verify-bootstrap.ts",
     "db:verify-chat": "NODE_OPTIONS=--conditions=react-server dotenv -e .env.local -- tsx scripts/verify-chat.ts",
-    "db:verify-shared": "NODE_OPTIONS=--conditions=react-server dotenv -e .env.local -- tsx scripts/verify-shared-state.ts"
+    "db:verify-shared": "NODE_OPTIONS=--conditions=react-server dotenv -e .env.local -- tsx scripts/verify-shared-state.ts",
+    "db:audit-ms5": "dotenv -e .env.local -- node scripts/audit-ms5.mjs"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.9.0",

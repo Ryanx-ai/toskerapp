@@ -520,6 +520,14 @@ h1,h2,h3 { font-family:var(--font-mermaid),Georgia,serif; font-weight:400; lette
 .hall-surface > header { width:100%; align-items:center; }
 .hall-surface > header > div { min-width:0; }
 .new-hall-note { flex:0 0 auto; align-self:center; }
+
+/* Hall creation lives on the bulletin board, not in its header. */
+.new-hall-card { min-height:164px; display:flex; align-items:center; justify-content:center; gap:7px; border:1px dashed #536268; border-radius:13px; background:rgba(255,255,255,.015); color:var(--text-secondary); font-size:10px; cursor:pointer; transition:background .16s,border-color .16s,color .16s,transform .16s; }
+.new-hall-card:hover { color:var(--text-primary); border-color:var(--brand-gold); background:rgba(200,156,93,.055); transform:translateY(-2px); }
+.new-hall-card:focus-visible { outline:2px solid var(--brand-gold); outline-offset:3px; color:var(--text-primary); }
+.message-reactions span { min-width:27px; height:23px; padding:0 6px; border:1px solid #38464d; border-radius:99px; display:grid; place-items:center; background:#111b20; font-size:12px; }
+.hall-source-link { grid-column:2; margin-top:8px; width:max-content; color:#554322; font-size:9px; text-decoration:underline; text-underline-offset:3px; }
+@media (max-width:640px) { .new-hall-card { min-height:92px; } }
 .hall-local-note { background:linear-gradient(145deg,rgba(255,216,77,.12),var(--surface)); }
 .hall-local-pinned-message { border-style:dashed; background:var(--background-raised); }
 .hall-note-panel textarea { width:100%; resize:vertical; min-height:100px; padding:12px 13px; border:1px solid #3b4b52; border-radius:10px; background:#0a1114; color:var(--text-primary); font:inherit; line-height:1.5; }

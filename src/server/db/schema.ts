@@ -249,9 +249,10 @@ export const hallItems = pgTable(
   "hall_items",
   {
     id: uuid("id").defaultRandom().primaryKey(),
-    roomId: uuid("room_id")
-      .notNull()
-      .references(() => rooms.id, { onDelete: "cascade" }),
+    roomId: uuid("room_id").references(() => rooms.id, { onDelete: "cascade" }),
+    conversationId: uuid("conversation_id").references(() => conversations.id, {
+      onDelete: "cascade",
+    }),
     kind: hallItemKind("kind").notNull(),
     authorId: uuid("author_id")
       .notNull()

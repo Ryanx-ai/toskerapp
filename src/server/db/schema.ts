@@ -1,0 +1,295 @@
+import {
+  index,
+  pgEnum,
+  pgTable,
+  primaryKey,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from "drizzle-orm/pg-core";
+
+const timestamps = {
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+};
+
+export const connectionStatus = pgEnum("connection_status", [
+  "pending",
+  "accepted",
+]);
+export const membershipRole = pgEnum("membership_role", ["owner", "member"]);
+export const inviteStatus = pgEnum("invite_status", [
+  "pending",
+  "accepted",
+  "revoked",
+  "expired",
+]);
+export const conversationKind = pgEnum("conversation_kind", [
+  "sandbox",
+  "personal",
+  "room",
+]);
+export const hallItemKind = pgEnum("hall_item_kind", [
+  "note",
+  "pinned_message",
+]);
+
+export const users = pgTable(
+  "users",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    authProvider: text("auth_provider").notNull(),
+    authSubject: text("auth_subject").notNull(),
+    tid: text("tid").notNull(),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("users_auth_identity_unique").on(
+      table.authProvider,
+      table.authSubject,
+    ),
+    uniqueIndex("users_tid_unique").on(table.tid),
+  ],
+);
+
+export const profiles = pgTable("profiles", {
+  userId: uuid("user_id")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  displayName: text("display_name").notNull(),
+  avatarUrl: text("avatar_url"),
+  status: text("status"),
+  namecardBio: text("namecard_bio"),
+  ...timestamps,
+});
+
+export const connections = pgTable(
+  "connections",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    requesterId: uuid("requester_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    addresseeId: uuid("addressee_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    status: connectionStatus("status").default("pending").notNull(),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("connections_direction_unique").on(
+      table.requesterId,
+      table.addresseeId,
+    ),
+    index("connections_addressee_idx").on(table.addresseeId),
+  ],
+);
+
+export const rooms = pgTable(
+  "rooms",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    ownerId: uuid("owner_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    name: text("name").notNull(),
+    ...timestamps,
+  },
+  (table) => [index("rooms_owner_idx").on(table.ownerId)],
+);
+
+export const roomTags = pgTable(
+  "room_tags",
+  {
+    roomId: uuid("room_id")
+      .notNull()
+      .references(() => rooms.id, { onDelete: "cascade" }),
+    value: text("value").notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.roomId, table.value] })],
+);
+
+export const roomMemberships = pgTable(
+  "room_memberships",
+  {
+    roomId: uuid("room_id")
+      .notNull()
+      .references(() => rooms.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    role: membershipRole("role").default("member").notNull(),
+    joinedAt: timestamp("joined_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.roomId, table.userId] }),
+    index("room_memberships_user_idx").on(table.userId),
+  ],
+);
+
+export const invites = pgTable(
+  "invites",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tokenHash: text("token_hash").notNull(),
+    roomId: uuid("room_id")
+      .notNull()
+      .references(() => rooms.id, { onDelete: "cascade" }),
+    inviterId: uuid("inviter_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    recipientUserId: uuid("recipient_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    recipientHint: text("recipient_hint"),
+    status: inviteStatus("status").default("pending").notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
+    acceptedAt: timestamp("accepted_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("invites_token_hash_unique").on(table.tokenHash),
+    index("invites_room_idx").on(table.roomId),
+    index("invites_recipient_idx").on(table.recipientUserId),
+  ],
+);
+
+export const conversations = pgTable(
+  "conversations",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    kind: conversationKind("kind").notNull(),
+    roomId: uuid("room_id").references(() => rooms.id, {
+      onDelete: "cascade",
+    }),
+    title: text("title"),
+    ...timestamps,
+  },
+  (table) => [index("conversations_room_idx").on(table.roomId)],
+);
+
+export const conversationParticipants = pgTable(
+  "conversation_participants",
+  {
+    conversationId: uuid("conversation_id")
+      .notNull()
+      .references(() => conversations.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    joinedAt: timestamp("joined_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.conversationId, table.userId] }),
+    index("conversation_participants_user_idx").on(table.userId),
+  ],
+);
+
+export const messages = pgTable(
+  "messages",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    conversationId: uuid("conversation_id")
+      .notNull()
+      .references(() => conversations.id, { onDelete: "cascade" }),
+    authorId: uuid("author_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    body: text("body").notNull(),
+    replyToId: uuid("reply_to_id"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    editedAt: timestamp("edited_at", { withTimezone: true }),
+  },
+  (table) => [
+    index("messages_conversation_order_idx").on(
+      table.conversationId,
+      table.createdAt,
+      table.id,
+    ),
+  ],
+);
+
+export const hallItems = pgTable(
+  "hall_items",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    roomId: uuid("room_id")
+      .notNull()
+      .references(() => rooms.id, { onDelete: "cascade" }),
+    kind: hallItemKind("kind").notNull(),
+    authorId: uuid("author_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    title: text("title"),
+    body: text("body"),
+    sourceMessageId: uuid("source_message_id").references(() => messages.id, {
+      onDelete: "restrict",
+    }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [index("hall_items_room_idx").on(table.roomId, table.createdAt)],
+);
+
+export const roomCapabilities = pgTable(
+  "room_capabilities",
+  {
+    roomId: uuid("room_id")
+      .notNull()
+      .references(() => rooms.id, { onDelete: "cascade" }),
+    capabilityKey: text("capability_key").notNull(),
+    installedById: uuid("installed_by_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    installedAt: timestamp("installed_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.roomId, table.capabilityKey] })],
+);
+
+export const notifications = pgTable(
+  "notifications",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    type: text("type").notNull(),
+    actorId: uuid("actor_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    roomId: uuid("room_id").references(() => rooms.id, {
+      onDelete: "cascade",
+    }),
+    messageId: uuid("message_id").references(() => messages.id, {
+      onDelete: "cascade",
+    }),
+    readAt: timestamp("read_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [index("notifications_user_order_idx").on(table.userId, table.createdAt)],
+);
+
+export type ToskerUser = typeof users.$inferSelect;
+export type ToskerProfile = typeof profiles.$inferSelect;
+export type ToskerRoom = typeof rooms.$inferSelect;
+export type ToskerConversation = typeof conversations.$inferSelect;
+export type ToskerMessage = typeof messages.$inferSelect;

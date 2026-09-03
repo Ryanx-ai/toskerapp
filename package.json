@@ -10,7 +10,9 @@
     "typecheck": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:check": "drizzle-kit check",
-    "db:migrate": "dotenv -e .env.local -- drizzle-kit migrate"
+    "db:migrate": "dotenv -e .env.local -- drizzle-kit migrate",
+    "db:verify": "dotenv -e .env.local -- node scripts/verify-database.mjs",
+    "db:smoke": "NODE_OPTIONS=--conditions=react-server dotenv -e .env.local -- tsx scripts/smoke-database.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
@@ -32,6 +34,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.3",
     "tailwindcss": "^4",
+    "tsx": "^4.23.13",
     "typescript": "^5"
   }
 }

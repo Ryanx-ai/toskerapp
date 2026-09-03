@@ -5,8 +5,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useRef, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
+import { SignOutButton } from "@clerk/nextjs";
 import { conversations, type Conversation } from "@/data/messaging-data";
-import { prototypeUser, sandboxLabel } from "@/data/prototype-user";
+import { prototypeUser } from "@/data/prototype-user";
 import { prototypeStore } from "@/lib/prototype-store";
 import {
   ProductSurface,
@@ -15,6 +16,7 @@ import {
 import { WorkspaceBanner } from "@/components/workspace-banner";
 import { FakeQr } from "@/components/fake-qr";
 import { IdentityCard } from "@/components/identity-card";
+import { useCurrentToskerUser } from "@/components/tosker-identity";
 import {
   ChatSurface,
   HallSurface,
@@ -27,6 +29,7 @@ import {
   CircleHelp,
   Compass,
   MessageCircle,
+  LogOut,
   MoreHorizontal,
   PanelLeftClose,
   PanelLeftOpen,
@@ -108,8 +111,10 @@ const collapseStore = {
   },
 };
 
-function nameOf(item: Conversation) {
-  return item.kind === "my-room" ? sandboxLabel(prototypeUser) : item.name;
+function nameOf(item: Conversation, displayName = prototypeUser.displayName) {
+  return item.kind === "my-room"
+    ? `${displayName}'s Sandbox`
+    : item.name;
 }
 function hrefOf(item: Conversation) {
   return item.kind === "room" ? `/room/${item.slug}` : `/personal/${item.slug}`;
@@ -202,11 +207,13 @@ function ConversationRow({
   active,
   pinned,
   onDropItem,
+  displayName,
 }: {
   item: Conversation;
   active: boolean;
   pinned: boolean;
   onDropItem: (source: string, target: string) => void;
+  displayName: string;
 }) {
   const [open, setOpen] = useState(false);
   const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -254,13 +261,13 @@ function ConversationRow({
       <Link
         href={hrefOf(item)}
         className="conversation-row"
-        aria-label={`${nameOf(item)}${item.kind === "room" ? ", Room" : ""}`}
-        data-name={nameOf(item)}
+        aria-label={`${nameOf(item, displayName)}${item.kind === "room" ? ", Room" : ""}`}
+        data-name={nameOf(item, displayName)}
       >
         <Avatar item={item} />
         <span className="conversation-copy">
           <span className="conversation-name">
-            {nameOf(item)}{" "}
+            {nameOf(item, displayName)}{" "}
             {item.kind === "room" ? <small>{item.tag ?? "ROOM"}</small> : null}
           </span>
           <span className="conversation-preview">{item.preview}</span>
@@ -303,18 +310,19 @@ function ProfileRegion({
 }: {
   workspace?: AppWorkspace;
 }) {
+  const user = useCurrentToskerUser() ?? prototypeUser;
   return (
     <div className="sidebar-bottom">
       <div className="profile-nameplate">
         <Link className="profile-avatar-button" href="/profile" aria-label="Open your Namecard">
         <span className="avatar avatar-gold profile-avatar">
-          {prototypeUser.initials}
+          {user.initials}
           <i className="profile-avatar-badge" aria-hidden="true" />
         </span>
         </Link>
         <span>
-          <strong>{prototypeUser.displayName}</strong>
-          <small>{prototypeUser.role}</small>
+          <strong>{user.displayName}</strong>
+          <small>{user.role}</small>
         </span>
         <div className="profile-actions">
           <Link
@@ -344,6 +352,11 @@ function ProfileRegion({
           >
             <CircleHelp size={16} />
           </Link>
+          <SignOutButton>
+            <button aria-label="Sign out" data-tip="Sign out" className="has-tip">
+              <LogOut size={16} />
+            </button>
+          </SignOutButton>
         </div>
       </div>
     </div>
@@ -363,6 +376,7 @@ function AppSidebar({
   collapsed: boolean;
   onToggleCollapse: () => void;
 }) {
+  const user = useCurrentToskerUser() ?? prototypeUser;
   const state = useSyncExternalStore(
     prototypeStore.subscribe,
     prototypeStore.getSnapshot,
@@ -415,7 +429,7 @@ function AppSidebar({
     (item) => !state.archived.includes(item.slug),
   );
   const filtered = all.filter((item) =>
-    `${nameOf(item)} ${item.name} ${item.tag ?? ""}`
+    `${nameOf(item, user.displayName)} ${item.name} ${item.tag ?? ""}`
       .toLowerCase()
       .includes(query.trim().toLowerCase()),
   );
@@ -532,6 +546,7 @@ function AppSidebar({
               active={selected?.slug === item.slug}
               pinned={state.pinned.includes(item.slug)}
               onDropItem={prototypeStore.reorder}
+              displayName={user.displayName}
             />
           ))}
           {query && ordered.length === 0 ? (
@@ -1027,6 +1042,7 @@ function CreationOverlay({
 }
 
 function MobileNav() {
+  const user = useCurrentToskerUser() ?? prototypeUser;
   return (
     <nav className="mobile-app-nav" aria-label="Mobile destinations">
       <Link href="/">
@@ -1054,7 +1070,7 @@ function MobileNav() {
         Explore
       </Link>
       <Link href="/profile">
-        <span className="mobile-profile-avatar">{prototypeUser.initials}</span>
+        <span className="mobile-profile-avatar">{user.initials}</span>
         Profile
       </Link>
     </nav>
@@ -1070,6 +1086,7 @@ export function MessagingApp({
   surface?: "chat" | "hall";
   workspace?: AppWorkspace;
 }) {
+  const user = useCurrentToskerUser() ?? prototypeUser;
   const state = useSyncExternalStore(
     prototypeStore.subscribe,
     prototypeStore.getSnapshot,
@@ -1173,7 +1190,7 @@ export function MessagingApp({
               <span>⌁</span>
             </div>
             <h2>
-              Hey {prototypeUser.displayName}, let's pick up where you left off
+              Hey {user.displayName}, let's pick up where you left off
             </h2>
             <p>Choose a conversation or Room</p>
             {state.mode === "new" ? (

@@ -1,7 +1,8 @@
 import "server-only";
 
-import { neon } from "@neondatabase/serverless";
-import { drizzle } from "drizzle-orm/neon-http";
+import { neonConfig, Pool } from "@neondatabase/serverless";
+import { drizzle } from "drizzle-orm/neon-serverless";
+import ws from "ws";
 
 import * as schema from "./schema";
 
@@ -14,7 +15,10 @@ function createDatabase() {
     );
   }
 
-  return drizzle(neon(databaseUrl), { schema });
+  neonConfig.webSocketConstructor = ws;
+  const pool = new Pool({ connectionString: databaseUrl });
+
+  return drizzle(pool, { schema });
 }
 
 export type ToskerDatabase = ReturnType<typeof createDatabase>;

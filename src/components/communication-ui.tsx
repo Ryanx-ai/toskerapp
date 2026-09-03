@@ -14,7 +14,8 @@ import {
   type Conversation,
   type Message,
 } from "@/data/messaging-data";
-import { prototypeUser, sandboxLabel } from "@/data/prototype-user";
+import { prototypeUser } from "@/data/prototype-user";
+import { useCurrentToskerUser } from "@/components/tosker-identity";
 import { prototypeStore } from "@/lib/prototype-store";
 import {
   CalendarDays,
@@ -44,9 +45,9 @@ const utilityCopy: Record<string, string> = {
   Settings: "These settings are still a prototype.",
   More: "More conversation tools will live here.",
 };
-const titleOf = (conversation: Conversation) =>
+const titleOf = (conversation: Conversation, displayName = prototypeUser.displayName) =>
   conversation.kind === "my-room"
-    ? sandboxLabel(prototypeUser)
+    ? `${displayName}'s Sandbox`
     : conversation.name;
 const baseHref = (conversation: Conversation) =>
   conversation.kind === "room"
@@ -125,6 +126,7 @@ export function SurfaceHeader({
   onAdd: () => void;
   onInvite?: () => void;
 }) {
+  const user = useCurrentToskerUser() ?? prototypeUser;
   const [panel, setPanel] = useState<string | null>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   useDismissLayer(Boolean(panel), () => setPanel(null), popoverRef);
@@ -159,14 +161,14 @@ export function SurfaceHeader({
           role={conversation.kind === "room" ? "img" : undefined}
           aria-label={
             conversation.kind === "room"
-              ? `${titleOf(conversation)} Room`
+              ? `${titleOf(conversation, user.displayName)} Room`
               : undefined
           }
         >
           {conversation.initials}
         </span>
         <div className="active-copy">
-          <h2>{titleOf(conversation)}</h2>
+          <h2>{titleOf(conversation, user.displayName)}</h2>
           {conversation.kind === "room" ? <span>{conversation.context}</span> : null}
         </div>
         {conversation.kind === "room" && onInvite ? (
@@ -478,6 +480,7 @@ function Composer({
 }
 
 export function ChatSurface({ conversation }: { conversation: Conversation }) {
+  const user = useCurrentToskerUser() ?? prototypeUser;
   const state = useSyncExternalStore(
     prototypeStore.subscribe,
     prototypeStore.getSnapshot,
@@ -515,8 +518,8 @@ export function ChatSurface({ conversation }: { conversation: Conversation }) {
   const send = (body: string) => {
     const message: Message = {
       id: crypto.randomUUID(),
-      author: prototypeUser.displayName,
-      initials: prototypeUser.initials,
+      author: user.displayName,
+      initials: user.initials,
       body,
       replyTo: reply?.body,
       time: "Now",

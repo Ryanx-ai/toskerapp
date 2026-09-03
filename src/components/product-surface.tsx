@@ -4,6 +4,7 @@ import { useState } from "react";
 import { WorkspaceBanner } from "@/components/workspace-banner";
 import { IdentityCard } from "@/components/identity-card";
 import { prototypeUser } from "@/data/prototype-user";
+import { useCurrentToskerUser } from "@/components/tosker-identity";
 import {
   Bell,
   CircleUserRound,
@@ -221,6 +222,7 @@ function Studio() {
   );
 }
 function Settings() {
+  const user = useCurrentToskerUser() ?? prototypeUser;
   return (
     <ProductChrome current="settings">
       <WorkspaceBanner
@@ -231,7 +233,7 @@ function Settings() {
         <IdentityCard
           compact
           label="Your identity"
-          profile={{ name: prototypeUser.displayName, username: prototypeUser.username, tid: prototypeUser.tid, initials: prototypeUser.initials, color: "gold", status: prototypeUser.role }}
+          profile={{ name: user.displayName, username: user.username, tid: user.tid, initials: user.initials, color: "gold", status: user.role }}
         />
       </div>
       <div className="settings-list">
@@ -426,12 +428,13 @@ function Notifications({ empty = false }: { empty?: boolean }) {
 }
 
 function Profile() {
+  const user = useCurrentToskerUser() ?? prototypeUser;
   return (
     <ProductChrome current="profile">
       <section className="profile-surface">
         <IdentityCard
           label="Your Namecard"
-          profile={{ name: prototypeUser.displayName, username: prototypeUser.username, tid: prototypeUser.tid, initials: prototypeUser.initials, color: "gold", status: prototypeUser.role }}
+          profile={{ name: user.displayName, username: user.username, tid: user.tid, initials: user.initials, color: "gold", status: user.role }}
           action={<button disabled>Edit profile · Prototype</button>}
         />
       </section>

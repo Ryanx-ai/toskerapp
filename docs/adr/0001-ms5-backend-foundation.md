@@ -8,7 +8,7 @@
 
 Tosker remains one Next.js App Router application on Vercel. Managed Neon
 Postgres is the durable system of record, accessed through Drizzle ORM and the
-Neon HTTP driver. Drizzle Kit owns versioned SQL migrations. Clerk is the
+transaction-capable Neon serverless driver. Drizzle Kit owns versioned SQL migrations. Clerk is the
 selected authentication provider for MS5.1; authentication is intentionally
 not wired in this checkpoint.
 

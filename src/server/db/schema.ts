@@ -8,6 +8,7 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 
 const timestamps = {
   createdAt: timestamp("created_at", { withTimezone: true })
@@ -62,11 +63,12 @@ export const profiles = pgTable("profiles", {
     .primaryKey()
     .references(() => users.id, { onDelete: "cascade" }),
   displayName: text("display_name").notNull(),
+  username: text("username").notNull(),
   avatarUrl: text("avatar_url"),
   status: text("status"),
   namecardBio: text("namecard_bio"),
   ...timestamps,
-});
+}, (table) => [uniqueIndex("profiles_username_unique").on(table.username)]);
 
 export const connections = pgTable(
   "connections",
@@ -166,13 +168,21 @@ export const conversations = pgTable(
   {
     id: uuid("id").defaultRandom().primaryKey(),
     kind: conversationKind("kind").notNull(),
+    ownerId: uuid("owner_id").references(() => users.id, {
+      onDelete: "cascade",
+    }),
     roomId: uuid("room_id").references(() => rooms.id, {
       onDelete: "cascade",
     }),
     title: text("title"),
     ...timestamps,
   },
-  (table) => [index("conversations_room_idx").on(table.roomId)],
+  (table) => [
+    index("conversations_room_idx").on(table.roomId),
+    uniqueIndex("conversations_sandbox_owner_unique")
+      .on(table.ownerId)
+      .where(sql`${table.kind} = 'sandbox'`),
+  ],
 );
 
 export const conversationParticipants = pgTable(

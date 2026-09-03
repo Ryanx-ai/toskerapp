@@ -1,5 +1,36 @@
 @import "tailwindcss";
 
+.auth-page {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 50% 25%, rgba(246, 192, 71, 0.1), transparent 36%),
+    #080f14;
+  color: #f7f3ec;
+}
+
+.auth-card {
+  width: min(100%, 520px);
+  padding: clamp(28px, 6vw, 52px);
+  border: 1px solid rgba(247, 243, 236, 0.14);
+  border-radius: 24px;
+  background: rgba(17, 27, 34, 0.92);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+}
+
+.auth-card h1 {
+  margin: 28px 0 12px;
+  font-family: var(--font-mermaid), Georgia, serif;
+  font-size: clamp(2rem, 7vw, 3.25rem);
+  line-height: 1.02;
+  font-weight: 400;
+}
+
+.auth-card p { color: rgba(247, 243, 236, 0.7); }
+.auth-actions { display: flex; gap: 10px; margin-top: 28px; flex-wrap: wrap; }
+
 :root { --background:#080d10; --background-raised:#0d1418; --surface:#121b20; --surface-hover:#182329; --surface-soft:#10181c; --text-primary:#f4efe6; --text-secondary:#aaa69f; --border:#28343a; --brand-gold:#c89c5d; --action-primary:#ff4f91; --action-secondary:#ffd84d; --success:#7ed5a1; --radius-sm:14px; --radius-md:20px; --radius-lg:28px; }
 * { box-sizing:border-box; }
 html, body { margin:0; min-height:100%; background:var(--background); color:var(--text-primary); }

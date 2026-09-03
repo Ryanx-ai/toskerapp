@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import { ClerkProvider } from "@clerk/nextjs";
+import { ToskerSessionBoundary } from "@/components/tosker-session-boundary";
 import "./globals.css";
 
 const montserrat = localFont({ src: [
@@ -13,5 +15,5 @@ const mermaid = localFont({ src: "./fonts/Mermaid1001.ttf", variable: "--font-me
 export const metadata: Metadata = { title: { default: "Tosker", template: "%s · Tosker" }, description: "A shared digital room for the things people do together." };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en" className={`${montserrat.variable} ${mermaid.variable}`}><body>{children}</body></html>;
+  return <html lang="en" className={`${montserrat.variable} ${mermaid.variable}`}><body><ClerkProvider><ToskerSessionBoundary>{children}</ToskerSessionBoundary></ClerkProvider></body></html>;
 }

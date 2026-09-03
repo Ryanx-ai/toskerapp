@@ -18,6 +18,7 @@ import { FakeQr } from "@/components/fake-qr";
 import { IdentityCard } from "@/components/identity-card";
 import { useCurrentToskerUser, useToskerIdentity } from "@/components/tosker-identity";
 import { createRoomAction, createRoomInviteAction } from "@/server/rooms/actions";
+import { findPeopleAction, startPersonalConversationAction } from "@/server/conversations/actions";
 import {
   ChatSurface,
   HallSurface,
@@ -396,7 +397,9 @@ function AppSidebar({
     );
   };
   const standard = identity
-    ? conversations.filter((item) => item.kind === "my-room")
+    ? conversations
+        .filter((item) => item.kind === "my-room")
+        .map((item) => ({ ...item, databaseId: identity.sandboxConversationId }))
     : state.mode === "new"
       ? conversations.filter((item) => item.kind === "my-room")
       : conversations;
@@ -426,6 +429,19 @@ function AppSidebar({
     context: room.role === "owner" ? "Room owner" : "Room member",
     messages: [],
     tag: room.tag,
+    databaseId: room.conversationId,
+  }));
+  const serverChats: Conversation[] = (identity?.personalConversations ?? []).map((chat) => ({
+    slug: chat.slug,
+    kind: "personal",
+    name: chat.displayName,
+    initials: chat.displayName.split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase(),
+    color: "pink",
+    preview: "Personal conversation",
+    time: "Now",
+    context: `@${chat.username} · ${chat.tid}`,
+    messages: [],
+    databaseId: chat.conversationId,
   }));
   const localChats: Conversation[] = state.chats
     .filter((chat) => !standardSlugs.has(chat.slug))
@@ -440,7 +456,7 @@ function AppSidebar({
       context: chat.tid,
       messages: chat.messages,
     }));
-  const all = [...standard, ...serverRooms, ...(identity ? [] : localChats), ...(identity ? [] : localRooms)].filter(
+  const all = [...standard, ...serverChats, ...serverRooms, ...(identity ? [] : localChats), ...(identity ? [] : localRooms)].filter(
     (item) => !state.archived.includes(item.slug),
   );
   const filtered = all.filter((item) =>
@@ -747,6 +763,7 @@ function CreationOverlay({
   onClose: () => void;
 }) {
   const router = useRouter();
+  const identity = useToskerIdentity();
   const [mode, setMode] = useState(initial);
   const [step, setStep] = useState(1);
   const [name, setName] = useState("");
@@ -758,6 +775,8 @@ function CreationOverlay({
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [friendQuery, setFriendQuery] = useState("");
+  const [peopleResults, setPeopleResults] = useState<Array<{ userId: string; displayName: string; username: string; tid: string }>>([]);
+  const [peopleSearching, setPeopleSearching] = useState(false);
   const [invitee, setInvitee] = useState("");
   const [copied, setCopied] = useState(false);
   const panelRef = useRef<HTMLElement>(null);
@@ -767,6 +786,30 @@ function CreationOverlay({
     const chat = prototypeStore.createChat(friend);
     router.push(`/personal/${chat.slug}`);
     onClose();
+  };
+  useEffect(() => {
+    if (!identity || friendQuery.trim().length < 2) return;
+    let active = true;
+    const timer = window.setTimeout(() => {
+      findPeopleAction(friendQuery)
+        .then((results) => active && setPeopleResults(results))
+        .finally(() => active && setPeopleSearching(false));
+    }, 180);
+    return () => { active = false; window.clearTimeout(timer); };
+  }, [friendQuery, identity]);
+  const startPersistentChat = async (userId: string) => {
+    setSaving(true);
+    setSaveError("");
+    try {
+      const chat = await startPersonalConversationAction(userId);
+      router.push(`/personal/${chat.slug}`);
+      router.refresh();
+      onClose();
+    } catch {
+      setSaveError("Could not start this chat. Please try again.");
+    } finally {
+      setSaving(false);
+    }
   };
   const finishRoom = async () => {
     setSaving(true);
@@ -844,13 +887,24 @@ function CreationOverlay({
               <input
                 autoFocus
                 value={friendQuery}
-                onChange={(event) => setFriendQuery(event.target.value)}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  setFriendQuery(value);
+                  setPeopleSearching(Boolean(identity && value.trim().length >= 2));
+                  if (value.trim().length < 2) setPeopleResults([]);
+                }}
                 placeholder="Name, username or TID"
                 aria-label="Find a friend to chat with"
               />
             </label>
             <div className="friend-list compact">
-              {friends
+              {identity ? peopleResults.map((person) => (
+                <article key={person.userId}>
+                  <span className="avatar avatar-pink">{person.displayName.split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase()}</span>
+                  <div><strong>{person.displayName}</strong><small>@{person.username} · {person.tid}</small></div>
+                  <button disabled={saving} onClick={() => void startPersistentChat(person.userId)}>Chat</button>
+                </article>
+              )) : friends
                 .filter((friend) =>
                   `${friend.name} ${friend.username} ${friend.tid}`
                     .toLowerCase()
@@ -870,6 +924,9 @@ function CreationOverlay({
                     <button onClick={() => startChat(friend)}>Chat</button>
                   </article>
                 ))}
+              {identity && peopleSearching ? <p>Searching…</p> : null}
+              {identity && !peopleSearching && friendQuery.trim().length >= 2 && !peopleResults.length ? <p>No people found.</p> : null}
+              {saveError ? <p role="alert">{saveError}</p> : null}
             </div>
           </>
         ) : null}
@@ -1141,11 +1198,30 @@ export function MessagingApp({
   const canonical = selectedSlug
     ? conversations.find((item) => item.slug === selectedSlug)
     : undefined;
+  const authenticatedCanonical =
+    identity && canonical?.kind === "my-room"
+      ? { ...canonical, databaseId: identity.sandboxConversationId }
+      : canonical;
   const prototypeRoom = state.rooms.find((room) => room.slug === selectedSlug);
   const prototypeChat = state.chats.find((chat) => chat.slug === selectedSlug);
   const serverRoom = identity?.rooms.find((room) => room.slug === selectedSlug);
+  const serverChat = identity?.personalConversations.find((chat) => chat.slug === selectedSlug);
   const selected =
-    (identity && canonical?.kind !== "my-room" ? undefined : canonical) ??
+    (identity && authenticatedCanonical?.kind !== "my-room" ? undefined : authenticatedCanonical) ??
+    (serverChat
+      ? {
+          slug: serverChat.slug,
+          kind: "personal" as const,
+          name: serverChat.displayName,
+          initials: serverChat.displayName.split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase(),
+          color: "pink",
+          preview: "Personal conversation",
+          time: "Now",
+          context: `@${serverChat.username} · ${serverChat.tid}`,
+          messages: [],
+          databaseId: serverChat.conversationId,
+        }
+      : undefined) ??
     (serverRoom
       ? {
           slug: serverRoom.slug,
@@ -1158,6 +1234,7 @@ export function MessagingApp({
           context: serverRoom.role === "owner" ? "Room owner" : "Room member",
           messages: [],
           tag: serverRoom.tag,
+          databaseId: serverRoom.conversationId,
         }
       :
     (prototypeRoom

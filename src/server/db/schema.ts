@@ -180,6 +180,7 @@ export const conversations = pgTable(
       onDelete: "cascade",
     }),
     isPrimary: boolean("is_primary").default(false).notNull(),
+    directKey: text("direct_key"),
     title: text("title"),
     ...timestamps,
   },
@@ -191,6 +192,9 @@ export const conversations = pgTable(
     uniqueIndex("conversations_primary_room_unique")
       .on(table.roomId)
       .where(sql`${table.kind} = 'room' and ${table.isPrimary} = true`),
+    uniqueIndex("conversations_personal_pair_unique")
+      .on(table.directKey)
+      .where(sql`${table.kind} = 'personal'`),
   ],
 );
 

@@ -1,7 +1,7 @@
 import "server-only";
 
 import { randomBytes } from "node:crypto";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 
 import { getDatabase } from "@/server/db/client";
 import {
@@ -57,6 +57,14 @@ export type CanonicalIdentity = {
     name: string;
     role: "owner" | "member";
     tag: string;
+    conversationId: string;
+  }>;
+  personalConversations: Array<{
+    conversationId: string;
+    slug: string;
+    displayName: string;
+    username: string;
+    tid: string;
   }>;
 };
 
@@ -205,9 +213,14 @@ export async function ensureToskerAccount(
       slug: rooms.slug,
       name: rooms.name,
       role: roomMemberships.role,
+      conversationId: conversations.id,
     })
     .from(roomMemberships)
     .innerJoin(rooms, eq(rooms.id, roomMemberships.roomId))
+    .innerJoin(
+      conversations,
+      and(eq(conversations.roomId, rooms.id), eq(conversations.isPrimary, true)),
+    )
     .where(eq(roomMemberships.userId, account.userId));
   const tags = memberships.length
     ? await db
@@ -215,6 +228,21 @@ export async function ensureToskerAccount(
         .from(roomTags)
         .where(inArray(roomTags.roomId, memberships.map((room) => room.id)))
     : [];
+  const personalRows = await db
+    .select({ conversationId: conversations.id })
+    .from(conversationParticipants)
+    .innerJoin(conversations, eq(conversations.id, conversationParticipants.conversationId))
+    .where(and(eq(conversationParticipants.userId, account.userId), eq(conversations.kind, "personal")));
+  const personalConversations = await Promise.all(personalRows.map(async ({ conversationId }) => {
+    const [other] = await db
+      .select({ displayName: profiles.displayName, username: profiles.username, tid: users.tid })
+      .from(conversationParticipants)
+      .innerJoin(users, eq(users.id, conversationParticipants.userId))
+      .innerJoin(profiles, eq(profiles.userId, users.id))
+      .where(and(eq(conversationParticipants.conversationId, conversationId), sql`${conversationParticipants.userId} <> ${account.userId}`))
+      .limit(1);
+    return other ? { conversationId, slug: `chat-${conversationId}`, ...other } : null;
+  }));
 
   return {
     ...account,
@@ -222,5 +250,6 @@ export async function ensureToskerAccount(
       ...room,
       tag: tags.find((tag) => tag.roomId === room.id)?.value ?? "ROOM",
     })),
+    personalConversations: personalConversations.filter((item): item is NonNullable<typeof item> => Boolean(item)),
   };
 }

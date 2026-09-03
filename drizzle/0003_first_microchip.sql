@@ -1,0 +1,2 @@
+ALTER TABLE "conversations" ADD COLUMN "direct_key" text;--> statement-breakpoint
+CREATE UNIQUE INDEX "conversations_personal_pair_unique" ON "conversations" USING btree ("direct_key") WHERE "conversations"."kind" = 'personal';

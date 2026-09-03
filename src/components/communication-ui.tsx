@@ -9,6 +9,7 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
+import { listMessagesAction, sendMessageAction } from "@/server/conversations/actions";
 import {
   hallNotices,
   type Conversation,
@@ -495,9 +496,29 @@ export function ChatSurface({ conversation }: { conversation: Conversation }) {
           : []
       : conversation.messages;
   const [messages, setMessages] = useState(initial);
+  const [messageError, setMessageError] = useState<string | null>(null);
   const [reply, setReply] = useState<Message | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const nearBottom = useRef(true);
+  useEffect(() => {
+    if (!conversation.databaseId) return;
+    let active = true;
+    listMessagesAction(conversation.databaseId)
+      .then(({ messages: persisted }) => {
+        if (!active) return;
+        setMessages(persisted.map((message) => ({
+          id: message.id,
+          author: message.author,
+          initials: message.author.split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase(),
+          body: message.body,
+          time: new Date(message.createdAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
+          color: message.mine ? "gold" : "pink",
+          mine: message.mine,
+        })));
+      })
+      .catch(() => active && setMessageError("Messages couldn't be loaded. Try again."));
+    return () => { active = false; };
+  }, [conversation.databaseId]);
   useLayoutEffect(() => {
     const area = scrollRef.current;
     if (area) area.scrollTop = area.scrollHeight;
@@ -515,7 +536,7 @@ export function ChatSurface({ conversation }: { conversation: Conversation }) {
     else if (state.rooms.some((room) => room.slug === conversation.slug))
       prototypeStore.addRoomMessage(conversation.slug, message);
   };
-  const send = (body: string) => {
+  const send = async (body: string) => {
     const message: Message = {
       id: crypto.randomUUID(),
       author: user.displayName,
@@ -528,8 +549,18 @@ export function ChatSurface({ conversation }: { conversation: Conversation }) {
     };
     nearBottom.current = true;
     setMessages((current) => [...current, message]);
-    persist(message);
     setReply(null);
+    setMessageError(null);
+    if (!conversation.databaseId) {
+      persist(message);
+      return;
+    }
+    try {
+      await sendMessageAction({ id: message.id, conversationId: conversation.databaseId, body });
+    } catch {
+      setMessages((current) => current.filter((item) => item.id !== message.id));
+      setMessageError("That message wasn't sent. Please try again.");
+    }
   };
   const react = (id: string, reaction: string) =>
     setMessages((current) =>
@@ -605,6 +636,7 @@ export function ChatSurface({ conversation }: { conversation: Conversation }) {
         onCancelReply={() => setReply(null)}
         onSend={send}
       />
+      {messageError ? <p className="composer-error" role="alert">{messageError}</p> : null}
     </section>
   );
 }

@@ -17,6 +17,7 @@ export type Message = {
 };
 
 export type Conversation = {
+  databaseId?: string;
   slug: string;
   kind: ConversationKind;
   name: string;

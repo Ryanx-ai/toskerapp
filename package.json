@@ -13,7 +13,8 @@
     "db:migrate": "dotenv -e .env.local -- drizzle-kit migrate",
     "db:verify": "dotenv -e .env.local -- node scripts/verify-database.mjs",
     "db:smoke": "NODE_OPTIONS=--conditions=react-server dotenv -e .env.local -- tsx scripts/smoke-database.ts",
-    "db:verify-bootstrap": "NODE_OPTIONS=--conditions=react-server dotenv -e .env.local -- tsx scripts/verify-bootstrap.ts"
+    "db:verify-bootstrap": "NODE_OPTIONS=--conditions=react-server dotenv -e .env.local -- tsx scripts/verify-bootstrap.ts",
+    "db:verify-chat": "NODE_OPTIONS=--conditions=react-server dotenv -e .env.local -- tsx scripts/verify-chat.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.9.0",

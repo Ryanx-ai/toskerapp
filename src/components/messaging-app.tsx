@@ -13,6 +13,8 @@ import {
   type ProductWorkspace,
 } from "@/components/product-surface";
 import { WorkspaceBanner } from "@/components/workspace-banner";
+import { FakeQr } from "@/components/fake-qr";
+import { IdentityCard } from "@/components/identity-card";
 import {
   ChatSurface,
   HallSurface,
@@ -304,7 +306,12 @@ function ProfileRegion({
   return (
     <div className="sidebar-bottom">
       <div className="profile-nameplate">
-        <span className="avatar avatar-gold">{prototypeUser.initials}</span>
+        <Link className="profile-avatar-button" href="/profile" aria-label="Open your Namecard">
+        <span className="avatar avatar-gold profile-avatar">
+          {prototypeUser.initials}
+          <i className="profile-avatar-badge" aria-hidden="true" />
+        </span>
+        </Link>
         <span>
           <strong>{prototypeUser.displayName}</strong>
           <small>{prototypeUser.role}</small>
@@ -318,7 +325,6 @@ function ProfileRegion({
             aria-current={workspace === "notifications" ? "page" : undefined}
           >
             <Bell size={16} />
-            <i aria-hidden="true" />
           </Link>
           <Link
             href="/settings"
@@ -551,33 +557,12 @@ function FriendsSurface({
       .toLowerCase()
       .includes(query.toLowerCase()),
   );
-  if (profile)
-    return (
-      <section className="profile-surface workspace-scroll">
-        <button className="nested-back" onClick={() => setProfile(null)}>
-          <ArrowLeft size={17} /> Back
-        </button>
-        <div className="namecard">
-          <div className="namecard-banner" aria-hidden="true" />
-          <span className={`avatar avatar-${profile.color} namecard-avatar`}>
-            {profile.initials}
-          </span>
-          <div className="namecard-body">
-            <p className="eyebrow">Friend profile</p>
-            <h1>{profile.name}</h1>
-            <strong>{profile.username}</strong>
-            <span className="presence">{profile.status}</span>
-            <p>Keeping good people and good conversations close.</p>
-            <button onClick={() => onMessage(profile)}>Message</button>
-          </div>
-        </div>
-      </section>
-    );
   return (
+    <>
     <section className="friends-surface workspace-scroll">
       <WorkspaceBanner
         eyebrow="Friends"
-        title="Your Friends"
+        title="Your connections."
         intensity="quiet"
         action={
           <button
@@ -646,20 +631,75 @@ function FriendsSurface({
         </div>
       )}
     </section>
+    {profile ? <FriendNamecard profile={profile} onClose={() => setProfile(null)} onMessage={() => onMessage(profile)} /> : null}
+    </>
   );
 }
 
-function FakeQr({ value }: { value: string }) {
-  const bits = Array.from(
-    { length: 121 },
-    (_, index) =>
-      (index * 17 + value.length * 7 + Math.floor(index / 11) * 3) % 5 < 2,
-  );
+function FriendNamecard({ profile, onClose, onMessage }: { profile: (typeof friends)[number]; onClose: () => void; onMessage: () => void }) {
+  const ref = useRef<HTMLElement>(null);
+  useDismissLayer(true, onClose, ref);
   return (
-    <div className="fake-qr" aria-label="Prototype Room invite QR code">
-      {bits.map((on, index) => (
-        <i key={index} className={on ? "on" : ""} />
-      ))}
+    <div className="overlay-backdrop">
+      <section ref={ref} className="identity-dialog" role="dialog" aria-modal="true" aria-label={`${profile.name} Namecard`}>
+        <button className="overlay-close" onClick={onClose} aria-label="Close"><X size={17} /></button>
+        <IdentityCard label="Friend" profile={profile} action={<button onClick={onMessage}>Message</button>} />
+      </section>
+    </div>
+  );
+}
+
+function InviteOverlay({
+  room,
+  onClose,
+}: {
+  room: Conversation;
+  onClose: () => void;
+}) {
+  const [copied, setCopied] = useState(false);
+  const panelRef = useRef<HTMLElement>(null);
+  useDismissLayer(true, onClose, panelRef);
+  const tag = room.tag ?? "ROOM";
+  const invitePath = `/join/${room.slug}?name=${encodeURIComponent(nameOf(room))}&tag=${encodeURIComponent(tag)}&owner=Ryan`;
+  const inviteUrl = `https://toskerapp.vercel.app${invitePath}`;
+  return (
+    <div className="overlay-backdrop">
+      <section
+        ref={panelRef}
+        className="creation-panel invite-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="invite-title"
+      >
+        <button className="overlay-close" onClick={onClose} aria-label="Close">
+          <X size={17} />
+        </button>
+        <p className="eyebrow">Invite to this Room</p>
+        <h2 id="invite-title">{nameOf(room)}</h2>
+        <p>Anyone with this link can understand the invitation and join.</p>
+        <div className="invite-layout">
+          <FakeQr value={inviteUrl} />
+          <div>
+            <label className="invite-link">
+              Invitation link
+              <input readOnly value={inviteUrl} />
+            </label>
+            <button
+              className="primary-action"
+              onClick={() => {
+                navigator.clipboard?.writeText(inviteUrl);
+                setCopied(true);
+              }}
+            >
+              {copied ? "Copied" : "Copy link"}
+            </button>
+            <Link href={invitePath}>Preview invitation</Link>
+          </div>
+        </div>
+        <small className="prototype-note">
+          Created by Ryan · You’re the Room owner · Prototype only
+        </small>
+      </section>
     </div>
   );
 }
@@ -678,11 +718,13 @@ function CreationOverlay({
   const [tags, setTags] = useState<string[]>([]);
   const [selectedThings, setThings] = useState<string[]>([]);
   const [people, setPeople] = useState<string[]>([]);
-  const [room, setRoom] = useState<{ slug: string; name: string } | null>(null);
+  const [room, setRoom] = useState<{ slug: string; name: string; tags: string[] } | null>(null);
   const [friendQuery, setFriendQuery] = useState("");
+  const [invitee, setInvitee] = useState("");
+  const [copied, setCopied] = useState(false);
   const panelRef = useRef<HTMLElement>(null);
   const close = useCallback(() => onClose(), [onClose]);
-  useDismissLayer(true, close, panelRef);
+  useDismissLayer(true, close, panelRef, false);
   const startChat = (friend: (typeof friends)[number]) => {
     const chat = prototypeStore.createChat(friend);
     router.push(`/personal/${chat.slug}`);
@@ -703,12 +745,7 @@ function CreationOverlay({
     else setStep((current) => current + 1);
   };
   return (
-    <div
-      className="overlay-backdrop"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget) onClose();
-      }}
-    >
+    <div className="overlay-backdrop">
       <section
         ref={panelRef}
         className="creation-panel"
@@ -805,6 +842,10 @@ function CreationOverlay({
                     autoFocus
                     value={name}
                     onChange={(event) => setName(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" && name.trim()) nextRoom();
+                    }}
+                    maxLength={80}
                     placeholder="Sunday Dinner"
                     aria-label="Room name"
                   />
@@ -862,7 +903,43 @@ function CreationOverlay({
             {step === 4 ? (
               <>
                 <h2>Add people</h2>
-                <p>Optional. Friends can join later.</p>
+                <p>Optional. Add a friend, username or TID.</p>
+                <div className="invite-person-field">
+                  <input
+                    value={invitee}
+                    onChange={(event) => setInvitee(event.target.value)}
+                    placeholder="Username or TID"
+                    aria-label="Invite by username or TID"
+                    onKeyDown={(event) => {
+                      if (event.key !== "Enter" || !invitee.trim()) return;
+                      event.preventDefault();
+                      setPeople((current) => current.includes(invitee.trim()) ? current : [...current, invitee.trim()]);
+                      setInvitee("");
+                    }}
+                  />
+                  <button
+                    disabled={!invitee.trim()}
+                    onClick={() => {
+                      const value = invitee.trim();
+                      if (!value) return;
+                      setPeople((current) => current.includes(value) ? current : [...current, value]);
+                      setInvitee("");
+                    }}
+                  >Add</button>
+                </div>
+                <div className="invited-identifiers" aria-label="Added invitations">
+                  {people
+                    .filter((person) => !friends.some((friend) => friend.tid === person))
+                    .map((person) => (
+                      <button
+                        key={person}
+                        onClick={() => setPeople((current) => current.filter((item) => item !== person))}
+                        aria-label={`Remove ${person}`}
+                      >
+                        {person} <X size={13} aria-hidden="true" />
+                      </button>
+                    ))}
+                </div>
                 <div className="friend-list compact">
                   {friends.map((friend, index) => (
                     <article key={friend.tid}>
@@ -895,19 +972,26 @@ function CreationOverlay({
             ) : null}
             {step === 5 && room ? (
               <div className="room-ready">
-                <FakeQr value={room.slug} />
+                <FakeQr value={`https://toskerapp.vercel.app/join/${room.slug}?name=${encodeURIComponent(room.name)}&tag=${encodeURIComponent(room.tags[0] ?? "ROOM")}&owner=Ryan`} />
                 <h2>Room's ready</h2>
-                <p>{room.name}</p>
+                <p>{room.name} · Created by Ryan</p>
                 <div>
                   <button
-                    onClick={() =>
+                    onClick={() => {
                       navigator.clipboard?.writeText(
-                        `https://toskerapp.vercel.app/room/${room.slug}`,
-                      )
-                    }
+                        `https://toskerapp.vercel.app/join/${room.slug}?name=${encodeURIComponent(room.name)}&tag=${encodeURIComponent(room.tags[0] ?? "ROOM")}&owner=Ryan`,
+                      );
+                      setCopied(true);
+                    }}
                   >
-                    Copy link
+                    {copied ? "Copied" : "Copy invite"}
                   </button>
+                  <Link
+                    className="room-ready-preview"
+                    href={`/join/${room.slug}?name=${encodeURIComponent(room.name)}&tag=${encodeURIComponent(room.tags[0] ?? "ROOM")}&owner=Ryan`}
+                  >
+                    Preview
+                  </Link>
                   <button
                     onClick={() => {
                       router.push(`/room/${room.slug}`);
@@ -922,32 +1006,17 @@ function CreationOverlay({
             ) : null}
             {step < 5 ? (
               <div className="wizard-actions">
-                {step > 1 ? (
-                  <button
-                    className="inline-back"
-                    onClick={() => setStep((current) => current - 1)}
-                  >
-                    <ArrowLeft size={15} /> Back
-                  </button>
-                ) : (
-                  <button onClick={onClose}>Cancel</button>
-                )}
                 <button
-                  className="text-button"
+                  className="button button-primary primary-action"
                   onClick={nextRoom}
                   disabled={step === 1 && !name.trim()}
                 >
                   {step === 1
-                    ? "Create now"
+                    ? "Next"
                     : step === 4
                       ? "Create Room"
-                      : "Skip for now"}
+                      : "Next"}
                 </button>
-                {step > 1 && step < 4 ? (
-                  <button className="button button-primary" onClick={nextRoom}>
-                    Next
-                  </button>
-                ) : null}
               </div>
             ) : null}
           </>
@@ -1010,7 +1079,9 @@ export function MessagingApp({
   const [overlay, setOverlay] = useState<Overlay>(
     workspace === "create" ? "room" : null,
   );
-  const [addedSurfaces, setAddedSurfaces] = useState<string[]>([]);
+  const addPanelRef = useRef<HTMLElement>(null);
+  const closeAdd = useCallback(() => setOverlay(null), []);
+  useDismissLayer(overlay === "add", closeAdd, addPanelRef);
   const collapsed = useSyncExternalStore(
     collapseStore.subscribe,
     collapseStore.getSnapshot,
@@ -1073,6 +1144,7 @@ export function MessagingApp({
               conversation={selected}
               surface={surface}
               onAdd={() => setOverlay("add")}
+              onInvite={() => setOverlay("invite")}
             />
             {surface === "hall" ? (
               <HallSurface
@@ -1117,9 +1189,12 @@ export function MessagingApp({
       {overlay === "choose" || overlay === "chat" || overlay === "room" ? (
         <CreationOverlay initial={overlay} onClose={() => setOverlay(null)} />
       ) : null}
+      {overlay === "invite" && selected?.kind === "room" ? (
+        <InviteOverlay room={selected} onClose={() => setOverlay(null)} />
+      ) : null}
       {overlay === "add" ? (
         <div className="overlay-backdrop">
-          <section className="creation-panel">
+          <section ref={addPanelRef} className="creation-panel" role="dialog" aria-modal="true" aria-labelledby="add-title">
             <button
               className="overlay-close"
               onClick={() => setOverlay(null)}
@@ -1127,26 +1202,27 @@ export function MessagingApp({
             >
               <X size={17} />
             </button>
-            <h2>Add something</h2>
+            <h2 id="add-title">Add something</h2>
             <p>Add to this space.</p>
             <div className="option-grid">
-              {[...things, "Photo Wall", "Subroom"].map((item, index) => (
+              {[...things, "Photo Wall", "Subroom"].map((item, index) => {
+                const installed = prototypeRoom?.things.includes(item) ?? false;
+                return (
                 <button
                   autoFocus={index === 0}
                   key={item}
-                  className={addedSurfaces.includes(item) ? "active" : ""}
-                  aria-pressed={addedSurfaces.includes(item)}
-                  onClick={() =>
-                    setAddedSurfaces((current) =>
-                      current.includes(item)
-                        ? current.filter((surface) => surface !== item)
-                        : [...current, item],
-                    )
-                  }
+                  className={installed ? "active" : ""}
+                  disabled={installed || selected?.kind !== "room"}
+                  aria-label={`${item}${installed ? ", Added" : ""}`}
+                  onClick={() => {
+                    if (!selected || selected.kind !== "room") return;
+                    prototypeStore.addThing({ slug: selected.slug, name: selected.name, thing: item });
+                    setOverlay(null);
+                  }}
                 >
-                  {item}
+                  {item}{installed ? <small>Added</small> : null}
                 </button>
-              ))}
+              );})}
             </div>
           </section>
         </div>

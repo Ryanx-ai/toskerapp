@@ -57,26 +57,33 @@ export function useDismissLayer(
   open: boolean,
   onClose: () => void,
   ref?: React.RefObject<HTMLElement | null>,
+  closeOutside = true,
 ) {
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
   useEffect(() => {
     if (!open) return;
+    const previousFocus = document.activeElement as HTMLElement | null;
     const outside = (event: PointerEvent) => {
       if (!ref?.current || !ref.current.contains(event.target as Node))
-        onClose();
+        onCloseRef.current();
     };
     const escape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
+      if (event.key === "Escape") onCloseRef.current();
     };
-    const globalClose = () => onClose();
-    document.addEventListener("pointerdown", outside);
+    const globalClose = () => onCloseRef.current();
+    if (closeOutside) document.addEventListener("pointerdown", outside);
     document.addEventListener("keydown", escape);
     window.addEventListener("tosker:close-popovers", globalClose);
     return () => {
-      document.removeEventListener("pointerdown", outside);
+      if (closeOutside) document.removeEventListener("pointerdown", outside);
       document.removeEventListener("keydown", escape);
       window.removeEventListener("tosker:close-popovers", globalClose);
+      previousFocus?.focus();
     };
-  }, [open, onClose, ref]);
+  }, [open, ref, closeOutside]);
 }
 
 function openLayer() {
@@ -111,10 +118,12 @@ export function SurfaceHeader({
   conversation,
   surface,
   onAdd,
+  onInvite,
 }: {
   conversation: Conversation;
   surface: "chat" | "hall";
   onAdd: () => void;
+  onInvite?: () => void;
 }) {
   const [panel, setPanel] = useState<string | null>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -159,6 +168,11 @@ export function SurfaceHeader({
         <h2>{titleOf(conversation)}</h2>
         <span>{conversation.context}</span>
       </div>
+      {conversation.kind === "room" && onInvite ? (
+        <button className="invite-button primary-action" onClick={onInvite}>
+          Invite
+        </button>
+      ) : null}
       <nav className="surface-tabs" aria-label="Space surfaces">
         <Link
           className={surface === "chat" ? "active" : ""}
@@ -174,7 +188,7 @@ export function SurfaceHeader({
         >
           Hall
         </Link>
-        <button onClick={onAdd}>
+        <button onClick={onAdd} aria-label="Add Gizmo">
           <Plus size={15} />
           <small>Add</small>
         </button>
@@ -206,12 +220,14 @@ function MessageMenu({
   onReply,
   onReact,
   onDelete,
+  onPin,
   onClose,
 }: {
   message: Message;
   onReply: () => void;
   onReact: () => void;
   onDelete: () => void;
+  onPin?: () => void;
   onClose: () => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -232,6 +248,7 @@ function MessageMenu({
         Save <small>Prototype</small>
       </button>
       <button onClick={onClose}>More</button>
+      {onPin ? <button onClick={onPin}>Pin to Hall</button> : null}
       {message.mine ? (
         <>
           <hr />
@@ -252,11 +269,13 @@ function MessageBubble({
   onReply,
   onReaction,
   onDelete,
+  onPin,
 }: {
   message: Message;
   onReply: (message: Message) => void;
   onReaction: (id: string, reaction: string) => void;
   onDelete: (id: string) => void;
+  onPin?: (message: Message) => void;
 }) {
   const [translated, setTranslated] = useState(false);
   const [menu, setMenu] = useState(false);
@@ -355,6 +374,14 @@ function MessageBubble({
           }}
           onReact={showPicker}
           onDelete={() => onDelete(message.id)}
+          onPin={
+            onPin
+              ? () => {
+                  onPin(message);
+                  setMenu(false);
+                }
+              : undefined
+          }
           onClose={() => setMenu(false)}
         />
       ) : null}
@@ -534,6 +561,11 @@ export function ChatSurface({ conversation }: { conversation: Conversation }) {
                     current.filter((item) => item.id !== id),
                   )
                 }
+                onPin={
+                  conversation.kind === "room"
+                    ? (item) => prototypeStore.pinMessageToHall({ slug: conversation.slug, name: conversation.name, message: item })
+                    : undefined
+                }
               />
             ))}
           </>
@@ -629,6 +661,18 @@ export function HallSurface({
   conversation: Conversation;
   empty: boolean;
 }) {
+  const state = useSyncExternalStore(
+    prototypeStore.subscribe,
+    prototypeStore.getSnapshot,
+    prototypeStore.getServerSnapshot,
+  );
+  const room = state.rooms.find((item) => item.slug === conversation.slug);
+  const [creating, setCreating] = useState(false);
+  const [noteTitle, setNoteTitle] = useState("");
+  const [noteBody, setNoteBody] = useState("");
+  const noteRef = useRef<HTMLElement>(null);
+  useDismissLayer(creating, () => setCreating(false), noteRef);
+  const localItems = room?.hallItems ?? [];
   const contextual =
     conversation.kind === "my-room"
       ? {
@@ -644,28 +688,54 @@ export function HallSurface({
             title: "What everyone needs to know",
             support: "The useful stuff, without the scroll hunt",
           };
+  const isEmpty = empty && localItems.length === 0;
   return (
     <section
-      className={`hall-surface art-layer-ready ${empty ? "hall-is-empty" : ""}`}
+      className={`hall-surface art-layer-ready ${isEmpty ? "hall-is-empty" : ""}`}
     >
       <header>
         <div>
-          <h2>{empty ? "Nothing here yet" : contextual.title}</h2>
+          <h2>{isEmpty ? "Nothing here yet" : contextual.title}</h2>
           <p>
-            {empty ? "Pin the stuff everyone should know" : contextual.support}
+            {isEmpty ? "Pin the stuff everyone should know" : contextual.support}
           </p>
         </div>
-        <button className="new-hall-note">
-          <Plus size={15} /> New note
+        <button className="new-hall-note primary-action" onClick={() => setCreating(true)}>
+          <Plus size={15} /> New
         </button>
       </header>
-      {empty ? null : (
+      {isEmpty ? null : (
         <div className="notice-list">
-          {hallNotices.map((notice) => (
-            <HallCard notice={notice} key={notice.id} />
+          {localItems.map((item) => (
+            <article className={`notice-card hall-local-${item.kind}`} key={item.id}>
+              <span className="notice-icon">{item.kind === "note" ? "✎" : "⌖"}</span>
+              <div>
+                <small>{item.kind === "note" ? "Note" : "Pinned from Chat"}</small>
+                <h3>{item.title}</h3>
+                <p>{item.body}</p>
+                <footer>{item.author} · {item.time}</footer>
+              </div>
+            </article>
           ))}
+          {!empty
+            ? hallNotices.map((notice) => (
+                <HallCard notice={notice} key={notice.id} />
+              ))
+            : null}
         </div>
       )}
+      {creating ? (
+        <div className="overlay-backdrop">
+          <section ref={noteRef} className="creation-panel hall-note-panel" role="dialog" aria-modal="true" aria-labelledby="hall-note-title">
+            <button className="overlay-close" onClick={() => setCreating(false)} aria-label="Close"><X size={17} /></button>
+            <p className="eyebrow">Hall</p>
+            <h2 id="hall-note-title">New note</h2>
+            <label className="wizard-field"><span>Title</span><input autoFocus value={noteTitle} onChange={(event) => setNoteTitle(event.target.value)} maxLength={80} /></label>
+            <label className="wizard-field"><span>Note</span><textarea value={noteBody} onChange={(event) => setNoteBody(event.target.value)} rows={4} /></label>
+            <div className="wizard-actions"><button className="button button-primary primary-action" disabled={!noteTitle.trim()} onClick={() => { prototypeStore.addHallNote({ slug: conversation.slug, name: conversation.name, title: noteTitle, body: noteBody }); setCreating(false); setNoteTitle(""); setNoteBody(""); }}>Add</button></div>
+          </section>
+        </div>
+      ) : null}
     </section>
   );
 }

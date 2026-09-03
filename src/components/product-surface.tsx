@@ -2,6 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { WorkspaceBanner } from "@/components/workspace-banner";
+import { IdentityCard } from "@/components/identity-card";
+import { prototypeUser } from "@/data/prototype-user";
 import {
   Bell,
   CircleUserRound,
@@ -222,10 +224,16 @@ function Settings() {
   return (
     <ProductChrome current="settings">
       <WorkspaceBanner
-        eyebrow="Settings"
         title="Settings"
         intensity="quiet"
       />
+      <div className="settings-identity">
+        <IdentityCard
+          compact
+          label="Your identity"
+          profile={{ name: prototypeUser.displayName, username: prototypeUser.username, tid: prototypeUser.tid, initials: prototypeUser.initials, color: "gold", status: prototypeUser.role }}
+        />
+      </div>
       <div className="settings-list">
         {[
           ["Account", "Name, profile, and the basics."],
@@ -264,8 +272,7 @@ function Help() {
   return (
     <ProductChrome current="help">
       <WorkspaceBanner
-        eyebrow="Help"
-        title="Help & Feedback"
+        title="Help"
         intensity="quiet"
       />
       <div className="help-grid">
@@ -370,7 +377,6 @@ function Notifications({ empty = false }: { empty?: boolean }) {
   return (
     <ProductChrome current="notifications">
       <WorkspaceBanner
-        eyebrow="Notifications"
         title="Notifications"
         intensity="quiet"
       />
@@ -423,21 +429,11 @@ function Profile() {
   return (
     <ProductChrome current="profile">
       <section className="profile-surface">
-        <div className="namecard namecard-own">
-          <div className="namecard-banner" aria-hidden="true" />
-          <span className="avatar avatar-gold namecard-avatar">RY</span>
-          <div className="namecard-body">
-            <p className="eyebrow">My profile</p>
-            <h1>Ryan</h1>
-            <strong>@ryan</strong>
-            <span className="presence">Online · Founder preview</span>
-            <p>
-              Building shared digital Rooms where people can talk, plan, and
-              make things together.
-            </p>
-            <button disabled>Edit profile · Prototype</button>
-          </div>
-        </div>
+        <IdentityCard
+          label="Your Namecard"
+          profile={{ name: prototypeUser.displayName, username: prototypeUser.username, tid: prototypeUser.tid, initials: prototypeUser.initials, color: "gold", status: prototypeUser.role }}
+          action={<button disabled>Edit profile · Prototype</button>}
+        />
       </section>
     </ProductChrome>
   );

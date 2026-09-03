@@ -5,7 +5,7 @@ export function WorkspaceBanner({
   intensity = "medium",
   action,
 }: {
-  eyebrow: string;
+  eyebrow?: string;
   title: string;
   body?: string;
   intensity?: "quiet" | "medium" | "hero";
@@ -14,7 +14,7 @@ export function WorkspaceBanner({
   return (
     <header className={`workspace-banner banner-${intensity}`}>
       <div className="workspace-banner-copy">
-        <p className="eyebrow">{eyebrow}</p>
+        {eyebrow ? <p className="eyebrow">{eyebrow}</p> : null}
         <h1>{title}</h1>
         {body ? <p>{body}</p> : null}
         {action}

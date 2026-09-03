@@ -29,6 +29,13 @@
       "when": 1788426381095,
       "tag": "0003_first_microchip",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1788426911725,
+      "tag": "0004_greedy_tinkerer",
+      "breakpoints": true
     }
   ]
 }

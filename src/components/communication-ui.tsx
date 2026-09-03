@@ -10,6 +10,7 @@ import {
   useSyncExternalStore,
 } from "react";
 import { listMessagesAction, sendMessageAction } from "@/server/conversations/actions";
+import { createHallNoteAction, listHallItemsAction, pinMessageToHallAction } from "@/server/shared-state/actions";
 import {
   hallNotices,
   type Conversation,
@@ -599,7 +600,10 @@ export function ChatSurface({ conversation }: { conversation: Conversation }) {
                 }
                 onPin={
                   conversation.kind === "room"
-                    ? (item) => prototypeStore.pinMessageToHall({ slug: conversation.slug, name: conversation.name, message: item })
+                    ? (item) => {
+                        if (conversation.databaseId) void pinMessageToHallAction({ conversationId: conversation.databaseId, messageId: item.id });
+                        else prototypeStore.pinMessageToHall({ slug: conversation.slug, name: conversation.name, message: item });
+                      }
                     : undefined
                 }
               />
@@ -707,9 +711,20 @@ export function HallSurface({
   const [creating, setCreating] = useState(false);
   const [noteTitle, setNoteTitle] = useState("");
   const [noteBody, setNoteBody] = useState("");
+  const [persistentItems, setPersistentItems] = useState<Array<{ id: string; kind: "note" | "pinned_message"; title: string | null; body: string; author: string; createdAt: string }>>([]);
+  const [hallError, setHallError] = useState("");
   const noteRef = useRef<HTMLElement>(null);
   useDismissLayer(creating, () => setCreating(false), noteRef);
   const localItems = room?.hallItems ?? [];
+  useEffect(() => {
+    if (!conversation.databaseId || conversation.kind !== "room") return;
+    let active = true;
+    listHallItemsAction(conversation.databaseId)
+      .then((items) => active && setPersistentItems(items))
+      .catch(() => active && setHallError("Hall couldn't be loaded."));
+    return () => { active = false; };
+  }, [conversation.databaseId, conversation.kind]);
+  const displayedItems = conversation.databaseId && conversation.kind === "room" ? persistentItems : localItems;
   const contextual =
     conversation.kind === "my-room"
       ? {
@@ -725,7 +740,7 @@ export function HallSurface({
             title: "What everyone needs to know",
             support: "The useful stuff, without the scroll hunt",
           };
-  const isEmpty = empty && localItems.length === 0;
+  const isEmpty = (empty || Boolean(conversation.databaseId)) && displayedItems.length === 0;
   return (
     <section
       className={`hall-surface art-layer-ready ${isEmpty ? "hall-is-empty" : ""}`}
@@ -743,14 +758,14 @@ export function HallSurface({
       </header>
       {isEmpty ? null : (
         <div className="notice-list">
-          {localItems.map((item) => (
+          {displayedItems.map((item) => (
             <article className={`notice-card hall-local-${item.kind}`} key={item.id}>
               <span className="notice-icon">{item.kind === "note" ? "✎" : "⌖"}</span>
               <div>
                 <small>{item.kind === "note" ? "Note" : "Pinned from Chat"}</small>
-                <h3>{item.title}</h3>
+                <h3>{item.title ?? "Pinned from Chat"}</h3>
                 <p>{item.body}</p>
-                <footer>{item.author} · {item.time}</footer>
+                <footer>{item.author} · {"time" in item ? item.time : new Date(item.createdAt).toLocaleString()}</footer>
               </div>
             </article>
           ))}
@@ -769,10 +784,19 @@ export function HallSurface({
             <h2 id="hall-note-title">New note</h2>
             <label className="wizard-field"><span>Title</span><input autoFocus value={noteTitle} onChange={(event) => setNoteTitle(event.target.value)} maxLength={80} /></label>
             <label className="wizard-field"><span>Note</span><textarea value={noteBody} onChange={(event) => setNoteBody(event.target.value)} rows={4} /></label>
-            <div className="wizard-actions"><button className="button button-primary primary-action" disabled={!noteTitle.trim()} onClick={() => { prototypeStore.addHallNote({ slug: conversation.slug, name: conversation.name, title: noteTitle, body: noteBody }); setCreating(false); setNoteTitle(""); setNoteBody(""); }}>Add</button></div>
+            <div className="wizard-actions"><button className="button button-primary primary-action" disabled={!noteTitle.trim()} onClick={async () => {
+              if (conversation.databaseId && conversation.kind === "room") {
+                try {
+                  await createHallNoteAction({ conversationId: conversation.databaseId, title: noteTitle, body: noteBody });
+                  setPersistentItems(await listHallItemsAction(conversation.databaseId));
+                } catch { setHallError("Hall note couldn't be saved."); return; }
+              } else prototypeStore.addHallNote({ slug: conversation.slug, name: conversation.name, title: noteTitle, body: noteBody });
+              setCreating(false); setNoteTitle(""); setNoteBody("");
+            }}>Add</button></div>
           </section>
         </div>
       ) : null}
+      {hallError ? <p role="alert">{hallError}</p> : null}
     </section>
   );
 }

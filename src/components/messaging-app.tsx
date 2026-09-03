@@ -19,6 +19,8 @@ import { IdentityCard } from "@/components/identity-card";
 import { useCurrentToskerUser, useToskerIdentity } from "@/components/tosker-identity";
 import { createRoomAction, createRoomInviteAction } from "@/server/rooms/actions";
 import { findPeopleAction, startPersonalConversationAction } from "@/server/conversations/actions";
+import { installRoomCapabilityAction } from "@/server/shared-state/actions";
+import { acceptConnectionAction, listConnectionsAction, requestConnectionAction } from "@/server/connections/actions";
 import {
   ChatSurface,
   HallSurface,
@@ -598,6 +600,20 @@ function FriendsSurface({
   const [tab, setTab] = useState("All");
   const [query, setQuery] = useState("");
   const [profile, setProfile] = useState<(typeof friends)[number] | null>(null);
+  const identity = useToskerIdentity();
+  const router = useRouter();
+  const [serverConnections, setServerConnections] = useState<Awaited<ReturnType<typeof listConnectionsAction>>>([]);
+  const [peopleResults, setPeopleResults] = useState<Awaited<ReturnType<typeof findPeopleAction>>>([]);
+  const refreshConnections = useCallback(() => listConnectionsAction().then(setServerConnections), []);
+  useEffect(() => {
+    if (!identity) return;
+    void refreshConnections();
+  }, [identity, refreshConnections]);
+  useEffect(() => {
+    if (!identity || query.trim().length < 2) return;
+    const timer = window.setTimeout(() => void findPeopleAction(query).then(setPeopleResults), 180);
+    return () => window.clearTimeout(timer);
+  }, [identity, query]);
   const shown = friends.filter((friend) =>
     `${friend.name} ${friend.username} ${friend.tid}`
       .toLowerCase()
@@ -644,13 +660,16 @@ function FriendsSurface({
         ))}
       </nav>
       {tab === "Requests" ? (
-        <div className="two-line-empty">
-          <h2>No new requests</h2>
-          <p>You're all caught up</p>
-        </div>
+        serverConnections.filter((item) => item.status === "pending" && item.direction === "incoming").length ? (
+          <div className="friend-list">{serverConnections.filter((item) => item.status === "pending" && item.direction === "incoming").map((item) => item.person ? (
+            <article key={item.id}><span className="avatar avatar-pink">{item.person.displayName.slice(0, 1).toUpperCase()}</span><div><strong>{item.person.displayName}</strong><small>@{item.person.username} · {item.person.tid}</small></div><button onClick={async () => { await acceptConnectionAction(item.id); await refreshConnections(); }}>Accept</button></article>
+          ) : null)}</div>
+        ) : <div className="two-line-empty"><h2>No new requests</h2><p>You're all caught up</p></div>
       ) : (
         <div className="friend-list">
-          {shown
+          {identity ? serverConnections.filter((item) => item.status === "accepted" && item.person && `${item.person.displayName} ${item.person.username} ${item.person.tid}`.toLowerCase().includes(query.toLowerCase())).map((item) => item.person ? (
+            <article key={item.id}><span className="avatar avatar-pink avatar-pattern">{item.person.displayName.slice(0, 1).toUpperCase()}</span><div className="friend-nameplate"><strong>{item.person.displayName}</strong><small>@{item.person.username} · {item.person.tid}</small></div><i>Friend</i><button onClick={async () => { const chat = await startPersonalConversationAction(item.person!.userId); router.push(`/personal/${chat.slug}`); router.refresh(); }}>Message</button></article>
+          ) : null) : shown
             .filter((friend) => tab !== "Online" || friend.status === "Online")
             .map((friend) => (
               <article key={friend.tid}>
@@ -674,6 +693,9 @@ function FriendsSurface({
                 <button onClick={() => onMessage(friend)}>Message</button>
               </article>
             ))}
+          {identity && query.trim().length >= 2 ? peopleResults.filter((person) => !serverConnections.some((item) => item.person?.userId === person.userId)).map((person) => (
+            <article key={person.userId}><span className="avatar avatar-gold">{person.displayName.slice(0, 1).toUpperCase()}</span><div className="friend-nameplate"><strong>{person.displayName}</strong><small>@{person.username} · {person.tid}</small></div><button onClick={async () => { await requestConnectionAction(person.userId); await refreshConnections(); }}>Add</button></article>
+          )) : null}
         </div>
       )}
     </section>
@@ -1292,7 +1314,7 @@ export function MessagingApp({
             {surface === "hall" ? (
               <HallSurface
                 conversation={selected}
-                empty={Boolean(prototypeRoom && !canonical)}
+                empty={Boolean(identity) || Boolean(prototypeRoom && !canonical)}
               />
             ) : (
               <ChatSurface key={selected.slug} conversation={selected} />
@@ -1349,17 +1371,21 @@ export function MessagingApp({
             <p>Add to this space.</p>
             <div className="option-grid">
               {[...things, "Photo Wall", "Subroom"].map((item, index) => {
-                const installed = prototypeRoom?.things.includes(item) ?? false;
+                const installed = serverRoom?.capabilities.includes(item) ?? prototypeRoom?.things.includes(item) ?? false;
+                const supported = things.includes(item);
                 return (
                 <button
                   autoFocus={index === 0}
                   key={item}
                   className={installed ? "active" : ""}
-                  disabled={installed || selected?.kind !== "room"}
+                  disabled={installed || selected?.kind !== "room" || Boolean(identity && !supported)}
                   aria-label={`${item}${installed ? ", Added" : ""}`}
-                  onClick={() => {
+                  onClick={async () => {
                     if (!selected || selected.kind !== "room") return;
-                    prototypeStore.addThing({ slug: selected.slug, name: selected.name, thing: item });
+                    if (identity && selected.databaseId) {
+                      await installRoomCapabilityAction({ conversationId: selected.databaseId, capability: item });
+                      router.refresh();
+                    } else prototypeStore.addThing({ slug: selected.slug, name: selected.name, thing: item });
                     setOverlay(null);
                   }}
                 >

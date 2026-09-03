@@ -1,10 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { WorkspaceBanner } from "@/components/workspace-banner";
 import { IdentityCard } from "@/components/identity-card";
 import { prototypeUser } from "@/data/prototype-user";
-import { useCurrentToskerUser } from "@/components/tosker-identity";
+import { useCurrentToskerUser, useToskerIdentity } from "@/components/tosker-identity";
+import { listNotificationsAction } from "@/server/shared-state/actions";
 import {
   Bell,
   CircleUserRound,
@@ -371,11 +372,25 @@ const notificationItems = [
 
 function Notifications({ empty = false }: { empty?: boolean }) {
   const [filter, setFilter] = useState("All");
-  const shown = empty
+  const identity = useToskerIdentity();
+  const [persistent, setPersistent] = useState<Awaited<ReturnType<typeof listNotificationsAction>>>([]);
+  useEffect(() => {
+    if (identity) void listNotificationsAction().then(setPersistent);
+  }, [identity]);
+  const realItems = persistent.map((item) => ({
+    type: item.type.startsWith("connection") ? "Activity" : "Rooms",
+    icon: item.type.startsWith("connection") ? UserPlus : Pin,
+    title: item.type === "connection_request" ? "New friend request" : item.type === "connection_accepted" ? "Friend request accepted" : "New Hall note",
+    context: "Persistent Tosker activity",
+    time: new Date(item.createdAt).toLocaleDateString(),
+    href: item.type.startsWith("connection") ? "/friends" : "/",
+  }));
+  const source = identity ? realItems : notificationItems;
+  const shown = empty && !identity
     ? []
     : filter === "All"
-      ? notificationItems
-      : notificationItems.filter((item) => item.type === filter);
+      ? source
+      : source.filter((item) => item.type === filter);
   return (
     <ProductChrome current="notifications">
       <WorkspaceBanner
@@ -419,9 +434,7 @@ function Notifications({ empty = false }: { empty?: boolean }) {
             <p>You’re caught up.</p>
           </div>
         ) : null}
-        <p className="prototype-strip">
-          Prototype activity · Stored nowhere beyond this preview.
-        </p>
+        <p className="prototype-strip">{identity ? "Persistent activity foundation" : "Prototype activity · Stored nowhere beyond this preview."}</p>
       </section>
     </ProductChrome>
   );

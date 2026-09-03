@@ -81,6 +81,7 @@ export const connections = pgTable(
     addresseeId: uuid("addressee_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
+    pairKey: text("pair_key").notNull(),
     status: connectionStatus("status").default("pending").notNull(),
     ...timestamps,
   },
@@ -89,6 +90,7 @@ export const connections = pgTable(
       table.requesterId,
       table.addresseeId,
     ),
+    uniqueIndex("connections_pair_unique").on(table.pairKey),
     index("connections_addressee_idx").on(table.addresseeId),
   ],
 );
@@ -266,7 +268,12 @@ export const hallItems = pgTable(
       .defaultNow()
       .notNull(),
   },
-  (table) => [index("hall_items_room_idx").on(table.roomId, table.createdAt)],
+  (table) => [
+    index("hall_items_room_idx").on(table.roomId, table.createdAt),
+    uniqueIndex("hall_items_pinned_message_unique")
+      .on(table.sourceMessageId)
+      .where(sql`${table.kind} = 'pinned_message'`),
+  ],
 );
 
 export const roomCapabilities = pgTable(

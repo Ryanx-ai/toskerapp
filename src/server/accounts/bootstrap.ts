@@ -9,6 +9,7 @@ import {
   conversations,
   profiles,
   roomMemberships,
+  roomCapabilities,
   rooms,
   roomTags,
   users,
@@ -58,6 +59,7 @@ export type CanonicalIdentity = {
     role: "owner" | "member";
     tag: string;
     conversationId: string;
+    capabilities: string[];
   }>;
   personalConversations: Array<{
     conversationId: string;
@@ -228,6 +230,9 @@ export async function ensureToskerAccount(
         .from(roomTags)
         .where(inArray(roomTags.roomId, memberships.map((room) => room.id)))
     : [];
+  const capabilities = memberships.length
+    ? await db.select({ roomId: roomCapabilities.roomId, value: roomCapabilities.capabilityKey }).from(roomCapabilities).where(inArray(roomCapabilities.roomId, memberships.map((room) => room.id)))
+    : [];
   const personalRows = await db
     .select({ conversationId: conversations.id })
     .from(conversationParticipants)
@@ -249,6 +254,7 @@ export async function ensureToskerAccount(
     rooms: memberships.map((room) => ({
       ...room,
       tag: tags.find((tag) => tag.roomId === room.id)?.value ?? "ROOM",
+      capabilities: capabilities.filter((item) => item.roomId === room.id).map((item) => item.value),
     })),
     personalConversations: personalConversations.filter((item): item is NonNullable<typeof item> => Boolean(item)),
   };

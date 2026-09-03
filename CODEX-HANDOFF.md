@@ -24,6 +24,7 @@ MS5 — Identity + Persistence + Real Chat. MS5.5 is complete. The founder-revie
 - Canonical production: <https://toskerapp.vercel.app/>
 - Release state: DEPLOYED FOR FOUNDER REVIEW at <https://toskerapp.vercel.app/>
 - The canonical review deployment intentionally uses the isolated Development Neon and Clerk resources; it is not a production-data environment.
+- Clerk redirect origins explicitly allow localhost and the canonical founder-review URL.
 - Preview and Production databases are not provisioned.
 - `toskerArt/` remains untracked, untouched, and unintegrated.
 

@@ -15,13 +15,13 @@ MS5 — Identity + Persistence + Real Chat. MS5.0.1 founder closeout is complete
 - MS5.3 `1d96553` — persistent conversations/messages
 - MS5.4 `9db7257` — Friends, Hall, Room capabilities, notifications
 - MS5.5 `9278aaf` — hardening and founder-review preparation
-- MS5.0.1 `e05eb9c` — final founder patch and founder-review deployment
+- MS5.0.1 `e05eb9c` + `da62280` — final founder patch and Hall copy closeout
 
 ## Environment and release boundary
 
 - Development database: Neon `neon-byzantine-jacket`
 - Development auth: Clerk Development
-- Canonical founder review: <https://toskerapp.vercel.app/> (deployment `dpl_76B8jGUTPw4c1unC5tsFFAizFXfp`, READY)
+- Canonical founder review: <https://toskerapp.vercel.app/> (latest patch deployment `dpl_DNsEdc5CdJcqcFsE3rzoFfdBnAAd`, READY)
 - Preview and Production databases are not provisioned.
 - Production remains the locked MS4.1 application; do not connect production infrastructure or deploy without founder approval.
 - `toskerArt/` remains untracked, untouched, and unintegrated.

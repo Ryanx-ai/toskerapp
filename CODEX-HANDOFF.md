@@ -4,7 +4,7 @@ Repository and Git are authoritative. Read this file first when resuming develop
 
 ## Current milestone
 
-MS5 — Identity + Persistence + Real Chat. MS5.5 is complete. The founder-review deployment is authorized and labelled `Version MS-5.0.0 - Dev Proto`. Do not begin MS6.
+MS5 — Identity + Persistence + Real Chat. MS5.0.1 founder closeout is complete; do not begin MS6 until founder review is complete.
 
 ## Checkpoints
 
@@ -14,32 +14,38 @@ MS5 — Identity + Persistence + Real Chat. MS5.5 is complete. The founder-revie
 - MS5.2 `957953e` — Rooms, memberships, invitations
 - MS5.3 `1d96553` — persistent conversations/messages
 - MS5.4 `9db7257` — Friends, Hall, Room capabilities, notifications
-- MS5.5 — this final hardening checkpoint; inspect `git log -1` for its hash
-- MS5 founder-review label `ab13fa0` — version marker and deployment handoff
-- MS5 founder-review auth correction `c9fb9de` — canonical redirect origin
+- MS5.5 `9278aaf` — hardening and founder-review preparation
+- MS5.0.1 — final founder patch; inspect `git log -1` for the checkpoint hash
 
 ## Environment and release boundary
 
 - Development database: Neon `neon-byzantine-jacket`
 - Development auth: Clerk Development
-- Canonical production: <https://toskerapp.vercel.app/>
-- Release state: DEPLOYED FOR FOUNDER REVIEW at <https://toskerapp.vercel.app/>
-- The canonical review deployment intentionally uses the isolated Development Neon and Clerk resources; it is not a production-data environment.
-- Clerk redirect origins explicitly allow localhost and the canonical founder-review URL.
-- The public auth gate and embedded Clerk sign-in load on the canonical URL. Complete the final authenticated production walkthrough in a fresh founder browser session; an existing Development-browser home origin may redirect its session back to localhost.
+- Canonical founder review: <https://toskerapp.vercel.app/>
 - Preview and Production databases are not provisioned.
+- Production remains the locked MS4.1 application; do not connect production infrastructure or deploy without founder approval.
 - `toskerArt/` remains untracked, untouched, and unintegrated.
+
+## MS5.0.1 contract
+
+- `conversation_reads`, Hall color/order/archive fields, and notification conversation links were migrated to Development Neon.
+- Recipient-only message, friend, and Hall notifications are durable; opening Chat or Hall marks that surface's activity read.
+- A 12-second authenticated foreground polling bridge refreshes activity and Friends requests and shows one restrained in-app toast for new incoming activity. It is temporary MS5.0.1 delivery infrastructure, not realtime.
+- Demo Mode is signed-out only, deterministic, local prototype state. It never reads or writes authenticated Neon state and is marked quietly in the shell.
+- Hall notes support curated colors, persisted move controls, Archive, and confirmed Nuke. Pinned Chat references support Open in Chat, Move, and Unpin while preserving the source message.
 
 ## Verified state
 
-Two separate Clerk users have stable canonical Profiles, distinct TIDs and one Sandbox each. They share one persistent Room as owner/member, retain membership through authentication, share Room and personal messages in both directions, retain one canonical personal conversation, have one accepted connection, share a Hall-native note and pinned-message reference, and retain unique installed Room capabilities.
+Two isolated Clerk users have stable Profiles/TIDs/Sandboxes, shared Room membership, durable Room and personal messages, canonical personal conversations, Friends, Hall notes/pins, capabilities, notifications, unread indicators, and authorization boundaries. Database audit and MS5 smoke scripts pass.
 
-See `docs/MS5-HARDENING.md` for the source-of-truth, authorization, security, interaction, Hall, known-limit, and MS6 handoff contracts. See `docs/MS5-FOUNDER-WALKTHROUGH.md` for the local walkthrough.
+## Known MS6 debt
+
+Realtime delivery/reconciliation, presence, typing, read receipts, offline queue, replies/reactions persistence, attachments, notification preferences/channels, Hall depth, and Gizmo runtimes remain deferred. Do not implement them in this milestone.
 
 ## Recovery
 
 1. Run `git status` and `git log --oneline -8`.
-2. Preserve all completed checkpoint commits; do not squash or amend them.
-3. Treat the canonical deployment as an MS5 development prototype pending founder review.
+2. Preserve completed checkpoint commits; do not squash or amend prior milestones.
+3. Treat the canonical deployment as the MS5.0.1 development prototype pending founder walkthrough.
 4. Do not touch `toskerArt/`.
 5. Stop after founder review preparation; do not begin MS6.

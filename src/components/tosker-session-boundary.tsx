@@ -43,7 +43,7 @@ export async function ToskerSessionBoundary({
 
   return (
     <ToskerIdentityProvider identity={identity}>
-      <AuthGate>{children}</AuthGate>
+      <AuthGate allowDemo={false}>{children}</AuthGate>
     </ToskerIdentityProvider>
   );
 }

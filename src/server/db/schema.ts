@@ -1,5 +1,6 @@
 import {
   index,
+  integer,
   boolean,
   pgEnum,
   pgTable,
@@ -219,6 +220,25 @@ export const conversationParticipants = pgTable(
   ],
 );
 
+export const conversationReads = pgTable(
+  "conversation_reads",
+  {
+    conversationId: uuid("conversation_id")
+      .notNull()
+      .references(() => conversations.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    lastReadAt: timestamp("last_read_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.conversationId, table.userId] }),
+    index("conversation_reads_user_idx").on(table.userId),
+  ],
+);
+
 export const messages = pgTable(
   "messages",
   {
@@ -262,6 +282,9 @@ export const hallItems = pgTable(
     sourceMessageId: uuid("source_message_id").references(() => messages.id, {
       onDelete: "restrict",
     }),
+    color: text("color").default("neutral").notNull(),
+    position: integer("position").default(0).notNull(),
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
@@ -306,6 +329,9 @@ export const notifications = pgTable(
       onDelete: "set null",
     }),
     roomId: uuid("room_id").references(() => rooms.id, {
+      onDelete: "cascade",
+    }),
+    conversationId: uuid("conversation_id").references(() => conversations.id, {
       onDelete: "cascade",
     }),
     messageId: uuid("message_id").references(() => messages.id, {

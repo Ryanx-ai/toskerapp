@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { requireConversationParticipant } from "@/server/auth/authorize";
 import { requireCurrentActor } from "@/server/auth/clerk";
 import { getDatabase } from "@/server/db/client";
-import { conversationParticipants, conversations, messages, profiles, users } from "@/server/db/schema";
+import { conversationParticipants, conversationReads, conversations, messages, notifications, profiles, users } from "@/server/db/schema";
 
 export type PersistentMessage = {
   id: string;
@@ -56,8 +56,39 @@ export async function sendMessageAction(input: { id: string; conversationId: str
     .values({ id: input.id, conversationId: input.conversationId, authorId: actor.userId, body })
     .onConflictDoNothing()
     .returning({ createdAt: messages.createdAt });
+  if (created) {
+    const recipients = await db
+      .select({ userId: conversationParticipants.userId })
+      .from(conversationParticipants)
+      .where(and(eq(conversationParticipants.conversationId, input.conversationId), ne(conversationParticipants.userId, actor.userId)));
+    if (recipients.length) {
+      await db.insert(notifications).values(recipients.map(({ userId }) => ({
+        userId,
+        actorId: actor.userId,
+        conversationId: input.conversationId,
+        messageId: input.id,
+        type: "message",
+      })));
+    }
+  }
   revalidatePath("/");
   return { id: input.id, createdAt: created?.createdAt.toISOString() ?? null };
+}
+
+export async function markConversationReadAction(conversationId: string, surface: "chat" | "hall" = "chat") {
+  const actor = await requireCurrentActor();
+  const db = getDatabase();
+  await requireConversationParticipant(db, actor, conversationId);
+  await db.insert(conversationReads)
+    .values({ conversationId, userId: actor.userId, lastReadAt: new Date() })
+    .onConflictDoUpdate({
+      target: [conversationReads.conversationId, conversationReads.userId],
+      set: { lastReadAt: new Date() },
+    });
+  const activityTypes = surface === "hall" ? ["hall_note", "hall_pin"] : ["message"];
+  await db.update(notifications)
+    .set({ readAt: new Date() })
+    .where(and(eq(notifications.userId, actor.userId), eq(notifications.conversationId, conversationId), or(...activityTypes.map((type) => eq(notifications.type, type)))));
 }
 
 export async function findPeopleAction(query: string) {

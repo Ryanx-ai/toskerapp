@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
-import { SignOutButton } from "@clerk/nextjs";
 import { conversations, type Conversation } from "@/data/messaging-data";
 import { prototypeUser } from "@/data/prototype-user";
 import { prototypeStore } from "@/lib/prototype-store";
@@ -22,6 +21,7 @@ import { createRoomAction, createRoomInviteAction } from "@/server/rooms/actions
 import { findPeopleAction, startPersonalConversationAction } from "@/server/conversations/actions";
 import { installRoomCapabilityAction } from "@/server/shared-state/actions";
 import { acceptConnectionAction, listConnectionsAction, requestConnectionAction } from "@/server/connections/actions";
+import { listNotificationsAction } from "@/server/shared-state/actions";
 import {
   ChatSurface,
   HallSurface,
@@ -34,7 +34,6 @@ import {
   CircleHelp,
   Compass,
   MessageCircle,
-  LogOut,
   MoreHorizontal,
   PanelLeftClose,
   PanelLeftOpen,
@@ -49,6 +48,7 @@ import {
 
 export type AppWorkspace = ProductWorkspace | "friends" | "create";
 type Overlay = "choose" | "chat" | "room" | "invite" | "add" | null;
+type NotificationActivity = Awaited<ReturnType<typeof listNotificationsAction>>[number];
 const nav = [
   { label: "Explore", icon: Compass, href: "/explore" },
   { label: "Friends", icon: UsersRound, href: "/friends" },
@@ -213,12 +213,14 @@ function ConversationRow({
   pinned,
   onDropItem,
   displayName,
+  unread,
 }: {
   item: Conversation;
   active: boolean;
   pinned: boolean;
   onDropItem: (source: string, target: string) => void;
   displayName: string;
+  unread?: number;
 }) {
   const [open, setOpen] = useState(false);
   const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -281,8 +283,8 @@ function ConversationRow({
           <time>{item.time}</time>
           {pinned ? (
             <i aria-label="Pinned">⌖</i>
-          ) : item.unread ? (
-            <b>{item.unread}</b>
+          ) : unread || item.unread ? (
+            <b>{unread || item.unread}</b>
           ) : null}
         </span>
       </Link>
@@ -357,11 +359,6 @@ function ProfileRegion({
           >
             <CircleHelp size={16} />
           </Link>
-          <SignOutButton>
-            <button aria-label="Sign out" data-tip="Sign out" className="has-tip">
-              <LogOut size={16} />
-            </button>
-          </SignOutButton>
         </div>
       </div>
       <small className="app-version-marker">{APP_VERSION_LABEL}</small>
@@ -375,12 +372,16 @@ function AppSidebar({
   onCreate,
   collapsed,
   onToggleCollapse,
+  unreadByConversation,
+  latestActivityByConversation,
 }: {
   selected?: Conversation;
   workspace?: AppWorkspace;
   onCreate: () => void;
   collapsed: boolean;
   onToggleCollapse: () => void;
+  unreadByConversation: Record<string, number>;
+  latestActivityByConversation: Record<string, string>;
 }) {
   const identity = useToskerIdentity();
   const user = useCurrentToskerUser() ?? prototypeUser;
@@ -416,7 +417,7 @@ function AppSidebar({
       name: room.name,
       initials: room.name.slice(0, 2).toUpperCase(),
       color: "green",
-      preview: "Room's ready",
+      preview: "",
       time: room.createdAt,
       context: `${Math.max(1, room.people.length + 1)} people`,
       messages: room.messages,
@@ -428,9 +429,9 @@ function AppSidebar({
     name: room.name,
     initials: room.name.slice(0, 2).toUpperCase(),
     color: "green",
-    preview: room.role === "owner" ? "You own this Room" : "Room member",
+    preview: "",
     time: "Now",
-    context: room.role === "owner" ? "Room owner" : "Room member",
+    context: "",
     messages: [],
     tag: room.tag,
     databaseId: room.conversationId,
@@ -441,7 +442,7 @@ function AppSidebar({
     name: chat.displayName,
     initials: chat.displayName.split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase(),
     color: "pink",
-    preview: "Personal conversation",
+    preview: "",
     time: "Now",
     context: `@${chat.username} · ${chat.tid}`,
     messages: [],
@@ -455,7 +456,7 @@ function AppSidebar({
       name: chat.name,
       initials: chat.initials,
       color: chat.color,
-      preview: "Start the conversation",
+      preview: "",
       time: "Now",
       context: chat.tid,
       messages: chat.messages,
@@ -480,7 +481,9 @@ function AppSidebar({
       : b.kind === "my-room"
         ? 1
         : Number(state.pinned.includes(b.slug)) -
-            Number(state.pinned.includes(a.slug)) || rank(a) - rank(b),
+            Number(state.pinned.includes(a.slug)) ||
+          (latestActivityByConversation[b.databaseId ?? ""] ?? "").localeCompare(latestActivityByConversation[a.databaseId ?? ""] ?? "") ||
+          rank(a) - rank(b),
   );
   return (
     <aside className="messenger-sidebar">
@@ -584,6 +587,7 @@ function AppSidebar({
               pinned={!identity && state.pinned.includes(item.slug)}
               onDropItem={identity ? () => undefined : prototypeStore.reorder}
               displayName={user.displayName}
+              unread={item.databaseId ? unreadByConversation[item.databaseId] : undefined}
             />
           ))}
           {query && ordered.length === 0 ? (
@@ -612,6 +616,8 @@ function FriendsSurface({
   useEffect(() => {
     if (!identity) return;
     void refreshConnections();
+    const timer = window.setInterval(() => void refreshConnections(), 12000);
+    return () => window.clearInterval(timer);
   }, [identity, refreshConnections]);
   useEffect(() => {
     if (!identity || query.trim().length < 2) return;
@@ -1213,9 +1219,36 @@ export function MessagingApp({
   const [overlay, setOverlay] = useState<Overlay>(
     workspace === "create" ? "room" : null,
   );
+  const [activity, setActivity] = useState<NotificationActivity[]>([]);
+  const [toast, setToast] = useState<NotificationActivity | null>(null);
+  const seenActivity = useRef<Set<string> | null>(null);
   const addPanelRef = useRef<HTMLElement>(null);
   const closeAdd = useCallback(() => setOverlay(null), []);
   useDismissLayer(overlay === "add", closeAdd, addPanelRef);
+  useEffect(() => {
+    if (!identity) {
+      seenActivity.current = null;
+      return;
+    }
+    let active = true;
+    const refresh = async () => {
+      const next = await listNotificationsAction().catch(() => [] as NotificationActivity[]);
+      if (!active) return;
+      const previous = seenActivity.current;
+      setActivity(next);
+      seenActivity.current = new Set(next.map((item) => item.id));
+      if (previous) {
+        const incoming = next.find((item) => !previous.has(item.id) && !item.readAt && item.actorId !== identity.userId);
+        if (incoming) {
+          setToast(incoming);
+          window.setTimeout(() => setToast((current) => current?.id === incoming.id ? null : current), 6500);
+        }
+      }
+    };
+    void refresh();
+    const timer = window.setInterval(() => void refresh(), 12000);
+    return () => { active = false; window.clearInterval(timer); };
+  }, [identity]);
   const collapsed = useSyncExternalStore(
     collapseStore.subscribe,
     collapseStore.getSnapshot,
@@ -1241,7 +1274,7 @@ export function MessagingApp({
           name: serverChat.displayName,
           initials: serverChat.displayName.split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase(),
           color: "pink",
-          preview: "Personal conversation",
+          preview: "",
           time: "Now",
           context: `@${serverChat.username} · ${serverChat.tid}`,
           messages: [],
@@ -1255,9 +1288,9 @@ export function MessagingApp({
           name: serverRoom.name,
           initials: serverRoom.name.slice(0, 2).toUpperCase(),
           color: "green",
-          preview: "Room's ready",
+          preview: "",
           time: "Now",
-          context: serverRoom.role === "owner" ? "Room owner" : "Room member",
+          context: "",
           messages: [],
           tag: serverRoom.tag,
           databaseId: serverRoom.conversationId,
@@ -1270,7 +1303,7 @@ export function MessagingApp({
           name: prototypeRoom.name,
           initials: prototypeRoom.name.slice(0, 2).toUpperCase(),
           color: "green",
-          preview: "Room's ready",
+          preview: "",
           time: prototypeRoom.createdAt,
           context: `${Math.max(1, prototypeRoom.people.length + 1)} people`,
           messages: prototypeRoom.messages,
@@ -1283,7 +1316,7 @@ export function MessagingApp({
             name: prototypeChat.name,
             initials: prototypeChat.initials,
             color: prototypeChat.color,
-            preview: "Start the conversation",
+            preview: "",
             time: "Now",
             context: prototypeChat.tid,
             messages: prototypeChat.messages,
@@ -1291,6 +1324,16 @@ export function MessagingApp({
         : selectedSlug
           ? conversations[0]
           : undefined));
+  const unreadByConversation = activity.reduce<Record<string, number>>((counts, item) => {
+    if (item.type === "message" && item.conversationId && !item.readAt) counts[item.conversationId] = (counts[item.conversationId] ?? 0) + 1;
+    return counts;
+  }, {});
+  const latestActivityByConversation = activity.reduce<Record<string, string>>((latest, item) => {
+    if (item.conversationId && (!latest[item.conversationId] || item.createdAt > latest[item.conversationId])) latest[item.conversationId] = item.createdAt;
+    return latest;
+  }, {});
+  const unreadForSurface = (kind: "message" | "hall") => activity.filter((item) => selected?.databaseId && item.conversationId === selected.databaseId && !item.readAt && (kind === "message" ? item.type === "message" : item.type === "hall_note" || item.type === "hall_pin")).length;
+  const activityHref = (item: NotificationActivity) => item.conversationKind === "room" && item.roomSlug ? `/room/${item.roomSlug}` : item.conversationKind === "personal" && item.conversationId ? `/personal/chat-${item.conversationId}` : item.conversationKind === "sandbox" ? "/personal/my-room" : "/friends";
   const messageFriend = (friend: (typeof friends)[number]) => {
     const chat = prototypeStore.createChat(friend);
     router.push(`/personal/${chat.slug}`);
@@ -1305,6 +1348,8 @@ export function MessagingApp({
         onCreate={() => setOverlay("choose")}
         collapsed={collapsed}
         onToggleCollapse={collapseStore.toggle}
+        unreadByConversation={unreadByConversation}
+        latestActivityByConversation={latestActivityByConversation}
       />
       <div className="working-surface">
         {selected ? (
@@ -1314,6 +1359,8 @@ export function MessagingApp({
               surface={surface}
               onAdd={() => setOverlay("add")}
               onInvite={() => setOverlay("invite")}
+              chatUnread={unreadForSurface("message")}
+              hallUnread={unreadForSurface("hall")}
             />
             {surface === "hall" ? (
               <HallSurface
@@ -1400,6 +1447,7 @@ export function MessagingApp({
           </section>
         </div>
       ) : null}
+      {toast ? <button className="activity-toast" onClick={() => { router.push(activityHref(toast)); setToast(null); }} aria-label="Open new activity"><strong>{toast.actorName ?? "Someone"}</strong><span>{toast.type === "message" ? (toast.messageBody || "New message") : toast.type === "connection_request" ? "sent you a friend request" : toast.type === "connection_accepted" ? "accepted your friend request" : "updated Hall"}</span></button> : null}
     </main>
   );
 }

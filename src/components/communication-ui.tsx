@@ -3,14 +3,15 @@
 import Image from "next/image";
 import Link from "next/link";
 import {
+  useCallback,
   useEffect,
   useLayoutEffect,
   useRef,
   useState,
   useSyncExternalStore,
 } from "react";
-import { listMessagesAction, sendMessageAction } from "@/server/conversations/actions";
-import { createHallNoteAction, listHallItemsAction, pinMessageToHallAction } from "@/server/shared-state/actions";
+import { listMessagesAction, markConversationReadAction, sendMessageAction } from "@/server/conversations/actions";
+import { archiveHallNoteAction, changeHallItemColorAction, createHallNoteAction, listHallItemsAction, nukeHallNoteAction, pinMessageToHallAction, reorderHallItemAction, unpinHallItemAction } from "@/server/shared-state/actions";
 import {
   hallNotices,
   type Conversation,
@@ -42,9 +43,9 @@ const reactions = ["❤️", "👍", "😂", "🔥", "✨", "👀"];
 const utilityCopy: Record<string, string> = {
   Search: "Search this conversation.",
   Voice: "Voice calls are coming later.",
-  Video: "Video is a future capability.",
+  Video: "Video calls are coming later.",
   Calendar: "Calendar isn't connected yet.",
-  Settings: "These settings are still a prototype.",
+  Settings: "More settings are coming later.",
   More: "More conversation tools will live here.",
 };
 const titleOf = (conversation: Conversation, displayName = prototypeUser.displayName) =>
@@ -122,11 +123,15 @@ export function SurfaceHeader({
   surface,
   onAdd,
   onInvite,
+  chatUnread = 0,
+  hallUnread = 0,
 }: {
   conversation: Conversation;
   surface: "chat" | "hall";
   onAdd: () => void;
   onInvite?: () => void;
+  chatUnread?: number;
+  hallUnread?: number;
 }) {
   const user = useCurrentToskerUser() ?? prototypeUser;
   const [panel, setPanel] = useState<string | null>(null);
@@ -171,7 +176,7 @@ export function SurfaceHeader({
         </span>
         <div className="active-copy">
           <h2>{titleOf(conversation, user.displayName)}</h2>
-          {conversation.kind === "room" ? <span>{conversation.context}</span> : null}
+          {conversation.kind === "room" && conversation.context ? <span>{conversation.context}</span> : null}
         </div>
         {conversation.kind === "room" && onInvite ? (
           <button className="invite-button primary-action" onClick={onInvite}>
@@ -185,14 +190,14 @@ export function SurfaceHeader({
           aria-current={surface === "chat" ? "page" : undefined}
           href={baseHref(conversation)}
         >
-          Chat
+          Chat{chatUnread ? <i className="surface-unread-dot" aria-label={`${chatUnread} new messages`} /> : null}
         </Link>
         <Link
           className={surface === "hall" ? "active" : ""}
           aria-current={surface === "hall" ? "page" : undefined}
           href={`${baseHref(conversation)}/hall`}
         >
-          Hall
+          Hall{hallUnread ? <i className="surface-unread-dot" aria-label="New Hall activity" /> : null}
         </Link>
         <button onClick={onAdd} aria-label="Add Gizmo">
           <Plus size={15} />
@@ -499,6 +504,7 @@ export function ChatSurface({ conversation }: { conversation: Conversation }) {
   useEffect(() => {
     if (!conversation.databaseId) return;
     let active = true;
+    void markConversationReadAction(conversation.databaseId, "chat");
     listMessagesAction(conversation.databaseId)
       .then(({ messages: persisted }) => {
         if (!active) return;
@@ -683,6 +689,74 @@ function HallCard({ notice }: { notice: (typeof hallNotices)[number] }) {
   );
 }
 
+type HallSurfaceItem = {
+  id: string;
+  kind: "note" | "pinned_message" | "pinned-message";
+  title: string | null;
+  body: string;
+  author: string;
+  createdAt?: string;
+  time?: string;
+  color?: string;
+  position?: number;
+  archivedAt?: string | null;
+  sourceMessageId?: string | null;
+};
+
+const hallColors = ["neutral", "ivory", "gold", "pink", "green", "blue"] as const;
+
+function PersistentHallCard({
+  item,
+  conversation,
+  onColor,
+  onReorder,
+  onArchive,
+  onNuke,
+  onUnpin,
+}: {
+  item: HallSurfaceItem;
+  conversation: Conversation;
+  onColor: (color: string) => void;
+  onReorder: (direction: "left" | "right") => void;
+  onArchive: () => void;
+  onNuke: () => void;
+  onUnpin: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const [colorsOpen, setColorsOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useDismissLayer(open || confirming, () => { setOpen(false); setConfirming(false); setColorsOpen(false); }, ref);
+  const pinned = item.kind === "pinned_message" || item.kind === "pinned-message";
+  return (
+    <article className={`notice-card hall-local-${pinned ? "pinned-message" : "note"} hall-color-${item.color ?? "neutral"}`}>
+      <span className="notice-icon">{pinned ? "⌖" : "✎"}</span>
+      <div>
+        <small>{pinned ? "Pinned from Chat" : "Note"}</small>
+        <h3>{item.title ?? "Pinned from Chat"}</h3>
+        <p>{item.body}</p>
+      </div>
+      <button className="hall-card-more" onClick={() => { openLayer(); setOpen((value) => !value); }} aria-label={`Actions for ${item.title ?? "Pinned message"}`} aria-expanded={open}>
+        <MoreHorizontal size={15} />
+      </button>
+      {open ? (
+        <div ref={ref} className="context-menu hall-context" role="menu">
+          {pinned ? <button onClick={onUnpin}>Unpin from Hall</button> : <>
+            <button onClick={() => setColorsOpen((value) => !value)} aria-expanded={colorsOpen}>Change color</button>
+            {colorsOpen ? <div className="hall-color-options" role="group" aria-label="Hall note colors">{hallColors.map((color) => <button key={color} className={`hall-color-choice hall-color-${color}`} aria-label={color} onClick={() => { onColor(color); setOpen(false); }}>{color}</button>)}</div> : null}
+            <button onClick={() => onReorder("left")}>Move left</button>
+            <button onClick={() => onReorder("right")}>Move right</button>
+            <button onClick={onArchive}>Archive</button>
+            <button className="danger" onClick={() => setConfirming(true)}>Nuke</button>
+          </>}
+          {pinned && item.sourceMessageId ? <Link className="context-menu-link" href={`${baseHref(conversation)}#message-${item.sourceMessageId}`}>Open in Chat</Link> : null}
+        </div>
+      ) : null}
+      {confirming ? <div ref={ref} className="confirm-menu" role="alertdialog" aria-label="Nuke note confirmation"><strong>Nuke this note?</strong><p>This cannot be undone.</p><div><button onClick={() => setConfirming(false)}>Cancel</button><button className="danger" onClick={onNuke}>Nuke</button></div></div> : null}
+    </article>
+  );
+}
+
 export function HallSurface({
   conversation,
   empty,
@@ -699,7 +773,7 @@ export function HallSurface({
   const [creating, setCreating] = useState(false);
   const [noteTitle, setNoteTitle] = useState("");
   const [noteBody, setNoteBody] = useState("");
-  const [persistentItems, setPersistentItems] = useState<Array<{ id: string; kind: "note" | "pinned_message"; title: string | null; body: string; author: string; createdAt: string; sourceMessageId?: string | null }>>([]);
+  const [persistentItems, setPersistentItems] = useState<HallSurfaceItem[]>([]);
   const [hallError, setHallError] = useState("");
   const noteRef = useRef<HTMLElement>(null);
   useDismissLayer(creating, () => setCreating(false), noteRef);
@@ -707,12 +781,22 @@ export function HallSurface({
   useEffect(() => {
     if (!conversation.databaseId) return;
     let active = true;
+    void markConversationReadAction(conversation.databaseId, "hall");
     listHallItemsAction(conversation.databaseId)
       .then((items) => active && setPersistentItems(items))
       .catch(() => active && setHallError("Hall couldn't be loaded."));
     return () => { active = false; };
   }, [conversation.databaseId]);
   const displayedItems = conversation.databaseId ? persistentItems : localItems;
+  const refreshPersistentItems = useCallback(async () => {
+    const databaseId = conversation.databaseId;
+    if (!databaseId) return;
+    try {
+      setPersistentItems(await listHallItemsAction(databaseId));
+    } catch {
+      setHallError("Hall couldn't be refreshed.");
+    }
+  }, [conversation.databaseId]);
   const contextual =
     conversation.kind === "my-room"
       ? {
@@ -736,25 +820,14 @@ export function HallSurface({
       <header>
         <div>
           <h2>{contextual.title}</h2>
-          <p>{contextual.support}</p>
+          {conversation.kind === "room" ? <p>{contextual.support}</p> : null}
         </div>
       </header>
       <div className="notice-list">
           <button className="new-hall-card" onClick={() => setCreating(true)}>
             <Plus size={16} /> New Note
           </button>
-          {displayedItems.map((item) => (
-            <article className={`notice-card hall-local-${item.kind}`} key={item.id}>
-              <span className="notice-icon">{item.kind === "note" ? "✎" : "⌖"}</span>
-              <div>
-                <small>{item.kind === "note" ? "Note" : "Pinned from Chat"}</small>
-                <h3>{item.title ?? "Pinned from Chat"}</h3>
-                <p>{item.body}</p>
-                <footer>{item.author} · {"time" in item ? item.time : new Date(item.createdAt).toLocaleString()}</footer>
-              </div>
-              {"sourceMessageId" in item && item.sourceMessageId ? <Link className="hall-source-link" href={`${baseHref(conversation)}#message-${item.sourceMessageId}`}>Open source Chat</Link> : null}
-            </article>
-          ))}
+          {displayedItems.map((item) => <PersistentHallCard key={item.id} item={item} conversation={conversation} onColor={(color) => { const databaseId = conversation.databaseId; if (databaseId) void changeHallItemColorAction({ conversationId: databaseId, itemId: item.id, color }).then(refreshPersistentItems); else prototypeStore.updateHallItem(conversation.slug, item.id, { color: color as "neutral" | "ivory" | "gold" | "pink" | "green" | "blue" }); }} onReorder={(direction) => { const databaseId = conversation.databaseId; if (databaseId) void reorderHallItemAction({ conversationId: databaseId, itemId: item.id, direction }).then(refreshPersistentItems); else prototypeStore.reorderHallItem(conversation.slug, item.id, direction); }} onArchive={() => { const databaseId = conversation.databaseId; if (databaseId) void archiveHallNoteAction({ conversationId: databaseId, itemId: item.id }).then(refreshPersistentItems); else prototypeStore.archiveHallItem(conversation.slug, item.id); }} onNuke={() => { const databaseId = conversation.databaseId; if (databaseId) void nukeHallNoteAction({ conversationId: databaseId, itemId: item.id }).then(refreshPersistentItems); else prototypeStore.nukeHallItem(conversation.slug, item.id); }} onUnpin={() => { const databaseId = conversation.databaseId; if (databaseId) void unpinHallItemAction({ conversationId: databaseId, itemId: item.id }).then(refreshPersistentItems); else prototypeStore.unpinHallItem(conversation.slug, item.id); }} />)}
           {!empty
             ? hallNotices.map((notice) => (
                 <HallCard notice={notice} key={notice.id} />

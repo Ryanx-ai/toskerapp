@@ -43,6 +43,13 @@
       "when": 1788437931688,
       "tag": "0005_shiny_gorgon",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1788513165332,
+      "tag": "0006_strange_otto_octavius",
+      "breakpoints": true
     }
   ]
 }

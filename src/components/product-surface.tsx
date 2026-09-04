@@ -3,9 +3,10 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { WorkspaceBanner } from "@/components/workspace-banner";
 import { IdentityCard } from "@/components/identity-card";
+import { SignOutButton } from "@clerk/nextjs";
 import { prototypeUser } from "@/data/prototype-user";
 import { useCurrentToskerUser, useToskerIdentity } from "@/components/tosker-identity";
-import { listNotificationsAction } from "@/server/shared-state/actions";
+import { listNotificationsAction, markNotificationsReadAction } from "@/server/shared-state/actions";
 import {
   Bell,
   CircleUserRound,
@@ -28,12 +29,12 @@ export type ProductWorkspace =
   | "notifications"
   | "profile";
 const exploreCards = [
-  ["◒", "Quick Poll", "Popular now", "Ask the Room."],
-  ["▦", "Kanban Board", "Popular now", "Organise lightly."],
-  ["⌖", "Shared Map", "Popular now", "Plan together."],
-  ["▧", "Photo Wall", "Popular now", "Collect it here."],
-  ["▤", "Schedule", "Plan together", "Keep the next moment clear."],
-  ["♟", "Game Night", "Play together", "Make room for something fun."],
+  ["◒", "Quick Poll", "Popular now"],
+  ["▦", "Kanban Board", "Popular now"],
+  ["⌖", "Shared Map", "Popular now"],
+  ["▧", "Photo Wall", "Popular now"],
+  ["▤", "Schedule", "Plan together"],
+  ["♟", "Game Night", "Play together"],
 ];
 const marketCards = [
   ["skin", "Midnight Garden", "Room skin", "Mina Vale", "$2"],
@@ -99,7 +100,7 @@ function Explore() {
           <span>Concept previews</span>
         </div>
         <div className="explore-grid">
-          {exploreCards.filter((card) => exploreFilters[filter].includes(card[1])).map(([icon, title, category, body], index) => (
+          {exploreCards.filter((card) => exploreFilters[filter].includes(card[1])).map(([icon, title, category], index) => (
             <article key={title} className={`explore-card card-${index + 1}`}>
               <div className="explore-card-art" aria-hidden="true">
                 <span>{icon}</span>
@@ -107,7 +108,6 @@ function Explore() {
               <div className="explore-card-copy">
                 <small>{category}</small>
                 <h3>{title}</h3>
-                <p>{body}</p>
               </div>
             </article>
           ))}
@@ -149,9 +149,7 @@ function Marketplace() {
             </article>
           ))}
         </div>
-        <p className="prototype-strip">
-          Visual marketplace prototype · Nothing here can be purchased yet
-        </p>
+        <p className="prototype-strip">Preview only · Purchases aren’t available yet</p>
       </section>
     </ProductChrome>
   );
@@ -174,7 +172,7 @@ function Studio() {
             <p className="eyebrow">My creations</p>
             <h2>Things taking shape</h2>
           </div>
-          <span>Prototype data</span>
+          <span>Preview</span>
         </div>
         <div className="creation-list">
           {[
@@ -266,8 +264,11 @@ function Settings() {
           </button>
         ))}
       </div>
+      <SignOutButton>
+        <button className="settings-logout button" type="button">Log out</button>
+      </SignOutButton>
       <p className="prototype-strip">
-        Prototype shell · Preferences do not save yet.
+        Preferences will save here as Tosker grows.
       </p>
     </ProductChrome>
   );
@@ -297,7 +298,7 @@ function Help() {
             <span>{icon}</span>
             <strong>{title}</strong>
             <small>{body}</small>
-            <i>Prototype</i>
+            <i>Coming later</i>
           </button>
         ))}
       </div>
@@ -322,6 +323,7 @@ function Help() {
 
 const notificationItems = [
   {
+    id: "demo-mention-mika",
     type: "Mentions",
     icon: MessageCircleReply,
     title: "Mika replied to you",
@@ -330,6 +332,7 @@ const notificationItems = [
     href: "/personal/mika-tan",
   },
   {
+    id: "demo-room-mention",
     type: "Rooms",
     icon: Sparkles,
     title: "You were mentioned in Tokyo 2027",
@@ -338,6 +341,7 @@ const notificationItems = [
     href: "/room/tokyo-2027",
   },
   {
+    id: "demo-hall-pin",
     type: "Activity",
     icon: Pin,
     title: "A Hall note was pinned",
@@ -346,6 +350,7 @@ const notificationItems = [
     href: "/room/tokyo-2027/hall",
   },
   {
+    id: "demo-room-join",
     type: "Rooms",
     icon: UserPlus,
     title: "Someone joined Design Hack Night",
@@ -354,6 +359,7 @@ const notificationItems = [
     href: "/room/design-hack-night",
   },
   {
+    id: "demo-invite-accepted",
     type: "Activity",
     icon: UsersRound,
     title: "A Room invite was accepted",
@@ -362,6 +368,7 @@ const notificationItems = [
     href: "/room/friday-pokemon",
   },
   {
+    id: "demo-reaction",
     type: "Activity",
     icon: Bell,
     title: "A reaction was added to your message",
@@ -376,15 +383,16 @@ function Notifications({ empty = false }: { empty?: boolean }) {
   const identity = useToskerIdentity();
   const [persistent, setPersistent] = useState<Awaited<ReturnType<typeof listNotificationsAction>>>([]);
   useEffect(() => {
-    if (identity) void listNotificationsAction().then(setPersistent);
+    if (identity) void listNotificationsAction().then((items) => { setPersistent(items); return markNotificationsReadAction(); });
   }, [identity]);
   const realItems = persistent.map((item) => ({
-    type: item.type.startsWith("connection") ? "Activity" : "Rooms",
+    id: item.id,
+    type: item.type === "message" ? "Mentions" : item.type.startsWith("connection") ? "Activity" : "Rooms",
     icon: item.type.startsWith("connection") ? UserPlus : Pin,
     title: item.type === "connection_request" ? "New friend request" : item.type === "connection_accepted" ? "Friend request accepted" : "New Hall note",
-    context: "Persistent Tosker activity",
+    context: item.type === "message" ? `${item.actorName ?? "Someone"} sent you a message${item.messageBody ? `: ${item.messageBody}` : ""}` : item.type === "connection_request" ? `${item.actorName ?? "Someone"} sent you a friend request` : item.type === "connection_accepted" ? `${item.actorName ?? "Someone"} accepted your friend request` : `${item.actorName ?? "Someone"} added something to Hall`,
     time: new Date(item.createdAt).toLocaleDateString(),
-    href: item.type.startsWith("connection") ? "/friends" : "/",
+    href: item.conversationKind === "room" && item.roomSlug ? `/room/${item.roomSlug}` : item.conversationKind === "personal" && item.conversationId ? `/personal/chat-${item.conversationId}` : item.type.startsWith("connection") ? "/friends" : "/",
   }));
   const source = identity ? realItems : notificationItems;
   const shown = empty && !identity
@@ -415,7 +423,7 @@ function Notifications({ empty = false }: { empty?: boolean }) {
           {shown.map((item) => {
             const Icon = item.icon;
             return (
-              <article key={item.title}>
+                <article key={item.id}>
                 <span className="notification-symbol">
                   <Icon size={18} />
                 </span>
@@ -435,7 +443,7 @@ function Notifications({ empty = false }: { empty?: boolean }) {
             <p>You’re caught up.</p>
           </div>
         ) : null}
-        <p className="prototype-strip">{identity ? "Persistent activity foundation" : "Prototype activity · Stored nowhere beyond this preview."}</p>
+        <p className="prototype-strip">{identity ? "You’re up to date." : "A preview of Tosker activity."}</p>
       </section>
     </ProductChrome>
   );
@@ -449,7 +457,7 @@ function Profile() {
         <IdentityCard
           label="Your Namecard"
           profile={{ name: user.displayName, username: user.username, tid: user.tid, initials: user.initials, color: "gold", status: user.role }}
-          action={<button disabled>Edit profile · Prototype</button>}
+          action={<button disabled>Edit profile</button>}
         />
       </section>
     </ProductChrome>

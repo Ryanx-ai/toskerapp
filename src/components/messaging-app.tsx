@@ -17,7 +17,7 @@ import { WorkspaceBanner } from "@/components/workspace-banner";
 import { FakeQr } from "@/components/fake-qr";
 import { IdentityCard } from "@/components/identity-card";
 import { useCurrentToskerUser, useToskerIdentity } from "@/components/tosker-identity";
-import { createRoomAction, createRoomInviteAction } from "@/server/rooms/actions";
+import { createRoomAction, createRoomInviteAction, createSubroomAction } from "@/server/rooms/actions";
 import { findPeopleAction, startPersonalConversationAction } from "@/server/conversations/actions";
 import { installRoomCapabilityAction } from "@/server/shared-state/actions";
 import { acceptConnectionAction, listConnectionsAction, requestConnectionAction, removeConnectionNicknameAction, setConnectionNicknameAction } from "@/server/connections/actions";
@@ -47,7 +47,7 @@ import {
 } from "lucide-react";
 
 export type AppWorkspace = ProductWorkspace | "friends" | "create";
-type Overlay = "choose" | "chat" | "room" | "invite" | "add" | null;
+type Overlay = "choose" | "chat" | "room" | "invite" | "add" | "subroom" | null;
 type NotificationActivity = Awaited<ReturnType<typeof listNotificationsAction>>[number];
 const nav = [
   { label: "Explore", icon: Compass, href: "/explore" },
@@ -825,6 +825,78 @@ function InviteOverlay({
   );
 }
 
+function SubroomOverlay({ room, onClose }: { room: Conversation; onClose: () => void }) {
+  const router = useRouter();
+  const identity = useToskerIdentity();
+  const [name, setName] = useState("");
+  const [visibility, setVisibility] = useState<"everyone" | "selected" | "owners">("everyone");
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<Array<{ userId: string; displayName: string; username: string; tid: string }>>([]);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const panelRef = useRef<HTMLElement>(null);
+  useDismissLayer(true, onClose, panelRef);
+  useEffect(() => {
+    if (!identity || query.trim().length < 2 || visibility !== "selected") return;
+    let active = true;
+    const timer = window.setTimeout(() => {
+      findPeopleAction(query).then((next) => active && setResults(next)).catch(() => active && setResults([]));
+    }, 180);
+    return () => { active = false; window.clearTimeout(timer); };
+  }, [identity, query, visibility]);
+  const visibleResults = visibility === "selected" && query.trim().length >= 2 ? results : [];
+  const create = async () => {
+    if (!name.trim()) return;
+    setSaving(true);
+    setError("");
+    try {
+      const created = await createSubroomAction({ roomSlug: room.slug, name, visibility, userIds: selectedIds });
+      router.refresh();
+      router.push(`/room/${room.slug}/subroom/${created.id}`);
+      onClose();
+    } catch {
+      setError("Could not create the Subroom. Check your Room permissions and try again.");
+    } finally {
+      setSaving(false);
+    }
+  };
+  return (
+    <div className="overlay-backdrop">
+      <section ref={panelRef} className="creation-panel" role="dialog" aria-modal="true" aria-labelledby="subroom-title">
+        <button className="overlay-close" onClick={onClose} aria-label="Close"><X size={17} /></button>
+        <button className="overlay-back" onClick={onClose}><ArrowLeft size={16} /> Back</button>
+        <p className="eyebrow">Add to {nameOf(room)}</p>
+        <h2 id="subroom-title">Create a Subroom</h2>
+        <p>A focused space inside this Room.</p>
+        <label className="wizard-field">
+          <span>Name</span>
+          <input autoFocus value={name} maxLength={60} onChange={(event) => setName(event.target.value)} placeholder="ONIC MLBB" />
+        </label>
+        <label className="wizard-field">
+          <span>Visibility</span>
+          <select value={visibility} onChange={(event) => setVisibility(event.target.value as typeof visibility)}>
+            <option value="everyone">Everyone in Room</option>
+            <option value="selected">Selected people</option>
+            <option value="owners">Owners / moderators</option>
+          </select>
+        </label>
+        {visibility === "selected" ? (
+          <>
+            <label className="wizard-field"><span>People</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search by name, username or TID" /></label>
+            {visibleResults.length ? <div className="friend-list compact" aria-label="Subroom people results">{visibleResults.map((person) => {
+              const selected = selectedIds.includes(person.userId);
+              return <article key={person.userId}><span className="avatar avatar-pink">{person.displayName.slice(0, 2).toUpperCase()}</span><div><strong>{person.displayName}</strong><small>@{person.username}</small></div><button className={selected ? "selected" : ""} onClick={() => setSelectedIds((current) => selected ? current.filter((id) => id !== person.userId) : [...current, person.userId])}>{selected ? "Added" : "Add"}</button></article>;
+            })}</div> : null}
+          </>
+        ) : null}
+        <div className="overlay-actions"><button className="primary-action" disabled={!name.trim() || saving} onClick={() => void create()}>{saving ? "Creating…" : "Create Subroom"}</button><button onClick={onClose}>Cancel</button></div>
+        {error ? <p className="composer-error" role="alert">{error}</p> : null}
+      </section>
+    </div>
+  );
+}
+
 function CreationOverlay({
   initial,
   onClose,
@@ -1465,6 +1537,9 @@ export function MessagingApp({
       {overlay === "invite" && selected?.kind === "room" ? (
         <InviteOverlay room={selected} onClose={() => setOverlay(null)} />
       ) : null}
+      {overlay === "subroom" && selected?.kind === "room" && identity ? (
+        <SubroomOverlay room={selected} onClose={() => setOverlay(null)} />
+      ) : null}
       {overlay === "add" ? (
         <div className="overlay-backdrop">
           <section ref={addPanelRef} className="creation-panel" role="dialog" aria-modal="true" aria-labelledby="add-title">
@@ -1479,17 +1554,22 @@ export function MessagingApp({
             <p>Add to this space.</p>
             <div className="option-grid">
               {[...things, "Photo Wall", "Subroom"].map((item, index) => {
-                const installed = serverRoom?.capabilities.includes(item) ?? prototypeRoom?.things.includes(item) ?? false;
+                const isSubroom = item === "Subroom";
+                const installed = !isSubroom && (serverRoom?.capabilities.includes(item) ?? prototypeRoom?.things.includes(item) ?? false);
                 const supported = things.includes(item);
                 return (
                 <button
                   autoFocus={index === 0}
                   key={item}
                   className={installed ? "active" : ""}
-                  disabled={installed || selected?.kind !== "room" || Boolean(identity && !supported)}
+                  disabled={isSubroom ? selected?.kind !== "room" || !identity : installed || selected?.kind !== "room" || Boolean(identity && !supported)}
                   aria-label={`${item}${installed ? ", Added" : ""}`}
                   onClick={async () => {
                     if (!selected || selected.kind !== "room") return;
+                    if (isSubroom) {
+                      setOverlay("subroom");
+                      return;
+                    }
                     if (identity && selected.databaseId) {
                       await installRoomCapabilityAction({ conversationId: selected.databaseId, capability: item });
                       router.refresh();

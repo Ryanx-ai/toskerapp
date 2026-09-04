@@ -1,11 +1,11 @@
 "use server";
 
 import { createHash, randomBytes } from "node:crypto";
-import { and, eq } from "drizzle-orm";
+import { and, eq, or } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 import { requireCurrentActor } from "@/server/auth/clerk";
-import { requireRoomMember } from "@/server/auth/authorize";
+import { requireRoomMember, requireRoomOwner } from "@/server/auth/authorize";
 import { getDatabase } from "@/server/db/client";
 import {
   conversationParticipants,
@@ -16,6 +16,8 @@ import {
   roomMemberships,
   rooms,
   roomTags,
+  subroomAccess,
+  subrooms,
 } from "@/server/db/schema";
 
 const allowedTags = new Set(["TRIP", "EVENT", "WORK", "GAMING", "FAMILY", "ROOM"]);
@@ -196,4 +198,41 @@ export async function acceptRoomInviteAction(token: string) {
   revalidatePath("/");
   revalidatePath(`/room/${invite.roomSlug}`);
   return { roomSlug: invite.roomSlug };
+}
+
+export async function listSubroomsAction(roomSlug: string) {
+  const actor = await requireCurrentActor();
+  const db = getDatabase();
+  const [room] = await db.select({ id: rooms.id }).from(rooms).where(eq(rooms.slug, roomSlug)).limit(1);
+  if (!room) throw new Error("Room not found.");
+  const membership = await requireRoomMember(db, actor, room.id);
+  const visibility = membership.role === "owner"
+    ? or(eq(subrooms.visibility, "everyone"), eq(subrooms.visibility, "owners"), eq(subroomAccess.userId, actor.userId))
+    : or(eq(subrooms.visibility, "everyone"), eq(subroomAccess.userId, actor.userId));
+  return db.select({ id: subrooms.id, name: subrooms.name, position: subrooms.position, visibility: subrooms.visibility })
+    .from(subrooms).leftJoin(subroomAccess, and(eq(subroomAccess.subroomId, subrooms.id), eq(subroomAccess.userId, actor.userId)))
+    .where(and(eq(subrooms.roomId, room.id), visibility))
+    .orderBy(subrooms.position, subrooms.createdAt);
+}
+
+export async function createSubroomAction(input: { roomSlug: string; name: string; visibility: "everyone" | "selected" | "owners"; userIds?: string[] }) {
+  const actor = await requireCurrentActor();
+  const name = input.name.trim().replace(/\s+/g, " ");
+  if (!name || name.length > 60) throw new Error("Enter a Subroom name up to 60 characters.");
+  const db = getDatabase();
+  const [room] = await db.select({ id: rooms.id, slug: rooms.slug }).from(rooms).where(eq(rooms.slug, input.roomSlug)).limit(1);
+  if (!room) throw new Error("Room not found.");
+  await requireRoomOwner(db, actor, room.id);
+  const memberIds = await db.select({ userId: roomMemberships.userId }).from(roomMemberships).where(eq(roomMemberships.roomId, room.id));
+  const allowed = new Set(memberIds.map((item) => item.userId));
+  const selected = [...new Set((input.userIds ?? []).filter((id) => allowed.has(id)))];
+  return db.transaction(async (tx) => {
+    const [subroom] = await tx.insert(subrooms).values({ roomId: room.id, name, createdBy: actor.userId, visibility: input.visibility, position: Date.now() }).returning({ id: subrooms.id, name: subrooms.name, visibility: subrooms.visibility });
+    const access = input.visibility === "everyone" ? memberIds.map((item) => item.userId) : input.visibility === "owners" ? [actor.userId] : [...new Set([actor.userId, ...selected])];
+    if (access.length) await tx.insert(subroomAccess).values(access.map((userId) => ({ subroomId: subroom.id, userId }))).onConflictDoNothing();
+    const [conversation] = await tx.insert(conversations).values({ kind: "room", roomId: room.id, subroomId: subroom.id, title: name }).returning({ id: conversations.id });
+    await tx.insert(conversationParticipants).values(access.map((userId) => ({ conversationId: conversation.id, userId }))).onConflictDoNothing();
+    revalidatePath(`/room/${room.slug}`);
+    return { ...subroom, conversationId: conversation.id };
+  });
 }

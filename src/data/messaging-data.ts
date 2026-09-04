@@ -32,6 +32,7 @@ export type Conversation = {
   messages: Message[];
   tag?: string;
   presenceStatus?: "online" | "idle" | "away" | "meeting";
+  href?: string;
 };
 
 export type HallNotice = { id: string; icon: string; category: "Announcement" | "Decision" | "Reminder" | "Link" | "Poll result" | "Details"; title: string; body: string; author: string; time: string; accent: "gold" | "pink" | "yellow" | "blue"; pinned?: boolean };

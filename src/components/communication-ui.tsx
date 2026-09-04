@@ -219,8 +219,7 @@ export function SurfaceHeader({
       {panel ? (
         <div ref={popoverRef} className="header-popover" role="dialog">
           <strong>{panel}</strong>
-          <p>{utilityCopy[panel]}</p>
-          <button onClick={() => setPanel(null)}>Got it</button>
+          {panel === "More" ? utilities.filter(([label]) => label !== "More").map(([label]) => <button key={label} onClick={() => setPanel(label)}>{label}</button>) : <><p>{utilityCopy[panel]}</p><button onClick={() => setPanel(null)}>Got it</button></>}
         </div>
       ) : null}
     </header>

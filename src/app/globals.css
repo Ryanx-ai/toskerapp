@@ -760,6 +760,9 @@ h1,h2,h3 { font-family:var(--font-mermaid),Georgia,serif; font-weight:400; lette
 .avatar:has(.presence-mark) { overflow:visible; }
 .avatar .presence-mark { position:absolute; right:-2px; bottom:-1px; margin:0; width:9px; height:9px; border:2px solid var(--surface); }
 .presence-mark.online { background:var(--presence-online); }.presence-mark.idle { background:var(--presence-idle); }.presence-mark.away { background:var(--presence-away); }.presence-mark.meeting { background:var(--presence-meeting); }
+.friend-actions { position:relative; display:flex; align-items:center; gap:3px; }
+.friend-actions > button { width:32px; min-height:32px; padding:0; display:grid; place-items:center; border:0; background:transparent; }
+.friend-context-menu { top:36px; right:0; z-index:20; min-width:150px; }
 @media (max-width:640px) {
   .conversation-header { display:grid; grid-template-columns:minmax(0,1fr); grid-template-rows:auto auto; height:auto; min-height:104px; padding:0 10px; gap:0; overflow:hidden; }
   .conversation-header .header-identity-zone { grid-row:1; width:100%; min-height:58px; }
@@ -767,4 +770,7 @@ h1,h2,h3 { font-family:var(--font-mermaid),Georgia,serif; font-weight:400; lette
   .conversation-header .surface-tabs::-webkit-scrollbar { display:none; }
   .conversation-header .surface-tabs a,.conversation-header .surface-tabs button { flex:0 0 auto; min-width:68px; min-height:42px; height:42px; padding-inline:12px; }
   .conversation-header .surface-tabs button { min-width:78px; }
+  .conversation-header .header-utilities { display:flex; margin-left:auto; }
+  .conversation-header .header-utilities .action-icon:not(:last-child) { display:none; }
+  .conversation-header .header-utilities .action-icon:last-child { display:grid; }
 }

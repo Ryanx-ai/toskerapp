@@ -57,6 +57,13 @@
       "when": 1788523478090,
       "tag": "0007_gorgeous_paladin",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1788533761876,
+      "tag": "0008_gray_zodiak",
+      "breakpoints": true
     }
   ]
 }

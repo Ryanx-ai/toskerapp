@@ -16,7 +16,7 @@ MS5 — Identity + Persistence + Real Chat. MS5.0.1 founder closeout is complete
 - MS5.4 `9db7257` — Friends, Hall, Room capabilities, notifications
 - MS5.5 `9278aaf` — hardening and founder-review preparation
 - MS5.0.1 `e05eb9c` + `da62280` — final founder patch and Hall copy closeout
-- MS5.0.1 messaging mechanics — in progress (active Chat reconciliation, grouped presentation, private nicknames, manual presence)
+- MS5.0.1 non-realtime closeout — in progress (active Chat reconciliation, grouped presentation, private nicknames, manual presence, shallow Subrooms)
 
 ## Environment and release boundary
 
@@ -36,6 +36,8 @@ MS5 — Identity + Persistence + Real Chat. MS5.0.1 founder closeout is complete
 - Hall notes support curated colors, persisted move controls, Archive, and confirmed Nuke. Pinned Chat references support Open in Chat, Move, and Unpin while preserving the source message.
 - Active authenticated conversations reconcile server messages every 12 seconds by stable message ID without route reload; presentation groups consecutive same-author messages within 60 seconds while records remain unchanged.
 - Accepted connections support viewer-scoped private nicknames. Profiles carry a constrained manual presence status (`online`, `idle`, `away`, `meeting`) with owner-only updates and coarse display treatment; status changes never create activity records.
+- Rooms support one Subroom level with server-enforced visibility (`everyone`, `selected`, `owners`), separate conversations, and a seeded development fixture. Subrooms never create duplicate Room memberships.
+- Mobile communication headers use a dedicated horizontally scrollable surface row; narrow utility actions collapse behind the existing More control. Friend search preserves Pending/Confirm/Accepted states and accepted rows use compact icon actions.
 
 ## Verified state
 

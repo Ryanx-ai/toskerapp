@@ -14,6 +14,8 @@ import {
   roomCapabilities,
   rooms,
   roomTags,
+  subroomAccess,
+  subrooms,
   users,
 } from "@/server/db/schema";
 
@@ -63,6 +65,7 @@ export type CanonicalIdentity = {
     tag: string;
     conversationId: string;
     capabilities: string[];
+    subrooms: Array<{ id: string; name: string; visibility: "everyone" | "selected" | "owners"; conversationId: string }>;
   }>;
   personalConversations: Array<{
     conversationId: string;
@@ -242,6 +245,9 @@ export async function ensureToskerAccount(
   const capabilities = memberships.length
     ? await db.select({ roomId: roomCapabilities.roomId, value: roomCapabilities.capabilityKey }).from(roomCapabilities).where(inArray(roomCapabilities.roomId, memberships.map((room) => room.id)))
     : [];
+  const subroomRows = memberships.length ? await db.select({ roomId: subrooms.roomId, id: subrooms.id, name: subrooms.name, visibility: subrooms.visibility, conversationId: conversations.id })
+    .from(subrooms).innerJoin(conversations, eq(conversations.subroomId, subrooms.id)).leftJoin(subroomAccess, and(eq(subroomAccess.subroomId, subrooms.id), eq(subroomAccess.userId, account.userId)))
+    .where(or(eq(subrooms.visibility, "everyone"), eq(subroomAccess.userId, account.userId))) : [];
   const personalRows = await db
     .select({ conversationId: conversations.id })
     .from(conversationParticipants)
@@ -270,6 +276,7 @@ export async function ensureToskerAccount(
       ...room,
       tag: tags.find((tag) => tag.roomId === room.id)?.value ?? "ROOM",
       capabilities: capabilities.filter((item) => item.roomId === room.id).map((item) => item.value),
+      subrooms: subroomRows.filter((item) => item.roomId === room.id).map((item) => ({ id: item.id, name: item.name, visibility: item.visibility, conversationId: item.conversationId })),
     })),
     personalConversations: personalConversations.filter((item): item is NonNullable<typeof item> => Boolean(item)),
   };

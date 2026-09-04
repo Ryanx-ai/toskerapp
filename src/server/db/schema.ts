@@ -47,6 +47,7 @@ export const presenceStatus = pgEnum("presence_status", [
   "away",
   "meeting",
 ]);
+export const subroomVisibility = pgEnum("subroom_visibility", ["everyone", "selected", "owners"]);
 
 export const users = pgTable(
   "users",
@@ -135,6 +136,22 @@ export const rooms = pgTable(
   ],
 );
 
+export const subrooms = pgTable("subrooms", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  roomId: uuid("room_id").notNull().references(() => rooms.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  createdBy: uuid("created_by").notNull().references(() => users.id, { onDelete: "restrict" }),
+  visibility: subroomVisibility("visibility").default("everyone").notNull(),
+  position: integer("position").default(0).notNull(),
+  ...timestamps,
+}, (table) => [index("subrooms_room_idx").on(table.roomId), uniqueIndex("subrooms_room_name_unique").on(table.roomId, table.name)]);
+
+export const subroomAccess = pgTable("subroom_access", {
+  subroomId: uuid("subroom_id").notNull().references(() => subrooms.id, { onDelete: "cascade" }),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  ...timestamps,
+}, (table) => [primaryKey({ columns: [table.subroomId, table.userId] }), index("subroom_access_user_idx").on(table.userId)]);
+
 export const roomTags = pgTable(
   "room_tags",
   {
@@ -204,6 +221,7 @@ export const conversations = pgTable(
     roomId: uuid("room_id").references(() => rooms.id, {
       onDelete: "cascade",
     }),
+    subroomId: uuid("subroom_id").references(() => subrooms.id, { onDelete: "cascade" }),
     isPrimary: boolean("is_primary").default(false).notNull(),
     directKey: text("direct_key"),
     title: text("title"),
@@ -211,6 +229,7 @@ export const conversations = pgTable(
   },
   (table) => [
     index("conversations_room_idx").on(table.roomId),
+    index("conversations_subroom_idx").on(table.subroomId),
     uniqueIndex("conversations_sandbox_owner_unique")
       .on(table.ownerId)
       .where(sql`${table.kind} = 'sandbox'`),

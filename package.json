@@ -16,7 +16,8 @@
     "db:verify-bootstrap": "NODE_OPTIONS=--conditions=react-server dotenv -e .env.local -- tsx scripts/verify-bootstrap.ts",
     "db:verify-chat": "NODE_OPTIONS=--conditions=react-server dotenv -e .env.local -- tsx scripts/verify-chat.ts",
     "db:verify-shared": "NODE_OPTIONS=--conditions=react-server dotenv -e .env.local -- tsx scripts/verify-shared-state.ts",
-    "db:audit-ms5": "dotenv -e .env.local -- node scripts/audit-ms5.mjs"
+    "db:audit-ms5": "dotenv -e .env.local -- node scripts/audit-ms5.mjs",
+    "db:seed-subrooms": "dotenv -e .env.local -- node scripts/seed-subrooms.mjs"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.9.0",

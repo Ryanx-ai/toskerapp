@@ -9,7 +9,6 @@ export type IdentityCardProfile = {
 
 export function IdentityCard({
   profile,
-  label,
   action,
   compact = false,
 }: {
@@ -25,7 +24,6 @@ export function IdentityCard({
         {profile.initials}
       </span>
       <div className="namecard-body">
-        <p className="eyebrow">{label}</p>
         <h2>{profile.name}</h2>
         <strong>{profile.username} · {profile.tid}</strong>
         <span className="presence">{profile.status}</span>

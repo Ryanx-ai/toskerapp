@@ -127,7 +127,7 @@ function nameOf(item: Conversation, displayName = prototypeUser.displayName) {
     : item.name;
 }
 function hrefOf(item: Conversation) {
-  return item.kind === "room" ? `/room/${item.slug}` : `/personal/${item.slug}`;
+  return item.href ?? (item.kind === "room" ? `/room/${item.slug}` : `/personal/${item.slug}`);
 }
 function Avatar({
   item,
@@ -240,7 +240,7 @@ function ConversationRow({
   };
   return (
     <div
-      className={`conversation-row-shell ${active ? "active" : ""}`}
+      className={`conversation-row-shell ${active ? "active" : ""} ${item.tag === "SUBROOM" ? "subroom-row" : ""}`}
       draggable={item.kind !== "my-room"}
       onDragStart={(event) => {
         event.dataTransfer.effectAllowed = "move";
@@ -442,6 +442,20 @@ function AppSidebar({
     tag: room.tag,
     databaseId: room.conversationId,
   }));
+  const serverSubrooms: Conversation[] = (identity?.rooms ?? []).flatMap((room) => room.subrooms.map((subroom) => ({
+    slug: `${room.slug}--${subroom.id}`,
+    kind: "room" as const,
+    name: subroom.name,
+    initials: subroom.name.slice(0, 2).toUpperCase(),
+    color: "green",
+    preview: "",
+    time: "Now",
+    context: `${room.name} · ${subroom.name}`,
+    messages: [],
+    tag: "SUBROOM",
+    databaseId: subroom.conversationId,
+    href: `/room/${room.slug}/subroom/${subroom.id}`,
+  })));
   const serverChats: Conversation[] = (identity?.personalConversations ?? []).map((chat) => ({
     slug: chat.slug,
     kind: "personal",
@@ -468,7 +482,9 @@ function AppSidebar({
       context: chat.tid,
       messages: chat.messages,
     }));
-  const all = [...standard, ...serverChats, ...serverRooms, ...(identity ? [] : localChats), ...(identity ? [] : localRooms)].filter(
+  const expandedParent = selected?.kind === "room" ? selected.slug.split("--")[0] : null;
+  const visibleServerSubrooms = expandedParent ? serverSubrooms.filter((item) => item.slug.startsWith(`${expandedParent}--`)) : [];
+  const all = [...standard, ...serverChats, ...serverRooms, ...visibleServerSubrooms, ...(identity ? [] : localChats), ...(identity ? [] : localRooms)].filter(
     (item) => Boolean(identity) || !state.archived.includes(item.slug),
   );
   const filtered = all.filter((item) =>
@@ -616,6 +632,7 @@ function FriendsSurface({
   const [query, setQuery] = useState("");
   const [profile, setProfile] = useState<(typeof friends)[number] | null>(null);
   const [nicknameTarget, setNicknameTarget] = useState<{ id: string; name: string; nickname: string | null } | null>(null);
+  const [friendMenuId, setFriendMenuId] = useState<string | null>(null);
   const identity = useToskerIdentity();
   const router = useRouter();
   const [serverConnections, setServerConnections] = useState<Awaited<ReturnType<typeof listConnectionsAction>>>([]);
@@ -686,7 +703,7 @@ function FriendsSurface({
       ) : (
           <div className="friend-list">
           {identity ? serverConnections.filter((item) => item.status === "accepted" && item.person && `${item.person.nickname ?? ""} ${item.person.displayName} ${item.person.username} ${item.person.tid}`.toLowerCase().includes(query.toLowerCase())).map((item) => item.person ? (
-            <article key={item.id}><span className="avatar avatar-pink avatar-pattern">{item.person.displayName.slice(0, 1).toUpperCase()}<PresenceMark status={item.person.presenceStatus} /></span><div className="friend-nameplate"><strong>{item.person.nickname || item.person.displayName}</strong><small>@{item.person.username} · {item.person.tid}</small></div><i>{item.person.nickname ? "Nickname" : "Friend"}</i><button onClick={() => setNicknameTarget({ id: item.id, name: item.person!.displayName, nickname: item.person!.nickname })}>Name</button><button onClick={async () => { const chat = await startPersonalConversationAction(item.person!.userId); router.push(`/personal/${chat.slug}`); router.refresh(); }}>Message</button></article>
+            <article key={item.id}><span className="avatar avatar-pink avatar-pattern">{item.person.displayName.slice(0, 1).toUpperCase()}<PresenceMark status={item.person.presenceStatus} /></span><div className="friend-nameplate"><strong>{item.person.nickname || item.person.displayName}</strong><small>@{item.person.username} · {item.person.tid}</small></div><i>Friend</i><div className="friend-actions"><button aria-label={`Message ${item.person.displayName}`} onClick={async () => { const chat = await startPersonalConversationAction(item.person!.userId); router.push(`/personal/${chat.slug}`); router.refresh(); }}><MessageCircle size={15} /></button><button aria-label={`More actions for ${item.person.displayName}`} aria-expanded={friendMenuId === item.id} onClick={() => setFriendMenuId(friendMenuId === item.id ? null : item.id)}><MoreHorizontal size={16} /></button>{friendMenuId === item.id ? <div className="context-menu friend-context-menu"><button onClick={() => { setFriendMenuId(null); setNicknameTarget({ id: item.id, name: item.person!.displayName, nickname: item.person!.nickname }); }}>{item.person.nickname ? "Edit nickname" : "Set nickname"}</button>{item.person.nickname ? <button onClick={async () => { await removeConnectionNicknameAction(item.id); await refreshConnections(); setFriendMenuId(null); }}>Remove nickname</button> : null}</div> : null}</div></article>
           ) : null) : shown
             .filter((friend) => tab !== "Online" || friend.status === "Online")
             .map((friend) => (
@@ -711,9 +728,11 @@ function FriendsSurface({
                 <button onClick={() => onMessage(friend)}>Message</button>
               </article>
             ))}
-          {identity && query.trim().length >= 2 ? peopleResults.filter((person) => !serverConnections.some((item) => item.person?.userId === person.userId)).map((person) => (
-            <article key={person.userId}><span className="avatar avatar-gold">{person.displayName.slice(0, 1).toUpperCase()}</span><div className="friend-nameplate"><strong>{person.displayName}</strong><small>@{person.username} · {person.tid}</small></div><button onClick={async () => { await requestConnectionAction(person.userId); await refreshConnections(); }}>Add</button></article>
-          )) : null}
+          {identity && query.trim().length >= 2 ? peopleResults.map((person) => {
+            const relationship = serverConnections.find((item) => item.person?.userId === person.userId);
+            const label = relationship?.status === "accepted" ? "Friend" : relationship?.direction === "incoming" ? "Confirm" : relationship ? "Pending" : "Add";
+            return <article key={person.userId}><span className="avatar avatar-gold">{person.displayName.slice(0, 1).toUpperCase()}</span><div className="friend-nameplate"><strong>{person.displayName}</strong><small>@{person.username} · {person.tid}</small></div><button disabled={label === "Friend" || label === "Pending"} onClick={async () => { if (relationship?.direction === "incoming") await acceptConnectionAction(relationship.id); else if (!relationship) await requestConnectionAction(person.userId); await refreshConnections(); }}>{label}</button></article>;
+          }) : null}
         </div>
       )}
     </section>
@@ -1284,10 +1303,26 @@ export function MessagingApp({
   const prototypeRoom = state.rooms.find((room) => room.slug === selectedSlug);
   const prototypeChat = state.chats.find((chat) => chat.slug === selectedSlug);
   const serverRoom = identity?.rooms.find((room) => room.slug === selectedSlug);
+  const serverSubroom = identity?.rooms.flatMap((room) => room.subrooms.map((subroom) => ({ parent: room, subroom }))).find(({ parent, subroom }) => `${parent.slug}--${subroom.id}` === selectedSlug);
   const serverChat = identity?.personalConversations.find((chat) => chat.slug === selectedSlug);
   const selected =
     (identity && authenticatedCanonical?.kind !== "my-room" ? undefined : authenticatedCanonical) ??
-    (serverChat
+    (serverSubroom
+      ? {
+          slug: `${serverSubroom.parent.slug}--${serverSubroom.subroom.id}`,
+          kind: "room" as const,
+          name: serverSubroom.subroom.name,
+          initials: serverSubroom.subroom.name.slice(0, 2).toUpperCase(),
+          color: "green",
+          preview: "",
+          time: "Now",
+          context: `${serverSubroom.parent.name} · ${serverSubroom.subroom.name}`,
+          messages: [],
+          tag: "SUBROOM",
+          databaseId: serverSubroom.subroom.conversationId,
+          href: `/room/${serverSubroom.parent.slug}/subroom/${serverSubroom.subroom.id}`,
+        }
+      : serverChat
       ? {
           slug: serverChat.slug,
           kind: "personal" as const,

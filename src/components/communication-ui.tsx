@@ -810,7 +810,7 @@ export function HallSurface({
           }
         : {
             title: "What everyone needs to know",
-            support: "The useful stuff, without the scroll hunt",
+            support: "",
           };
   const isEmpty = (empty || Boolean(conversation.databaseId)) && displayedItems.length === 0;
   return (
@@ -820,7 +820,7 @@ export function HallSurface({
       <header>
         <div>
           <h2>{contextual.title}</h2>
-          {conversation.kind === "room" ? <p>{contextual.support}</p> : null}
+          {conversation.kind === "room" && contextual.support ? <p>{contextual.support}</p> : null}
         </div>
       </header>
       <div className="notice-list">

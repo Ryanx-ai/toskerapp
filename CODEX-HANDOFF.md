@@ -22,7 +22,7 @@ MS5 — Identity + Persistence + Real Chat. MS5.0.1 founder closeout is complete
 
 - Development database: Neon `neon-byzantine-jacket`
 - Development auth: Clerk Development
-- Canonical founder review: <https://toskerapp.vercel.app/> (latest patch deployment `dpl_DNsEdc5CdJcqcFsE3rzoFfdBnAAd`, READY)
+- Canonical founder review: <https://toskerapp.vercel.app/> (latest patch deployment `dpl_9wRtfv73e2eDSzj3bdCMhGbQeAMq`, READY; commit `1b5328f`)
 - Preview and Production databases are not provisioned.
 - Production remains the locked MS4.1 application; do not connect production infrastructure or deploy without founder approval.
 - `toskerArt/` remains untracked, untouched, and unintegrated.

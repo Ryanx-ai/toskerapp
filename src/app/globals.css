@@ -756,6 +756,9 @@ h1,h2,h3 { font-family:var(--font-mermaid),Georgia,serif; font-weight:400; lette
 .presence-control { display:grid; gap:8px; margin:18px auto 0; width:min(760px,calc(100% - 68px)); color:var(--text-secondary); font-size:10px; }
 .presence-control select { width:max-content; min-width:150px; padding:9px 12px; border:1px solid var(--border); border-radius:9px; background:var(--surface-soft); color:var(--text-primary); font:inherit; }
 .presence-mark { display:inline-block; width:8px; height:8px; margin-left:5px; border:1px solid rgba(255,255,255,.22); border-radius:50%; vertical-align:middle; }
+.avatar { position:relative; }
+.avatar:has(.presence-mark) { overflow:visible; }
+.avatar .presence-mark { position:absolute; right:-2px; bottom:-1px; margin:0; width:9px; height:9px; border:2px solid var(--surface); }
 .presence-mark.online { background:var(--presence-online); }.presence-mark.idle { background:var(--presence-idle); }.presence-mark.away { background:var(--presence-away); }.presence-mark.meeting { background:var(--presence-meeting); }
 @media (max-width:640px) {
   .conversation-header { display:grid; grid-template-columns:minmax(0,1fr); grid-template-rows:auto auto; height:auto; min-height:104px; padding:0 10px; gap:0; overflow:hidden; }

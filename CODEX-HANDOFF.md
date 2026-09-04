@@ -16,13 +16,13 @@ MS5 — Identity + Persistence + Real Chat. MS5.0.1 founder closeout is complete
 - MS5.4 `9db7257` — Friends, Hall, Room capabilities, notifications
 - MS5.5 `9278aaf` — hardening and founder-review preparation
 - MS5.0.1 `e05eb9c` + `da62280` — final founder patch and Hall copy closeout
-- MS5.0.1 non-realtime closeout — in progress (active Chat reconciliation, grouped presentation, private nicknames, manual presence, shallow Subrooms)
+- MS5.0.1 non-realtime closeout — complete pending founder walkthrough (active Chat reconciliation, grouped presentation, private nicknames, manual presence, shallow Subrooms)
 
 ## Environment and release boundary
 
 - Development database: Neon `neon-byzantine-jacket`
 - Development auth: Clerk Development
-- Canonical founder review: <https://toskerapp.vercel.app/> (latest patch deployment `dpl_9wRtfv73e2eDSzj3bdCMhGbQeAMq`, READY; commit `1b5328f`)
+- Canonical founder review: <https://toskerapp.vercel.app/> (latest patch deployment `dpl_5Ym2LTiX3zdAVhKoSBWy8zzUMg1u`, READY; commit `a11f871`)
 - Preview and Production databases are not provisioned.
 - Production remains the locked MS4.1 application; do not connect production infrastructure or deploy without founder approval.
 - `toskerArt/` remains untracked, untouched, and unintegrated.

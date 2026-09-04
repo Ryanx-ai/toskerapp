@@ -748,3 +748,20 @@ h1,h2,h3 { font-family:var(--font-mermaid),Georgia,serif; font-weight:400; lette
   .conversation-header .surface-tabs { align-self:stretch; align-items:center; }
   .conversation-header .surface-tabs a,.conversation-header .surface-tabs button { align-self:center; }
 }
+:root { --presence-online:#78d69d; --presence-idle:#d8b66d; --presence-away:#7f8a8f; --presence-meeting:#d980ab; }
+.message-avatar-spacer { width:31px; flex:0 0 31px; }
+.message-row.is-grouped { margin-top:-7px; }
+.message-row.is-grouped .message-bubble { border-top-left-radius:13px; }
+.message-row.mine.is-grouped .message-bubble { border-top-right-radius:13px; }
+.presence-control { display:grid; gap:8px; margin:18px auto 0; width:min(760px,calc(100% - 68px)); color:var(--text-secondary); font-size:10px; }
+.presence-control select { width:max-content; min-width:150px; padding:9px 12px; border:1px solid var(--border); border-radius:9px; background:var(--surface-soft); color:var(--text-primary); font:inherit; }
+.presence-mark { display:inline-block; width:8px; height:8px; margin-left:5px; border:1px solid rgba(255,255,255,.22); border-radius:50%; vertical-align:middle; }
+.presence-mark.online { background:var(--presence-online); }.presence-mark.idle { background:var(--presence-idle); }.presence-mark.away { background:var(--presence-away); }.presence-mark.meeting { background:var(--presence-meeting); }
+@media (max-width:640px) {
+  .conversation-header { display:grid; grid-template-columns:minmax(0,1fr); grid-template-rows:auto auto; height:auto; min-height:104px; padding:0 10px; gap:0; overflow:hidden; }
+  .conversation-header .header-identity-zone { grid-row:1; width:100%; min-height:58px; }
+  .conversation-header .surface-tabs { grid-row:2; width:100%; max-width:100%; min-height:44px; height:44px; margin:0; display:flex; justify-content:flex-start; align-items:stretch; overflow-x:auto; overflow-y:hidden; scrollbar-width:none; overscroll-behavior-x:contain; }
+  .conversation-header .surface-tabs::-webkit-scrollbar { display:none; }
+  .conversation-header .surface-tabs a,.conversation-header .surface-tabs button { flex:0 0 auto; min-width:68px; min-height:42px; height:42px; padding-inline:12px; }
+  .conversation-header .surface-tabs button { min-width:78px; }
+}

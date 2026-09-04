@@ -176,6 +176,7 @@ export function SurfaceHeader({
         </span>
         <div className="active-copy">
           <h2>{titleOf(conversation, user.displayName)}</h2>
+          {conversation.kind === "personal" && conversation.presenceStatus ? <span className="header-presence"><i className={`presence-mark ${conversation.presenceStatus}`} aria-label={{ online: "Online", idle: "Idle", away: "Away", meeting: "In a meeting" }[conversation.presenceStatus]} />{{ online: "Online", idle: "Idle", away: "Away", meeting: "In a meeting" }[conversation.presenceStatus]}</span> : null}
           {conversation.kind === "room" && conversation.context ? <span>{conversation.context}</span> : null}
         </div>
         {conversation.kind === "room" && onInvite ? (
@@ -270,12 +271,14 @@ function MessageMenu({
 
 function MessageBubble({
   message,
+  grouped = false,
   onReply,
   onReaction,
   onDelete,
   onPin,
 }: {
   message: Message;
+  grouped?: boolean;
   onReply: (message: Message) => void;
   onReaction: (id: string, reaction: string) => void;
   onDelete?: (id: string) => void;
@@ -299,20 +302,15 @@ function MessageBubble({
   return (
     <article
       id={`message-${message.id}`}
-      className={`message-row ${message.mine ? "mine" : ""}`}
+      className={`message-row ${message.mine ? "mine" : ""} ${grouped ? "is-grouped" : ""}`}
       onContextMenu={(event) => {
         event.preventDefault();
         showMenu();
       }}
     >
-      <span className={`avatar avatar-${message.color} avatar-pattern`}>
-        {message.initials}
-      </span>
+      {grouped ? <span className="message-avatar-spacer" aria-hidden="true" /> : <span className={`avatar avatar-${message.color} avatar-pattern`}>{message.initials}</span>}
       <div className="message-column">
-        <div className="message-author">
-          <strong>{message.author}</strong>
-          <time>{message.time}</time>
-        </div>
+        {!grouped ? <div className="message-author"><strong>{message.author}</strong><time>{message.time}</time></div> : null}
         <div className="message-body-wrap">
           <div className="message-bubble">
             {message.replyTo ? (
@@ -501,26 +499,39 @@ export function ChatSurface({ conversation }: { conversation: Conversation }) {
   const [reply, setReply] = useState<Message | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const nearBottom = useRef(true);
+  const mergePersisted = useCallback((current: Message[], incoming: Message[]) => {
+    const byId = new Map(current.map((message) => [message.id, message]));
+    incoming.forEach((message) => byId.set(message.id, message));
+    return [...byId.values()].sort((a, b) => {
+      const aTime = a.createdAt ? Date.parse(a.createdAt) : Date.parse(a.time);
+      const bTime = b.createdAt ? Date.parse(b.createdAt) : Date.parse(b.time);
+      return (Number.isNaN(aTime) ? 0 : aTime) - (Number.isNaN(bTime) ? 0 : bTime) || a.id.localeCompare(b.id);
+    });
+  }, []);
+  const loadPersisted = useCallback(async () => {
+    if (!conversation.databaseId) return;
+    const { messages: persisted } = await listMessagesAction(conversation.databaseId);
+    const mapped = persisted.map((message) => ({
+      id: message.id,
+      authorId: message.authorId,
+      createdAt: message.createdAt,
+      author: message.author,
+      initials: message.author.split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase(),
+      body: message.body,
+      time: new Date(message.createdAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
+      color: message.mine ? "gold" : "pink",
+      mine: message.mine,
+    } satisfies Message));
+    setMessages((current) => mergePersisted(current, mapped));
+    await markConversationReadAction(conversation.databaseId, "chat");
+  }, [conversation.databaseId, mergePersisted]);
   useEffect(() => {
     if (!conversation.databaseId) return;
     let active = true;
-    void markConversationReadAction(conversation.databaseId, "chat");
-    listMessagesAction(conversation.databaseId)
-      .then(({ messages: persisted }) => {
-        if (!active) return;
-        setMessages(persisted.map((message) => ({
-          id: message.id,
-          author: message.author,
-          initials: message.author.split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase(),
-          body: message.body,
-          time: new Date(message.createdAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
-          color: message.mine ? "gold" : "pink",
-          mine: message.mine,
-        })));
-      })
-      .catch(() => active && setMessageError("Messages couldn't be loaded. Try again."));
-    return () => { active = false; };
-  }, [conversation.databaseId]);
+    queueMicrotask(() => void loadPersisted().catch(() => active && setMessageError("Messages couldn't be loaded. Try again.")));
+    const timer = window.setInterval(() => void loadPersisted().catch(() => undefined), 12000);
+    return () => { active = false; window.clearInterval(timer); };
+  }, [conversation.databaseId, loadPersisted]);
   useLayoutEffect(() => {
     const area = scrollRef.current;
     if (area) area.scrollTop = area.scrollHeight;
@@ -588,10 +599,14 @@ export function ChatSurface({ conversation }: { conversation: Conversation }) {
             <div className="day-marker">
               <span>Today</span>
             </div>
-            {messages.map((message) => (
+            {messages.map((message, index) => {
+              const previous = messages[index - 1];
+              const grouped = Boolean(previous && previous.authorId && message.authorId && previous.authorId === message.authorId && message.createdAt && previous.createdAt && Date.parse(message.createdAt) - Date.parse(previous.createdAt) <= 60_000);
+              return (
               <MessageBubble
                 key={message.id}
                 message={message}
+                grouped={grouped}
                 onReply={setReply}
                 onReaction={react}
                 onDelete={conversation.databaseId ? undefined : (id) =>
@@ -608,7 +623,8 @@ export function ChatSurface({ conversation }: { conversation: Conversation }) {
                     : undefined
                 }
               />
-            ))}
+              );
+            })}
           </>
         ) : (
           <div className="conversation-empty">

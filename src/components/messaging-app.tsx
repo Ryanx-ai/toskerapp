@@ -20,7 +20,7 @@ import { useCurrentToskerUser, useToskerIdentity } from "@/components/tosker-ide
 import { createRoomAction, createRoomInviteAction } from "@/server/rooms/actions";
 import { findPeopleAction, startPersonalConversationAction } from "@/server/conversations/actions";
 import { installRoomCapabilityAction } from "@/server/shared-state/actions";
-import { acceptConnectionAction, listConnectionsAction, requestConnectionAction } from "@/server/connections/actions";
+import { acceptConnectionAction, listConnectionsAction, requestConnectionAction, removeConnectionNicknameAction, setConnectionNicknameAction } from "@/server/connections/actions";
 import { listNotificationsAction } from "@/server/shared-state/actions";
 import {
   ChatSurface,
@@ -55,6 +55,11 @@ const nav = [
   { label: "Marketplace", icon: ShoppingBag, href: "/marketplace" },
   { label: "Studio", icon: WandSparkles, href: "/studio" },
 ];
+function PresenceMark({ status, label = true }: { status?: "online" | "idle" | "away" | "meeting"; label?: boolean }) {
+  if (!status) return null;
+  const names = { online: "Online", idle: "Idle", away: "Away", meeting: "In a meeting" };
+  return <span className={`presence-mark ${status}`} title={names[status]} aria-label={label ? names[status] : undefined} />;
+}
 const friends = [
   {
     name: "Mika Tan",
@@ -325,6 +330,7 @@ function ProfileRegion({
         <span className="avatar avatar-gold profile-avatar">
           {user.initials}
           <i className="profile-avatar-badge" aria-hidden="true" />
+          <PresenceMark status={"presenceStatus" in user ? user.presenceStatus as "online" | "idle" | "away" | "meeting" : undefined} label />
         </span>
         </Link>
         <span>
@@ -439,7 +445,7 @@ function AppSidebar({
   const serverChats: Conversation[] = (identity?.personalConversations ?? []).map((chat) => ({
     slug: chat.slug,
     kind: "personal",
-    name: chat.displayName,
+    name: chat.nickname || chat.displayName,
     initials: chat.displayName.split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase(),
     color: "pink",
     preview: "",
@@ -447,6 +453,7 @@ function AppSidebar({
     context: `@${chat.username} · ${chat.tid}`,
     messages: [],
     databaseId: chat.conversationId,
+    presenceStatus: chat.presenceStatus,
   }));
   const localChats: Conversation[] = state.chats
     .filter((chat) => !standardSlugs.has(chat.slug))
@@ -608,6 +615,7 @@ function FriendsSurface({
   const [tab, setTab] = useState("All");
   const [query, setQuery] = useState("");
   const [profile, setProfile] = useState<(typeof friends)[number] | null>(null);
+  const [nicknameTarget, setNicknameTarget] = useState<{ id: string; name: string; nickname: string | null } | null>(null);
   const identity = useToskerIdentity();
   const router = useRouter();
   const [serverConnections, setServerConnections] = useState<Awaited<ReturnType<typeof listConnectionsAction>>>([]);
@@ -676,9 +684,9 @@ function FriendsSurface({
           ) : null)}</div>
         ) : <div className="two-line-empty"><h2>No new requests</h2><p>You're all caught up</p></div>
       ) : (
-        <div className="friend-list">
-          {identity ? serverConnections.filter((item) => item.status === "accepted" && item.person && `${item.person.displayName} ${item.person.username} ${item.person.tid}`.toLowerCase().includes(query.toLowerCase())).map((item) => item.person ? (
-            <article key={item.id}><span className="avatar avatar-pink avatar-pattern">{item.person.displayName.slice(0, 1).toUpperCase()}</span><div className="friend-nameplate"><strong>{item.person.displayName}</strong><small>@{item.person.username} · {item.person.tid}</small></div><i>Friend</i><button onClick={async () => { const chat = await startPersonalConversationAction(item.person!.userId); router.push(`/personal/${chat.slug}`); router.refresh(); }}>Message</button></article>
+          <div className="friend-list">
+          {identity ? serverConnections.filter((item) => item.status === "accepted" && item.person && `${item.person.nickname ?? ""} ${item.person.displayName} ${item.person.username} ${item.person.tid}`.toLowerCase().includes(query.toLowerCase())).map((item) => item.person ? (
+            <article key={item.id}><span className="avatar avatar-pink avatar-pattern">{item.person.displayName.slice(0, 1).toUpperCase()}<PresenceMark status={item.person.presenceStatus} /></span><div className="friend-nameplate"><strong>{item.person.nickname || item.person.displayName}</strong><small>@{item.person.username} · {item.person.tid}</small></div><i>{item.person.nickname ? "Nickname" : "Friend"}</i><button onClick={() => setNicknameTarget({ id: item.id, name: item.person!.displayName, nickname: item.person!.nickname })}>Name</button><button onClick={async () => { const chat = await startPersonalConversationAction(item.person!.userId); router.push(`/personal/${chat.slug}`); router.refresh(); }}>Message</button></article>
           ) : null) : shown
             .filter((friend) => tab !== "Online" || friend.status === "Online")
             .map((friend) => (
@@ -710,8 +718,19 @@ function FriendsSurface({
       )}
     </section>
     {profile ? <FriendNamecard profile={profile} onClose={() => setProfile(null)} onMessage={() => onMessage(profile)} /> : null}
+    {nicknameTarget ? <NicknameDialog target={nicknameTarget} onClose={() => setNicknameTarget(null)} onSaved={refreshConnections} /> : null}
     </>
   );
+}
+
+function NicknameDialog({ target, onClose, onSaved }: { target: { id: string; name: string; nickname: string | null }; onClose: () => void; onSaved: () => Promise<unknown> }) {
+  const [value, setValue] = useState(target.nickname ?? "");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const ref = useRef<HTMLElement>(null);
+  useDismissLayer(true, onClose, ref);
+  const save = async () => { setSaving(true); setError(null); try { if (value.trim()) await setConnectionNicknameAction({ connectionId: target.id, nickname: value }); else await removeConnectionNicknameAction(target.id); await onSaved(); onClose(); } catch { setError("Could not save that nickname."); } finally { setSaving(false); } };
+  return <div className="overlay-backdrop"><section ref={ref} className="identity-dialog" role="dialog" aria-modal="true" aria-labelledby="nickname-title"><button className="overlay-close" onClick={onClose} aria-label="Close"><X size={17} /></button><p className="eyebrow">Private nickname</p><h2 id="nickname-title">{target.name}</h2><p>Only you will see this name.</p><label className="invite-link">Nickname<input value={value} maxLength={60} onChange={(event) => setValue(event.target.value)} placeholder="e.g. Army Jon" /></label><div className="overlay-actions"><button className="primary-action" disabled={saving} onClick={save}>{saving ? "Saving…" : "Save nickname"}</button><button onClick={onClose}>Cancel</button></div>{error ? <p className="composer-error" role="alert">{error}</p> : null}</section></div>;
 }
 
 function FriendNamecard({ profile, onClose, onMessage }: { profile: (typeof friends)[number]; onClose: () => void; onMessage: () => void }) {
@@ -1222,6 +1241,7 @@ export function MessagingApp({
   const [activity, setActivity] = useState<NotificationActivity[]>([]);
   const [toast, setToast] = useState<NotificationActivity | null>(null);
   const seenActivity = useRef<Set<string> | null>(null);
+  const activeConversationRef = useRef<string | null>(null);
   const addPanelRef = useRef<HTMLElement>(null);
   const closeAdd = useCallback(() => setOverlay(null), []);
   useDismissLayer(overlay === "add", closeAdd, addPanelRef);
@@ -1238,7 +1258,7 @@ export function MessagingApp({
       setActivity(next);
       seenActivity.current = new Set(next.map((item) => item.id));
       if (previous) {
-        const incoming = next.find((item) => !previous.has(item.id) && !item.readAt && item.actorId !== identity.userId);
+        const incoming = next.find((item) => !previous.has(item.id) && !item.readAt && item.actorId !== identity.userId && !(item.type === "message" && item.conversationId === activeConversationRef.current));
         if (incoming) {
           setToast(incoming);
           window.setTimeout(() => setToast((current) => current?.id === incoming.id ? null : current), 6500);
@@ -1271,7 +1291,7 @@ export function MessagingApp({
       ? {
           slug: serverChat.slug,
           kind: "personal" as const,
-          name: serverChat.displayName,
+          name: serverChat.nickname || serverChat.displayName,
           initials: serverChat.displayName.split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase(),
           color: "pink",
           preview: "",
@@ -1279,6 +1299,7 @@ export function MessagingApp({
           context: `@${serverChat.username} · ${serverChat.tid}`,
           messages: [],
           databaseId: serverChat.conversationId,
+          presenceStatus: serverChat.presenceStatus,
         }
       : undefined) ??
     (serverRoom
@@ -1324,6 +1345,7 @@ export function MessagingApp({
         : selectedSlug
           ? conversations[0]
           : undefined));
+  useEffect(() => { activeConversationRef.current = selected?.databaseId ?? null; }, [selected?.databaseId]);
   const unreadByConversation = activity.reduce<Record<string, number>>((counts, item) => {
     if (item.type === "message" && item.conversationId && !item.readAt) counts[item.conversationId] = (counts[item.conversationId] ?? 0) + 1;
     return counts;

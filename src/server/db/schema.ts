@@ -41,6 +41,12 @@ export const hallItemKind = pgEnum("hall_item_kind", [
   "note",
   "pinned_message",
 ]);
+export const presenceStatus = pgEnum("presence_status", [
+  "online",
+  "idle",
+  "away",
+  "meeting",
+]);
 
 export const users = pgTable(
   "users",
@@ -68,6 +74,7 @@ export const profiles = pgTable("profiles", {
   username: text("username").notNull(),
   avatarUrl: text("avatar_url"),
   status: text("status"),
+  presenceStatus: presenceStatus("presence_status").default("online").notNull(),
   namecardBio: text("namecard_bio"),
   ...timestamps,
 }, (table) => [uniqueIndex("profiles_username_unique").on(table.username)]);
@@ -94,6 +101,21 @@ export const connections = pgTable(
     uniqueIndex("connections_pair_unique").on(table.pairKey),
     index("connections_addressee_idx").on(table.addresseeId),
   ],
+);
+
+export const connectionNicknames = pgTable(
+  "connection_nicknames",
+  {
+    connectionId: uuid("connection_id")
+      .notNull()
+      .references(() => connections.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    nickname: text("nickname").notNull(),
+    ...timestamps,
+  },
+  (table) => [primaryKey({ columns: [table.connectionId, table.userId] })],
 );
 
 export const rooms = pgTable(

@@ -16,6 +16,7 @@ MS5 — Identity + Persistence + Real Chat. MS5.0.1 founder closeout is complete
 - MS5.4 `9db7257` — Friends, Hall, Room capabilities, notifications
 - MS5.5 `9278aaf` — hardening and founder-review preparation
 - MS5.0.1 `e05eb9c` + `da62280` — final founder patch and Hall copy closeout
+- MS5.0.1 messaging mechanics — in progress (active Chat reconciliation, grouped presentation, private nicknames, manual presence)
 
 ## Environment and release boundary
 
@@ -33,6 +34,8 @@ MS5 — Identity + Persistence + Real Chat. MS5.0.1 founder closeout is complete
 - A 12-second authenticated foreground polling bridge refreshes activity and Friends requests and shows one restrained in-app toast for new incoming activity. It is temporary MS5.0.1 delivery infrastructure, not realtime.
 - Demo Mode is signed-out only, deterministic, local prototype state. It never reads or writes authenticated Neon state and is marked quietly in the shell.
 - Hall notes support curated colors, persisted move controls, Archive, and confirmed Nuke. Pinned Chat references support Open in Chat, Move, and Unpin while preserving the source message.
+- Active authenticated conversations reconcile server messages every 12 seconds by stable message ID without route reload; presentation groups consecutive same-author messages within 60 seconds while records remain unchanged.
+- Accepted connections support viewer-scoped private nicknames. Profiles carry a constrained manual presence status (`online`, `idle`, `away`, `meeting`) with owner-only updates and coarse display treatment; status changes never create activity records.
 
 ## Verified state
 
@@ -40,7 +43,7 @@ Two isolated Clerk users have stable Profiles/TIDs/Sandboxes, shared Room member
 
 ## Known MS6 debt
 
-Realtime delivery/reconciliation, presence, typing, read receipts, offline queue, replies/reactions persistence, attachments, notification preferences/channels, Hall depth, and Gizmo runtimes remain deferred. Do not implement them in this milestone.
+Realtime delivery/reconciliation, automatic presence inference, typing, read receipts, offline queue, replies/reactions persistence, attachments, notification preferences/channels, Hall depth, and Gizmo runtimes remain deferred. Manual presence is the compatibility contract for a future realtime layer; do not add heartbeat writes or polling beyond the existing foreground bridge.
 
 ## Recovery
 

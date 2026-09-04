@@ -1,11 +1,13 @@
 import "server-only";
 
 import { randomBytes } from "node:crypto";
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, eq, inArray, or, sql } from "drizzle-orm";
 
 import { getDatabase } from "@/server/db/client";
 import {
   conversationParticipants,
+  connectionNicknames,
+  connections,
   conversations,
   profiles,
   roomMemberships,
@@ -51,6 +53,7 @@ export type CanonicalIdentity = {
   username: string;
   tid: string;
   avatarUrl: string | null;
+  presenceStatus: "online" | "idle" | "away" | "meeting";
   sandboxConversationId: string;
   rooms: Array<{
     id: string;
@@ -67,6 +70,8 @@ export type CanonicalIdentity = {
     displayName: string;
     username: string;
     tid: string;
+    nickname: string | null;
+    presenceStatus: "online" | "idle" | "away" | "meeting";
   }>;
 };
 
@@ -121,6 +126,7 @@ export async function ensureToskerAccount(
         displayName: profiles.displayName,
         username: profiles.username,
         avatarUrl: profiles.avatarUrl,
+        presenceStatus: profiles.presenceStatus,
       })
       .from(profiles)
       .where(eq(profiles.userId, user.id))
@@ -150,6 +156,7 @@ export async function ensureToskerAccount(
             displayName: profiles.displayName,
             username: profiles.username,
             avatarUrl: profiles.avatarUrl,
+            presenceStatus: profiles.presenceStatus,
           });
       }
     }
@@ -160,6 +167,7 @@ export async function ensureToskerAccount(
           displayName: profiles.displayName,
           username: profiles.username,
           avatarUrl: profiles.avatarUrl,
+          presenceStatus: profiles.presenceStatus,
         })
         .from(profiles)
         .where(eq(profiles.userId, user.id))
@@ -205,6 +213,7 @@ export async function ensureToskerAccount(
       username: profile.username,
       tid: user.tid,
       avatarUrl: profile.avatarUrl,
+      presenceStatus: profile.presenceStatus,
       sandboxConversationId: sandbox.id,
     };
   });
@@ -240,13 +249,19 @@ export async function ensureToskerAccount(
     .where(and(eq(conversationParticipants.userId, account.userId), eq(conversations.kind, "personal")));
   const personalConversations = await Promise.all(personalRows.map(async ({ conversationId }) => {
     const [other] = await db
-      .select({ displayName: profiles.displayName, username: profiles.username, tid: users.tid })
+      .select({ displayName: profiles.displayName, username: profiles.username, tid: users.tid, presenceStatus: profiles.presenceStatus, userId: users.id })
       .from(conversationParticipants)
       .innerJoin(users, eq(users.id, conversationParticipants.userId))
       .innerJoin(profiles, eq(profiles.userId, users.id))
       .where(and(eq(conversationParticipants.conversationId, conversationId), sql`${conversationParticipants.userId} <> ${account.userId}`))
       .limit(1);
-    return other ? { conversationId, slug: `chat-${conversationId}`, ...other } : null;
+    if (!other) return null;
+    const [relationship] = await db.select({ nickname: connectionNicknames.nickname })
+      .from(connections)
+      .leftJoin(connectionNicknames, and(eq(connectionNicknames.connectionId, connections.id), eq(connectionNicknames.userId, account.userId)))
+      .where(and(eq(connections.status, "accepted"), or(and(eq(connections.requesterId, account.userId), eq(connections.addresseeId, other.userId)), and(eq(connections.addresseeId, account.userId), eq(connections.requesterId, other.userId)))))
+      .limit(1);
+    return { conversationId, slug: `chat-${conversationId}`, displayName: other.displayName, username: other.username, tid: other.tid, nickname: relationship?.nickname ?? null, presenceStatus: other.presenceStatus };
   }));
 
   return {

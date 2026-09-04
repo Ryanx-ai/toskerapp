@@ -3,6 +3,8 @@ export type Language = "English" | "Chinese" | "Japanese" | "Indonesian" | "Thai
 
 export type Message = {
   id: string;
+  authorId?: string;
+  createdAt?: string;
   author: string;
   initials: string;
   body: string;
@@ -29,6 +31,7 @@ export type Conversation = {
   context: string;
   messages: Message[];
   tag?: string;
+  presenceStatus?: "online" | "idle" | "away" | "meeting";
 };
 
 export type HallNotice = { id: string; icon: string; category: "Announcement" | "Decision" | "Reminder" | "Link" | "Poll result" | "Details"; title: string; body: string; author: string; time: string; accent: "gold" | "pink" | "yellow" | "blue"; pinned?: boolean };

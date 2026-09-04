@@ -6,6 +6,7 @@ import { IdentityCard } from "@/components/identity-card";
 import { SignOutButton } from "@clerk/nextjs";
 import { prototypeUser } from "@/data/prototype-user";
 import { useCurrentToskerUser, useToskerIdentity } from "@/components/tosker-identity";
+import { setPresenceStatusAction, type PresenceStatus } from "@/server/profiles/actions";
 import { listNotificationsAction, markNotificationsReadAction } from "@/server/shared-state/actions";
 import {
   Bell,
@@ -223,6 +224,8 @@ function Studio() {
 }
 function Settings() {
   const user = useCurrentToskerUser() ?? prototypeUser;
+  const identity = useToskerIdentity();
+  const [status, setStatus] = useState<PresenceStatus>(("presenceStatus" in user ? user.presenceStatus as PresenceStatus : undefined) ?? "online");
   return (
     <ProductChrome current="settings">
       <WorkspaceBanner
@@ -236,6 +239,14 @@ function Settings() {
           profile={{ name: user.displayName, username: user.username, tid: user.tid, initials: user.initials, color: "gold", status: user.role }}
         />
       </div>
+      {identity ? <label className="presence-control">Your status
+        <select value={status} aria-label="Your status" onChange={async (event) => { const next = event.target.value as PresenceStatus; setStatus(next); await setPresenceStatusAction(next); }}>
+          <option value="online">● Online</option>
+          <option value="idle">◐ Idle</option>
+          <option value="away">○ Away</option>
+          <option value="meeting">▣ In a meeting</option>
+        </select>
+      </label> : null}
       <div className="settings-list">
         {[
           ["Account", "Name, profile, and the basics."],

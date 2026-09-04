@@ -1,7 +1,7 @@
 "use server";
 
 import { createHash, randomBytes } from "node:crypto";
-import { and, eq, or } from "drizzle-orm";
+import { and, eq, inArray, isNull, or } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 import { requireCurrentActor } from "@/server/auth/clerk";
@@ -190,7 +190,29 @@ export async function acceptRoomInviteAction(token: string) {
       }
     }
     await tx.insert(roomMemberships).values({ roomId: invite.roomId, userId: actor.userId, role: "member" }).onConflictDoNothing();
-    const roomConversations = await tx.select({ id: conversations.id }).from(conversations).where(eq(conversations.roomId, invite.roomId));
+    // Public Subrooms grant access to newly joined members; selected/owners
+    // Subrooms remain restricted to their explicit access list.
+    const publicSubrooms = await tx
+      .select({ id: subrooms.id })
+      .from(subrooms)
+      .where(and(eq(subrooms.roomId, invite.roomId), eq(subrooms.visibility, "everyone")));
+    if (publicSubrooms.length) {
+      await tx.insert(subroomAccess).values(publicSubrooms.map(({ id }) => ({ subroomId: id, userId: actor.userId }))).onConflictDoNothing();
+    }
+    const accessibleSubrooms = await tx
+      .select({ id: subrooms.id })
+      .from(subrooms)
+      .leftJoin(subroomAccess, and(eq(subroomAccess.subroomId, subrooms.id), eq(subroomAccess.userId, actor.userId)))
+      .where(and(eq(subrooms.roomId, invite.roomId), or(eq(subrooms.visibility, "everyone"), eq(subroomAccess.userId, actor.userId))));
+    const roomConversations = await tx
+      .select({ id: conversations.id })
+      .from(conversations)
+      .where(and(
+        eq(conversations.roomId, invite.roomId),
+        accessibleSubrooms.length
+          ? or(isNull(conversations.subroomId), inArray(conversations.subroomId, accessibleSubrooms.map(({ id }) => id)))
+          : isNull(conversations.subroomId),
+      ));
     if (roomConversations.length) {
       await tx.insert(conversationParticipants).values(roomConversations.map(({ id }) => ({ conversationId: id, userId: actor.userId }))).onConflictDoNothing();
     }
@@ -227,7 +249,7 @@ export async function createSubroomAction(input: { roomSlug: string; name: strin
   const allowed = new Set(memberIds.map((item) => item.userId));
   const selected = [...new Set((input.userIds ?? []).filter((id) => allowed.has(id)))];
   return db.transaction(async (tx) => {
-    const [subroom] = await tx.insert(subrooms).values({ roomId: room.id, name, createdBy: actor.userId, visibility: input.visibility, position: Date.now() }).returning({ id: subrooms.id, name: subrooms.name, visibility: subrooms.visibility });
+    const [subroom] = await tx.insert(subrooms).values({ roomId: room.id, name, createdBy: actor.userId, visibility: input.visibility, position: 0 }).returning({ id: subrooms.id, name: subrooms.name, visibility: subrooms.visibility });
     const access = input.visibility === "everyone" ? memberIds.map((item) => item.userId) : input.visibility === "owners" ? [actor.userId] : [...new Set([actor.userId, ...selected])];
     if (access.length) await tx.insert(subroomAccess).values(access.map((userId) => ({ subroomId: subroom.id, userId }))).onConflictDoNothing();
     const [conversation] = await tx.insert(conversations).values({ kind: "room", roomId: room.id, subroomId: subroom.id, title: name }).returning({ id: conversations.id });

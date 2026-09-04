@@ -763,7 +763,12 @@ h1,h2,h3 { font-family:var(--font-mermaid),Georgia,serif; font-weight:400; lette
 .friend-actions { position:relative; display:flex; align-items:center; gap:3px; }
 .friend-actions > button { width:32px; min-height:32px; padding:0; display:grid; place-items:center; border:0; background:transparent; }
 .friend-context-menu { top:36px; right:0; z-index:20; min-width:150px; }
+.subroom-row { margin-left:14px; border-left:1px solid rgba(200,156,93,.22); border-radius:0 10px 10px 0; }
+@media (min-width:641px) {
+  .sidebar-collapsed .subroom-row { margin-left:0; border-left:0; }
+}
 @media (max-width:640px) {
+  .subroom-row { margin-left:0; border-left:0; }
   .conversation-header { display:grid; grid-template-columns:minmax(0,1fr); grid-template-rows:auto auto; height:auto; min-height:104px; padding:0 10px; gap:0; overflow:hidden; }
   .conversation-header .header-identity-zone { grid-row:1; width:100%; min-height:58px; }
   .conversation-header .surface-tabs { grid-row:2; width:100%; max-width:100%; min-height:44px; height:44px; margin:0; display:flex; justify-content:flex-start; align-items:stretch; overflow-x:auto; overflow-y:hidden; scrollbar-width:none; overscroll-behavior-x:contain; }

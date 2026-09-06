@@ -16,6 +16,7 @@ import {
 import { WorkspaceBanner } from "@/components/workspace-banner";
 import { FakeQr } from "@/components/fake-qr";
 import { IdentityCard } from "@/components/identity-card";
+import { useMobileViewport } from "@/components/use-mobile-viewport";
 import { useCurrentToskerUser, useToskerIdentity } from "@/components/tosker-identity";
 import { createRoomAction, createRoomInviteAction, createSubroomAction } from "@/server/rooms/actions";
 import { findPeopleAction, startPersonalConversationAction } from "@/server/conversations/actions";
@@ -640,9 +641,18 @@ function FriendsSurface({
   const refreshConnections = useCallback(() => listConnectionsAction().then(setServerConnections), []);
   useEffect(() => {
     if (!identity) return;
-    void refreshConnections();
-    const timer = window.setInterval(() => void refreshConnections(), 12000);
-    return () => window.clearInterval(timer);
+    let active = true, inFlight = false;
+    const refresh = async () => {
+      if (document.hidden || inFlight) return;
+      inFlight = true;
+      try { const next = await listConnectionsAction(); if (active) setServerConnections(next); }
+      catch { /* Retain the last successful result during a temporary outage. */ }
+      finally { inFlight = false; }
+    };
+    void refresh();
+    const timer = window.setInterval(() => void refresh(), 12000);
+    document.addEventListener("visibilitychange", refresh);
+    return () => { active = false; window.clearInterval(timer); document.removeEventListener("visibilitychange", refresh); };
   }, [identity, refreshConnections]);
   useEffect(() => {
     if (!identity || query.trim().length < 2) return;
@@ -1318,6 +1328,7 @@ export function MessagingApp({
   surface?: "chat" | "hall";
   workspace?: AppWorkspace;
 }) {
+  useMobileViewport();
   const user = useCurrentToskerUser() ?? prototypeUser;
   const identity = useToskerIdentity();
   const state = useSyncExternalStore(
@@ -1342,8 +1353,14 @@ export function MessagingApp({
       return;
     }
     let active = true;
+    let inFlight = false;
+    let toastTimer: number | undefined;
     const refresh = async () => {
-      const next = await listNotificationsAction().catch(() => [] as NotificationActivity[]);
+      if (document.hidden || inFlight) return;
+      inFlight = true;
+      const next = await listNotificationsAction().catch(() => null);
+      inFlight = false;
+      if (!next) return;
       if (!active) return;
       const previous = seenActivity.current;
       setActivity(next);
@@ -1352,13 +1369,15 @@ export function MessagingApp({
         const incoming = next.find((item) => !previous.has(item.id) && !item.readAt && item.actorId !== identity.userId && !(item.type === "message" && item.conversationId === activeConversationRef.current));
         if (incoming) {
           setToast(incoming);
-          window.setTimeout(() => setToast((current) => current?.id === incoming.id ? null : current), 6500);
+          window.clearTimeout(toastTimer);
+          toastTimer = window.setTimeout(() => setToast((current) => current?.id === incoming.id ? null : current), 6500);
         }
       }
     };
     void refresh();
     const timer = window.setInterval(() => void refresh(), 12000);
-    return () => { active = false; window.clearInterval(timer); };
+    document.addEventListener("visibilitychange", refresh);
+    return () => { active = false; window.clearInterval(timer); window.clearTimeout(toastTimer); document.removeEventListener("visibilitychange", refresh); };
   }, [identity]);
   const collapsed = useSyncExternalStore(
     collapseStore.subscribe,
@@ -1493,6 +1512,7 @@ export function MessagingApp({
             />
             {surface === "hall" ? (
               <HallSurface
+                key={selected.slug}
                 conversation={selected}
                 empty={Boolean(identity) || Boolean(prototypeRoom && !canonical)}
               />

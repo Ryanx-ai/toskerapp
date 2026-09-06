@@ -48,6 +48,7 @@ export const presenceStatus = pgEnum("presence_status", [
   "meeting",
 ]);
 export const subroomVisibility = pgEnum("subroom_visibility", ["everyone", "selected", "owners"]);
+export const hallReactionKind = pgEnum("hall_reaction_kind", ["heart", "like", "celebrate"]);
 
 export const users = pgTable(
   "users",
@@ -324,6 +325,8 @@ export const hallItems = pgTable(
       onDelete: "restrict",
     }),
     color: text("color").default("neutral").notNull(),
+    imagePath: text("image_path"),
+    imageAlt: text("image_alt"),
     position: integer("position").default(0).notNull(),
     archivedAt: timestamp("archived_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
@@ -340,6 +343,21 @@ export const hallItems = pgTable(
       .where(sql`${table.kind} = 'pinned_message'`),
   ],
 );
+
+export const hallComments = pgTable("hall_comments", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  itemId: uuid("item_id").notNull().references(() => hallItems.id, { onDelete: "cascade" }),
+  authorId: uuid("author_id").notNull().references(() => users.id, { onDelete: "restrict" }),
+  body: text("body").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => [index("hall_comments_item_idx").on(table.itemId, table.createdAt)]);
+
+export const hallReactions = pgTable("hall_reactions", {
+  itemId: uuid("item_id").notNull().references(() => hallItems.id, { onDelete: "cascade" }),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  reaction: hallReactionKind("reaction").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => [primaryKey({ columns: [table.itemId, table.userId, table.reaction] })]);
 
 export const roomCapabilities = pgTable(
   "room_capabilities",

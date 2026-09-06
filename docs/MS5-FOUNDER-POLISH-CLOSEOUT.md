@@ -39,15 +39,15 @@ Responsive Chromium and simulated visible-viewport shrink are **not physical iOS
 
 ## Release
 
-Application checkpoint subject: `polish: refine Hall and MS5 interface consistency`. Exact SHA: `git log -1 --format='%H %s' -- src/server/hall/service.ts`.
+Application checkpoint: `f6089d4d0e14212a2d4e825db62a9d5d62267c75` — `polish: refine Hall and MS5 interface consistency`. Seventeen files; 2,200 added lines are the generated Drizzle schema snapshot. The five recently displayed editor changes were already included in this commit; Git showed no uncommitted product corrections.
 
-Canonical Development URL: <https://toskerapp.vercel.app/>. Push main through existing Vercel Git integration; verify READY, exact commit/alias, HTTP 200 and authenticated Chat/Hall smoke. This uses existing Development Clerk/Neon, not a newly provisioned Production database. Deployment evidence will be recorded after remote build.
+Canonical Development URL: <https://toskerapp.vercel.app/>. Vercel Git deployment `dpl_B3JYuF7E8PpBh3RN2j5U5apMm4dU` reached READY for exact commit `f6089d4` with canonical alias attached. HTTP 200 and two runtime-error scans passed (no errors in selected one-hour windows). Authenticated live smoke rendered saved Chat messages, persisted Hall comment/author/reaction, isolated Subroom Hall and the 16px mobile composer without overflow. This uses existing Development Clerk/Neon, not a newly provisioned Production database. Later documentation-only deployments may advance the alias without changing the application source.
 
-Temporary browser QA notes/comments/reactions will be removed after live smoke; preserve original founder content.
+After live smoke, removed exactly two temporary QA notes (with cascading test comment/reaction), one QA message and their associated test notifications. Original founder records were preserved. Cleanup IDs were inspected first; no broad deletion occurred.
 
 ## Deferred
 
 - **MS6, not started:** realtime, typing, reconnect/reconciliation, realtime communication reliability.
 - **Later:** native mobile, persistent media/object storage, broader optimization, deeper Hall refinement, Tosker Art integration.
 
-After healthy canonical release, MS5 is saved/complete. Do not search for additional product work.
+MS5 is **COMPLETE / SAVED / LOCKED**. Do not search for additional product work.

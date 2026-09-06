@@ -4,7 +4,7 @@ Repository and Git are authoritative. Read this file first when resuming develop
 
 ## Current milestone
 
-MS5 — Identity + Persistence + Real Chat. Founder walkthrough **passed foundational multiplayer communication**. Founder-polish implementation is complete and locally validated; canonical deployment verification is the remaining release step. Do not begin MS6.
+MS5 — Identity + Persistence + Real Chat — **COMPLETE / SAVED / LOCKED**. Founder walkthrough passed foundational two-user messaging. Founder-polish implementation, validation, commit, push, canonical deployment and authenticated live smoke are complete. Do not begin MS6.
 
 ## Checkpoints
 
@@ -17,13 +17,13 @@ MS5 — Identity + Persistence + Real Chat. Founder walkthrough **passed foundat
 - MS5.5 `9278aaf` — hardening and founder-review preparation
 - MS5.0.1 `e05eb9c` + `da62280` — final founder patch and Hall copy closeout
 - MS5.0.1 non-realtime closeout — founder accepted (active Chat reconciliation, grouped presentation, private nicknames, manual presence, shallow Subrooms)
-- Founder-polish checkpoint: `polish: refine Hall and MS5 interface consistency`, based on `a412763`. Resolve exact SHA with `git log -1 --format='%H %s' -- src/server/hall/service.ts`.
+- Founder-polish checkpoint: `f6089d4d0e14212a2d4e825db62a9d5d62267c75` — `polish: refine Hall and MS5 interface consistency`. No post-commit product correction was needed; subsequent commits are documentation only.
 
 ## Environment and release boundary
 
 - Development database: Neon `neon-byzantine-jacket`
 - Development auth: Clerk Development
-- Canonical Development app: <https://toskerapp.vercel.app/>. Release evidence: `docs/MS5-FOUNDER-POLISH-CLOSEOUT.md`.
+- Canonical Development app: <https://toskerapp.vercel.app/>. Product release `dpl_B3JYuF7E8PpBh3RN2j5U5apMm4dU`, READY, commit `f6089d4`; HTTP 200, authenticated smoke and runtime-error scan passed. Subsequent documentation-only Git deployments may have newer IDs without changing product code. Evidence: `docs/MS5-FOUNDER-POLISH-CLOSEOUT.md`.
 - Preview and Production databases are not provisioned.
 - Canonical alias uses the Vercel production target but **Development** Clerk/Neon; the old MS4.1 deployment statement is obsolete. Founder authorized this polish commit/push/deploy. Do not provision production infrastructure.
 - `toskerArt/` remains untracked, untouched, and unintegrated.
@@ -52,7 +52,9 @@ Polling remains the actual **12-second** bridge, with hidden-tab/in-flight guard
 
 ## Known MS6 debt
 
-Realtime delivery/reconciliation, automatic presence inference, typing, read receipts, offline queue, replies/reactions persistence, attachments, notification preferences/channels, Hall depth, and Gizmo runtimes remain deferred. Manual presence is the compatibility contract for a future realtime layer; do not add heartbeat writes or polling beyond the existing foreground bridge.
+MS6: realtime, typing, reconnect/reconciliation and realtime communication reliability. Manual presence is the compatibility contract; do not add heartbeat writes or more polling.
+
+Later: native mobile, persistent media/object storage, broader optimization, deeper Hall refinement and Tosker Art integration. Other unbuilt capabilities remain outside this lock.
 
 ## Recovery
 
@@ -60,4 +62,4 @@ Realtime delivery/reconciliation, automatic presence inference, typing, read rec
 2. Preserve completed checkpoint commits; do not squash or amend prior milestones.
 3. Treat the canonical deployment as the MS5 Development prototype with accepted foundational communication.
 4. Do not touch `toskerArt/`.
-5. After healthy canonical deployment and smoke, save/complete MS5. Do not begin MS6. Separately requested post-release art feasibility is documentation only; no integration or art generation.
+5. MS5 is locked. Do not begin MS6. Separately requested post-release art feasibility is documentation only; no integration or art generation.

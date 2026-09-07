@@ -14,6 +14,6 @@ export async function setPresenceStatusAction(status: PresenceStatus) {
   if (!presenceStatus.enumValues.includes(status)) throw new Error("Invalid status.");
   const db = getDatabase();
   await db.update(profiles).set({ presenceStatus: status, updatedAt: new Date() }).where(eq(profiles.userId, actor.userId));
-  revalidatePath("/");
+  revalidatePath("/app");
   return { status };
 }

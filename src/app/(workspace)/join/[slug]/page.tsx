@@ -16,7 +16,7 @@ export default async function JoinRoomPage({
           <p className="eyebrow">Room invitation</p>
           <h1>Invite unavailable</h1>
           <p>This Room link is incomplete or no longer available.</p>
-          <Link href="/">Open Tosker</Link>
+          <Link href="/app">Open Tosker</Link>
         </section>
       </main>
     );

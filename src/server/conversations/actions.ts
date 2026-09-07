@@ -87,7 +87,7 @@ export async function sendMessageAction(input: { id: string; conversationId: str
       })));
     }
   }
-  revalidatePath("/");
+  revalidatePath("/app");
   return { id: input.id, createdAt: created?.createdAt.toISOString() ?? null };
 }
 
@@ -150,6 +150,6 @@ export async function startPersonalConversationAction(targetUserId: string) {
     ]).onConflictDoNothing();
     return item;
   });
-  revalidatePath("/");
+  revalidatePath("/app");
   return { conversationId: conversation.id, slug: `chat-${conversation.id}` };
 }

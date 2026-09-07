@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+.landing-footer-link { display:block; width:fit-content; margin:2px 9px 0; padding:7px 0; color:var(--text-secondary); font-size:9px; }
+.landing-footer-link:hover { color:var(--text-primary); }
+.sidebar-collapsed .landing-footer-link { display:none; }
+@media(max-width:640px) { .landing-footer-link { display:none; } }
+.profile-landing-link { display:block; padding:14px 0; font-size:11px; }
+
 /* MS6A shared interaction tokens: a darker action fill supports white text. */
 :root { --action-fill:#b82560; --on-action:#fff; --control-gap:8px; }
 

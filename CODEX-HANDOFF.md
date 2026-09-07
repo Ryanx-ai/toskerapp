@@ -2,6 +2,14 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## Active session — landing integration, then MS6B (2026-09-07)
+
+Founder authorized this sequence in the landing/MS6B kickoff: finish landing, validate, commit/push/deploy and live-test it; only then research/recommend one realtime provider. **Do not provision a provider automatically; stop for founder account/resource/credentials if needed.** This supersedes the older MS6A founder-review stop below, without reopening MS6A.
+
+Landing baseline: `51c8daa8` (MS6A closeout). Public `/` is now an independent static landing; former Chats home is `/app`. Existing product URLs live under a URL-neutral `(workspace)` layout retaining the original session/auth boundary. Landing uses existing Clerk modal sign-in/sign-up with `/app` completion; signed-in visitors still see `/`. Desktop footer and mobile Profile/Help link back to it.
+
+Scope/evidence and release record: `docs/LANDING-INTEGRATION.md`. No schema, auth-provider configuration, realtime transport, or product redesign. Keep the 12-second polling bridge through the provider gate. `toskerArt/` and unrelated untracked Art audit/system documents remain untouched and unstaged.
+
 ## Current milestone
 
 MS6A — Foundational UX / core interaction debt — **DEPLOYED / LIVE-VERIFIED / AWAITING FOUNDER REVIEW** (2026-09-07).
@@ -14,10 +22,10 @@ Product checkpoint: `f6ada068aeadbcc882a7b268b5c5eba6438e5fda` — `feat: comple
 - Additive migration `0010_handy_argent.sql` already applied to Development: message tombstones and two reaction tables; 11 migrations/44 foreign keys verified.
 - Fresh TypeScript, ESLint, production build, MS6A database acceptance, schema verification and invariant audit pass. Two-user reaction/Hall persistence, full-card drag, parent return and restricted deep-link denial passed. Detailed evidence/limits: `docs/MS6A-CLOSEOUT.md`; historical recovery: `docs/MS6A-WIP-CHECKPOINT.md`.
 - Final QA fixes: right-click menu no longer disappears on release; failed sends retain their reply target; short composer placeholder avoids narrow-screen clipping; Create / Studio banner links back to discovery.
-- **Exact next action: STOP for founder walkthrough.** No MS6B or new implementation until the founder reviews and locks MS6A.
+- Historical MS6A exit was founder review; latest landing/MS6B authorization above supersedes the implementation stop. MS6A is not being redesigned.
 - The temporary `MS6A Browser QA` fixture was removed after live verification using guarded exact-ID/content assertions: one Room/Subroom, two conversations, three messages, two notes, one comment and five related notifications, plus cascading fixture metadata. No founder content removed; this test cleanup has no UI undo. Historical fixture URLs in the recovery log no longer exist.
 - Browser limits: physical iOS/Android keyboard/long-press and native browser zoom not exercised. Equivalent 200% layout (720×450) passed. Clipboard API write succeeded with expected text; automated read/paste remains restricted. Auth/proxy unchanged; fresh B reloads stayed signed in, while A's automation session twice returned to a blank browser and required normal reauthentication.
-- **No MS6B/realtime until founder review and lock. Keep the existing 12-second polling bridge. No new realtime provider, websocket/SSE, media storage, native, AI, Gizmo SDK or ToskerWeb. `toskerArt/` stays untouched/untracked.** Unrelated untracked `docs/TOSKER-ART-SYSTEM.md` appeared during this pass and was not read, edited or staged.
+- Keep the existing 12-second polling bridge until the separately gated MS6B implementation is reliable. No automatic provider provisioning, media storage, native, AI or Gizmo SDK. `toskerArt/` stays untouched/untracked. Unrelated Art documents were not read, edited or staged.
 
 ## Checkpoints
 
@@ -65,7 +73,7 @@ Polling remains the actual **12-second** bridge, with hidden-tab/in-flight guard
 
 ## Deferred MS6B debt
 
-MS6B (NOT authorized in this pass): realtime, typing, reconnect/reconciliation and realtime communication reliability. Manual presence is the compatibility contract; do not add heartbeat writes or more polling.
+MS6B is authorized only after landing commit/push/deploy/live smoke, with a founder provisioning gate. Scope: realtime, typing, reconnect/reconciliation and communication reliability. Manual presence remains separate from connectivity; do not add heartbeat writes or more polling.
 
 Later: native mobile, persistent media/object storage, broader optimization, deeper Hall refinement and Tosker Art integration. Other unbuilt capabilities remain outside this lock.
 
@@ -73,6 +81,6 @@ Later: native mobile, persistent media/object storage, broader optimization, dee
 
 1. Run `git status` and `git log --oneline -8`.
 2. Preserve completed checkpoint commits; do not squash or amend prior milestones.
-3. Treat the canonical deployment as the MS5 Development prototype with accepted foundational communication.
+3. Inspect latest Git/deployment; MS6A is deployed and landing integration is the current release slice. The canonical alias still uses Development services.
 4. Do not touch `toskerArt/`.
-5. MS5 is locked; MS6A uncommitted work is paused at the interrupted-work checkpoint above. Wait for founder instruction before resuming. Do not begin MS6B. Art feasibility is documentation only; no integration or art generation.
+5. Follow the active session and landing release record above. Never mix unfinished realtime into the landing release. Stop at the provider account/resource gate; do not begin MS7.

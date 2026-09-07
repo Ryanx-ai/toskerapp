@@ -98,7 +98,7 @@ export async function createRoomAction(input: CreateRoomInput) {
     return room;
   });
 
-  revalidatePath("/");
+  revalidatePath("/app");
   return { ...created, tags: tags.length ? tags : ["ROOM"], inviteToken: token };
 }
 
@@ -217,7 +217,7 @@ export async function acceptRoomInviteAction(token: string) {
       await tx.insert(conversationParticipants).values(roomConversations.map(({ id }) => ({ conversationId: id, userId: actor.userId }))).onConflictDoNothing();
     }
   });
-  revalidatePath("/");
+  revalidatePath("/app");
   revalidatePath(`/room/${invite.roomSlug}`);
   return { roomSlug: invite.roomSlug };
 }

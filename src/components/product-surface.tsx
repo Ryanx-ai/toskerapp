@@ -313,6 +313,7 @@ function Help() {
             This help surface will become useful as Tosker grows. For now, bring
             your notes to the founder walkthrough.
           </p>
+          <Link href="/" className="back-link">View landing page</Link>
         </div>
       </aside>
     </ProductChrome>
@@ -390,7 +391,7 @@ function Notifications({ empty = false }: { empty?: boolean }) {
     title: item.type === "connection_request" ? "New friend request" : item.type === "connection_accepted" ? "Friend request accepted" : "New Hall note",
     context: item.type === "message" ? `${item.actorName ?? "Someone"} sent you a message${item.messageBody ? `: ${item.messageBody}` : ""}` : item.type === "connection_request" ? `${item.actorName ?? "Someone"} sent you a friend request` : item.type === "connection_accepted" ? `${item.actorName ?? "Someone"} accepted your friend request` : `${item.actorName ?? "Someone"} added something to Hall`,
     time: new Date(item.createdAt).toLocaleDateString(),
-    href: item.conversationKind === "room" && item.roomSlug ? `/room/${item.roomSlug}` : item.conversationKind === "personal" && item.conversationId ? `/personal/chat-${item.conversationId}` : item.type.startsWith("connection") ? "/friends" : "/",
+    href: item.conversationKind === "room" && item.roomSlug ? `/room/${item.roomSlug}` : item.conversationKind === "personal" && item.conversationId ? `/personal/chat-${item.conversationId}` : item.type.startsWith("connection") ? "/friends" : "/app",
   }));
   const source = identity ? realItems : notificationItems;
   const shown = empty && !identity
@@ -457,6 +458,7 @@ function Profile() {
           profile={{ name: user.displayName, username: user.username, tid: user.tid, initials: user.initials, color: "gold", status: user.role }}
           action={<button disabled>Edit profile</button>}
         />
+        <Link href="/" className="landing-footer-link profile-landing-link">View landing page</Link>
       </section>
     </ProductChrome>
   );

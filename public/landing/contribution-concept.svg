@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 380" fill="none">
+  <title>Concept: a woodland maker shares a useful addition with another Room</title>
+  <g stroke="#263242" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M218 205C282 205 281 102 342 102C393 102 390 173 442 173" stroke="#8F6558" stroke-dasharray="4 9"/>
+    <path d="m433 165 10 8-10 8" stroke="#8F6558"/>
+    <path d="m42 292 112-31 91 37-117 35Z" fill="#D89C77" stroke="none"/>
+    <path d="M106 278C56 276 33 246 42 208C47 181 66 179 86 195L112 230" fill="#C98E53"/>
+    <path d="m44 210 25-24 15 11-14 38 38 38" stroke="#AC7449"/>
+    <path d="m92 284 5-63 43-11 26 70" fill="#2B3B4C"/>
+    <path d="m101 195-10-34 24 10 25-13 9 28 20 22-28 22-28-5Z" fill="#DEAA62"/>
+    <path d="m91 161 18 15 6-5m25-13-1 24 10 4" fill="#C7904B" stroke="none"/>
+    <path d="m132 198 4 2m27 5 5 3"/>
+    <path d="m102 240 22 17 37-15" stroke="#E8B873" stroke-width="14"/>
+    <path d="m145 221 46-15 40 18-46 17Z" fill="#FCF0D1"/>
+    <path d="m145 221 40 20v19l-40-19Z" fill="#DABC8D"/>
+    <path d="m185 241 46-17v19l-46 17Z" fill="#E6CCA1"/>
+    <path d="m166 221 17-5 12 4 15-5" stroke="#A98B67"/>
+    <path d="m291 99 22-13 23 13v27l-23 14-22-14Z" fill="#F3D181"/>
+    <path d="m291 99 22 13 23-13m-23 13v28" stroke="#AE814E"/>
+    <path d="m304 102 9-5 9 5-9 5Z" fill="#F7E8B7" stroke="none"/>
+    <path d="m403 297 101-36 62 28-103 41Z" fill="#D89C77" stroke="none"/>
+    <path d="m414 287 0-98 76-28 60 28v102l-74 30Z" fill="#F4DBAD"/>
+    <path d="m414 189 62 27 74-27m-74 27v105"/>
+    <path d="m436 273 0-44 22 10v44Z" fill="#E6B59A" stroke="none"/>
+    <path d="m500 271 0-42 28-11v41Z" fill="#94A790"/>
+    <path d="m514 223 0 41m-14-15 28-11"/>
+    <path d="m459 280 7-25 26-6 17 22-12 28-25 0Z" fill="#758F91"/>
+    <path d="m465 253 1-22 12 7 13-3 10 12-12 12-14 0Z" fill="#DFB784"/>
+    <path d="m486 245 2 0m-17-9-4-5"/>
+    <path d="m481 272 29-10" stroke="#DFB784" stroke-width="9"/>
+    <path d="m497 249 20-6 17 9-20 7Z" fill="#F3D181"/>
+    <path d="m497 249 17 10v10l-17-11Z" fill="#CFA866"/>
+    <path d="m514 259 20-7v9l-20 8Z" fill="#E9C685"/>
+  </g>
+</svg>

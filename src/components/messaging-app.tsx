@@ -367,6 +367,7 @@ function ProfileRegion({
         </div>
       </div>
       <small className="app-version-marker">{APP_VERSION_LABEL}</small>
+      <Link href="/" className="landing-footer-link">View landing page</Link>
     </div>
   );
 }
@@ -517,7 +518,7 @@ function AppSidebar({
   return (
     <aside className="messenger-sidebar">
       <div className="sidebar-brand">
-        <Link href="/" aria-label="Tosker chats">
+        <Link href="/app" aria-label="Tosker chats">
           <Image
             className="full-logo"
             src="/brand/toskerlogo-full-white.svg"
@@ -1247,7 +1248,7 @@ function MobileNav() {
   const user = useCurrentToskerUser() ?? prototypeUser;
   return (
     <nav className="mobile-app-nav" aria-label="Mobile destinations">
-      <Link href="/">
+      <Link href="/app">
         <span>
           <MessageCircle size={17} />
         </span>

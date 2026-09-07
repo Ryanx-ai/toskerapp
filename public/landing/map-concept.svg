@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 140" fill="none">
+  <title>Shared map, Gizmo concept</title>
+  <g stroke="#35424B" stroke-width="2" stroke-linejoin="round">
+    <path d="m25 43 44-14 43 13 42-14-5 82-42 12-43-13-44 14Z" fill="#F6E6C4"/>
+    <path d="m69 29-5 80m48-67-5 80"/>
+    <path d="m30 75 27-8 22 11 30-15 34 8" stroke="#9EAA8C" stroke-width="12"/>
+    <path d="m42 96 23-12 27 14 35-11" stroke="#C5A077" stroke-dasharray="3 5"/>
+    <path d="M119 22a15 15 0 0 0-15 15c0 13 15 27 15 27s15-14 15-27a15 15 0 0 0-15-15Z" fill="#CE7B7D"/>
+    <circle cx="119" cy="37" r="5" fill="#F6E6C4"/>
+  </g>
+</svg>

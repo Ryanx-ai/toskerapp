@@ -172,7 +172,7 @@ export function SurfaceHeader({
   return (
     <header className="conversation-header">
       <div className="header-identity-zone">
-        <Link href="/" className="mobile-back" aria-label="Back">
+        <Link href="/app" className="mobile-back" aria-label="Back">
           <ArrowLeft size={18} />
         </Link>
         <span

@@ -60,7 +60,7 @@ function ProductChrome({
   );
 }
 
-function Explore() {
+function Explore({ studio = false }: { studio?: boolean }) {
   const [filter, setFilter] = useState("Featured");
   const exploreFilters: Record<string, string[]> = {
     Featured: exploreCards.map((card) => card[1]),
@@ -76,7 +76,7 @@ function Explore() {
         eyebrow="Explore"
         title="Make your Room more than chat."
         intensity="hero"
-        action={
+        action={studio ? <Link href="/explore">Browse Gizmos</Link> :
           <button
             onClick={() =>
               document.querySelector(".filter-pills")?.scrollIntoView({
@@ -89,6 +89,8 @@ function Explore() {
           </button>
         }
       />
+      <nav className="explore-sections" aria-label="Explore sections"><Link href="/explore" aria-current={!studio ? "page" : undefined}>Gizmos</Link><Link href="/explore/create" aria-current={studio ? "page" : undefined}>Create / Studio</Link></nav>
+      {studio ? <Studio /> : <>
       <div className="filter-pills">
         {Object.keys(exploreFilters).map((item) => <button key={item} className={filter === item ? "active" : ""} aria-pressed={filter === item} onClick={() => setFilter(item)}>{item}</button>)}
       </div>
@@ -114,18 +116,15 @@ function Explore() {
           ))}
         </div>
       </section>
+      <Marketplace />
+      </>}
     </ProductChrome>
   );
 }
 function Marketplace() {
   const [filter, setFilter] = useState("All");
   return (
-    <ProductChrome current="marketplace">
-      <WorkspaceBanner
-        eyebrow="Marketplace"
-        title="Made for Rooms, by people with ideas."
-      />
-      <section className="surface-section">
+      <section id="community" className="surface-section">
         <div className="section-title">
           <div>
             <p className="eyebrow">Fresh finds</p>
@@ -152,28 +151,17 @@ function Marketplace() {
         </div>
         <p className="prototype-strip">Preview only · Purchases aren’t available yet</p>
       </section>
-    </ProductChrome>
   );
 }
 function Studio() {
   return (
-    <ProductChrome current="studio">
-      <WorkspaceBanner
-        eyebrow="Studio"
-        title="Make something people want in a Room"
-        action={
-          <button className="button button-primary" disabled>
-            Create something <span>＋</span>
-          </button>
-        }
-      />
       <section className="surface-section studio-work">
         <div className="section-title">
           <div>
-            <p className="eyebrow">My creations</p>
+            <p className="eyebrow">Create / Studio</p>
             <h2>Things taking shape</h2>
           </div>
-          <span>Preview</span>
+          <span>Concept preview · Creator tools aren’t available yet</span>
         </div>
         <div className="creation-list">
           {[
@@ -219,7 +207,6 @@ function Studio() {
           ))}
         </div>
       </section>
-    </ProductChrome>
   );
 }
 function Settings() {
@@ -241,10 +228,10 @@ function Settings() {
       </div>
       {identity ? <label className="presence-control">Your status
         <select value={status} aria-label="Your status" onChange={async (event) => { const next = event.target.value as PresenceStatus; setStatus(next); await setPresenceStatusAction(next); }}>
-          <option value="online">● Online</option>
-          <option value="idle">◐ Idle</option>
-          <option value="away">○ Away</option>
-          <option value="meeting">▣ In a meeting</option>
+          <option value="online">Online</option>
+          <option value="idle">Idle</option>
+          <option value="away">Away</option>
+          <option value="meeting">In a meeting</option>
         </select>
       </label> : null}
       <div className="settings-list">
@@ -484,8 +471,8 @@ export function ProductSurface({
 }) {
   if (surface === "profile") return <Profile />;
   if (surface === "explore") return <Explore />;
-  if (surface === "marketplace") return <Marketplace />;
-  if (surface === "studio") return <Studio />;
+  if (surface === "marketplace") return <Explore />;
+  if (surface === "studio") return <Explore studio />;
   if (surface === "settings") return <Settings />;
   if (surface === "notifications") return <Notifications empty={mode === "new"} />;
   return <Help />;

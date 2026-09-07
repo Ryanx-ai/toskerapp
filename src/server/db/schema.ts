@@ -297,6 +297,7 @@ export const messages = pgTable(
       .defaultNow()
       .notNull(),
     editedAt: timestamp("edited_at", { withTimezone: true }),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
   },
   (table) => [
     index("messages_conversation_order_idx").on(
@@ -306,6 +307,12 @@ export const messages = pgTable(
     ),
   ],
 );
+
+export const messageReactions = pgTable("message_reactions", {
+  messageId: uuid("message_id").notNull().references(() => messages.id, { onDelete: "cascade" }),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  emoji: text("emoji").notNull(),
+}, (table) => [primaryKey({ columns: [table.messageId, table.userId, table.emoji] })]);
 
 export const hallItems = pgTable(
   "hall_items",
@@ -351,6 +358,12 @@ export const hallComments = pgTable("hall_comments", {
   body: text("body").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 }, (table) => [index("hall_comments_item_idx").on(table.itemId, table.createdAt)]);
+
+export const hallCommentReactions = pgTable("hall_comment_reactions", {
+  commentId: uuid("comment_id").notNull().references(() => hallComments.id, { onDelete: "cascade" }),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  emoji: text("emoji").notNull(),
+}, (table) => [primaryKey({ columns: [table.commentId, table.userId, table.emoji] })]);
 
 export const hallReactions = pgTable("hall_reactions", {
   itemId: uuid("item_id").notNull().references(() => hallItems.id, { onDelete: "cascade" }),

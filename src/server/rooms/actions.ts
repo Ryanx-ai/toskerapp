@@ -20,7 +20,7 @@ import {
   subrooms,
 } from "@/server/db/schema";
 
-const allowedTags = new Set(["TRIP", "EVENT", "WORK", "GAMING", "FAMILY", "ROOM"]);
+import { normalizeRoomTags } from "@/lib/room-tags";
 const allowedCapabilities = new Set(["Poll", "Schedule", "Map", "Board"]);
 
 function roomSlug(name: string) {
@@ -51,7 +51,7 @@ export async function createRoomAction(input: CreateRoomInput) {
   const actor = await requireCurrentActor();
   const name = input.name.trim().replace(/\s+/g, " ");
   if (!name || name.length > 80) throw new Error("Enter a Room name up to 80 characters.");
-  const tags = [...new Set(input.tags)].filter((tag) => allowedTags.has(tag)).slice(0, 5);
+  const tags = normalizeRoomTags(input.tags);
   const capabilities = [...new Set(input.capabilities)].filter((item) => allowedCapabilities.has(item));
   const token = createInviteToken();
   const tokenHash = hashInviteToken(token);

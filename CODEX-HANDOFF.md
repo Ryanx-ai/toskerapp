@@ -4,7 +4,18 @@ Repository and Git are authoritative. Read this file first when resuming develop
 
 ## Current milestone
 
-MS5 — Identity + Persistence + Real Chat — **COMPLETE / SAVED / LOCKED**. Founder walkthrough passed foundational two-user messaging. Founder-polish implementation, validation, commit, push, canonical deployment and authenticated live smoke are complete. Do not begin MS6.
+MS6A — Foundational UX / core interaction debt — **LOCAL RELEASE GATE PASSED; RELEASE VERIFICATION NEXT** (2026-09-07).
+
+- Resumed the authoritative WIP at `f38808a`; did not reset, recreate or discard it. Main matched origin/main before the release commit. Previous low-usage STOP instructions were superseded by the founder's PRO continuation.
+- Current patch includes durable actor-scoped Chat and Hall-comment reactions, existing-model own edit/delete/replies, Hall editor/modal/reorder, Friends-first Chat creation, custom Room tags, parent-first Room/Subroom navigation and Explore consolidation.
+- Explore is the actual umbrella: Gizmo/future-community discovery at `/explore`, Create / Studio previews at `/explore/create`, shared section navigation. Legacy redirects are only bookmark compatibility, not the IA. No commerce or Developer backend.
+- Additive migration `0010_handy_argent.sql` already applied to Development: message tombstones and two reaction tables; 11 migrations/44 foreign keys verified.
+- Fresh TypeScript, ESLint, production build, MS6A database acceptance, schema verification and invariant audit pass. Two-user reaction/Hall persistence, full-card drag, parent return and restricted deep-link denial passed. Detailed evidence/limits: `docs/MS6A-CLOSEOUT.md`; historical recovery: `docs/MS6A-WIP-CHECKPOINT.md`.
+- Final QA fixes: right-click menu no longer disappears on release; failed sends retain their reply target; short composer placeholder avoids narrow-screen clipping; Create / Studio banner links back to discovery.
+- Exact next action: finish built-app smoke, commit the validated MS6A patch, push main, verify canonical READY and authenticated smoke; update release evidence, then STOP for founder review.
+- The temporary `MS6A Browser QA` fixture remains for live verification only; remove only its validated Room/conversation fixture after testing. Never delete founder content.
+- Browser limits: physical iOS/Android keyboard/long-press and native browser zoom not exercised. Equivalent 200% layout (720×450) passed. Clipboard API write succeeded with expected text; automated read/paste remains restricted. Auth/proxy unchanged; fresh B reloads stayed signed in, while A's automation session twice returned to a blank browser and required normal reauthentication.
+- **No MS6B/realtime until founder review and lock. Keep the existing 12-second polling bridge. No new realtime provider, websocket/SSE, media storage, native, AI, Gizmo SDK or ToskerWeb. `toskerArt/` stays untouched/untracked.**
 
 ## Checkpoints
 
@@ -50,9 +61,9 @@ Responsive Hall checks passed at 320/375/390/430/768/1024/1440/1728 widths witho
 
 Polling remains the actual **12-second** bridge, with hidden-tab/in-flight guards and timer/listener cleanup. Media upload is intentionally deferred: nullable fields and safe same-origin renderer exist, but Photo explains unavailability. No storage was provisioned.
 
-## Known MS6 debt
+## Deferred MS6B debt
 
-MS6: realtime, typing, reconnect/reconciliation and realtime communication reliability. Manual presence is the compatibility contract; do not add heartbeat writes or more polling.
+MS6B (NOT authorized in this pass): realtime, typing, reconnect/reconciliation and realtime communication reliability. Manual presence is the compatibility contract; do not add heartbeat writes or more polling.
 
 Later: native mobile, persistent media/object storage, broader optimization, deeper Hall refinement and Tosker Art integration. Other unbuilt capabilities remain outside this lock.
 
@@ -62,4 +73,4 @@ Later: native mobile, persistent media/object storage, broader optimization, dee
 2. Preserve completed checkpoint commits; do not squash or amend prior milestones.
 3. Treat the canonical deployment as the MS5 Development prototype with accepted foundational communication.
 4. Do not touch `toskerArt/`.
-5. MS5 is locked. Do not begin MS6. Separately requested post-release art feasibility is documentation only; no integration or art generation.
+5. MS5 is locked; MS6A uncommitted work is paused at the interrupted-work checkpoint above. Wait for founder instruction before resuming. Do not begin MS6B. Art feasibility is documentation only; no integration or art generation.

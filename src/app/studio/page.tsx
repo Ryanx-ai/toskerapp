@@ -1,2 +1,2 @@
-import { MessagingApp } from "@/components/messaging-app";
-export default function StudioPage() { return <MessagingApp workspace="studio" />; }
+import { redirect } from "next/navigation";
+export default function StudioPage() { redirect("/explore/create"); }

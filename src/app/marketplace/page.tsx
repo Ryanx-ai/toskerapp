@@ -1,2 +1,2 @@
-import { MessagingApp } from "@/components/messaging-app";
-export default function MarketplacePage() { return <MessagingApp workspace="marketplace" />; }
+import { redirect } from "next/navigation";
+export default function MarketplacePage() { redirect("/explore#community"); }

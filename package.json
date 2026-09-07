@@ -17,6 +17,7 @@
     "db:verify-chat": "NODE_OPTIONS=--conditions=react-server dotenv -e .env.local -- tsx scripts/verify-chat.ts",
     "db:verify-shared": "NODE_OPTIONS=--conditions=react-server dotenv -e .env.local -- tsx scripts/verify-shared-state.ts",
     "db:verify-hall": "NODE_OPTIONS=--conditions=react-server dotenv -e .env.local -- tsx scripts/verify-hall-polish.ts",
+    "db:verify-ms6a": "NODE_OPTIONS=--conditions=react-server dotenv -e .env.local -- tsx scripts/verify-ms6a.ts",
     "db:audit-ms5": "dotenv -e .env.local -- node scripts/audit-ms5.mjs",
     "db:seed-subrooms": "dotenv -e .env.local -- node scripts/seed-subrooms.mjs"
   },

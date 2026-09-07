@@ -16,6 +16,10 @@ export type Message = {
   attachment?: { type: "image" | "file"; name: string; meta: string };
   replyTo?: string;
   reactions?: string[];
+  reactionSummary?: import("@/lib/reaction-contract").ReactionSummary[];
+  editedAt?: string | null;
+  deletedAt?: string | null;
+  replyToId?: string | null;
 };
 
 export type Conversation = {

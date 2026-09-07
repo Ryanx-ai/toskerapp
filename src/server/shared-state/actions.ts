@@ -7,7 +7,7 @@ import { requireRoomMember } from "@/server/auth/authorize";
 import { requireCurrentActor } from "@/server/auth/clerk";
 import { getDatabase } from "@/server/db/client";
 import { conversationParticipants, conversations, hallItems, messages, notifications, profiles, roomCapabilities, rooms } from "@/server/db/schema";
-import { addHallComment, hallScope, listHallComments, moveHallItem, setHallReaction } from "@/server/hall/service";
+import { addHallComment, editHallNote, hallScope, listHallComments, moveHallItem, setCommentReaction, setHallReaction } from "@/server/hall/service";
 import type { HallReaction } from "@/lib/hall-contract";
 
 const allowedCapabilities = new Set(["Poll", "Schedule", "Map", "Board"]);
@@ -25,7 +25,8 @@ export async function listHallItemsAction(conversationId: string) {
   const scope = await hallScope(db, actor, conversationId);
   const rows = await db
     .select({ id: hallItems.id, kind: hallItems.kind, title: hallItems.title, body: hallItems.body, sourceBody: messages.body, sourceMessageId: hallItems.sourceMessageId, author: profiles.displayName, createdAt: hallItems.createdAt, color: hallItems.color, position: hallItems.position, archivedAt: hallItems.archivedAt,
-      imagePath: hallItems.imagePath, imageAlt: hallItems.imageAlt,
+      imagePath: hallItems.imagePath, imageAlt: hallItems.imageAlt, authorId: hallItems.authorId,
+      sourceDeletedAt: messages.deletedAt,
       commentCount: sql<number>`(select count(*)::int from hall_comments where item_id = ${hallItems.id})`,
       reactions: sql<Array<{ reaction: HallReaction; count: number; mine: boolean }>>`coalesce((select json_agg(r) from (select reaction, count(*)::int as count, bool_or(user_id = ${actor.userId}) as mine from hall_reactions where item_id = ${hallItems.id} group by reaction) r), '[]'::json)`,
     })
@@ -34,7 +35,7 @@ export async function listHallItemsAction(conversationId: string) {
     .leftJoin(messages, eq(messages.id, hallItems.sourceMessageId))
     .where(and(isNull(hallItems.archivedAt), scope))
     .orderBy(asc(hallItems.position), asc(hallItems.createdAt), asc(hallItems.id));
-  return rows.map((item) => ({ ...item, body: item.body ?? item.sourceBody ?? "", createdAt: item.createdAt.toISOString(), archivedAt: item.archivedAt?.toISOString() ?? null }));
+  return rows.map((item) => ({ ...item, sourceDeletedAt: undefined, body: item.sourceDeletedAt ? "Message deleted" : item.body ?? item.sourceBody ?? "", createdAt: item.createdAt.toISOString(), archivedAt: item.archivedAt?.toISOString() ?? null }));
 }
 
 export async function createHallNoteAction(input: { conversationId: string; title: string; body: string }) {
@@ -59,7 +60,7 @@ export async function pinMessageToHallAction(input: { conversationId: string; me
   const actor = await requireCurrentActor();
   const { db, roomId } = await roomForConversation(input.conversationId);
   await hallScope(db, actor, input.conversationId);
-  const [message] = await db.select({ id: messages.id }).from(messages).where(and(eq(messages.id, input.messageId), eq(messages.conversationId, input.conversationId))).limit(1);
+  const [message] = await db.select({ id: messages.id }).from(messages).where(and(eq(messages.id, input.messageId), eq(messages.conversationId, input.conversationId), isNull(messages.deletedAt))).limit(1);
   if (!message) throw new Error("Message not found in this Room.");
   const [created] = await db.insert(hallItems).values({ roomId, conversationId: input.conversationId, kind: "pinned_message", authorId: actor.userId, title: "Pinned from Chat", sourceMessageId: message.id }).onConflictDoNothing().returning({ id: hallItems.id });
   if (created && roomId) {
@@ -100,6 +101,14 @@ export async function addHallCommentAction(input: { conversationId: string; item
 
 export async function setHallReactionAction(input: { conversationId: string; itemId: string; reaction: HallReaction; active: boolean }) {
   await setHallReaction(getDatabase(), await requireCurrentActor(), input);
+}
+
+export async function setCommentReactionAction(input: { conversationId: string; itemId: string; commentId: string; emoji: string; active: boolean }) {
+  await setCommentReaction(getDatabase(), await requireCurrentActor(), input);
+}
+
+export async function editHallNoteAction(input: { conversationId: string; itemId: string; title: string; body: string }) {
+  await editHallNote(getDatabase(), await requireCurrentActor(), input);
 }
 
 export async function archiveHallNoteAction(input: { conversationId: string; itemId: string }) {

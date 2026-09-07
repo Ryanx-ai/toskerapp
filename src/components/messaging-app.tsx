@@ -2,6 +2,8 @@
 /* eslint-disable react/no-unescaped-entities */
 
 import Image from "next/image";
+import { ModalLayer } from "./modal-layer";
+import { DEFAULT_ROOM_TAGS, normalizeRoomTags } from "@/lib/room-tags";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
@@ -41,9 +43,7 @@ import {
   Plus,
   Search,
   Settings,
-  ShoppingBag,
   UsersRound,
-  WandSparkles,
   X,
 } from "lucide-react";
 
@@ -53,8 +53,6 @@ type NotificationActivity = Awaited<ReturnType<typeof listNotificationsAction>>[
 const nav = [
   { label: "Explore", icon: Compass, href: "/explore" },
   { label: "Friends", icon: UsersRound, href: "/friends" },
-  { label: "Marketplace", icon: ShoppingBag, href: "/marketplace" },
-  { label: "Studio", icon: WandSparkles, href: "/studio" },
 ];
 function PresenceMark({ status, label = true }: { status?: "online" | "idle" | "away" | "meeting"; label?: boolean }) {
   if (!status) return null;
@@ -96,7 +94,7 @@ const friends = [
   },
 ];
 const things = ["Poll", "Schedule", "Map", "Board"];
-const roomTags = ["TRIP", "EVENT", "WORK", "GAMING", "FAMILY"];
+const roomTags = DEFAULT_ROOM_TAGS;
 const COLLAPSE_KEY = "tosker.sidebar.collapsed";
 const collapseStore = {
   subscribe(listener: () => void) {
@@ -483,8 +481,7 @@ function AppSidebar({
       context: chat.tid,
       messages: chat.messages,
     }));
-  const expandedParent = selected?.kind === "room" ? selected.slug.split("--")[0] : null;
-  const visibleServerSubrooms = expandedParent ? serverSubrooms.filter((item) => item.slug.startsWith(`${expandedParent}--`)) : [];
+  const visibleServerSubrooms = !workspace || selected ? serverSubrooms : [];
   const all = [...standard, ...serverChats, ...serverRooms, ...visibleServerSubrooms, ...(identity ? [] : localChats), ...(identity ? [] : localRooms)].filter(
     (item) => Boolean(identity) || !state.archived.includes(item.slug),
   );
@@ -499,7 +496,7 @@ function AppSidebar({
       : state.order.indexOf(item.slug) < 0
         ? Number.MAX_SAFE_INTEGER
         : state.order.indexOf(item.slug);
-  const ordered = [...filtered].sort((a, b) =>
+  const orderedRoots = [...filtered.filter((item) => !item.slug.includes("--"))].sort((a, b) =>
     a.kind === "my-room"
       ? -1
       : b.kind === "my-room"
@@ -509,6 +506,14 @@ function AppSidebar({
           (latestActivityByConversation[b.databaseId ?? ""] ?? "").localeCompare(latestActivityByConversation[a.databaseId ?? ""] ?? "") ||
           rank(a) - rank(b),
   );
+  const ordered = orderedRoots.flatMap((item) => [item, ...visibleServerSubrooms.filter((child) => child.slug.startsWith(`${item.slug}--`) && (!query || filtered.some((result) => result.slug === child.slug)))]);
+  // A matching child keeps its parent context, even when only the child name matches.
+  if (query) for (const child of filtered.filter((item) => item.slug.includes("--"))) {
+    if (ordered.some((item) => item.slug === child.slug)) continue;
+    const parent = serverRooms.find((item) => child.slug.startsWith(`${item.slug}--`));
+    if (parent && !ordered.some((item) => item.slug === parent.slug)) ordered.push(parent);
+    ordered.push(child);
+  }
   return (
     <aside className="messenger-sidebar">
       <div className="sidebar-brand">
@@ -548,9 +553,9 @@ function AppSidebar({
               href={item.href}
               aria-label={item.label}
               aria-current={
-                workspace === item.label.toLowerCase() ? "page" : undefined
+                (workspace === "studio" || workspace === "marketplace" ? "explore" : workspace) === item.label.toLowerCase() ? "page" : undefined
               }
-              className={`product-nav-item ${workspace === item.label.toLowerCase() ? "active" : ""}`}
+              className={`product-nav-item ${(workspace === "studio" || workspace === "marketplace" ? "explore" : workspace) === item.label.toLowerCase() ? "active" : ""}`}
             >
               <span>
                 <Icon size={17} />
@@ -611,7 +616,7 @@ function AppSidebar({
               pinned={!identity && state.pinned.includes(item.slug)}
               onDropItem={identity ? () => undefined : prototypeStore.reorder}
               displayName={user.displayName}
-              unread={item.databaseId ? unreadByConversation[item.databaseId] : undefined}
+              unread={(item.databaseId ? unreadByConversation[item.databaseId] ?? 0 : 0) + (item.kind === "room" && !item.slug.includes("--") ? serverSubrooms.filter((child) => child.slug.startsWith(`${item.slug}--`)).reduce((sum, child) => sum + (unreadByConversation[child.databaseId!] ?? 0), 0) : 0)}
             />
           ))}
           {query && ordered.length === 0 ? (
@@ -759,19 +764,19 @@ function NicknameDialog({ target, onClose, onSaved }: { target: { id: string; na
   const ref = useRef<HTMLElement>(null);
   useDismissLayer(true, onClose, ref);
   const save = async () => { setSaving(true); setError(null); try { if (value.trim()) await setConnectionNicknameAction({ connectionId: target.id, nickname: value }); else await removeConnectionNicknameAction(target.id); await onSaved(); onClose(); } catch { setError("Could not save that nickname."); } finally { setSaving(false); } };
-  return <div className="overlay-backdrop"><section ref={ref} className="identity-dialog" role="dialog" aria-modal="true" aria-labelledby="nickname-title"><button className="overlay-close" onClick={onClose} aria-label="Close"><X size={17} /></button><p className="eyebrow">Private nickname</p><h2 id="nickname-title">{target.name}</h2><p>Only you will see this name.</p><label className="invite-link">Nickname<input value={value} maxLength={60} onChange={(event) => setValue(event.target.value)} placeholder="e.g. Army Jon" /></label><div className="overlay-actions"><button className="primary-action" disabled={saving} onClick={save}>{saving ? "Saving…" : "Save nickname"}</button><button onClick={onClose}>Cancel</button></div>{error ? <p className="composer-error" role="alert">{error}</p> : null}</section></div>;
+  return <ModalLayer onClose={onClose}><section ref={ref} className="identity-dialog" role="dialog" aria-modal="true" aria-labelledby="nickname-title"><button className="overlay-close" onClick={onClose} aria-label="Close"><X size={17} /></button><p className="eyebrow">Private nickname</p><h2 id="nickname-title">{target.name}</h2><p>Only you will see this name.</p><label className="invite-link">Nickname<input value={value} maxLength={60} onChange={(event) => setValue(event.target.value)} placeholder="e.g. Army Jon" /></label><div className="overlay-actions"><button className="primary-action" disabled={saving} onClick={save}>{saving ? "Saving…" : "Save nickname"}</button><button onClick={onClose}>Cancel</button></div>{error ? <p className="composer-error" role="alert">{error}</p> : null}</section></ModalLayer>;
 }
 
 function FriendNamecard({ profile, onClose, onMessage }: { profile: (typeof friends)[number]; onClose: () => void; onMessage: () => void }) {
   const ref = useRef<HTMLElement>(null);
   useDismissLayer(true, onClose, ref);
   return (
-    <div className="overlay-backdrop">
+    <ModalLayer onClose={onClose}>
       <section ref={ref} className="identity-dialog" role="dialog" aria-modal="true" aria-label={`${profile.name} Namecard`}>
         <button className="overlay-close" onClick={onClose} aria-label="Close"><X size={17} /></button>
         <IdentityCard label="Friend" profile={profile} action={<button onClick={onMessage}>Message</button>} />
       </section>
-    </div>
+    </ModalLayer>
   );
 }
 
@@ -795,7 +800,7 @@ function InviteOverlay({
   const invitePath = token ? `/join/${token}` : "";
   const inviteUrl = token && typeof window !== "undefined" ? `${window.location.origin}${invitePath}` : "";
   return (
-    <div className="overlay-backdrop">
+    <ModalLayer onClose={onClose}>
       <section
         ref={panelRef}
         className="creation-panel invite-panel"
@@ -831,7 +836,7 @@ function InviteOverlay({
         </div>
         <small className="prototype-note">{error || "Secure invitation · Expires in 14 days"}</small>
       </section>
-    </div>
+    </ModalLayer>
   );
 }
 
@@ -872,7 +877,7 @@ function SubroomOverlay({ room, onClose }: { room: Conversation; onClose: () => 
     }
   };
   return (
-    <div className="overlay-backdrop">
+    <ModalLayer onClose={onClose}>
       <section ref={panelRef} className="creation-panel" role="dialog" aria-modal="true" aria-labelledby="subroom-title">
         <button className="overlay-close" onClick={onClose} aria-label="Close"><X size={17} /></button>
         <button className="overlay-back" onClick={onClose}><ArrowLeft size={16} /> Back</button>
@@ -903,7 +908,7 @@ function SubroomOverlay({ room, onClose }: { room: Conversation; onClose: () => 
         <div className="overlay-actions"><button className="primary-action" disabled={!name.trim() || saving} onClick={() => void create()}>{saving ? "Creating…" : "Create Subroom"}</button><button onClick={onClose}>Cancel</button></div>
         {error ? <p className="composer-error" role="alert">{error}</p> : null}
       </section>
-    </div>
+    </ModalLayer>
   );
 }
 
@@ -921,7 +926,8 @@ function CreationOverlay({
   const [name, setName] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [selectedThings, setThings] = useState<string[]>([]);
-  const [people, setPeople] = useState<string[]>([]);
+  const [customTag, setCustomTag] = useState("");
+  const [acceptedFriends, setAcceptedFriends] = useState<Awaited<ReturnType<typeof listConnectionsAction>>>([]);
   const user = useCurrentToskerUser() ?? prototypeUser;
   const [room, setRoom] = useState<{ slug: string; name: string; tags: string[]; inviteToken: string } | null>(null);
   const [saving, setSaving] = useState(false);
@@ -929,11 +935,16 @@ function CreationOverlay({
   const [friendQuery, setFriendQuery] = useState("");
   const [peopleResults, setPeopleResults] = useState<Array<{ userId: string; displayName: string; username: string; tid: string }>>([]);
   const [peopleSearching, setPeopleSearching] = useState(false);
-  const [invitee, setInvitee] = useState("");
   const [copied, setCopied] = useState(false);
   const panelRef = useRef<HTMLElement>(null);
   const close = useCallback(() => onClose(), [onClose]);
   useDismissLayer(true, close, panelRef, false);
+  useEffect(() => {
+    if (!identity) return;
+    let active = true;
+    listConnectionsAction().then((items) => { if (active) setAcceptedFriends(items.filter((item) => item.status === "accepted")); }).catch(() => { if (active) setSaveError("Friends couldn't be loaded. You can still search by name or TID."); });
+    return () => { active = false; };
+  }, [identity]);
   const startChat = (friend: (typeof friends)[number]) => {
     const chat = prototypeStore.createChat(friend);
     router.push(`/personal/${chat.slug}`);
@@ -945,11 +956,13 @@ function CreationOverlay({
     const timer = window.setTimeout(() => {
       findPeopleAction(friendQuery)
         .then((results) => active && setPeopleResults(results))
+        .catch(() => active && setSaveError("Search couldn't be completed. Try again."))
         .finally(() => active && setPeopleSearching(false));
     }, 180);
     return () => { active = false; window.clearTimeout(timer); };
   }, [friendQuery, identity]);
   const startPersistentChat = async (userId: string) => {
+    if (saving) return;
     setSaving(true);
     setSaveError("");
     try {
@@ -964,14 +977,18 @@ function CreationOverlay({
     }
   };
   const finishRoom = async () => {
+    if (saving) return;
     setSaving(true);
     setSaveError("");
     try {
+      if (!identity) {
+        const created = prototypeStore.createRoom({ name, tags, things: selectedThings });
+        router.push(`/room/${created.slug}`); onClose(); return;
+      }
       const created = await createRoomAction({
         name,
         tags,
         capabilities: selectedThings,
-        recipientHint: people[0] ?? null,
       });
       setRoom(created);
       setStep(5);
@@ -983,16 +1000,17 @@ function CreationOverlay({
     }
   };
   const nextRoom = () => {
-    if (step === 4) void finishRoom();
+    if (step === 3) void finishRoom();
     else setStep((current) => current + 1);
   };
   return (
-    <div className="overlay-backdrop">
+    <ModalLayer onClose={onClose} dismissOutside={false}>
       <section
         ref={panelRef}
         className="creation-panel"
         role="dialog"
         aria-modal="true"
+        aria-label={mode === "chat" ? "Start Chat" : mode === "room" ? "Create Room" : "Create"}
       >
         <button className="overlay-close" onClick={onClose} aria-label="Close">
           <X size={17} />
@@ -1050,7 +1068,13 @@ function CreationOverlay({
               />
             </label>
             <div className="friend-list compact">
-              {identity ? peopleResults.map((person) => (
+              {identity && friendQuery.trim().length < 2 ? <>
+                <h3 className="contact-list-label">Friends</h3>
+                {acceptedFriends.map(({ id, person }) => person ? <article key={id}><span className="avatar avatar-pink">{person.displayName.slice(0, 2).toUpperCase()}</span><div><strong>{person.nickname || person.displayName}</strong><small>@{person.username}</small></div><button disabled={saving} onClick={() => void startPersistentChat(person.userId)}>Chat</button></article> : null)}
+                {!acceptedFriends.length ? <p>No Friends yet. Search by name or TID.</p> : null}
+                {identity.personalConversations.length ? <><h3 className="contact-list-label">Your conversations</h3>{identity.personalConversations.map((chat) => <Link className="recent-chat-link" key={chat.slug} href={`/personal/${chat.slug}`} onClick={onClose}>{chat.nickname || chat.displayName}</Link>)}</> : null}
+              </> : null}
+              {identity ? (friendQuery.trim().length >= 2 ? peopleResults : []).map((person) => (
                 <article key={person.userId}>
                   <span className="avatar avatar-pink">{person.displayName.split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase()}</span>
                   <div><strong>{person.displayName}</strong><small>@{person.username} · {person.tid}</small></div>
@@ -1086,7 +1110,7 @@ function CreationOverlay({
           <>
             <div className="wizard-progress">
               <span>Room</span>
-              <b>{step < 5 ? `${step} / 4` : "Ready"}</b>
+              <b>{step < 5 ? `${step} / 3` : "Ready"}</b>
             </div>
             {step === 1 ? (
               <>
@@ -1113,10 +1137,12 @@ function CreationOverlay({
                 <h2>Add tags</h2>
                 <p>Optional. Keep it easy to spot.</p>
                 <div className="option-grid tags">
-                  {roomTags.map((tag, index) => (
+                  {[...new Set([...roomTags, ...tags])].map((tag, index) => (
                     <button
                       autoFocus={index === 0}
                       className={tags.includes(tag) ? "active" : ""}
+                      aria-pressed={tags.includes(tag)}
+                      disabled={tags.length >= 5 && !tags.includes(tag)}
                       onClick={() =>
                         setTags((current) =>
                           current.includes(tag)
@@ -1130,6 +1156,10 @@ function CreationOverlay({
                     </button>
                   ))}
                 </div>
+                <div className="custom-tag-field"><input aria-label="Custom tag" placeholder="Custom tag" maxLength={24} value={customTag} onChange={(event) => setCustomTag(event.target.value)} /><button disabled={!customTag.trim() || tags.length >= 5} onClick={() => {
+                  try { setTags(normalizeRoomTags([...tags, customTag])); setCustomTag(""); setSaveError(""); }
+                  catch { setSaveError("Use up to five tags, 24 characters each."); }
+                }}>Add tag</button></div>
               </>
             ) : null}
             {step === 3 ? (
@@ -1152,76 +1182,6 @@ function CreationOverlay({
                     >
                       {thing}
                     </button>
-                  ))}
-                </div>
-              </>
-            ) : null}
-            {step === 4 ? (
-              <>
-                <h2>Add people</h2>
-                <p>Optional. Add a friend, username or TID.</p>
-                <div className="invite-person-field">
-                  <input
-                    value={invitee}
-                    onChange={(event) => setInvitee(event.target.value)}
-                    placeholder="Username or TID"
-                    aria-label="Invite by username or TID"
-                    onKeyDown={(event) => {
-                      if (event.key !== "Enter" || !invitee.trim()) return;
-                      event.preventDefault();
-                      setPeople((current) => current.includes(invitee.trim()) ? current : [...current, invitee.trim()]);
-                      setInvitee("");
-                    }}
-                  />
-                  <button
-                    disabled={!invitee.trim()}
-                    onClick={() => {
-                      const value = invitee.trim();
-                      if (!value) return;
-                      setPeople((current) => current.includes(value) ? current : [...current, value]);
-                      setInvitee("");
-                    }}
-                  >Add</button>
-                </div>
-                <div className="invited-identifiers" aria-label="Added invitations">
-                  {people
-                    .filter((person) => !friends.some((friend) => friend.tid === person))
-                    .map((person) => (
-                      <button
-                        key={person}
-                        onClick={() => setPeople((current) => current.filter((item) => item !== person))}
-                        aria-label={`Remove ${person}`}
-                      >
-                        {person} <X size={13} aria-hidden="true" />
-                      </button>
-                    ))}
-                </div>
-                <div className="friend-list compact">
-                  {friends.map((friend, index) => (
-                    <article key={friend.tid}>
-                      <span className={`avatar avatar-${friend.color}`}>
-                        {friend.initials}
-                      </span>
-                      <div>
-                        <strong>{friend.name}</strong>
-                        <small>{friend.username}</small>
-                      </div>
-                      <button
-                        autoFocus={index === 0}
-                        className={
-                          people.includes(friend.tid) ? "selected" : ""
-                        }
-                        onClick={() =>
-                          setPeople((current) =>
-                            current.includes(friend.tid)
-                              ? current.filter((item) => item !== friend.tid)
-                              : [...current, friend.tid],
-                          )
-                        }
-                      >
-                        {people.includes(friend.tid) ? "Added" : "Add"}
-                      </button>
-                    </article>
                   ))}
                 </div>
               </>
@@ -1269,7 +1229,7 @@ function CreationOverlay({
                 >
                   {step === 1
                     ? "Next"
-                    : step === 4
+                    : step === 3
                       ? saving ? "Creating…" : "Create Room"
                       : "Next"}
                 </button>
@@ -1279,7 +1239,7 @@ function CreationOverlay({
           </>
         ) : null}
       </section>
-    </div>
+    </ModalLayer>
   );
 }
 
@@ -1396,6 +1356,8 @@ export function MessagingApp({
   const serverRoom = identity?.rooms.find((room) => room.slug === selectedSlug);
   const serverSubroom = identity?.rooms.flatMap((room) => room.subrooms.map((subroom) => ({ parent: room, subroom }))).find(({ parent, subroom }) => `${parent.slug}--${subroom.id}` === selectedSlug);
   const serverChat = identity?.personalConversations.find((chat) => chat.slug === selectedSlug);
+  const contextRoom = serverRoom ?? serverSubroom?.parent;
+  const parentConversation: Conversation | undefined = contextRoom ? { slug: contextRoom.slug, name: contextRoom.name, kind: "room", initials: contextRoom.name.slice(0, 2), color: "green", preview: "", time: "", context: "", messages: [], databaseId: contextRoom.conversationId } : undefined;
   const selected =
     (identity && authenticatedCanonical?.kind !== "my-room" ? undefined : authenticatedCanonical) ??
     (serverSubroom
@@ -1507,6 +1469,7 @@ export function MessagingApp({
               surface={surface}
               onAdd={() => setOverlay("add")}
               onInvite={() => setOverlay("invite")}
+              onAddSubroom={contextRoom?.role === "owner" ? () => setOverlay("subroom") : undefined}
               chatUnread={unreadForSurface("message")}
               hallUnread={unreadForSurface("hall")}
             />
@@ -1555,13 +1518,13 @@ export function MessagingApp({
         <CreationOverlay initial={overlay} onClose={() => setOverlay(null)} />
       ) : null}
       {overlay === "invite" && selected?.kind === "room" ? (
-        <InviteOverlay room={selected} onClose={() => setOverlay(null)} />
+        <InviteOverlay room={parentConversation ?? selected} onClose={() => setOverlay(null)} />
       ) : null}
       {overlay === "subroom" && selected?.kind === "room" && identity ? (
-        <SubroomOverlay room={selected} onClose={() => setOverlay(null)} />
+        <SubroomOverlay room={parentConversation ?? selected} onClose={() => setOverlay(null)} />
       ) : null}
       {overlay === "add" ? (
-        <div className="overlay-backdrop">
+        <ModalLayer onClose={() => setOverlay(null)}>
           <section ref={addPanelRef} className="creation-panel" role="dialog" aria-modal="true" aria-labelledby="add-title">
             <button
               className="overlay-close"
@@ -1573,23 +1536,18 @@ export function MessagingApp({
             <h2 id="add-title">Add something</h2>
             <p>Add to this space.</p>
             <div className="option-grid">
-              {[...things, "Photo Wall", "Subroom"].map((item, index) => {
-                const isSubroom = item === "Subroom";
-                const installed = !isSubroom && (serverRoom?.capabilities.includes(item) ?? prototypeRoom?.things.includes(item) ?? false);
+              {[...things, "Photo Wall"].map((item, index) => {
+                const installed = contextRoom?.capabilities.includes(item) ?? prototypeRoom?.things.includes(item) ?? false;
                 const supported = things.includes(item);
                 return (
                 <button
                   autoFocus={index === 0}
                   key={item}
                   className={installed ? "active" : ""}
-                  disabled={isSubroom ? selected?.kind !== "room" || !identity : installed || selected?.kind !== "room" || Boolean(identity && !supported)}
+                  disabled={installed || selected?.kind !== "room" || Boolean(identity && !supported)}
                   aria-label={`${item}${installed ? ", Added" : ""}`}
                   onClick={async () => {
                     if (!selected || selected.kind !== "room") return;
-                    if (isSubroom) {
-                      setOverlay("subroom");
-                      return;
-                    }
                     if (identity && selected.databaseId) {
                       await installRoomCapabilityAction({ conversationId: selected.databaseId, capability: item });
                       router.refresh();
@@ -1602,7 +1560,7 @@ export function MessagingApp({
               );})}
             </div>
           </section>
-        </div>
+        </ModalLayer>
       ) : null}
       {toast ? <button className="activity-toast" onClick={() => { router.push(activityHref(toast)); setToast(null); }} aria-label="Open new activity"><strong>{toast.actorName ?? "Someone"}</strong><span>{toast.type === "message" ? (toast.messageBody || "New message") : toast.type === "connection_request" ? "sent you a friend request" : toast.type === "connection_accepted" ? "accepted your friend request" : "updated Hall"}</span></button> : null}
     </main>

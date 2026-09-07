@@ -1,4 +1,4 @@
-export const APP_VERSION = "MS-5.0.1";
+export const APP_VERSION = "MS6A";
 export const BUILD_LABEL = "Dev Proto";
 
 export const APP_VERSION_LABEL = `Version ${APP_VERSION} - ${BUILD_LABEL}`;

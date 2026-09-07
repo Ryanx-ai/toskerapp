@@ -1,12 +1,15 @@
 "use server";
 
-import { and, desc, eq, ilike, lt, ne, or } from "drizzle-orm";
+import { and, desc, eq, ilike, isNull, lt, ne, or, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 import { requireConversationParticipant } from "@/server/auth/authorize";
 import { requireCurrentActor } from "@/server/auth/clerk";
 import { getDatabase } from "@/server/db/client";
 import { conversationParticipants, conversationReads, conversations, messages, notifications, profiles, users } from "@/server/db/schema";
+import { hallScope } from "@/server/hall/service";
+import { changeOwnMessage, setMessageReaction } from "./service";
+import type { ReactionSummary } from "@/lib/reaction-contract";
 
 export type PersistentMessage = {
   id: string;
@@ -15,6 +18,11 @@ export type PersistentMessage = {
   body: string;
   createdAt: string;
   mine: boolean;
+  editedAt: string | null;
+  deletedAt: string | null;
+  replyToId: string | null;
+  replyTo: string | null;
+  reactionSummary: ReactionSummary[];
 };
 
 export async function listMessagesAction(
@@ -23,7 +31,7 @@ export async function listMessagesAction(
 ) {
   const actor = await requireCurrentActor();
   const db = getDatabase();
-  await requireConversationParticipant(db, actor, conversationId);
+  await hallScope(db, actor, conversationId);
   const boundary = before
     ? or(
         lt(messages.createdAt, new Date(before.createdAt)),
@@ -31,7 +39,11 @@ export async function listMessagesAction(
       )
     : undefined;
   const rows = await db
-    .select({ id: messages.id, author: profiles.displayName, authorId: messages.authorId, body: messages.body, createdAt: messages.createdAt })
+    .select({ id: messages.id, author: profiles.displayName, authorId: messages.authorId, body: messages.body, createdAt: messages.createdAt,
+      editedAt: messages.editedAt, deletedAt: messages.deletedAt, replyToId: messages.replyToId,
+      replyTo: sql<string | null>`(select case when m.deleted_at is not null then 'Message deleted' else left(m.body, 240) end from messages m where m.id = ${messages.replyToId} and m.conversation_id = ${conversationId})`,
+      reactionSummary: sql<ReactionSummary[]>`coalesce((select json_agg(r order by r.emoji) from (select emoji, count(*)::int as count, bool_or(mr.user_id = ${actor.userId}) as mine, array_agg(p.display_name order by p.display_name) as participants from message_reactions mr join profiles p on p.user_id = mr.user_id where message_id = ${messages.id} group by emoji) r), '[]'::json)`,
+    })
     .from(messages)
     .innerJoin(profiles, eq(profiles.userId, messages.authorId))
     .where(boundary ? and(eq(messages.conversationId, conversationId), boundary) : eq(messages.conversationId, conversationId))
@@ -39,21 +51,25 @@ export async function listMessagesAction(
     .limit(51);
   const page = rows.slice(0, 50).reverse();
   return {
-    messages: page.map((message) => ({ ...message, createdAt: message.createdAt.toISOString(), mine: message.authorId === actor.userId })) satisfies PersistentMessage[],
+    messages: page.map((message) => ({ ...message, body: message.deletedAt ? "Message deleted" : message.body, editedAt: message.editedAt?.toISOString() ?? null, deletedAt: message.deletedAt?.toISOString() ?? null, createdAt: message.createdAt.toISOString(), mine: message.authorId === actor.userId })) satisfies PersistentMessage[],
     nextCursor: rows.length > 50 && page[0] ? { createdAt: page[0].createdAt.toISOString(), id: page[0].id } : null,
   };
 }
 
-export async function sendMessageAction(input: { id: string; conversationId: string; body: string }) {
+export async function sendMessageAction(input: { id: string; conversationId: string; body: string; replyToId?: string }) {
   const actor = await requireCurrentActor();
   const body = input.body.trim();
   if (!/^[0-9a-f-]{36}$/i.test(input.id)) throw new Error("Invalid message id.");
   if (!body || body.length > 8_000) throw new Error("Enter a message up to 8,000 characters.");
   const db = getDatabase();
-  await requireConversationParticipant(db, actor, input.conversationId);
+  await hallScope(db, actor, input.conversationId);
+  if (input.replyToId) {
+    const [reply] = await db.select({ id: messages.id }).from(messages).where(and(eq(messages.id, input.replyToId), eq(messages.conversationId, input.conversationId), isNull(messages.deletedAt))).limit(1);
+    if (!reply) throw new Error("Reply target unavailable in this conversation.");
+  }
   const [created] = await db
     .insert(messages)
-    .values({ id: input.id, conversationId: input.conversationId, authorId: actor.userId, body })
+    .values({ id: input.id, conversationId: input.conversationId, authorId: actor.userId, body, replyToId: input.replyToId })
     .onConflictDoNothing()
     .returning({ createdAt: messages.createdAt });
   if (created) {
@@ -89,6 +105,14 @@ export async function markConversationReadAction(conversationId: string, surface
   await db.update(notifications)
     .set({ readAt: new Date() })
     .where(and(eq(notifications.userId, actor.userId), eq(notifications.conversationId, conversationId), or(...activityTypes.map((type) => eq(notifications.type, type)))));
+}
+
+export async function setMessageReactionAction(input: { conversationId: string; messageId: string; emoji: string; active: boolean }) {
+  await setMessageReaction(getDatabase(), await requireCurrentActor(), input);
+}
+
+export async function changeOwnMessageAction(input: { conversationId: string; messageId: string; body?: string; remove?: boolean }) {
+  await changeOwnMessage(getDatabase(), await requireCurrentActor(), input);
 }
 
 export async function findPeopleAction(query: string) {

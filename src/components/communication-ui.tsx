@@ -10,17 +10,21 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import { listMessagesAction, markConversationReadAction, sendMessageAction } from "@/server/conversations/actions";
-import { archiveHallNoteAction, changeHallItemColorAction, createHallNoteAction, listHallItemsAction, nukeHallNoteAction, pinMessageToHallAction, reorderHallItemAction, unpinHallItemAction } from "@/server/shared-state/actions";
+import { changeOwnMessageAction, listMessagesAction, markConversationReadAction, sendMessageAction, setMessageReactionAction } from "@/server/conversations/actions";
+import { archiveHallNoteAction, changeHallItemColorAction, createHallNoteAction, editHallNoteAction, listHallItemsAction, nukeHallNoteAction, pinMessageToHallAction, reorderHallItemAction, unpinHallItemAction } from "@/server/shared-state/actions";
 import {
   hallNotices,
   type Conversation,
   type Message,
 } from "@/data/messaging-data";
 import { prototypeUser } from "@/data/prototype-user";
-import { useCurrentToskerUser } from "@/components/tosker-identity";
+import { useCurrentToskerUser, useToskerIdentity } from "@/components/tosker-identity";
 import { prototypeStore } from "@/lib/prototype-store";
 import { HallNoteInteractions } from "@/components/hall-note-interactions";
+import { MessageBubble } from "./message-bubble";
+import { EmojiPicker } from "./emoji-picker";
+import { InteractionPopover } from "./interaction-popover";
+import { ModalLayer } from "./modal-layer";
 import type { HallReaction } from "@/lib/hall-contract";
 import {
   CalendarDays,
@@ -28,21 +32,19 @@ import {
   GripVertical,
   File,
   ImageIcon,
-  Laugh,
   MoreHorizontal,
   Paperclip,
   Phone,
   Plus,
-  Reply,
   Search,
-  Send,
+  ArrowUp,
+  ChevronDown,
   Settings,
   Smile,
   Video,
   X,
 } from "lucide-react";
 
-const reactions = ["❤️", "👍", "😂", "🔥", "✨", "👀"];
 const utilityCopy: Record<string, string> = {
   Search: "Search this conversation.",
   Voice: "Voice calls are coming later.",
@@ -72,6 +74,8 @@ export function useDismissLayer(
   }, [onClose]);
   useEffect(() => {
     if (!open) return;
+    // Native modal owns Escape, inertness, outside intent and focus restoration.
+    if (ref?.current?.closest("dialog")) return;
     const previousFocus = document.activeElement as HTMLElement | null;
     const outside = (event: PointerEvent) => {
       if (!ref?.current || !ref.current.contains(event.target as Node))
@@ -126,6 +130,7 @@ export function SurfaceHeader({
   surface,
   onAdd,
   onInvite,
+  onAddSubroom,
   chatUnread = 0,
   hallUnread = 0,
 }: {
@@ -133,10 +138,14 @@ export function SurfaceHeader({
   surface: "chat" | "hall";
   onAdd: () => void;
   onInvite?: () => void;
+  onAddSubroom?: () => void;
   chatUnread?: number;
   hallUnread?: number;
 }) {
   const user = useCurrentToskerUser() ?? prototypeUser;
+  const identity = useToskerIdentity();
+  const parentRoom = conversation.kind === "room" ? identity?.rooms.find((room) => room.slug === conversation.slug.split("--")[0]) : undefined;
+  const [contextAnchor, setContextAnchor] = useState<HTMLElement | null>(null);
   const [panel, setPanel] = useState<string | null>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   useDismissLayer(Boolean(panel), () => setPanel(null), popoverRef);
@@ -178,9 +187,9 @@ export function SurfaceHeader({
           {conversation.initials}
         </span>
         <div className="active-copy">
-          <h2>{titleOf(conversation, user.displayName)}</h2>
+          {parentRoom ? <button className="room-context-trigger" aria-label={`Switch Room context: ${parentRoom.name}${conversation.tag === "SUBROOM" ? ` / ${conversation.name}` : ""}`} aria-haspopup="dialog" aria-expanded={Boolean(contextAnchor)} onClick={(event) => setContextAnchor(event.currentTarget)}><span>{parentRoom.name}</span><ChevronDown size={15} /></button> : <h2>{titleOf(conversation, user.displayName)}</h2>}
           {conversation.kind === "personal" && conversation.presenceStatus ? <span className="header-presence"><i className={`presence-mark ${conversation.presenceStatus}`} aria-label={{ online: "Online", idle: "Idle", away: "Away", meeting: "In a meeting" }[conversation.presenceStatus]} />{{ online: "Online", idle: "Idle", away: "Away", meeting: "In a meeting" }[conversation.presenceStatus]}</span> : null}
-          {conversation.kind === "room" && conversation.context ? <span>{conversation.context}</span> : null}
+          {conversation.kind === "room" && conversation.context ? <span>{parentRoom ? conversation.name : conversation.context}</span> : null}
         </div>
         {conversation.kind === "room" && onInvite ? (
           <button className="invite-button primary-action" onClick={onInvite}>
@@ -225,188 +234,15 @@ export function SurfaceHeader({
           {panel === "More" ? utilities.filter(([label]) => label !== "More").map(([label]) => <button key={label} onClick={() => setPanel(label)}>{label}</button>) : <><p>{utilityCopy[panel]}</p><button onClick={() => setPanel(null)}>Got it</button></>}
         </div>
       ) : null}
+      {contextAnchor && parentRoom ? <InteractionPopover anchor={contextAnchor} label="Room contexts" onClose={() => setContextAnchor(null)}><nav className="room-context-menu" aria-label="Room and Subrooms">
+        <Link href={`/room/${parentRoom.slug}`} aria-current={conversation.slug === parentRoom.slug ? "page" : undefined} onClick={() => setContextAnchor(null)}>{parentRoom.name}</Link>
+        {parentRoom.subrooms.map((child) => <Link key={child.id} className="context-child" href={`/room/${parentRoom.slug}/subroom/${child.id}`} aria-current={conversation.slug.endsWith(`--${child.id}`) ? "page" : undefined} onClick={() => setContextAnchor(null)}>{child.name}</Link>)}
+        {parentRoom.role === "owner" && onAddSubroom ? <><hr /><button onClick={() => { setContextAnchor(null); onAddSubroom(); }}><Plus size={15} />Add Subroom</button></> : null}
+      </nav></InteractionPopover> : null}
     </header>
   );
 }
 
-function MessageMenu({
-  message,
-  onReply,
-  onReact,
-  onDelete,
-  onPin,
-  onClose,
-}: {
-  message: Message;
-  onReply: () => void;
-  onReact: () => void;
-  onDelete?: () => void;
-  onPin?: () => void;
-  onClose: () => void;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
-  useDismissLayer(true, onClose, ref);
-  return (
-    <div ref={ref} className="context-menu message-context" role="menu">
-      <button onClick={onReply}>Reply</button>
-      <button onClick={onReact}>React</button>
-      <button
-        onClick={() => {
-          navigator.clipboard?.writeText(message.body);
-          onClose();
-        }}
-      >
-        Copy text
-      </button>
-      {onPin ? <button onClick={onPin}>Pin to Hall</button> : null}
-      {message.mine && onDelete ? (
-        <>
-          <hr />
-          <button className="danger" onClick={onDelete}>
-            Nuke message
-          </button>
-        </>
-      ) : null}
-    </div>
-  );
-}
-
-function MessageBubble({
-  message,
-  grouped = false,
-  onReply,
-  onReaction,
-  onDelete,
-  onPin,
-}: {
-  message: Message;
-  grouped?: boolean;
-  onReply: (message: Message) => void;
-  onReaction: (id: string, reaction: string) => void;
-  onDelete?: (id: string) => void;
-  onPin?: (message: Message) => void;
-}) {
-  const [translated, setTranslated] = useState(false);
-  const [menu, setMenu] = useState(false);
-  const [picker, setPicker] = useState(false);
-  const pickerRef = useRef<HTMLDivElement>(null);
-  useDismissLayer(picker, () => setPicker(false), pickerRef);
-  const showMenu = () => {
-    openLayer();
-    setPicker(false);
-    setMenu(true);
-  };
-  const showPicker = () => {
-    openLayer();
-    setMenu(false);
-    setPicker(true);
-  };
-  return (
-    <article
-      id={`message-${message.id}`}
-      className={`message-row ${message.mine ? "mine" : ""} ${grouped ? "is-grouped" : ""}`}
-      onContextMenu={(event) => {
-        event.preventDefault();
-        showMenu();
-      }}
-    >
-      {grouped ? <span className="message-avatar-spacer" aria-hidden="true" /> : <span className={`avatar avatar-${message.color} avatar-pattern`}>{message.initials}</span>}
-      <div className="message-column">
-        {!grouped ? <div className="message-author"><strong>{message.author}</strong><time>{message.time}</time></div> : null}
-        <div className="message-body-wrap">
-          <div className="message-bubble">
-            {message.replyTo ? (
-              <blockquote>{message.replyTo}</blockquote>
-            ) : null}
-            <p>{message.body}</p>
-            {message.attachment ? (
-              <div className="message-attachment">
-                <span>
-                  {message.attachment.type === "image" ? (
-                    <ImageIcon size={20} />
-                  ) : (
-                    <File size={20} />
-                  )}
-                </span>
-                <div>
-                  <strong>{message.attachment.name}</strong>
-                  <small>{message.attachment.meta}</small>
-                </div>
-              </div>
-            ) : null}
-            {message.translation ? (
-              <button
-                className="translate-button"
-                onClick={() => setTranslated((value) => !value)}
-              >
-                {translated ? "Hide translation" : "Translate"}
-              </button>
-            ) : null}
-            {translated ? (
-              <div className="translation">
-                <p>{message.translation}</p>
-                <span>Translated from {message.language}</span>
-              </div>
-            ) : null}
-          </div>
-          <div className="message-hover-actions">
-            <button aria-label="React" onClick={showPicker}>
-              <Laugh size={14} />
-            </button>
-            <button aria-label="Reply" onClick={() => onReply(message)}>
-              <Reply size={14} />
-            </button>
-            <button aria-label="More message actions" onClick={showMenu}>
-              <MoreHorizontal size={15} />
-            </button>
-          </div>
-        </div>
-        {message.reactions?.length ? (
-          <div className="message-reactions">
-            {message.reactions.map((reaction, index) => (
-              <span key={`${reaction}-${index}`}>{reaction}</span>
-            ))}
-          </div>
-        ) : null}
-      </div>
-      {menu ? (
-        <MessageMenu
-          message={message}
-          onReply={() => {
-            onReply(message);
-            setMenu(false);
-          }}
-          onReact={showPicker}
-          onDelete={onDelete ? () => onDelete(message.id) : undefined}
-          onPin={
-            onPin
-              ? () => {
-                  onPin(message);
-                  setMenu(false);
-                }
-              : undefined
-          }
-          onClose={() => setMenu(false)}
-        />
-      ) : null}
-      {picker ? (
-        <div ref={pickerRef} className="reaction-picker">
-          {reactions.map((reaction) => (
-            <button
-              key={reaction}
-              onClick={() => {
-                onReaction(message.id, reaction);
-                setPicker(false);
-              }}
-            >
-              {reaction}
-            </button>
-          ))}
-        </div>
-      ) : null}
-    </article>
-  );
-}
 
 function Composer({
   name,
@@ -422,6 +258,7 @@ function Composer({
   const [value, setValue] = useState("");
   const [toolNote, setToolNote] = useState("");
   const [sending, setSending] = useState(false);
+  const [emojiAnchor, setEmojiAnchor] = useState<HTMLElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const send = async () => {
     if (!value.trim() || sending) return;
@@ -456,7 +293,7 @@ function Composer({
           <button aria-label="Add file" onClick={() => setToolNote("File sharing is planned for a later milestone.")}>
             <File size={17} />
           </button>
-          <button aria-label="Add emoji" onClick={() => setToolNote("Emoji picking is planned for a later milestone.")}>
+          <button aria-label="Add emoji" onClick={(event) => setEmojiAnchor(event.currentTarget)}>
             <Smile size={17} />
           </button>
         </div>
@@ -470,7 +307,7 @@ function Composer({
               send();
             }
           }}
-          placeholder={`Message ${name}…`}
+          placeholder="Message…"
           aria-label={`Message ${name}`}
           rows={1}
           maxLength={8000}
@@ -482,10 +319,17 @@ function Composer({
           onClick={send}
           aria-label="Send message"
         >
-          <Send size={17} />
+          <ArrowUp size={19} />
         </button>
       </div>
       {toolNote ? <p className="composer-hint" role="status">{toolNote}</p> : null}
+      {emojiAnchor ? <InteractionPopover anchor={emojiAnchor} label="Insert emoji" onClose={() => setEmojiAnchor(null)}><EmojiPicker onClose={() => setEmojiAnchor(null)} onPick={(emoji) => {
+        const input = inputRef.current;
+        const from = input?.selectionStart ?? value.length, to = input?.selectionEnd ?? value.length;
+        setValue((current) => (current.slice(0, from) + emoji + current.slice(to)).slice(0, 8000));
+        setEmojiAnchor(null);
+        requestAnimationFrame(() => { input?.focus(); input?.setSelectionRange(from + emoji.length, from + emoji.length); });
+      }} /></InteractionPopover> : null}
     </div>
   );
 }
@@ -518,7 +362,7 @@ export function ChatSurface({ conversation }: { conversation: Conversation }) {
     let changed = false;
     incoming.forEach((message) => {
       const previous = byId.get(message.id);
-      if (!previous || previous.createdAt !== message.createdAt || previous.body !== message.body || previous.author !== message.author) {
+      if (!previous || previous.createdAt !== message.createdAt || previous.body !== message.body || previous.author !== message.author || previous.replyTo !== message.replyTo || previous.editedAt !== message.editedAt || previous.deletedAt !== message.deletedAt || JSON.stringify(previous.reactionSummary) !== JSON.stringify(message.reactionSummary)) {
         byId.set(message.id, { ...previous, ...message }); changed = true;
       }
     });
@@ -542,6 +386,11 @@ export function ChatSurface({ conversation }: { conversation: Conversation }) {
       author: message.author,
       initials: message.author.split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase(),
       body: message.body,
+      reactionSummary: message.reactionSummary,
+      editedAt: message.editedAt,
+      deletedAt: message.deletedAt,
+      replyToId: message.replyToId,
+      replyTo: message.replyTo ?? undefined,
       time: new Date(message.createdAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
       color: message.mine ? "gold" : "pink",
       mine: message.mine,
@@ -554,6 +403,7 @@ export function ChatSurface({ conversation }: { conversation: Conversation }) {
     }
     } finally { loadingMessages.current = false; }
   }, [conversation.databaseId, mergePersisted]);
+  const lastMessageId = messages.at(-1)?.id;
   useEffect(() => {
     if (!conversation.databaseId) return;
     alive.current = true;
@@ -572,7 +422,7 @@ export function ChatSurface({ conversation }: { conversation: Conversation }) {
     const area = scrollRef.current;
     if (area && nearBottom.current)
       area.scrollTo({ top: area.scrollHeight, behavior: "smooth" });
-  }, [messages]);
+  }, [lastMessageId]);
   const persist = (message: Message) => {
     if (conversation.kind === "my-room")
       prototypeStore.addSandboxMessage(message);
@@ -588,6 +438,7 @@ export function ChatSurface({ conversation }: { conversation: Conversation }) {
       initials: user.initials,
       body,
       replyTo: reply?.body,
+      replyToId: reply?.id,
       time: "Now",
       color: "gold",
       mine: true,
@@ -595,14 +446,15 @@ export function ChatSurface({ conversation }: { conversation: Conversation }) {
     };
     nearBottom.current = true;
     setMessages((current) => [...current, message]);
-    setReply(null);
     setMessageError(null);
     if (!conversation.databaseId) {
       persist(message);
+      setReply(null);
       return true;
     }
     try {
-      await sendMessageAction({ id: message.id, conversationId: conversation.databaseId, body });
+      await sendMessageAction({ id: message.id, conversationId: conversation.databaseId, body, replyToId: reply?.id });
+      setReply((current) => current?.id === reply?.id ? null : current);
       return true;
     } catch {
       setMessages((current) => current.filter((item) => item.id !== message.id));
@@ -610,14 +462,24 @@ export function ChatSurface({ conversation }: { conversation: Conversation }) {
       return false;
     }
   };
-  const react = (id: string, reaction: string) =>
-    setMessages((current) =>
-      current.map((message) =>
-        message.id === id
-          ? { ...message, reactions: [...(message.reactions ?? []), reaction] }
-          : message,
-      ),
-    );
+  const react = async (id: string, emoji: string, active: boolean) => {
+    if (conversation.databaseId) {
+      await setMessageReactionAction({ conversationId: conversation.databaseId, messageId: id, emoji, active });
+      await loadPersisted();
+    } else setMessages((current) => current.map((message) => {
+      if (message.id !== id) return message;
+      const values = message.reactionSummary ?? [...new Set(message.reactions ?? [])].map((value) => ({ emoji: value, count: message.reactions!.filter((item) => item === value).length, mine: false, participants: [] as string[] }));
+      const previous = values.find((value) => value.emoji === emoji);
+      const count = (previous?.count ?? 0) + (active && !previous?.mine ? 1 : !active && previous?.mine ? -1 : 0);
+      return { ...message, reactionSummary: [...values.filter((value) => value.emoji !== emoji), { emoji, count, mine: active, participants: active ? [user.displayName] : [] }] };
+    }));
+  };
+  const change = async (id: string, body?: string, remove?: boolean) => {
+    if (conversation.databaseId) {
+      await changeOwnMessageAction({ conversationId: conversation.databaseId, messageId: id, body, remove });
+      await loadPersisted();
+    } else setMessages((current) => current.map((message) => message.id === id ? { ...message, body: remove ? "Message deleted" : body!, deletedAt: remove ? new Date().toISOString() : null, editedAt: new Date().toISOString() } : message));
+  };
   return (
     <section className="conversation-surface art-layer-ready">
       <div
@@ -644,15 +506,11 @@ export function ChatSurface({ conversation }: { conversation: Conversation }) {
                 grouped={grouped}
                 onReply={setReply}
                 onReaction={react}
-                onDelete={conversation.databaseId ? undefined : (id) =>
-                  setMessages((current) =>
-                    current.filter((item) => item.id !== id),
-                  )
-                }
+                onChange={change}
                 onPin={
                   conversation.kind === "room"
-                    ? (item) => {
-                        if (conversation.databaseId) void pinMessageToHallAction({ conversationId: conversation.databaseId, messageId: item.id });
+                    ? async (item) => {
+                        if (conversation.databaseId) await pinMessageToHallAction({ conversationId: conversation.databaseId, messageId: item.id });
                         else prototypeStore.pinMessageToHall({ slug: conversation.slug, name: conversation.name, message: item });
                       }
                     : undefined
@@ -746,6 +604,7 @@ type HallSurfaceItem = {
   title: string | null;
   body: string;
   author: string;
+  authorId?: string;
   createdAt?: string;
   time?: string;
   color?: string;
@@ -769,6 +628,7 @@ function PersistentHallCard({
   onNuke,
   onUnpin,
   onChanged,
+  onEdit,
   dragging,
   dropTarget,
   onDragStart,
@@ -784,6 +644,7 @@ function PersistentHallCard({
   onNuke: () => void;
   onUnpin: () => void;
   onChanged: () => Promise<void>;
+  onEdit?: () => void;
   dragging: boolean;
   dropTarget: boolean;
   onDragStart: (event: React.DragEvent) => void;
@@ -815,6 +676,7 @@ function PersistentHallCard({
       {open ? (
         <div ref={ref} className="context-menu hall-context" role="menu">
           {pinned ? <button onClick={onUnpin}>Unpin from Hall</button> : <>
+            {onEdit ? <button onClick={() => { setOpen(false); onEdit(); }}>Edit</button> : null}
             <button onClick={() => setColorsOpen((value) => !value)} aria-expanded={colorsOpen}>Change color</button>
             {colorsOpen ? <div className="hall-color-options" role="group" aria-label="Hall note colors">{hallColors.map((color) => <button key={color} className={`hall-color-choice hall-color-${color}`} aria-label={color} onClick={() => { onColor(color); setOpen(false); }}>{color}</button>)}</div> : null}
             <button onClick={onArchive}>Archive</button>
@@ -837,6 +699,7 @@ export function HallSurface({
   conversation: Conversation;
   empty: boolean;
 }) {
+  const currentUser = useCurrentToskerUser();
   const state = useSyncExternalStore(
     prototypeStore.subscribe,
     prototypeStore.getSnapshot,
@@ -844,6 +707,7 @@ export function HallSurface({
   );
   const room = state.rooms.find((item) => item.slug === conversation.slug);
   const [creating, setCreating] = useState(false);
+  const [editingItem, setEditingItem] = useState<string | null>(null);
   const [noteTitle, setNoteTitle] = useState("");
   const [noteBody, setNoteBody] = useState("");
   const [persistentItems, setPersistentItems] = useState<HallSurfaceItem[]>([]);
@@ -942,12 +806,18 @@ export function HallSurface({
         </div>
       </header>
       <div className="notice-list">
-          <button className="new-hall-card" onClick={() => setCreating(true)}>
+          <button className="new-hall-card" onClick={() => { setEditingItem(null); setNoteTitle(""); setNoteBody(""); setCreating(true); }}>
             <Plus size={16} /> New Note
           </button>
           {displayedItems.map((item) => <PersistentHallCard key={item.id} item={item} conversation={conversation}
             onChanged={refreshPersistentItems} dragging={draggingId === item.id} dropTarget={targetId === item.id}
-            onDragStart={(event) => { event.dataTransfer.effectAllowed = "move"; event.dataTransfer.setData("application/x-tosker-hall", item.id); setDraggingId(item.id); }}
+            onEdit={item.kind === "note" && (("authorId" in item && item.authorId === currentUser?.userId) || !conversation.databaseId) ? () => { setEditingItem(item.id); setNoteTitle(item.title ?? ""); setNoteBody(item.body); setCreating(true); } : undefined}
+            onDragStart={(event) => {
+              event.dataTransfer.effectAllowed = "move"; event.dataTransfer.setData("application/x-tosker-hall", item.id);
+              const card = event.currentTarget.closest<HTMLElement>("[data-hall-id]");
+              if (card) { const rect = card.getBoundingClientRect(); event.dataTransfer.setDragImage(card, event.clientX - rect.left, event.clientY - rect.top); }
+              setDraggingId(item.id);
+            }}
             onDragEnd={() => { setDraggingId(null); setTargetId(null); }}
             onDragOver={(event) => { if (draggingId && draggingId !== item.id) { event.preventDefault(); event.dataTransfer.dropEffect = "move"; setTargetId(item.id); } }}
             onDrop={(event) => { event.preventDefault(); if (draggingId && event.dataTransfer.getData("application/x-tosker-hall") === draggingId) reorder(draggingId, undefined, item.id); setDraggingId(null); setTargetId(null); }}
@@ -963,29 +833,32 @@ export function HallSurface({
             : null}
         </div>
       {creating ? (
-        <div className="overlay-backdrop">
+        <ModalLayer onClose={() => { if (!saving) setCreating(false); }}>
           <section ref={noteRef} className="creation-panel hall-note-panel" role="dialog" aria-modal="true" aria-labelledby="hall-note-title">
-            <button className="overlay-close" onClick={() => setCreating(false)} aria-label="Close"><X size={17} /></button>
-            <p className="eyebrow">Hall</p>
-            <h2 id="hall-note-title">New note</h2>
-            <label className="wizard-field"><span>Title</span><input autoFocus value={noteTitle} onChange={(event) => setNoteTitle(event.target.value)} maxLength={80} /></label>
-            <label className="wizard-field"><span>Note</span><textarea maxLength={4000} value={noteBody} onChange={(event) => setNoteBody(event.target.value)} rows={4} /></label>
-            <button className="hall-photo-option" onClick={() => setPhotoHint(true)}><ImageIcon size={16} /> Photo</button>
-            {photoHint ? <p role="status">Photo uploads aren’t available yet.</p> : null}
+            <button className="overlay-close" disabled={saving} onClick={() => setCreating(false)} aria-label="Close"><X size={17} /></button>
+            <h2 id="hall-note-title" className="note-editor-label">{editingItem ? "Edit note" : "New note"}</h2>
+            <div className="composed-note-editor">
+              <input autoFocus aria-label="Title" placeholder="Title" value={noteTitle} disabled={saving} onChange={(event) => setNoteTitle(event.target.value)} maxLength={80} />
+              <textarea aria-label="Note" placeholder="Note / description" maxLength={4000} disabled={saving} value={noteBody} onChange={(event) => setNoteBody(event.target.value)} rows={5} />
+              <button type="button" className="attachment-boundary" aria-disabled="true" onClick={() => setPhotoHint(true)} onDragOver={(event) => { event.preventDefault(); event.dataTransfer.dropEffect = "none"; }} onDrop={(event) => { event.preventDefault(); setPhotoHint(true); }}><ImageIcon size={20} /><span>Image or file<small>Uploads not configured</small></span></button>
+            </div>
+            {photoHint ? <p role="status">Uploads aren’t available yet. No file was uploaded or saved.</p> : null}
             <div className="wizard-actions"><button className="button button-primary primary-action" disabled={!noteTitle.trim() || saving} onClick={async () => {
               if (saving) return;
               setSaving(true);
               if (conversation.databaseId) {
                 try {
-                  await createHallNoteAction({ conversationId: conversation.databaseId, title: noteTitle, body: noteBody });
+                  if (editingItem) await editHallNoteAction({ conversationId: conversation.databaseId, itemId: editingItem, title: noteTitle, body: noteBody });
+                  else await createHallNoteAction({ conversationId: conversation.databaseId, title: noteTitle, body: noteBody });
                   setPersistentItems(await listHallItemsAction(conversation.databaseId));
                 } catch { setHallError("Hall note couldn't be saved."); setSaving(false); return; }
-              } else prototypeStore.addHallNote({ slug: conversation.slug, name: conversation.name, title: noteTitle, body: noteBody });
+              } else if (editingItem) prototypeStore.updateHallItem(conversation.slug, editingItem, { title: noteTitle, body: noteBody });
+              else prototypeStore.addHallNote({ slug: conversation.slug, name: conversation.name, title: noteTitle, body: noteBody });
               setCreating(false); setNoteTitle(""); setNoteBody(""); setSaving(false); setPhotoHint(false);
-            }}>{saving ? "Saving…" : "Add"}</button></div>
+            }}>{saving ? "Saving…" : editingItem ? "Save" : "Add note"}</button></div>
             {hallError ? <p role="alert">{hallError}</p> : null}
           </section>
-        </div>
+        </ModalLayer>
       ) : null}
       {hallError ? <p role="alert">{hallError}</p> : null}
       <span className="sr-only" role="status">{orderNotice}</span>

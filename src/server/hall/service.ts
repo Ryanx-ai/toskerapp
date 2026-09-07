@@ -4,7 +4,9 @@ import { and, asc, eq, isNull, or, sql } from "drizzle-orm";
 import type { AuthenticatedActor } from "@/server/auth/actor";
 import { AuthorizationDeniedError, requireConversationParticipant, requireRoomMember } from "@/server/auth/authorize";
 import type { ToskerDatabase } from "@/server/db/client";
-import { conversations, hallComments, hallItems, hallReactions, profiles, subroomAccess, subrooms } from "@/server/db/schema";
+import { conversations, hallComments, hallCommentReactions, hallItems, hallReactions, profiles, subroomAccess, subrooms } from "@/server/db/schema";
+import { validateEmoji } from "@/server/emoji";
+import type { ReactionSummary } from "@/lib/reaction-contract";
 import { HALL_REACTIONS, type HallReaction } from "@/lib/hall-contract";
 
 export async function hallScope(db: ToskerDatabase, actor: AuthenticatedActor, conversationId: string) {
@@ -34,7 +36,9 @@ export async function requireHallNote(db: ToskerDatabase, actor: AuthenticatedAc
 
 export async function listHallComments(db: ToskerDatabase, actor: AuthenticatedActor, conversationId: string, itemId: string, before?: string) {
   await requireHallNote(db, actor, conversationId, itemId);
-  const rows = await db.select({ id: hallComments.id, body: hallComments.body, createdAt: hallComments.createdAt, author: profiles.displayName, authorId: hallComments.authorId })
+  const rows = await db.select({ id: hallComments.id, body: hallComments.body, createdAt: hallComments.createdAt, author: profiles.displayName, authorId: hallComments.authorId,
+    reactions: sql<ReactionSummary[]>`coalesce((select json_agg(r order by r.emoji) from (select emoji, count(*)::int as count, bool_or(cr.user_id = ${actor.userId}) as mine, array_agg(p.display_name order by p.display_name) as participants from hall_comment_reactions cr join profiles p on p.user_id = cr.user_id where comment_id = ${hallComments.id} group by emoji) r), '[]'::json)`,
+  })
     .from(hallComments).innerJoin(profiles, eq(profiles.userId, hallComments.authorId))
     .where(and(eq(hallComments.itemId, itemId), before ? sql`(${hallComments.createdAt}, ${hallComments.id}) < (select created_at, id from hall_comments where id = ${before} and item_id = ${itemId})` : undefined))
     .orderBy(sql`${hallComments.createdAt} desc`, sql`${hallComments.id} desc`).limit(31);
@@ -55,6 +59,24 @@ export async function setHallReaction(db: ToskerDatabase, actor: AuthenticatedAc
   if (!HALL_REACTIONS.some((entry) => entry.key === input.reaction) || typeof input.active !== "boolean") throw new Error("Unsupported reaction.");
   if (input.active) await db.insert(hallReactions).values({ itemId: input.itemId, userId: actor.userId, reaction: input.reaction }).onConflictDoNothing();
   else await db.delete(hallReactions).where(and(eq(hallReactions.itemId, input.itemId), eq(hallReactions.userId, actor.userId), eq(hallReactions.reaction, input.reaction)));
+}
+
+export async function setCommentReaction(db: ToskerDatabase, actor: AuthenticatedActor, input: { conversationId: string; itemId: string; commentId: string; emoji: string; active: boolean }) {
+  await requireHallNote(db, actor, input.conversationId, input.itemId);
+  validateEmoji(input.emoji);
+  if (typeof input.active !== "boolean") throw new Error("Invalid reaction state.");
+  const [comment] = await db.select({ id: hallComments.id }).from(hallComments).where(and(eq(hallComments.id, input.commentId), eq(hallComments.itemId, input.itemId))).limit(1);
+  if (!comment) throw new AuthorizationDeniedError("Comment unavailable in this note.");
+  if (input.active) await db.insert(hallCommentReactions).values({ commentId: input.commentId, userId: actor.userId, emoji: input.emoji }).onConflictDoNothing();
+  else await db.delete(hallCommentReactions).where(and(eq(hallCommentReactions.commentId, input.commentId), eq(hallCommentReactions.userId, actor.userId), eq(hallCommentReactions.emoji, input.emoji)));
+}
+
+export async function editHallNote(db: ToskerDatabase, actor: AuthenticatedActor, input: { conversationId: string; itemId: string; title: string; body: string }) {
+  const scope = await hallScope(db, actor, input.conversationId);
+  const title = input.title.trim(), body = input.body.trim();
+  if (!title || title.length > 80 || body.length > 4000) throw new Error("Enter a valid note.");
+  const [updated] = await db.update(hallItems).set({ title, body, updatedAt: new Date() }).where(and(scope, eq(hallItems.id, input.itemId), eq(hallItems.kind, "note"), eq(hallItems.authorId, actor.userId), isNull(hallItems.archivedAt))).returning({ id: hallItems.id });
+  if (!updated) throw new AuthorizationDeniedError("Only the note author can edit it.");
 }
 
 export async function moveHallItem(db: ToskerDatabase, actor: AuthenticatedActor, input: { conversationId: string; itemId: string; targetId?: string; direction?: "left" | "right" }) {

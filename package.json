@@ -18,12 +18,14 @@
     "db:verify-shared": "NODE_OPTIONS=--conditions=react-server dotenv -e .env.local -- tsx scripts/verify-shared-state.ts",
     "db:verify-hall": "NODE_OPTIONS=--conditions=react-server dotenv -e .env.local -- tsx scripts/verify-hall-polish.ts",
     "db:verify-ms6a": "NODE_OPTIONS=--conditions=react-server dotenv -e .env.local -- tsx scripts/verify-ms6a.ts",
+    "db:verify-ms6b": "NODE_OPTIONS=--conditions=react-server dotenv -e .env.local -- tsx scripts/verify-ms6b.ts",
     "db:audit-ms5": "dotenv -e .env.local -- node scripts/audit-ms5.mjs",
     "db:seed-subrooms": "dotenv -e .env.local -- node scripts/seed-subrooms.mjs"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.9.0",
     "@neondatabase/serverless": "^1.1.0",
+    "ably": "^2.28.0",
     "drizzle-orm": "^0.45.2",
     "lucide-react": "^1.37.0",
     "next": "16.3.3",

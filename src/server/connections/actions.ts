@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { requireCurrentActor } from "@/server/auth/clerk";
 import { getDatabase } from "@/server/db/client";
 import { connectionNicknames, connections, notifications, profiles, users } from "@/server/db/schema";
+import { publishUserActivity } from "@/server/realtime/provider";
 
 const pairKey = (left: string, right: string) => [left, right].sort().join(":");
 
@@ -35,6 +36,7 @@ export async function setConnectionNicknameAction(input: { connectionId: string;
   if (!nickname) throw new Error("Enter a nickname.");
   await db.insert(connectionNicknames).values({ connectionId: input.connectionId, userId: actor.userId, nickname, updatedAt: new Date() }).onConflictDoUpdate({ target: [connectionNicknames.connectionId, connectionNicknames.userId], set: { nickname, updatedAt: new Date() } });
   revalidatePath("/friends");
+  await publishUserActivity(actor.userId);
   return { nickname };
 }
 
@@ -53,6 +55,7 @@ export async function requestConnectionAction(targetUserId: string) {
   if (!target) throw new Error("That person could not be found.");
   const [created] = await db.insert(connections).values({ requesterId: actor.userId, addresseeId: target.id, pairKey: pairKey(actor.userId, target.id) }).onConflictDoNothing().returning({ id: connections.id });
   if (created) await db.insert(notifications).values({ userId: target.id, actorId: actor.userId, type: "connection_request" });
+  await Promise.all([publishUserActivity(target.id), publishUserActivity(actor.userId)]);
   revalidatePath("/friends");
   return { created: Boolean(created) };
 }
@@ -63,5 +66,6 @@ export async function acceptConnectionAction(connectionId: string) {
   const [accepted] = await db.update(connections).set({ status: "accepted", updatedAt: new Date() }).where(and(eq(connections.id, connectionId), eq(connections.addresseeId, actor.userId), eq(connections.status, "pending"))).returning({ requesterId: connections.requesterId });
   if (!accepted) throw new Error("Connection request is not available.");
   await db.insert(notifications).values({ userId: accepted.requesterId, actorId: actor.userId, type: "connection_accepted" });
+  await Promise.all([publishUserActivity(accepted.requesterId), publishUserActivity(actor.userId)]);
   revalidatePath("/friends");
 }

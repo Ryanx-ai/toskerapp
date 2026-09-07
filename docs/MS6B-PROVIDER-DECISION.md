@@ -1,6 +1,6 @@
 # MS6B — provider decision / founder gate
 
-2026-09-07. **Recommend Ably Pub/Sub. STOP: founder resource/key required.** Research only; no SDK installed, provider provisioned, realtime implementation or environment mutation. Local `.env.local` and `.env.example` contain no Ably/Pusher/realtime keys (names inspected, values not printed).
+2026-09-07. **Ably Pub/Sub selected; founder provider gate cleared.** Replacement Development key verified from ignored `.env.local`: exactly publish/subscribe on `tosker:*`, 10-minute token issuance and effective revocation. SDK integration and local two-user acceptance implemented; latest evidence/release status: `MS6B-ACCEPTANCE.md`. The decision and original founder setup instructions below are retained as architecture history, not an active blocker. No credential is recorded here.
 
 Landing prerequisite complete: `509ee93` plus bounded contrast fix `332fd16`, canonical deployment `dpl_6zghoSZVR7Xi4TG6FdFH4abEM9cL` READY. Public CTAs, actual A sign-in to `/app`, signed-in footer return/reload at `/`, responsive landing and runtime scan pass. MS6A remains intact.
 

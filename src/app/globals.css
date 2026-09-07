@@ -969,3 +969,12 @@ h1,h2,h3 { font-family:var(--font-mermaid),Georgia,serif; font-weight:400; lette
   .room-context-trigger { font-size:12px; }
   .composed-note-editor { padding:10px; }
 }
+
+.chat-transport-status {
+  min-height: 18px;
+  margin: 0;
+  padding: 0 22px 3px;
+  color: var(--text-secondary);
+  font-size: 11px;
+  line-height: 15px;
+}

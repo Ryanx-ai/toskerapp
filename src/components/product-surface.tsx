@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { notificationHref } from "@/lib/notification-href";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { WorkspaceBanner } from "@/components/workspace-banner";
@@ -377,21 +378,20 @@ const notificationItems = [
   },
 ];
 
-function Notifications({ empty = false }: { empty?: boolean }) {
+function Notifications({ empty = false, persistent }: { empty?: boolean; persistent: Awaited<ReturnType<typeof listNotificationsAction>> }) {
   const [filter, setFilter] = useState("All");
   const identity = useToskerIdentity();
-  const [persistent, setPersistent] = useState<Awaited<ReturnType<typeof listNotificationsAction>>>([]);
   useEffect(() => {
-    if (identity) void listNotificationsAction().then((items) => { setPersistent(items); return markNotificationsReadAction(); });
-  }, [identity]);
+    if (identity && persistent.some((item) => !item.readAt)) void markNotificationsReadAction().catch(() => undefined);
+  }, [identity, persistent]);
   const realItems = persistent.map((item) => ({
     id: item.id,
     type: item.type === "message" ? "Mentions" : item.type.startsWith("connection") ? "Activity" : "Rooms",
     icon: item.type.startsWith("connection") ? UserPlus : Pin,
-    title: item.type === "connection_request" ? "New friend request" : item.type === "connection_accepted" ? "Friend request accepted" : "New Hall note",
+    title: item.type === "message" ? "New message" : item.type === "connection_request" ? "New friend request" : item.type === "connection_accepted" ? "Friend request accepted" : "New Hall note",
     context: item.type === "message" ? `${item.actorName ?? "Someone"} sent you a message${item.messageBody ? `: ${item.messageBody}` : ""}` : item.type === "connection_request" ? `${item.actorName ?? "Someone"} sent you a friend request` : item.type === "connection_accepted" ? `${item.actorName ?? "Someone"} accepted your friend request` : `${item.actorName ?? "Someone"} added something to Hall`,
     time: new Date(item.createdAt).toLocaleDateString(),
-    href: item.conversationKind === "room" && item.roomSlug ? `/room/${item.roomSlug}` : item.conversationKind === "personal" && item.conversationId ? `/personal/chat-${item.conversationId}` : item.type.startsWith("connection") ? "/friends" : "/app",
+    href: notificationHref(item),
   }));
   const source = identity ? realItems : notificationItems;
   const shown = empty && !identity
@@ -467,15 +467,17 @@ function Profile() {
 export function ProductSurface({
   surface,
   mode = "demo",
+  activity = [],
 }: {
   surface: ProductWorkspace;
   mode?: "new" | "demo" | "returning";
+  activity?: Awaited<ReturnType<typeof listNotificationsAction>>;
 }) {
   if (surface === "profile") return <Profile />;
   if (surface === "explore") return <Explore />;
   if (surface === "marketplace") return <Explore />;
   if (surface === "studio") return <Explore studio />;
   if (surface === "settings") return <Settings />;
-  if (surface === "notifications") return <Notifications empty={mode === "new"} />;
+  if (surface === "notifications") return <Notifications empty={mode === "new"} persistent={activity} />;
   return <Help />;
 }

@@ -47,7 +47,7 @@ async function main() {
     await changeOwnMessage(db, a, { conversationId, messageId, body: "Edited" });
     let [message] = await db.select().from(messages).where(eq(messages.id, messageId));
     assert.equal(message.body, "Edited"); assert(message.editedAt);
-    await db.insert(hallItems).values([{ id: itemId, roomId, conversationId, authorId: a.userId, kind: "note", title: "Original", body: "Body" }, { id: otherItemId, roomId, conversationId, authorId: a.userId, kind: "note", title: "Second", body: "Body" }]);
+    await db.insert(hallItems).values([{ id: itemId, roomId, conversationId, authorId: a.userId, kind: "note", title: "Original", body: "Body", position: 0 }, { id: otherItemId, roomId, conversationId, authorId: a.userId, kind: "note", title: "Second", body: "Body", position: 1 }]);
     await editHallNote(db, a, { conversationId, itemId, title: "Updated", body: "Updated body" });
     await assert.rejects(() => editHallNote(db, b, { conversationId, itemId, title: "Forged", body: "No" }));
     await assert.rejects(() => editHallNote(db, a, { conversationId: childConversationId, itemId, title: "Cross-scope", body: "No" }));

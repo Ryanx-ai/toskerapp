@@ -3,12 +3,13 @@
 import { and, asc, eq, isNull, max, ne, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
-import { requireRoomMember } from "@/server/auth/authorize";
+import { AuthorizationDeniedError, requireRoomMember } from "@/server/auth/authorize";
 import { requireCurrentActor } from "@/server/auth/clerk";
 import { getDatabase } from "@/server/db/client";
 import { conversationParticipants, conversations, hallItems, messages, notifications, profiles, roomCapabilities, rooms } from "@/server/db/schema";
 import { addHallComment, editHallNote, hallScope, listHallComments, moveHallItem, setCommentReaction, setHallReaction } from "@/server/hall/service";
 import type { HallReaction } from "@/lib/hall-contract";
+import { publishConversationActivity, publishUserActivity } from "@/server/realtime/provider";
 
 const allowedCapabilities = new Set(["Poll", "Schedule", "Map", "Board"]);
 
@@ -54,6 +55,7 @@ export async function createHallNoteAction(input: { conversationId: string; titl
     }
   });
   revalidatePath("/app");
+  await publishConversationActivity(input.conversationId, "hall");
 }
 
 export async function pinMessageToHallAction(input: { conversationId: string; messageId: string }) {
@@ -68,6 +70,7 @@ export async function pinMessageToHallAction(input: { conversationId: string; me
     if (recipients.length) await db.insert(notifications).values(recipients.map(({ userId }) => ({ userId, actorId: actor.userId, roomId, conversationId: input.conversationId, type: "hall_pin" })));
   }
   revalidatePath("/app");
+  await publishConversationActivity(input.conversationId, "hall");
 }
 
 async function authorizeHallItem(conversationId: string, itemId: string) {
@@ -85,10 +88,12 @@ export async function changeHallItemColorAction(input: { conversationId: string;
   const { db } = await authorizeHallItem(input.conversationId, input.itemId);
   await db.update(hallItems).set({ color: input.color, updatedAt: new Date() }).where(eq(hallItems.id, input.itemId));
   revalidatePath("/app");
+  await publishConversationActivity(input.conversationId, "hall");
 }
 
 export async function reorderHallItemAction(input: { conversationId: string; itemId: string; direction?: "left" | "right"; targetId?: string }) {
   await moveHallItem(getDatabase(), await requireCurrentActor(), input);
+  await publishConversationActivity(input.conversationId, "hall");
 }
 
 export async function listHallCommentsAction(conversationId: string, itemId: string, before?: string) {
@@ -97,18 +102,22 @@ export async function listHallCommentsAction(conversationId: string, itemId: str
 
 export async function addHallCommentAction(input: { conversationId: string; itemId: string; body: string; id: string }) {
   await addHallComment(getDatabase(), await requireCurrentActor(), input);
+  await publishConversationActivity(input.conversationId, "hall");
 }
 
 export async function setHallReactionAction(input: { conversationId: string; itemId: string; reaction: HallReaction; active: boolean }) {
   await setHallReaction(getDatabase(), await requireCurrentActor(), input);
+  await publishConversationActivity(input.conversationId, "hall");
 }
 
 export async function setCommentReactionAction(input: { conversationId: string; itemId: string; commentId: string; emoji: string; active: boolean }) {
   await setCommentReaction(getDatabase(), await requireCurrentActor(), input);
+  await publishConversationActivity(input.conversationId, "hall");
 }
 
 export async function editHallNoteAction(input: { conversationId: string; itemId: string; title: string; body: string }) {
   await editHallNote(getDatabase(), await requireCurrentActor(), input);
+  await publishConversationActivity(input.conversationId, "hall");
 }
 
 export async function archiveHallNoteAction(input: { conversationId: string; itemId: string }) {
@@ -116,6 +125,7 @@ export async function archiveHallNoteAction(input: { conversationId: string; ite
   if (item.kind !== "note") throw new Error("Only native notes can be archived.");
   await db.update(hallItems).set({ archivedAt: new Date(), updatedAt: new Date() }).where(eq(hallItems.id, input.itemId));
   revalidatePath("/app");
+  await publishConversationActivity(input.conversationId, "hall");
 }
 
 export async function nukeHallNoteAction(input: { conversationId: string; itemId: string }) {
@@ -123,6 +133,7 @@ export async function nukeHallNoteAction(input: { conversationId: string; itemId
   if (item.kind !== "note") throw new Error("Only native notes can be nuked.");
   await db.delete(hallItems).where(eq(hallItems.id, input.itemId));
   revalidatePath("/app");
+  await publishConversationActivity(input.conversationId, "hall");
 }
 
 export async function unpinHallItemAction(input: { conversationId: string; itemId: string }) {
@@ -130,6 +141,7 @@ export async function unpinHallItemAction(input: { conversationId: string; itemI
   if (item.kind !== "pinned_message") throw new Error("Only pinned messages can be unpinned.");
   await db.delete(hallItems).where(eq(hallItems.id, input.itemId));
   revalidatePath("/app");
+  await publishConversationActivity(input.conversationId, "hall");
 }
 
 export async function installRoomCapabilityAction(input: { conversationId: string; capability: string }) {
@@ -146,12 +158,17 @@ export async function installRoomCapabilityAction(input: { conversationId: strin
 export async function listNotificationsAction() {
   const actor = await requireCurrentActor();
   const db = getDatabase();
-  const rows = await db.select({ id: notifications.id, type: notifications.type, roomId: notifications.roomId, conversationId: notifications.conversationId, messageId: notifications.messageId, actorId: notifications.actorId, actorName: profiles.displayName, messageBody: messages.body, conversationKind: conversations.kind, roomSlug: rooms.slug, createdAt: notifications.createdAt, readAt: notifications.readAt }).from(notifications).leftJoin(profiles, eq(profiles.userId, notifications.actorId)).leftJoin(messages, eq(messages.id, notifications.messageId)).leftJoin(conversations, eq(conversations.id, notifications.conversationId)).leftJoin(rooms, eq(rooms.id, conversations.roomId)).where(eq(notifications.userId, actor.userId)).orderBy(asc(notifications.createdAt));
-  return rows.reverse().map((item) => ({ ...item, createdAt: item.createdAt.toISOString(), readAt: item.readAt?.toISOString() ?? null }));
+  const rows = await db.select({ id: notifications.id, type: notifications.type, roomId: notifications.roomId, conversationId: notifications.conversationId, messageId: notifications.messageId, actorId: notifications.actorId, actorName: profiles.displayName, messageBody: messages.body, conversationKind: conversations.kind, subroomId: conversations.subroomId, roomSlug: rooms.slug, createdAt: notifications.createdAt, readAt: notifications.readAt }).from(notifications).leftJoin(profiles, eq(profiles.userId, notifications.actorId)).leftJoin(messages, eq(messages.id, notifications.messageId)).leftJoin(conversations, eq(conversations.id, notifications.conversationId)).leftJoin(rooms, eq(rooms.id, conversations.roomId)).where(eq(notifications.userId, actor.userId)).orderBy(asc(notifications.createdAt));
+  const scopes = [...new Set(rows.flatMap((item) => item.conversationId ? [item.conversationId] : []))];
+  const allowed = new Set(await Promise.all(scopes.map(async (id) => {
+    try { await hallScope(db, actor, id); return id; } catch (error) { if (error instanceof AuthorizationDeniedError) return null; throw error; }
+  })));
+  return rows.filter((item) => !item.conversationId || allowed.has(item.conversationId)).reverse().map((item) => ({ ...item, createdAt: item.createdAt.toISOString(), readAt: item.readAt?.toISOString() ?? null }));
 }
 
 export async function markNotificationsReadAction() {
   const actor = await requireCurrentActor();
   const db = getDatabase();
   await db.update(notifications).set({ readAt: new Date() }).where(and(eq(notifications.userId, actor.userId), isNull(notifications.readAt)));
+  await publishUserActivity(actor.userId);
 }

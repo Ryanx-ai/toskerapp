@@ -22,6 +22,8 @@ import { useCurrentToskerUser, useToskerIdentity } from "@/components/tosker-ide
 import { prototypeStore } from "@/lib/prototype-store";
 import { HallNoteInteractions } from "@/components/hall-note-interactions";
 import { MessageBubble } from "./message-bubble";
+import type { useConversationRealtime } from "./use-conversation-realtime";
+import { CHAT_REFRESH, HALL_REFRESH } from "@/lib/realtime-contract";
 import { EmojiPicker } from "./emoji-picker";
 import { InteractionPopover } from "./interaction-popover";
 import { ModalLayer } from "./modal-layer";
@@ -249,11 +251,13 @@ function Composer({
   reply,
   onCancelReply,
   onSend,
+  onTyping,
 }: {
   name: string;
   reply: Message | null;
   onCancelReply: () => void;
   onSend: (body: string) => Promise<boolean>;
+  onTyping: (active: boolean) => void;
 }) {
   const [value, setValue] = useState("");
   const [toolNote, setToolNote] = useState("");
@@ -263,6 +267,7 @@ function Composer({
   const send = async () => {
     if (!value.trim() || sending) return;
     const draft = value;
+    onTyping(false);
     setSending(true);
     try {
       if (await onSend(draft.trim())) setValue((current) => current === draft ? "" : current);
@@ -300,7 +305,8 @@ function Composer({
         <textarea
           ref={inputRef}
           value={value}
-          onChange={(event) => setValue(event.target.value)}
+          onChange={(event) => { setValue(event.target.value); onTyping(Boolean(event.target.value.trim())); }}
+          onBlur={() => onTyping(false)}
           onKeyDown={(event) => {
             if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
               event.preventDefault();
@@ -334,7 +340,7 @@ function Composer({
   );
 }
 
-export function ChatSurface({ conversation }: { conversation: Conversation }) {
+export function ChatSurface({ conversation, realtime }: { conversation: Conversation; realtime: ReturnType<typeof useConversationRealtime> }) {
   const user = useCurrentToskerUser() ?? prototypeUser;
   const state = useSyncExternalStore(
     prototypeStore.subscribe,
@@ -356,7 +362,10 @@ export function ChatSurface({ conversation }: { conversation: Conversation }) {
   const nearBottom = useRef(true);
   const alive = useRef(true);
   const loadingMessages = useRef(false);
+  const pendingMessages = useRef(false);
   const readThrough = useRef<string | null>(null);
+  const lastCanonicalId = useRef<string | null>(null);
+  const retryDraft = useRef<{ id: string; body: string; replyToId?: string } | null>(null);
   const mergePersisted = useCallback((current: Message[], incoming: Message[]) => {
     const byId = new Map(current.map((message) => [message.id, message]));
     let changed = false;
@@ -374,10 +383,22 @@ export function ChatSurface({ conversation }: { conversation: Conversation }) {
     });
   }, []);
   const loadPersisted = useCallback(async () => {
-    if (!conversation.databaseId || document.hidden || loadingMessages.current) return;
+    if (!conversation.databaseId || document.hidden) return;
+    if (loadingMessages.current) { pendingMessages.current = true; return; }
     loadingMessages.current = true;
     try {
-    const { messages: persisted } = await listMessagesAction(conversation.databaseId);
+    do {
+    pendingMessages.current = false;
+    let page = await listMessagesAction(conversation.databaseId);
+    const persisted = [...page.messages];
+    // Catch gaps larger than one page after a long disconnection. Keep a bounded
+    // recent window if more than 500 messages arrived; never show a false gap.
+    let pages = 1;
+    while (lastCanonicalId.current && !persisted.some((message) => message.id === lastCanonicalId.current) && page.nextCursor && pages < 10 && alive.current && !document.hidden) {
+      page = await listMessagesAction(conversation.databaseId, page.nextCursor);
+      persisted.unshift(...page.messages); pages++;
+    }
+    const replaceWindow = Boolean(lastCanonicalId.current && !persisted.some((message) => message.id === lastCanonicalId.current));
     if (!alive.current || document.hidden) return;
     const mapped = persisted.map((message) => ({
       id: message.id,
@@ -395,25 +416,30 @@ export function ChatSurface({ conversation }: { conversation: Conversation }) {
       color: message.mine ? "gold" : "pink",
       mine: message.mine,
     } satisfies Message));
-    setMessages((current) => mergePersisted(current, mapped));
+    lastCanonicalId.current = persisted.at(-1)?.id ?? null;
+    setMessages((current) => mergePersisted(replaceWindow ? current.filter((message) => message.id === retryDraft.current?.id) : current, mapped));
+    setMessageError((current) => current === "Messages couldn't be loaded. Try again." ? null : current);
     const latest = persisted.at(-1)?.id ?? "empty";
     if (readThrough.current !== latest) {
-      await markConversationReadAction(conversation.databaseId, "chat");
+      if (persisted.length) await markConversationReadAction(conversation.databaseId, "chat", persisted.at(-1)!.id);
       readThrough.current = latest;
     }
+    } while (pendingMessages.current && alive.current && !document.hidden);
     } finally { loadingMessages.current = false; }
   }, [conversation.databaseId, mergePersisted]);
+  const { typingCount, connected, sendTyping } = realtime;
   const lastMessageId = messages.at(-1)?.id;
   useEffect(() => {
     if (!conversation.databaseId) return;
     alive.current = true;
     let active = true;
     queueMicrotask(() => void loadPersisted().catch(() => active && setMessageError("Messages couldn't be loaded. Try again.")));
-    const timer = window.setInterval(() => void loadPersisted().catch(() => undefined), 12000);
+    const timer = window.setInterval(() => void loadPersisted().catch(() => undefined), connected ? 60000 : 12000);
     const onVisible = () => void loadPersisted().catch(() => undefined);
     document.addEventListener("visibilitychange", onVisible);
-    return () => { active = false; alive.current = false; window.clearInterval(timer); document.removeEventListener("visibilitychange", onVisible); };
-  }, [conversation.databaseId, loadPersisted]);
+    window.addEventListener(CHAT_REFRESH, onVisible);
+    return () => { active = false; alive.current = false; window.clearInterval(timer); document.removeEventListener("visibilitychange", onVisible); window.removeEventListener(CHAT_REFRESH, onVisible); };
+  }, [conversation.databaseId, loadPersisted, connected]);
   useLayoutEffect(() => {
     const area = scrollRef.current;
     if (area) area.scrollTop = area.scrollHeight;
@@ -432,8 +458,11 @@ export function ChatSurface({ conversation }: { conversation: Conversation }) {
       prototypeStore.addRoomMessage(conversation.slug, message);
   };
   const send = async (body: string) => {
+    const previous = retryDraft.current;
+    const id = previous?.body === body && previous.replyToId === reply?.id ? previous.id : crypto.randomUUID();
+    retryDraft.current = { id, body, replyToId: reply?.id };
     const message: Message = {
-      id: crypto.randomUUID(),
+      id,
       author: user.displayName,
       initials: user.initials,
       body,
@@ -445,20 +474,23 @@ export function ChatSurface({ conversation }: { conversation: Conversation }) {
       createdAt: new Date().toISOString(),
     };
     nearBottom.current = true;
-    setMessages((current) => [...current, message]);
+    setMessages((current) => [...current.filter((item) => item.id !== message.id), message]);
     setMessageError(null);
     if (!conversation.databaseId) {
       persist(message);
+      retryDraft.current = null;
       setReply(null);
       return true;
     }
     try {
-      await sendMessageAction({ id: message.id, conversationId: conversation.databaseId, body, replyToId: reply?.id });
+      const saved = await sendMessageAction({ id: message.id, conversationId: conversation.databaseId, body, replyToId: reply?.id });
+      retryDraft.current = null;
+      if (saved.createdAt) setMessages((current) => mergePersisted(current, current.filter((item) => item.id === message.id).map((item) => ({ ...item, createdAt: saved.createdAt! }))));
       setReply((current) => current?.id === reply?.id ? null : current);
       return true;
     } catch {
       setMessages((current) => current.filter((item) => item.id !== message.id));
-      setMessageError("That message wasn't sent. Please try again.");
+      setMessageError("Delivery couldn't be confirmed. You can safely retry.");
       return false;
     }
   };
@@ -481,7 +513,7 @@ export function ChatSurface({ conversation }: { conversation: Conversation }) {
     } else setMessages((current) => current.map((message) => message.id === id ? { ...message, body: remove ? "Message deleted" : body!, deletedAt: remove ? new Date().toISOString() : null, editedAt: new Date().toISOString() } : message));
   };
   return (
-    <section className="conversation-surface art-layer-ready">
+    <section className="conversation-surface art-layer-ready" data-realtime={conversation.databaseId ? connected ? "connected" : "reconnecting" : undefined}>
       <div
         ref={scrollRef}
         className={`message-scroll ${messages.length ? "" : "is-empty"}`}
@@ -545,11 +577,15 @@ export function ChatSurface({ conversation }: { conversation: Conversation }) {
         )}
       </div>
       <Composer
+        onTyping={sendTyping}
         name={titleOf(conversation)}
         reply={reply}
         onCancelReply={() => setReply(null)}
         onSend={send}
       />
+      {conversation.databaseId ? <p className="chat-transport-status" role="status" aria-live="polite">
+        {typingCount ? conversation.kind === "personal" ? `${titleOf(conversation)} is typing…` : typingCount === 1 ? "Someone is typing…" : "People are typing…" : !connected ? "Connecting to live updates…" : ""}
+      </p> : null}
       {messageError ? <p className="composer-error" role="alert">{messageError}</p> : null}
     </section>
   );
@@ -695,9 +731,11 @@ function PersistentHallCard({
 export function HallSurface({
   conversation,
   empty,
+  connected,
 }: {
   conversation: Conversation;
   empty: boolean;
+  connected: boolean;
 }) {
   const currentUser = useCurrentToskerUser();
   const state = useSyncExternalStore(
@@ -725,8 +763,12 @@ export function HallSurface({
     if (!conversation.databaseId) return;
     let active = true;
     let inFlight = false;
+    let pending = false;
+    let pendingTimer: number | undefined;
     const refresh = async () => {
-      if (document.hidden || inFlight || mutating.current) return;
+      if (document.hidden || !active) return;
+      if (inFlight || mutating.current) { pending = true; return; }
+      pending = false;
       inFlight = true;
       try {
         const items = await listHallItemsAction(conversation.databaseId!);
@@ -735,20 +777,21 @@ export function HallSurface({
           await markConversationReadAction(conversation.databaseId!, "hall");
         }
       } catch { if (active) setHallError("Hall couldn't be loaded."); }
-      finally { inFlight = false; }
+      finally { inFlight = false; if (pending && active) pendingTimer = window.setTimeout(refresh, 100); }
     };
     void refresh();
-    const timer = window.setInterval(() => void refresh(), 12000);
+    const timer = window.setInterval(() => void refresh(), connected ? 60000 : 12000);
     document.addEventListener("visibilitychange", refresh);
-    return () => { active = false; window.clearInterval(timer); document.removeEventListener("visibilitychange", refresh); };
-  }, [conversation.databaseId]);
+    window.addEventListener(HALL_REFRESH, refresh);
+    return () => { active = false; window.clearInterval(timer); window.clearTimeout(pendingTimer); document.removeEventListener("visibilitychange", refresh); window.removeEventListener(HALL_REFRESH, refresh); };
+  }, [conversation.databaseId, connected]);
   const runMutation = async (operation: () => Promise<void>) => {
     if (mutating.current) return;
     mutating.current = true;
     setHallError("");
     try { await operation(); await refreshPersistentItems(); }
     catch { setHallError("That change couldn't be saved. Please try again."); }
-    finally { mutating.current = false; }
+    finally { mutating.current = false; window.dispatchEvent(new Event(HALL_REFRESH)); }
   };
   const reorder = (itemId: string, direction?: "left" | "right", dropId?: string) => {
     const databaseId = conversation.databaseId;

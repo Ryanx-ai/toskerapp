@@ -1,4 +1,7 @@
 "use client";
+import { useConversationRealtime } from "./use-conversation-realtime";
+import { ACTIVITY_REFRESH } from "@/lib/realtime-contract";
+import { notificationHref } from "@/lib/notification-href";
 /* eslint-disable react/no-unescaped-entities */
 
 import Image from "next/image";
@@ -658,7 +661,8 @@ function FriendsSurface({
     void refresh();
     const timer = window.setInterval(() => void refresh(), 12000);
     document.addEventListener("visibilitychange", refresh);
-    return () => { active = false; window.clearInterval(timer); document.removeEventListener("visibilitychange", refresh); };
+    window.addEventListener(ACTIVITY_REFRESH, refresh);
+    return () => { active = false; window.clearInterval(timer); document.removeEventListener("visibilitychange", refresh); window.removeEventListener(ACTIVITY_REFRESH, refresh); };
   }, [identity, refreshConnections]);
   useEffect(() => {
     if (!identity || query.trim().length < 2) return;
@@ -1305,6 +1309,7 @@ export function MessagingApp({
   const [toast, setToast] = useState<NotificationActivity | null>(null);
   const seenActivity = useRef<Set<string> | null>(null);
   const activeConversationRef = useRef<string | null>(null);
+  const liveConnected = useRef(false);
   const addPanelRef = useRef<HTMLElement>(null);
   const closeAdd = useCallback(() => setOverlay(null), []);
   useDismissLayer(overlay === "add", closeAdd, addPanelRef);
@@ -1315,12 +1320,19 @@ export function MessagingApp({
     }
     let active = true;
     let inFlight = false;
+    let pending = false;
+    let pendingTimer: number | undefined;
     let toastTimer: number | undefined;
+    let lastRefresh = 0;
     const refresh = async () => {
-      if (document.hidden || inFlight) return;
+      if (document.hidden || !active) return;
+      if (inFlight) { pending = true; return; }
+      pending = false;
+      lastRefresh = Date.now();
       inFlight = true;
       const next = await listNotificationsAction().catch(() => null);
       inFlight = false;
+      if (pending && active) pendingTimer = window.setTimeout(refresh, 100);
       if (!next) return;
       if (!active) return;
       const previous = seenActivity.current;
@@ -1336,9 +1348,10 @@ export function MessagingApp({
       }
     };
     void refresh();
-    const timer = window.setInterval(() => void refresh(), 12000);
+    const timer = window.setInterval(() => { if (!liveConnected.current || Date.now() - lastRefresh >= 60000) void refresh(); }, 12000);
     document.addEventListener("visibilitychange", refresh);
-    return () => { active = false; window.clearInterval(timer); window.clearTimeout(toastTimer); document.removeEventListener("visibilitychange", refresh); };
+    window.addEventListener(ACTIVITY_REFRESH, refresh);
+    return () => { active = false; window.clearInterval(timer); window.clearTimeout(toastTimer); window.clearTimeout(pendingTimer); document.removeEventListener("visibilitychange", refresh); window.removeEventListener(ACTIVITY_REFRESH, refresh); };
   }, [identity]);
   const collapsed = useSyncExternalStore(
     collapseStore.subscribe,
@@ -1434,7 +1447,9 @@ export function MessagingApp({
         : selectedSlug
           ? conversations[0]
           : undefined));
-  useEffect(() => { activeConversationRef.current = selected?.databaseId ?? null; }, [selected?.databaseId]);
+  const realtime = useConversationRealtime(selected?.databaseId, identity?.userId);
+  useEffect(() => { liveConnected.current = realtime.connected; }, [realtime.connected]);
+  useEffect(() => { activeConversationRef.current = surface === "hall" ? null : selected?.databaseId ?? null; }, [selected?.databaseId, surface]);
   const unreadByConversation = activity.reduce<Record<string, number>>((counts, item) => {
     if (item.type === "message" && item.conversationId && !item.readAt) counts[item.conversationId] = (counts[item.conversationId] ?? 0) + 1;
     return counts;
@@ -1444,7 +1459,7 @@ export function MessagingApp({
     return latest;
   }, {});
   const unreadForSurface = (kind: "message" | "hall") => activity.filter((item) => selected?.databaseId && item.conversationId === selected.databaseId && !item.readAt && (kind === "message" ? item.type === "message" : item.type === "hall_note" || item.type === "hall_pin")).length;
-  const activityHref = (item: NotificationActivity) => item.conversationKind === "room" && item.roomSlug ? `/room/${item.roomSlug}` : item.conversationKind === "personal" && item.conversationId ? `/personal/chat-${item.conversationId}` : item.conversationKind === "sandbox" ? "/personal/my-room" : "/friends";
+  const activityHref = notificationHref;
   const messageFriend = (friend: (typeof friends)[number]) => {
     const chat = prototypeStore.createChat(friend);
     router.push(`/personal/${chat.slug}`);
@@ -1476,18 +1491,19 @@ export function MessagingApp({
             />
             {surface === "hall" ? (
               <HallSurface
+                connected={realtime.connected}
                 key={selected.slug}
                 conversation={selected}
                 empty={Boolean(identity) || Boolean(prototypeRoom && !canonical)}
               />
             ) : (
-              <ChatSurface key={selected.slug} conversation={selected} />
+              <ChatSurface key={selected.slug} conversation={selected} realtime={realtime} />
             )}
           </>
         ) : workspace === "friends" ? (
           <FriendsSurface onMessage={messageFriend} />
         ) : workspace && workspace !== "create" ? (
-          <ProductSurface surface={workspace} mode={state.mode} />
+          <ProductSurface surface={workspace} mode={state.mode} activity={activity} />
         ) : (
           <div className="desktop-welcome">
             <div className="welcome-orbit">

@@ -3,13 +3,13 @@
 import { and, desc, eq, ilike, isNull, lt, ne, or, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
-import { requireConversationParticipant } from "@/server/auth/authorize";
 import { requireCurrentActor } from "@/server/auth/clerk";
 import { getDatabase } from "@/server/db/client";
 import { conversationParticipants, conversationReads, conversations, messages, notifications, profiles, users } from "@/server/db/schema";
 import { hallScope } from "@/server/hall/service";
 import { changeOwnMessage, setMessageReaction } from "./service";
 import type { ReactionSummary } from "@/lib/reaction-contract";
+import { publishMessageChanged, publishConversationActivity, publishUserActivity } from "@/server/realtime/provider";
 
 export type PersistentMessage = {
   id: string;
@@ -67,18 +67,19 @@ export async function sendMessageAction(input: { id: string; conversationId: str
     const [reply] = await db.select({ id: messages.id }).from(messages).where(and(eq(messages.id, input.replyToId), eq(messages.conversationId, input.conversationId), isNull(messages.deletedAt))).limit(1);
     if (!reply) throw new Error("Reply target unavailable in this conversation.");
   }
-  const [created] = await db
+  const created = await db.transaction(async (tx) => {
+  const [created] = await tx
     .insert(messages)
     .values({ id: input.id, conversationId: input.conversationId, authorId: actor.userId, body, replyToId: input.replyToId })
     .onConflictDoNothing()
     .returning({ createdAt: messages.createdAt });
   if (created) {
-    const recipients = await db
+    const recipients = await tx
       .select({ userId: conversationParticipants.userId })
       .from(conversationParticipants)
       .where(and(eq(conversationParticipants.conversationId, input.conversationId), ne(conversationParticipants.userId, actor.userId)));
     if (recipients.length) {
-      await db.insert(notifications).values(recipients.map(({ userId }) => ({
+      await tx.insert(notifications).values(recipients.map(({ userId }) => ({
         userId,
         actorId: actor.userId,
         conversationId: input.conversationId,
@@ -86,16 +87,24 @@ export async function sendMessageAction(input: { id: string; conversationId: str
         type: "message",
       })));
     }
+  } else {
+    const [existing] = await tx.select({ authorId: messages.authorId, conversationId: messages.conversationId, createdAt: messages.createdAt })
+      .from(messages).where(eq(messages.id, input.id)).limit(1);
+    if (!existing || existing.authorId !== actor.userId || existing.conversationId !== input.conversationId) throw new Error("Message id unavailable.");
+    return existing;
   }
+  return created;
+  });
   revalidatePath("/app");
+  await Promise.all([publishMessageChanged(input.conversationId), publishConversationActivity(input.conversationId, "chat")]);
   return { id: input.id, createdAt: created?.createdAt.toISOString() ?? null };
 }
 
-export async function markConversationReadAction(conversationId: string, surface: "chat" | "hall" = "chat") {
+export async function markConversationReadAction(conversationId: string, surface: "chat" | "hall" = "chat", throughMessageId?: string) {
   const actor = await requireCurrentActor();
   const db = getDatabase();
-  await requireConversationParticipant(db, actor, conversationId);
-  await db.insert(conversationReads)
+  await hallScope(db, actor, conversationId);
+  if (surface === "chat") await db.insert(conversationReads)
     .values({ conversationId, userId: actor.userId, lastReadAt: new Date() })
     .onConflictDoUpdate({
       target: [conversationReads.conversationId, conversationReads.userId],
@@ -104,15 +113,19 @@ export async function markConversationReadAction(conversationId: string, surface
   const activityTypes = surface === "hall" ? ["hall_note", "hall_pin"] : ["message"];
   await db.update(notifications)
     .set({ readAt: new Date() })
-    .where(and(eq(notifications.userId, actor.userId), eq(notifications.conversationId, conversationId), or(...activityTypes.map((type) => eq(notifications.type, type)))));
+    .where(and(eq(notifications.userId, actor.userId), eq(notifications.conversationId, conversationId), or(...activityTypes.map((type) => eq(notifications.type, type))),
+      surface === "chat" && throughMessageId ? sql`exists (select 1 from messages seen, messages boundary where seen.id = ${notifications.messageId} and boundary.id = ${throughMessageId} and boundary.conversation_id = ${conversationId} and (seen.created_at, seen.id) <= (boundary.created_at, boundary.id))` : undefined));
+  await publishUserActivity(actor.userId);
 }
 
 export async function setMessageReactionAction(input: { conversationId: string; messageId: string; emoji: string; active: boolean }) {
   await setMessageReaction(getDatabase(), await requireCurrentActor(), input);
+  await publishMessageChanged(input.conversationId);
 }
 
 export async function changeOwnMessageAction(input: { conversationId: string; messageId: string; body?: string; remove?: boolean }) {
   await changeOwnMessage(getDatabase(), await requireCurrentActor(), input);
+  await publishMessageChanged(input.conversationId);
 }
 
 export async function findPeopleAction(query: string) {

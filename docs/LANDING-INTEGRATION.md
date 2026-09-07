@@ -34,7 +34,7 @@ Hero/ending reuse supplied generated concept imagery, optimized as static WebP. 
 
 ## Release
 
-Pending final validation, dedicated commit/push and canonical smoke. Record actual deployment after verification. Do not start realtime until this gate passes.
+Landing commit `509ee93d31a3a27de0fa90694cb1a1bc101aec65` pushed; canonical deployment `dpl_8QXaXM7Vwoc13LQxgHbC1CaV1Gd9` READY. Public landing and both Clerk flows verified live. Live review measured Hall toolbar contrast below 4.5:1 against the sunset; a bounded follow-up adds a restrained dark translucent backing to Hall controls/mobile scroll guidance. TypeScript, lint, build and diff check rerun green. Final authenticated canonical smoke pending this follow-up deployment; do not start realtime until it passes.
 
 ## Known debt
 

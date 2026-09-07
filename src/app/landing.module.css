@@ -39,6 +39,8 @@
 .shapeHead { display:flex; justify-content:space-between; align-items:flex-end; gap:32px; margin-bottom:65px; }
 .shapeHead>p { font-size:15px; line-height:1.85; }
 .shape .caption { color:#302b37; }
+.shape .toolbar { min-height:54px; margin-block:8px; padding-inline:12px; border-radius:10px; background:#14243b80; color:#fff; }
+.shape .scrollHint { color:#fff; background:#14243b80; border-radius:8px; }
 .gizmo { display:flex; align-items:center; justify-content:center; gap:22px; max-width:620px; margin:54px auto 0; color:#26343e; }
 .gizmo img { flex-shrink:0; }
 .gizmo .eyebrow { font-size:9px; margin-bottom:6px; }
@@ -73,6 +75,7 @@
   .talk { padding-top:120px; padding-bottom:90px; }.chapterHead { margin-bottom:36px; }.exhibit { border-radius:20px; padding:0 12px 12px; }.toolbar { min-height:60px; font-size:11px; }.toolbar button { font-size:10px; }
   .capture { width:800px; max-width:none; }.scrollHint { display:block; font-size:10px; padding-top:12px; line-height:1.6; }.caption { flex-direction:column; gap:6px; font-size:11px; margin-top:16px; }.caption span:last-child { font-size:9px; }
   .shape { padding-top:50px; padding-bottom:60px; }.shapeHead { flex-direction:column; align-items:flex-start; gap:24px; margin-bottom:36px; }.shapeHead>p { font-size:13px; }.gizmo { gap:14px; margin-top:36px; }.gizmo img { width:80px; height:auto; }.gizmo .eyebrow { font-size:8px; margin-bottom:6px; }.gizmo p { font-size:13px; }.gizmo small { font-size:10px; }
+  .shape .toolbar { min-height:44px; }.shape .scrollHint { padding:10px; margin-top:12px; }
   .community { padding-top:100px; padding-bottom:50px; grid-template-columns:1fr; gap:32px; }.community>div>p:not(.eyebrow) { font-size:13px; }.community figure { max-width:440px; margin-inline:auto; }
   .begin { min-height:690px; }.beginCopy { padding-top:100px; }.begin h2 { font-size:clamp(48px,10vw,68px); }.beginCopy>p:not(.eyebrow) { font-size:12px; }.endingArt { width:160%; max-width:none; left:-10%; }.signature { bottom:90px; font-size:11px; left:64%; }.footer { font-size:10px; min-height:90px; gap:16px; }
   .viewer { padding:12px; }.viewer h2 { font-size:15px; }

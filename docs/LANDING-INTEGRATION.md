@@ -36,6 +36,8 @@ Hero/ending reuse supplied generated concept imagery, optimized as static WebP. 
 
 Landing commit `509ee93d31a3a27de0fa90694cb1a1bc101aec65` pushed; canonical deployment `dpl_8QXaXM7Vwoc13LQxgHbC1CaV1Gd9` READY. Public landing and both Clerk flows verified live. Live review measured Hall toolbar contrast below 4.5:1 against the sunset; a bounded follow-up adds a restrained dark translucent backing to Hall controls/mobile scroll guidance. TypeScript, lint, build and diff check rerun green. Final authenticated canonical smoke pending this follow-up deployment; do not start realtime until it passes.
 
+**Final gate PASSED:** contrast commit `332fd168e3623eb01b735d92b833c6c7b2542d5f`, deployment `dpl_6zghoSZVR7Xi4TG6FdFH4abEM9cL` READY and aliased to `https://toskerapp.vercel.app/`. Live A sign-in completed at `/app`, with existing account/Rooms/conversations; footer returned to landing; direct authenticated root reload retained landing and signed-in app CTAs. Live mobile opening and deployed contrast backing verified; browser error collection empty; Vercel runtime-error scan over the prior 15 minutes empty. Local build server remains at localhost:3000. Part B research may proceed; see `MS6B-PROVIDER-DECISION.md` for the founder gate. No realtime code is deployed.
+
 ## Known debt
 
 Canonical Vercel production alias still uses Development Clerk/Neon; no Production/Preview DB provisioned. This release does not change that contract. Physical mobile devices/native zoom not exercised. Art is the supplied concept set, not a new ToskerArt system. No analytics, legal destinations or unsupported public workflows invented.

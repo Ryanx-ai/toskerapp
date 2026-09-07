@@ -4,6 +4,8 @@ Repository and Git are authoritative. Read this file first when resuming develop
 
 ## Active session — landing integration, then MS6B (2026-09-07)
 
+**Landing COMPLETE / DEPLOYED / LIVE-VERIFIED. MS6B PAUSED AT FOUNDER PROVIDER GATE.** Product landing `509ee93` plus contrast correction `332fd16`; canonical `dpl_6zghoSZVR7Xi4TG6FdFH4abEM9cL` READY. Actual A auth → `/app` → landing → authenticated root reload passes; browser/runtime scans clean. Recommend **Ably Pub/Sub**; founder must create `tosker-development` and securely set server-only `ABLY_API_KEY`. Exact permissions, separation and resume plan: `docs/MS6B-PROVIDER-DECISION.md`. No provider/SDK/realtime code provisioned or installed. Keep polling. No MS7.
+
 Founder authorized this sequence in the landing/MS6B kickoff: finish landing, validate, commit/push/deploy and live-test it; only then research/recommend one realtime provider. **Do not provision a provider automatically; stop for founder account/resource/credentials if needed.** This supersedes the older MS6A founder-review stop below, without reopening MS6A.
 
 Landing baseline: `51c8daa8` (MS6A closeout). Public `/` is now an independent static landing; former Chats home is `/app`. Existing product URLs live under a URL-neutral `(workspace)` layout retaining the original session/auth boundary. Landing uses existing Clerk modal sign-in/sign-up with `/app` completion; signed-in visitors still see `/`. Desktop footer and mobile Profile/Help link back to it.

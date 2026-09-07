@@ -2,13 +2,19 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
-## Active session — final MS6B founder patch in release validation (2026-09-07)
+## Active session — MS6 COMPLETE / MS6A LOCKED / MS6B LOCKED (2026-09-07)
 
 **Previous deployed baseline:** product commit `a3e94a8bee718f4b43a309ed8cedf0c2d9efc168`, pushed to main and deployed READY as `dpl_EG1JiM7p7ANoTPL2K9NrvEUkddCm` at `https://toskerapp.vercel.app/`. Normal isolated Clerk A/B live Personal/Room/Subroom delivery, typing, reconnect and surface unread passed. Scoped Ably tokens/revocation, 55-message recovery, retry, TS/lint/build/DB/security checks passed; that baseline had no schema changes. Connected reconciliation 60 seconds, disconnected 12 seconds; Friends retains manual-status polling. Existing founder-review target uses Development Clerk/Neon/Ably, not a new Production/Preview stack. Current patch evidence: `docs/MS6B-ACCEPTANCE.md`.
 
-The founder approved `docs/MS7-PRODUCT-STRESS-AUDIT.md` and authorized the bounded final MS6B attention/discovery patch, including the small audit fixes. Current patch remains uncommitted until validation completes. Migration `0011_omniscient_northstar.sql` is applied to Development (12 migrations / 44 foreign keys): notification-list acknowledgement and destination unread are separate. Canonical private-feed refresh now updates navigation and Friends; a single-actor in-memory response cache retains attention across navigation without becoming durable authority. Hall recipients recheck membership/Subroom access. Friends has contained discovery, explicit relationship states, shared pink attention and dark focus/modal primitives. Preserve the identity recovery/Online/dedup/nickname audit fixes.
+**Final founder patch:** `f005f6d9fea2727f7e89b8d7bfdf3a2ebfa18f9b` — `fix: refine realtime attention and friend discovery`. Pushed to main; deployment `dpl_2pEXBTB1Q1VHYy1pHBA9vZy4WnM5` READY, canonical `https://toskerapp.vercel.app/` HTTP 200. Immutable product deployment: `https://tosker-nuqjxjy1f-pangea6.vercel.app`. This documentation closeout may produce a newer Git deployment without product changes.
 
-Fresh TS/lint/build, schema, Chat/shared-state/invariant, Ably authorization and independent-attention suites pass. Two new isolated Clerk QA users (`tosker.lock.0907.a+clerk_test@example.com`, `tosker.lock.0907.b+clerk_test@example.com`) verified request/accept convergence, new Personal rail appearance, active Chat clearing, Hall/list independence, Room/Subroom isolation, search states, responsive 1440/390/320/720 widths and private nickname. Browser QA caught and fixed an authenticated new-conversation transition incorrectly falling back to Sandbox/sample content; unresolved authenticated navigation now shows a neutral loading state. Exact test fixtures remain for the live smoke and must be cleaned afterward. Next: finish final browser/recovery checks, explicit-file commit/push, canonical deployment and live two-user smoke; record release before locking MS6/MS6A/MS6B. **Do not begin MS7.** Unrelated Website/Art docs and experiments remain unstaged; `toskerArt/` untouched/untracked.
+Migration `0011_omniscient_northstar.sql` is applied to Development (12 migrations / 44 foreign keys): notification-list acknowledgement and destination unread are separate. Exact rendered IDs/message boundaries protect later arrivals and other surfaces. Private activity refreshes canonical navigation/Friends; one actor's memory-only response cache prevents route flicker without becoming authority. Hall recipients require current membership/Subroom access. Contained Friends discovery, explicit relationship states, shared pink attention, dark focus/modal primitives and approved audit fixes are included. No transport rewrite or new infrastructure.
+
+Fresh TS/lint/build, schema, Chat/shared-state/invariants, Ably authorization, independent-attention, cache/identity UI and secret scans pass. Local real A/B covers request/accept in both directions, new Personal rail appearance, active Chat, separate Chat/Hall/list read states, parent/child isolation, search states, 1440/390/320/720 layouts and private nickname. Live normal Clerk A/B sign-in, Friend attention/acceptance, bidirectional Personal, Room/Subroom delivery, typing, brief disconnect/reload persistence, Hall/list clearing and 390px composer fit pass. Sampled browser and Vercel runtime errors: none. Physical mobile/OS eviction and screen-reader speech remain untested.
+
+QA-only cleanup completed with exact actor/Room/conversation guards: two temporary Clerk/Neon users, their Sandboxes, one Room/child, one Personal conversation, 12 messages, three notes and related fixture metadata removed. No founder data removed; cleanup has no UI undo. Post-cleanup DB invariants pass (6 users, 6 Sandboxes; no duplicate TIDs/memberships/Personal pairs or orphan pins). Evidence: `docs/MS6B-ACCEPTANCE.md`.
+
+The founder-approved MS7 audit remains planning only. Room lifecycle menus, Hall destructive/archive policies, identity/shared-context work, Settings/Help, Gizmos and true production infrastructure separation remain MS7 debt. **STOP: MS7.1 requires subsequent explicit founder authorization.** Unrelated Website/Art docs, research and experiments remain unstaged; `toskerArt/` untouched/untracked.
 
 Founder authorized this sequence in the landing/MS6B kickoff: finish landing, validate, commit/push/deploy and live-test it; only then research/recommend one realtime provider. **Do not provision a provider automatically; stop for founder account/resource/credentials if needed.** This supersedes the older MS6A founder-review stop below, without reopening MS6A.
 
@@ -50,7 +56,7 @@ Product checkpoint: `f6ada068aeadbcc882a7b268b5c5eba6438e5fda` — `feat: comple
 
 - Development database: Neon `neon-byzantine-jacket`
 - Development auth: Clerk Development
-- Canonical Development app: <https://toskerapp.vercel.app/>. MS6A product release `dpl_B9FBLZhWr4weR3cuYWbJQp9frJrN`, READY, commit `f6ada068`; HTTP 200, authenticated smoke and runtime-error scan passed. Subsequent documentation-only Git deployments may have newer IDs without changing product code. Evidence: `docs/MS6A-CLOSEOUT.md`.
+- Canonical Development app: <https://toskerapp.vercel.app/>. Final MS6B product `f005f6d`, deployment `dpl_2pEXBTB1Q1VHYy1pHBA9vZy4WnM5`, READY and live-verified. Subsequent documentation-only Git deployments may have newer IDs without changing product code. Evidence: `docs/MS6B-ACCEPTANCE.md`.
 - Preview and Production databases are not provisioned.
 - Canonical alias uses the Vercel production target but **Development** Clerk/Neon; the old MS4.1 deployment statement is obsolete. Founder authorized this MS6A commit/push/deploy. Do not provision production infrastructure.
 - `toskerArt/` remains untracked, untouched, and unintegrated.
@@ -87,6 +93,6 @@ Later: native mobile, persistent media/object storage, broader optimization, dee
 
 1. Run `git status` and `git log --oneline -8`.
 2. Preserve completed checkpoint commits; do not squash or amend prior milestones.
-3. Inspect latest Git/deployment; MS6A is deployed and landing integration is the current release slice. The canonical alias still uses Development services.
+3. Inspect latest Git/deployment; MS6/MS6A/MS6B are locked. The canonical alias still uses Development services.
 4. Do not touch `toskerArt/`.
-5. Follow the active session and landing release record above. Never mix unfinished realtime into the landing release. Stop at the provider account/resource gate; do not begin MS7.
+5. Follow the active session and MS6B release record above. Do not reopen provider integration or begin MS7 without subsequent explicit founder authorization.

@@ -2,6 +2,8 @@
 
 ## PRO continuation — latest state
 
+**RELEASED / LIVE-VERIFIED:** product commit `f6ada068`, canonical product deployment `dpl_B9FBLZhWr4weR3cuYWbJQp9frJrN` READY. Live authenticated mutation/reload, Hall, Explore and runtime-error checks passed. Temporary browser QA fixture removed with exact-ID/content guards; old fixture URLs below are historical and must not be used as current resume targets. See `docs/MS6A-CLOSEOUT.md` and current handoff. STOP for founder review; no MS6B. The following continuation notes record the pre-release sequence only.
+
 The earlier pauses and remaining-test lists below are historical. Current local release gate is green after the PRO continuation; authoritative consolidated evidence is `docs/MS6A-CLOSEOUT.md`.
 
 - Passed additional checks: desktop/mobile child-to-parent return; B denied restricted Chat/Hall deep links; mobile Hall Move later persisted; physical right-click and mobile More; native emoji category selection; full-picker skin-tone reaction/reload; reply retry/reload; Start Chat accepted Friend opens existing conversation; responsive/contrast checks.

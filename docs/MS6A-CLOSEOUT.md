@@ -1,6 +1,6 @@
 # MS6A validation and release
 
-2026-09-07. Local release gate passed; canonical deployment verification pending. MS6B requires founder review/lock.
+2026-09-07. MS6A released and live-verified; awaiting founder walkthrough. MS6B requires founder review/lock.
 
 ## Scope and recovery
 
@@ -44,4 +44,16 @@ No realtime, websocket/SSE infrastructure, media storage, AI, native app, Gizmo 
 
 ## Release verification
 
-Built-app smoke (`next start` after the fresh build): authenticated B reload, persisted reactions/reply, message menu, Hall/order, New Note dialog and unavailable drop handling PASS; no page exceptions. Product commit/push and canonical READY/authenticated live smoke remain next. Keep the temporary `MS6A Browser QA` fixture until that smoke, then clean only its verified IDs. Stop for founder walkthrough; do not start MS6B.
+Built-app smoke (`next start` after the fresh build): authenticated B reload, persisted reactions/reply, message menu, Hall/order, New Note dialog and unavailable drop handling PASS; no page exceptions.
+
+- Product commit: `f6ada068aeadbcc882a7b268b5c5eba6438e5fda` — `feat: complete MS6A foundational interactions`; pushed to origin/main.
+- Product deployment: `dpl_B9FBLZhWr4weR3cuYWbJQp9frJrN`, READY, approximately 32-second build. [Immutable deployment](https://tosker-nbhmqo3hv-pangea6.vercel.app/), [canonical app](https://toskerapp.vercel.app/).
+- Canonical alias confirmed on this deployment; HTTP 200, visible `Version MS6A - Dev Proto`.
+- Authenticated A logged in through normal Clerk Development verification. Its live reaction mutation produced one 👍 chip/count 2 with both actors; isolated B saw the change through existing polling. Live reload retained correct reactions and reply quote. Hall order/content, New Note top-layer modal, Explore discovery/community and legacy Studio → nested Create navigation passed. Browser page exceptions: none.
+- Vercel grouped runtime-error scan for the post-release window: clean. No new monitoring/drain infrastructure configured.
+- Canonical target is Vercel production **using Development Clerk/Neon**, not newly provisioned production auth/database infrastructure.
+- Temporary QA Room `5a7bf857-8364-4756-8b30-98ff7638cbd8` removed after smoke, guarded by exact Room, conversation, message, note, comment and Subroom content/ID assertions. Removed one test Room/Subroom, two conversations, three test messages, two notes, one comment and five notifications, with cascading fixture metadata. Founder data untouched; no UI undo for test cleanup. Suite fixtures already cleaned independently.
+
+This documentation follow-up does not change product code. Later documentation-only Git deployments can have newer IDs/SHAs while retaining the product checkpoint above. `toskerArt/` and unrelated newly appeared `docs/TOSKER-ART-SYSTEM.md` remain untracked and untouched by MS6A.
+
+**STOP for founder walkthrough. MS6A is not founder-locked yet; do not begin MS6B.**

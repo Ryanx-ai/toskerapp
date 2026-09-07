@@ -4,7 +4,9 @@ Repository and Git are authoritative. Read this file first when resuming develop
 
 ## Current milestone
 
-MS6A — Foundational UX / core interaction debt — **LOCAL RELEASE GATE PASSED; RELEASE VERIFICATION NEXT** (2026-09-07).
+MS6A — Foundational UX / core interaction debt — **DEPLOYED / LIVE-VERIFIED / AWAITING FOUNDER REVIEW** (2026-09-07).
+
+Product checkpoint: `f6ada068aeadbcc882a7b268b5c5eba6438e5fda` — `feat: complete MS6A foundational interactions`. Pushed to main. Canonical product deployment `dpl_B9FBLZhWr4weR3cuYWbJQp9frJrN` READY; authenticated live smoke and runtime-error scan passed. Subsequent documentation-only deployments may carry newer IDs without changing this product checkpoint.
 
 - Resumed the authoritative WIP at `f38808a`; did not reset, recreate or discard it. Main matched origin/main before the release commit. Previous low-usage STOP instructions were superseded by the founder's PRO continuation.
 - Current patch includes durable actor-scoped Chat and Hall-comment reactions, existing-model own edit/delete/replies, Hall editor/modal/reorder, Friends-first Chat creation, custom Room tags, parent-first Room/Subroom navigation and Explore consolidation.
@@ -12,10 +14,10 @@ MS6A — Foundational UX / core interaction debt — **LOCAL RELEASE GATE PASSED
 - Additive migration `0010_handy_argent.sql` already applied to Development: message tombstones and two reaction tables; 11 migrations/44 foreign keys verified.
 - Fresh TypeScript, ESLint, production build, MS6A database acceptance, schema verification and invariant audit pass. Two-user reaction/Hall persistence, full-card drag, parent return and restricted deep-link denial passed. Detailed evidence/limits: `docs/MS6A-CLOSEOUT.md`; historical recovery: `docs/MS6A-WIP-CHECKPOINT.md`.
 - Final QA fixes: right-click menu no longer disappears on release; failed sends retain their reply target; short composer placeholder avoids narrow-screen clipping; Create / Studio banner links back to discovery.
-- Exact next action: finish built-app smoke, commit the validated MS6A patch, push main, verify canonical READY and authenticated smoke; update release evidence, then STOP for founder review.
-- The temporary `MS6A Browser QA` fixture remains for live verification only; remove only its validated Room/conversation fixture after testing. Never delete founder content.
+- **Exact next action: STOP for founder walkthrough.** No MS6B or new implementation until the founder reviews and locks MS6A.
+- The temporary `MS6A Browser QA` fixture was removed after live verification using guarded exact-ID/content assertions: one Room/Subroom, two conversations, three messages, two notes, one comment and five related notifications, plus cascading fixture metadata. No founder content removed; this test cleanup has no UI undo. Historical fixture URLs in the recovery log no longer exist.
 - Browser limits: physical iOS/Android keyboard/long-press and native browser zoom not exercised. Equivalent 200% layout (720×450) passed. Clipboard API write succeeded with expected text; automated read/paste remains restricted. Auth/proxy unchanged; fresh B reloads stayed signed in, while A's automation session twice returned to a blank browser and required normal reauthentication.
-- **No MS6B/realtime until founder review and lock. Keep the existing 12-second polling bridge. No new realtime provider, websocket/SSE, media storage, native, AI, Gizmo SDK or ToskerWeb. `toskerArt/` stays untouched/untracked.**
+- **No MS6B/realtime until founder review and lock. Keep the existing 12-second polling bridge. No new realtime provider, websocket/SSE, media storage, native, AI, Gizmo SDK or ToskerWeb. `toskerArt/` stays untouched/untracked.** Unrelated untracked `docs/TOSKER-ART-SYSTEM.md` appeared during this pass and was not read, edited or staged.
 
 ## Checkpoints
 
@@ -34,9 +36,9 @@ MS6A — Foundational UX / core interaction debt — **LOCAL RELEASE GATE PASSED
 
 - Development database: Neon `neon-byzantine-jacket`
 - Development auth: Clerk Development
-- Canonical Development app: <https://toskerapp.vercel.app/>. Product release `dpl_B3JYuF7E8PpBh3RN2j5U5apMm4dU`, READY, commit `f6089d4`; HTTP 200, authenticated smoke and runtime-error scan passed. Subsequent documentation-only Git deployments may have newer IDs without changing product code. Evidence: `docs/MS5-FOUNDER-POLISH-CLOSEOUT.md`.
+- Canonical Development app: <https://toskerapp.vercel.app/>. MS6A product release `dpl_B9FBLZhWr4weR3cuYWbJQp9frJrN`, READY, commit `f6ada068`; HTTP 200, authenticated smoke and runtime-error scan passed. Subsequent documentation-only Git deployments may have newer IDs without changing product code. Evidence: `docs/MS6A-CLOSEOUT.md`.
 - Preview and Production databases are not provisioned.
-- Canonical alias uses the Vercel production target but **Development** Clerk/Neon; the old MS4.1 deployment statement is obsolete. Founder authorized this polish commit/push/deploy. Do not provision production infrastructure.
+- Canonical alias uses the Vercel production target but **Development** Clerk/Neon; the old MS4.1 deployment statement is obsolete. Founder authorized this MS6A commit/push/deploy. Do not provision production infrastructure.
 - `toskerArt/` remains untracked, untouched, and unintegrated.
 
 ## MS5.0.1 contract

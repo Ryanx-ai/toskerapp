@@ -410,6 +410,7 @@ export const notifications = pgTable(
       onDelete: "cascade",
     }),
     readAt: timestamp("read_at", { withTimezone: true }),
+    destinationReadAt: timestamp("destination_read_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),

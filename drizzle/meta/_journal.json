@@ -78,6 +78,13 @@
       "when": 1788745265153,
       "tag": "0010_handy_argent",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1788791971557,
+      "tag": "0011_omniscient_northstar",
+      "breakpoints": true
     }
   ]
 }

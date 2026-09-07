@@ -2,9 +2,13 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
-## Active session — landing integration, then MS6B (2026-09-07)
+## Active session — final MS6B founder patch in release validation (2026-09-07)
 
-**MS6B LOCAL ACCEPTANCE PASSED / FINAL RELEASE VALIDATION IN PROGRESS.** Baseline `adfea40`; implementation uncommitted until final green checks. Founder-installed replacement Ably Development key verified server-only, exactly publish/subscribe on `tosker:*`, short-lived scoped tokens and revocation tested. Development key is now a Vercel Secret on the existing founder-review target only; no Preview configuration. Personal/Room/Subroom delivery, typing expiry, offline/background recovery, 55-message gap recovery, safe retry (one DB record), surface unread and Hall persistence pass with isolated Clerk A/B users. Connected reconciliation is 60 seconds; disconnected fallback 12 seconds; Friends retains manual-status polling. No schema changes. TS/lint/build/DB/security and responsive evidence: `docs/MS6B-ACCEPTANCE.md`. Next: finish final validation, stage only MS6B (preserve unrelated Website/Art docs), commit/push, verify deployment, live two-user smoke and exact QA cleanup. No MS7. Art untouched.
+**Previous deployed baseline:** product commit `a3e94a8bee718f4b43a309ed8cedf0c2d9efc168`, pushed to main and deployed READY as `dpl_EG1JiM7p7ANoTPL2K9NrvEUkddCm` at `https://toskerapp.vercel.app/`. Normal isolated Clerk A/B live Personal/Room/Subroom delivery, typing, reconnect and surface unread passed. Scoped Ably tokens/revocation, 55-message recovery, retry, TS/lint/build/DB/security checks passed; that baseline had no schema changes. Connected reconciliation 60 seconds, disconnected 12 seconds; Friends retains manual-status polling. Existing founder-review target uses Development Clerk/Neon/Ably, not a new Production/Preview stack. Current patch evidence: `docs/MS6B-ACCEPTANCE.md`.
+
+The founder approved `docs/MS7-PRODUCT-STRESS-AUDIT.md` and authorized the bounded final MS6B attention/discovery patch, including the small audit fixes. Current patch remains uncommitted until validation completes. Migration `0011_omniscient_northstar.sql` is applied to Development (12 migrations / 44 foreign keys): notification-list acknowledgement and destination unread are separate. Canonical private-feed refresh now updates navigation and Friends; a single-actor in-memory response cache retains attention across navigation without becoming durable authority. Hall recipients recheck membership/Subroom access. Friends has contained discovery, explicit relationship states, shared pink attention and dark focus/modal primitives. Preserve the identity recovery/Online/dedup/nickname audit fixes.
+
+Fresh TS/lint/build, schema, Chat/shared-state/invariant, Ably authorization and independent-attention suites pass. Two new isolated Clerk QA users (`tosker.lock.0907.a+clerk_test@example.com`, `tosker.lock.0907.b+clerk_test@example.com`) verified request/accept convergence, new Personal rail appearance, active Chat clearing, Hall/list independence, Room/Subroom isolation, search states, responsive 1440/390/320/720 widths and private nickname. Browser QA caught and fixed an authenticated new-conversation transition incorrectly falling back to Sandbox/sample content; unresolved authenticated navigation now shows a neutral loading state. Exact test fixtures remain for the live smoke and must be cleaned afterward. Next: finish final browser/recovery checks, explicit-file commit/push, canonical deployment and live two-user smoke; record release before locking MS6/MS6A/MS6B. **Do not begin MS7.** Unrelated Website/Art docs and experiments remain unstaged; `toskerArt/` untouched/untracked.
 
 Founder authorized this sequence in the landing/MS6B kickoff: finish landing, validate, commit/push/deploy and live-test it; only then research/recommend one realtime provider. **Do not provision a provider automatically; stop for founder account/resource/credentials if needed.** This supersedes the older MS6A founder-review stop below, without reopening MS6A.
 
@@ -12,7 +16,7 @@ Landing baseline: `51c8daa8` (MS6A closeout). Public `/` is now an independent s
 
 Scope/evidence and release record: `docs/LANDING-INTEGRATION.md`. No schema, auth-provider configuration, realtime transport, or product redesign. Keep the 12-second polling bridge through the provider gate. `toskerArt/` and unrelated untracked Art audit/system documents remain untouched and unstaged.
 
-## Current milestone
+## Historical MS6A milestone (superseded by active status above)
 
 MS6A — Foundational UX / core interaction debt — **DEPLOYED / LIVE-VERIFIED / AWAITING FOUNDER REVIEW** (2026-09-07).
 

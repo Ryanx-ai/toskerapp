@@ -221,6 +221,13 @@ export async function ensureToskerAccount(
     };
   });
 
+  return { ...account, ...await getWorkspaceNavigation(account.userId) };
+}
+
+/** Read-only navigation snapshot, reused after private activity invalidations. */
+export async function getWorkspaceNavigation(userId: string): Promise<Pick<CanonicalIdentity, "rooms" | "personalConversations">> {
+  const db = getDatabase();
+  const account = { userId };
   const memberships = await db
     .select({
       id: rooms.id,
@@ -271,7 +278,6 @@ export async function ensureToskerAccount(
   }));
 
   return {
-    ...account,
     rooms: memberships.map((room) => ({
       ...room,
       tag: tags.find((tag) => tag.roomId === room.id)?.value ?? "ROOM",

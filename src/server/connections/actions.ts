@@ -7,6 +7,13 @@ import { requireCurrentActor } from "@/server/auth/clerk";
 import { getDatabase } from "@/server/db/client";
 import { connectionNicknames, connections, notifications, profiles, users } from "@/server/db/schema";
 import { publishUserActivity } from "@/server/realtime/provider";
+import { acknowledgeDestination } from "@/server/attention/service";
+
+export async function acknowledgeFriendRequestsAction(ids: string[]) {
+  const actor = await requireCurrentActor();
+  await acknowledgeDestination(getDatabase(), actor, ids);
+  if (ids.length) await publishUserActivity(actor.userId);
+}
 
 const pairKey = (left: string, right: string) => [left, right].sort().join(":");
 
@@ -45,6 +52,7 @@ export async function removeConnectionNicknameAction(connectionId: string) {
   const db = await requireAcceptedConnection(connectionId, actor.userId);
   await db.delete(connectionNicknames).where(and(eq(connectionNicknames.connectionId, connectionId), eq(connectionNicknames.userId, actor.userId)));
   revalidatePath("/friends");
+  await publishUserActivity(actor.userId);
 }
 
 export async function requestConnectionAction(targetUserId: string) {
@@ -53,8 +61,11 @@ export async function requestConnectionAction(targetUserId: string) {
   const db = getDatabase();
   const [target] = await db.select({ id: users.id }).from(users).where(eq(users.id, targetUserId)).limit(1);
   if (!target) throw new Error("That person could not be found.");
-  const [created] = await db.insert(connections).values({ requesterId: actor.userId, addresseeId: target.id, pairKey: pairKey(actor.userId, target.id) }).onConflictDoNothing().returning({ id: connections.id });
-  if (created) await db.insert(notifications).values({ userId: target.id, actorId: actor.userId, type: "connection_request" });
+  const created = await db.transaction(async (tx) => {
+    const [created] = await tx.insert(connections).values({ requesterId: actor.userId, addresseeId: target.id, pairKey: pairKey(actor.userId, target.id) }).onConflictDoNothing().returning({ id: connections.id });
+    if (created) await tx.insert(notifications).values({ userId: target.id, actorId: actor.userId, type: "connection_request" });
+    return created;
+  });
   await Promise.all([publishUserActivity(target.id), publishUserActivity(actor.userId)]);
   revalidatePath("/friends");
   return { created: Boolean(created) };
@@ -63,9 +74,14 @@ export async function requestConnectionAction(targetUserId: string) {
 export async function acceptConnectionAction(connectionId: string) {
   const actor = await requireCurrentActor();
   const db = getDatabase();
-  const [accepted] = await db.update(connections).set({ status: "accepted", updatedAt: new Date() }).where(and(eq(connections.id, connectionId), eq(connections.addresseeId, actor.userId), eq(connections.status, "pending"))).returning({ requesterId: connections.requesterId });
-  if (!accepted) throw new Error("Connection request is not available.");
-  await db.insert(notifications).values({ userId: accepted.requesterId, actorId: actor.userId, type: "connection_accepted" });
+  const accepted = await db.transaction(async (tx) => {
+    const [changed] = await tx.update(connections).set({ status: "accepted", updatedAt: new Date() }).where(and(eq(connections.id, connectionId), eq(connections.addresseeId, actor.userId), eq(connections.status, "pending"))).returning({ requesterId: connections.requesterId });
+    if (changed) await tx.insert(notifications).values({ userId: changed.requesterId, actorId: actor.userId, type: "connection_accepted" });
+    const [existing] = changed ? [changed] : await tx.select({ requesterId: connections.requesterId }).from(connections).where(and(eq(connections.id, connectionId), eq(connections.addresseeId, actor.userId), eq(connections.status, "accepted"))).limit(1);
+    if (!existing) throw new Error("Connection request is not available.");
+    await tx.update(notifications).set({ readAt: new Date(), destinationReadAt: new Date() }).where(and(eq(notifications.userId, actor.userId), eq(notifications.actorId, existing.requesterId), eq(notifications.type, "connection_request")));
+    return existing;
+  });
   await Promise.all([publishUserActivity(accepted.requesterId), publishUserActivity(actor.userId)]);
   revalidatePath("/friends");
 }

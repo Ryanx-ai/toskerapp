@@ -10,6 +10,7 @@ import { hallScope } from "@/server/hall/service";
 import { changeOwnMessage, setMessageReaction } from "./service";
 import type { ReactionSummary } from "@/lib/reaction-contract";
 import { publishMessageChanged, publishConversationActivity, publishUserActivity } from "@/server/realtime/provider";
+import { acknowledgeChat, acknowledgeDestination } from "@/server/attention/service";
 
 export type PersistentMessage = {
   id: string;
@@ -100,21 +101,23 @@ export async function sendMessageAction(input: { id: string; conversationId: str
   return { id: input.id, createdAt: created?.createdAt.toISOString() ?? null };
 }
 
-export async function markConversationReadAction(conversationId: string, surface: "chat" | "hall" = "chat", throughMessageId?: string) {
+export async function markConversationReadAction(conversationId: string, surface: "chat" | "hall" = "chat", throughMessageId?: string, activityIds: string[] = []) {
   const actor = await requireCurrentActor();
   const db = getDatabase();
   await hallScope(db, actor, conversationId);
+  if (surface === "hall") {
+    await acknowledgeDestination(db, actor, activityIds, conversationId);
+    if (activityIds.length) await publishUserActivity(actor.userId);
+    return;
+  }
   if (surface === "chat") await db.insert(conversationReads)
     .values({ conversationId, userId: actor.userId, lastReadAt: new Date() })
     .onConflictDoUpdate({
       target: [conversationReads.conversationId, conversationReads.userId],
       set: { lastReadAt: new Date() },
     });
-  const activityTypes = surface === "hall" ? ["hall_note", "hall_pin"] : ["message"];
-  await db.update(notifications)
-    .set({ readAt: new Date() })
-    .where(and(eq(notifications.userId, actor.userId), eq(notifications.conversationId, conversationId), or(...activityTypes.map((type) => eq(notifications.type, type))),
-      surface === "chat" && throughMessageId ? sql`exists (select 1 from messages seen, messages boundary where seen.id = ${notifications.messageId} and boundary.id = ${throughMessageId} and boundary.conversation_id = ${conversationId} and (seen.created_at, seen.id) <= (boundary.created_at, boundary.id))` : undefined));
+  if (!throughMessageId) return;
+  await acknowledgeChat(db, actor, conversationId, throughMessageId);
   await publishUserActivity(actor.userId);
 }
 
@@ -128,7 +131,7 @@ export async function changeOwnMessageAction(input: { conversationId: string; me
   await publishMessageChanged(input.conversationId);
 }
 
-export async function findPeopleAction(query: string) {
+export async function findPeopleAction(query: string, includeSelf = false) {
   const actor = await requireCurrentActor();
   const term = query.trim().replace(/^@/, "").slice(0, 80);
   if (term.length < 2) return [];
@@ -137,7 +140,7 @@ export async function findPeopleAction(query: string) {
     .select({ userId: users.id, displayName: profiles.displayName, username: profiles.username, tid: users.tid })
     .from(users)
     .innerJoin(profiles, eq(profiles.userId, users.id))
-    .where(and(ne(users.id, actor.userId), or(ilike(profiles.displayName, `%${term}%`), ilike(profiles.username, `%${term}%`), ilike(users.tid, `%${term}%`))))
+    .where(and(includeSelf ? undefined : ne(users.id, actor.userId), or(ilike(profiles.displayName, `%${term}%`), ilike(profiles.username, `%${term}%`), ilike(users.tid, `%${term}%`))))
     .limit(8);
 }
 
@@ -164,5 +167,6 @@ export async function startPersonalConversationAction(targetUserId: string) {
     return item;
   });
   revalidatePath("/app");
+  await Promise.all([publishUserActivity(actor.userId), publishUserActivity(target.id)]);
   return { conversationId: conversation.id, slug: `chat-${conversation.id}` };
 }

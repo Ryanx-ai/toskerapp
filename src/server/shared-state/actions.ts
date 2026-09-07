@@ -1,15 +1,28 @@
 "use server";
 
-import { and, asc, eq, isNull, max, ne, sql } from "drizzle-orm";
+import { and, asc, eq, isNull, max, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 import { AuthorizationDeniedError, requireRoomMember } from "@/server/auth/authorize";
 import { requireCurrentActor } from "@/server/auth/clerk";
 import { getDatabase } from "@/server/db/client";
-import { conversationParticipants, conversations, hallItems, messages, notifications, profiles, roomCapabilities, rooms } from "@/server/db/schema";
+import { conversations, hallItems, messages, notifications, profiles, roomCapabilities, rooms } from "@/server/db/schema";
 import { addHallComment, editHallNote, hallScope, listHallComments, moveHallItem, setCommentReaction, setHallReaction } from "@/server/hall/service";
 import type { HallReaction } from "@/lib/hall-contract";
 import { publishConversationActivity, publishUserActivity } from "@/server/realtime/provider";
+import { acknowledgeNotifications, hallNotificationRecipients } from "@/server/attention/service";
+
+export async function listHallSnapshotAction(conversationId: string) {
+  const actor = await requireCurrentActor();
+  const db = getDatabase();
+  await hallScope(db, actor, conversationId);
+  // Capture before fetching content: an arrival during the fetch remains unread.
+  const seen = await db.select({ id: notifications.id }).from(notifications).where(and(
+    eq(notifications.userId, actor.userId), eq(notifications.conversationId, conversationId),
+    sql`${notifications.type} in ('hall_note', 'hall_pin')`, isNull(notifications.destinationReadAt),
+  )).limit(500);
+  return { items: await listHallItemsAction(conversationId), activityIds: seen.map((item) => item.id) };
+}
 
 const allowedCapabilities = new Set(["Poll", "Schedule", "Map", "Board"]);
 
@@ -50,7 +63,7 @@ export async function createHallNoteAction(input: { conversationId: string; titl
     const [{ nextPosition }] = await tx.select({ nextPosition: max(hallItems.position) }).from(hallItems).where(scope);
     await tx.insert(hallItems).values({ roomId, conversationId: input.conversationId, kind: "note", authorId: actor.userId, title, body, position: (nextPosition ?? -1) + 1 });
     if (roomId) {
-      const recipients = await tx.select({ userId: conversationParticipants.userId }).from(conversationParticipants).where(and(eq(conversationParticipants.conversationId, input.conversationId), ne(conversationParticipants.userId, actor.userId)));
+      const recipients = await hallNotificationRecipients(tx, input.conversationId, actor.userId);
       if (recipients.length) await tx.insert(notifications).values(recipients.map(({ userId }) => ({ userId, actorId: actor.userId, roomId, conversationId: input.conversationId, type: "hall_note" })));
     }
   });
@@ -66,7 +79,7 @@ export async function pinMessageToHallAction(input: { conversationId: string; me
   if (!message) throw new Error("Message not found in this Room.");
   const [created] = await db.insert(hallItems).values({ roomId, conversationId: input.conversationId, kind: "pinned_message", authorId: actor.userId, title: "Pinned from Chat", sourceMessageId: message.id }).onConflictDoNothing().returning({ id: hallItems.id });
   if (created && roomId) {
-    const recipients = await db.select({ userId: conversationParticipants.userId }).from(conversationParticipants).where(and(eq(conversationParticipants.conversationId, input.conversationId), ne(conversationParticipants.userId, actor.userId)));
+    const recipients = await hallNotificationRecipients(db, input.conversationId, actor.userId);
     if (recipients.length) await db.insert(notifications).values(recipients.map(({ userId }) => ({ userId, actorId: actor.userId, roomId, conversationId: input.conversationId, type: "hall_pin" })));
   }
   revalidatePath("/app");
@@ -158,17 +171,17 @@ export async function installRoomCapabilityAction(input: { conversationId: strin
 export async function listNotificationsAction() {
   const actor = await requireCurrentActor();
   const db = getDatabase();
-  const rows = await db.select({ id: notifications.id, type: notifications.type, roomId: notifications.roomId, conversationId: notifications.conversationId, messageId: notifications.messageId, actorId: notifications.actorId, actorName: profiles.displayName, messageBody: messages.body, conversationKind: conversations.kind, subroomId: conversations.subroomId, roomSlug: rooms.slug, createdAt: notifications.createdAt, readAt: notifications.readAt }).from(notifications).leftJoin(profiles, eq(profiles.userId, notifications.actorId)).leftJoin(messages, eq(messages.id, notifications.messageId)).leftJoin(conversations, eq(conversations.id, notifications.conversationId)).leftJoin(rooms, eq(rooms.id, conversations.roomId)).where(eq(notifications.userId, actor.userId)).orderBy(asc(notifications.createdAt));
+  const rows = await db.select({ id: notifications.id, type: notifications.type, roomId: notifications.roomId, conversationId: notifications.conversationId, messageId: notifications.messageId, actorId: notifications.actorId, actorName: profiles.displayName, messageBody: messages.body, conversationKind: conversations.kind, subroomId: conversations.subroomId, roomSlug: rooms.slug, roomName: rooms.name, conversationTitle: conversations.title, createdAt: notifications.createdAt, readAt: notifications.readAt, destinationReadAt: notifications.destinationReadAt }).from(notifications).leftJoin(profiles, eq(profiles.userId, notifications.actorId)).leftJoin(messages, eq(messages.id, notifications.messageId)).leftJoin(conversations, eq(conversations.id, notifications.conversationId)).leftJoin(rooms, eq(rooms.id, conversations.roomId)).where(eq(notifications.userId, actor.userId)).orderBy(asc(notifications.createdAt));
   const scopes = [...new Set(rows.flatMap((item) => item.conversationId ? [item.conversationId] : []))];
   const allowed = new Set(await Promise.all(scopes.map(async (id) => {
     try { await hallScope(db, actor, id); return id; } catch (error) { if (error instanceof AuthorizationDeniedError) return null; throw error; }
   })));
-  return rows.filter((item) => !item.conversationId || allowed.has(item.conversationId)).reverse().map((item) => ({ ...item, createdAt: item.createdAt.toISOString(), readAt: item.readAt?.toISOString() ?? null }));
+  return rows.filter((item) => !item.conversationId || allowed.has(item.conversationId)).reverse().map((item) => ({ ...item, createdAt: item.createdAt.toISOString(), readAt: item.readAt?.toISOString() ?? null, destinationReadAt: item.destinationReadAt?.toISOString() ?? null }));
 }
 
-export async function markNotificationsReadAction() {
+export async function markNotificationsReadAction(ids: string[]) {
   const actor = await requireCurrentActor();
   const db = getDatabase();
-  await db.update(notifications).set({ readAt: new Date() }).where(and(eq(notifications.userId, actor.userId), isNull(notifications.readAt)));
-  await publishUserActivity(actor.userId);
+  await acknowledgeNotifications(db, actor, ids);
+  if (ids.length) await publishUserActivity(actor.userId);
 }

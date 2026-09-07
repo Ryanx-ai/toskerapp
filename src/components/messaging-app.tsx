@@ -2,13 +2,18 @@
 import { useConversationRealtime } from "./use-conversation-realtime";
 import { ACTIVITY_REFRESH } from "@/lib/realtime-contract";
 import { notificationHref } from "@/lib/notification-href";
+import { deriveAttention } from "@/lib/attention";
+import { AttentionMark } from "./attention-mark";
+import { refreshWorkspaceNavigationAction } from "@/server/accounts/actions";
+import { acknowledgeFriendRequestsAction } from "@/server/connections/actions";
+import { workspaceSnapshot } from "./workspace-snapshot";
 /* eslint-disable react/no-unescaped-entities */
 
 import Image from "next/image";
 import { ModalLayer } from "./modal-layer";
 import { DEFAULT_ROOM_TAGS, normalizeRoomTags } from "@/lib/room-tags";
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { conversations, type Conversation } from "@/data/messaging-data";
 import { prototypeUser } from "@/data/prototype-user";
@@ -22,7 +27,7 @@ import { WorkspaceBanner } from "@/components/workspace-banner";
 import { FakeQr } from "@/components/fake-qr";
 import { IdentityCard } from "@/components/identity-card";
 import { useMobileViewport } from "@/components/use-mobile-viewport";
-import { useCurrentToskerUser, useToskerIdentity } from "@/components/tosker-identity";
+import { ToskerIdentityProvider, useCurrentToskerUser, useToskerIdentity } from "@/components/tosker-identity";
 import { createRoomAction, createRoomInviteAction, createSubroomAction } from "@/server/rooms/actions";
 import { findPeopleAction, startPersonalConversationAction } from "@/server/conversations/actions";
 import { installRoomCapabilityAction } from "@/server/shared-state/actions";
@@ -291,7 +296,7 @@ function ConversationRow({
           {pinned ? (
             <i aria-label="Pinned">⌖</i>
           ) : unread || item.unread ? (
-            <b>{unread || item.unread}</b>
+            <AttentionMark count={unread || item.unread || 0} label="unread activities" />
           ) : null}
         </span>
       </Link>
@@ -321,8 +326,10 @@ function ConversationRow({
 
 function ProfileRegion({
   workspace,
+  notificationCount = 0,
 }: {
   workspace?: AppWorkspace;
+  notificationCount?: number;
 }) {
   const user = useCurrentToskerUser() ?? prototypeUser;
   return (
@@ -342,12 +349,13 @@ function ProfileRegion({
         <div className="profile-actions">
           <Link
             href="/notifications"
-            aria-label="Notifications"
+            aria-label={`Notifications${notificationCount ? `, ${notificationCount} unread` : ""}`}
             data-tip="Notifications"
             className="has-tip profile-notifications"
             aria-current={workspace === "notifications" ? "page" : undefined}
           >
             <Bell size={16} />
+            <AttentionMark count={notificationCount} label="unread notifications" />
           </Link>
           <Link
             href="/settings"
@@ -383,6 +391,8 @@ function AppSidebar({
   onToggleCollapse,
   unreadByConversation,
   latestActivityByConversation,
+  friendAttention,
+  notificationCount,
 }: {
   selected?: Conversation;
   workspace?: AppWorkspace;
@@ -391,6 +401,8 @@ function AppSidebar({
   onToggleCollapse: () => void;
   unreadByConversation: Record<string, number>;
   latestActivityByConversation: Record<string, string>;
+  friendAttention: number;
+  notificationCount: number;
 }) {
   const identity = useToskerIdentity();
   const user = useCurrentToskerUser() ?? prototypeUser;
@@ -555,7 +567,7 @@ function AppSidebar({
             <Link
               key={item.href}
               href={item.href}
-              aria-label={item.label}
+              aria-label={`${item.label}${item.label === "Friends" && friendAttention ? `, ${friendAttention} new requests` : ""}`}
               aria-current={
                 (workspace === "studio" || workspace === "marketplace" ? "explore" : workspace) === item.label.toLowerCase() ? "page" : undefined
               }
@@ -565,6 +577,7 @@ function AppSidebar({
                 <Icon size={17} />
               </span>
               <strong>{item.label}</strong>
+              {item.label === "Friends" ? <AttentionMark count={friendAttention} label="new friend requests" /> : null}
             </Link>
           );
         })}
@@ -628,15 +641,17 @@ function AppSidebar({
           ) : null}
         </div>
       </section>
-      <ProfileRegion workspace={workspace} />
+      <ProfileRegion workspace={workspace} notificationCount={notificationCount} />
     </aside>
   );
 }
 
 function FriendsSurface({
   onMessage,
+  requestActivity,
 }: {
   onMessage: (friend: (typeof friends)[number]) => void;
+  requestActivity: NotificationActivity[];
 }) {
   const [tab, setTab] = useState("All");
   const [query, setQuery] = useState("");
@@ -647,28 +662,55 @@ function FriendsSurface({
   const router = useRouter();
   const [serverConnections, setServerConnections] = useState<Awaited<ReturnType<typeof listConnectionsAction>>>([]);
   const [peopleResults, setPeopleResults] = useState<Awaited<ReturnType<typeof findPeopleAction>>>([]);
+  const [searchState, setSearchState] = useState({ term: "", loading: false, error: false });
+  const identityId = identity?.userId;
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState("");
+  const discovering = Boolean(query.trim());
   const refreshConnections = useCallback(() => listConnectionsAction().then(setServerConnections), []);
   useEffect(() => {
-    if (!identity) return;
-    let active = true, inFlight = false;
+    if (!identityId) return;
+    let active = true, inFlight = false, pending = false;
+    let pendingTimer: number | undefined;
     const refresh = async () => {
-      if (document.hidden || inFlight) return;
+      if (document.hidden || !active) return;
+      if (inFlight) { pending = true; return; }
+      pending = false;
       inFlight = true;
       try { const next = await listConnectionsAction(); if (active) setServerConnections(next); }
       catch { /* Retain the last successful result during a temporary outage. */ }
-      finally { inFlight = false; }
+      finally { inFlight = false; if (pending && active) pendingTimer = window.setTimeout(refresh, 100); }
     };
     void refresh();
     const timer = window.setInterval(() => void refresh(), 12000);
     document.addEventListener("visibilitychange", refresh);
     window.addEventListener(ACTIVITY_REFRESH, refresh);
-    return () => { active = false; window.clearInterval(timer); document.removeEventListener("visibilitychange", refresh); window.removeEventListener(ACTIVITY_REFRESH, refresh); };
-  }, [identity, refreshConnections]);
+    return () => { active = false; window.clearInterval(timer); window.clearTimeout(pendingTimer); document.removeEventListener("visibilitychange", refresh); window.removeEventListener(ACTIVITY_REFRESH, refresh); };
+  }, [identityId, refreshConnections]);
   useEffect(() => {
-    if (!identity || query.trim().length < 2) return;
-    const timer = window.setTimeout(() => void findPeopleAction(query).then(setPeopleResults), 180);
-    return () => window.clearTimeout(timer);
-  }, [identity, query]);
+    if (!identityId || query.trim().length < 2) return;
+    let active = true;
+    const timer = window.setTimeout(async () => {
+      setSearchState({ term: query.trim(), loading: true, error: false });
+      try {
+        const results = await findPeopleAction(query, true);
+        if (active) { setPeopleResults(results); setSearchState({ term: query.trim(), loading: false, error: false }); }
+      } catch { if (active) setSearchState({ term: query.trim(), loading: false, error: true }); }
+    }, 180);
+    return () => { active = false; window.clearTimeout(timer); };
+  }, [identityId, query]);
+  const requestIds = requestActivity.filter((item) => serverConnections.some((connection) => connection.status === "pending" && connection.direction === "incoming" && connection.person?.userId === item.actorId)).slice(0, 500).map((item) => item.id).join(",");
+  useEffect(() => {
+    if (!identityId || tab !== "Requests" || discovering || !requestIds || document.hidden) return;
+    void acknowledgeFriendRequestsAction(requestIds.split(",")).catch(() => undefined);
+  }, [identityId, tab, discovering, requestIds]);
+  const actOnPerson = async (id: string, operation: () => Promise<unknown>) => {
+    if (busyId) return;
+    setBusyId(id); setActionError("");
+    try { await operation(); await refreshConnections(); window.dispatchEvent(new Event(ACTIVITY_REFRESH)); }
+    catch { setActionError("Couldn't save that change. Please try again."); }
+    finally { setBusyId(null); }
+  };
   const shown = friends.filter((friend) =>
     `${friend.name} ${friend.username} ${friend.tid}`
       .toLowerCase()
@@ -683,11 +725,12 @@ function FriendsSurface({
         intensity="quiet"
         action={
           <button
-            onClick={() =>
+            onClick={() => {
+              setTab("All");
               document
                 .querySelector<HTMLInputElement>(".friends-search input")
-                ?.focus()
-            }
+                ?.focus();
+            }}
           >
             <Plus size={15} /> Add friend
           </button>
@@ -700,9 +743,26 @@ function FriendsSurface({
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Search name, username or TID"
           aria-label="Search friends"
+          aria-controls={discovering ? "friend-discovery" : undefined}
+          onKeyDown={(event) => { if (event.key === "Escape") setQuery(""); }}
         />
+        {discovering ? <button className="search-clear" aria-label="Clear search" onClick={() => setQuery("")}><X size={15} /></button> : null}
       </label>
-      <nav>
+      {identity && discovering ? <section className="friend-discovery" id="friend-discovery" aria-label="People search results" aria-busy={query.trim().length >= 2 && (searchState.term !== query.trim() || searchState.loading)}>
+        <h2>Search results</h2>
+        {query.trim().length < 2 ? <p role="status">Enter at least 2 characters.</p> : searchState.term !== query.trim() || searchState.loading ? <p role="status">Searching…</p> : searchState.error ? <p role="alert">Search couldn't load. Change your search to try again.</p> : !peopleResults.length ? <p role="status">No people found.</p> : <div className="discovery-results">{peopleResults.map((person) => {
+          const relationship = serverConnections.find((item) => item.person?.userId === person.userId);
+          const label = person.userId === identity.userId ? "You" : relationship?.status === "accepted" ? "Friend" : relationship?.direction === "incoming" ? "Accept" : relationship ? "Pending" : "Add";
+          const name = relationship?.person?.nickname || person.displayName;
+          return <article key={person.userId}>
+            <span className="avatar avatar-pink avatar-pattern">{person.displayName.slice(0, 2).toUpperCase()}</span>
+            <div className="discovery-identity"><strong>{name}</strong><small>@{person.username}</small><small>{person.tid}</small></div>
+            <div className="discovery-actions"><span className="relationship-state">{label === "Accept" ? "Request received" : label === "Add" ? "" : label}</span>
+              {label === "Friend" ? <button aria-label={`Message ${name}`} disabled={Boolean(busyId)} onClick={() => void actOnPerson(person.userId, async () => { const chat = await startPersonalConversationAction(person.userId); router.push(`/personal/${chat.slug}`); })}><MessageCircle size={16} /></button> : label === "Add" || label === "Accept" ? <button disabled={Boolean(busyId)} onClick={() => void actOnPerson(person.userId, () => label === "Accept" && relationship ? acceptConnectionAction(relationship.id) : requestConnectionAction(person.userId))}>{busyId === person.userId ? "Saving…" : label}</button> : null}
+            </div>
+          </article>;
+        })}</div>}
+      </section> : <><nav aria-label="Friend lists">
         {["All", "Online", "Requests"].map((item) => (
           <button
             className={tab === item ? "active" : ""}
@@ -711,19 +771,20 @@ function FriendsSurface({
             key={item}
           >
             {item}
+            {item === "Requests" ? <AttentionMark count={requestActivity.length} label="new friend requests" /> : null}
           </button>
         ))}
       </nav>
       {tab === "Requests" ? (
         serverConnections.filter((item) => item.status === "pending" && item.direction === "incoming").length ? (
           <div className="friend-list">{serverConnections.filter((item) => item.status === "pending" && item.direction === "incoming").map((item) => item.person ? (
-            <article key={item.id}><span className="avatar avatar-pink">{item.person.displayName.slice(0, 1).toUpperCase()}</span><div><strong>{item.person.displayName}</strong><small>@{item.person.username} · {item.person.tid}</small></div><button onClick={async () => { await acceptConnectionAction(item.id); await refreshConnections(); }}>Accept</button></article>
+            <article key={item.id}><span className="avatar avatar-pink">{item.person.displayName.slice(0, 1).toUpperCase()}</span><div><strong>{item.person.displayName}</strong><small>@{item.person.username} · {item.person.tid}</small></div><button disabled={Boolean(busyId)} onClick={() => void actOnPerson(item.person!.userId, () => acceptConnectionAction(item.id))}>{busyId === item.person.userId ? "Saving…" : "Accept"}</button></article>
           ) : null)}</div>
         ) : <div className="two-line-empty"><h2>No new requests</h2><p>You're all caught up</p></div>
       ) : (
           <div className="friend-list">
-          {identity ? serverConnections.filter((item) => item.status === "accepted" && item.person && `${item.person.nickname ?? ""} ${item.person.displayName} ${item.person.username} ${item.person.tid}`.toLowerCase().includes(query.toLowerCase())).map((item) => item.person ? (
-            <article key={item.id}><span className="avatar avatar-pink avatar-pattern">{item.person.displayName.slice(0, 1).toUpperCase()}<PresenceMark status={item.person.presenceStatus} /></span><div className="friend-nameplate"><strong>{item.person.nickname || item.person.displayName}</strong><small>@{item.person.username} · {item.person.tid}</small></div><i>Friend</i><div className="friend-actions"><button aria-label={`Message ${item.person.displayName}`} onClick={async () => { const chat = await startPersonalConversationAction(item.person!.userId); router.push(`/personal/${chat.slug}`); router.refresh(); }}><MessageCircle size={15} /></button><button aria-label={`More actions for ${item.person.displayName}`} aria-expanded={friendMenuId === item.id} onClick={() => setFriendMenuId(friendMenuId === item.id ? null : item.id)}><MoreHorizontal size={16} /></button>{friendMenuId === item.id ? <div className="context-menu friend-context-menu"><button onClick={() => { setFriendMenuId(null); setNicknameTarget({ id: item.id, name: item.person!.displayName, nickname: item.person!.nickname }); }}>{item.person.nickname ? "Edit nickname" : "Set nickname"}</button>{item.person.nickname ? <button onClick={async () => { await removeConnectionNicknameAction(item.id); await refreshConnections(); setFriendMenuId(null); }}>Remove nickname</button> : null}</div> : null}</div></article>
+          {identity ? serverConnections.filter((item) => item.status === "accepted" && item.person && (tab !== "Online" || item.person.presenceStatus === "online") && `${item.person.nickname ?? ""} ${item.person.displayName} ${item.person.username} ${item.person.tid}`.toLowerCase().includes(query.toLowerCase())).map((item) => item.person ? (
+            <article key={item.id}><span className="avatar avatar-pink avatar-pattern">{item.person.displayName.slice(0, 1).toUpperCase()}<PresenceMark status={item.person.presenceStatus} /></span><div className="friend-nameplate"><strong>{item.person.nickname || item.person.displayName}</strong><small>@{item.person.username} · {item.person.tid}</small></div><i>Friend</i><div className="friend-actions"><button aria-label={`Message ${item.person.nickname || item.person.displayName}`} onClick={async () => { const chat = await startPersonalConversationAction(item.person!.userId); router.push(`/personal/${chat.slug}`); router.refresh(); }}><MessageCircle size={15} /></button><button aria-label={`More actions for ${item.person.nickname || item.person.displayName}`} aria-expanded={friendMenuId === item.id} onClick={() => setFriendMenuId(friendMenuId === item.id ? null : item.id)}><MoreHorizontal size={16} /></button>{friendMenuId === item.id ? <div className="context-menu friend-context-menu"><button onClick={() => { setFriendMenuId(null); setNicknameTarget({ id: item.id, name: item.person!.displayName, nickname: item.person!.nickname }); }}>{item.person.nickname ? "Edit nickname" : "Set nickname"}</button>{item.person.nickname ? <button onClick={async () => { await removeConnectionNicknameAction(item.id); await refreshConnections(); setFriendMenuId(null); }}>Remove nickname</button> : null}</div> : null}</div></article>
           ) : null) : shown
             .filter((friend) => tab !== "Online" || friend.status === "Online")
             .map((friend) => (
@@ -748,13 +809,9 @@ function FriendsSurface({
                 <button onClick={() => onMessage(friend)}>Message</button>
               </article>
             ))}
-          {identity && query.trim().length >= 2 ? peopleResults.map((person) => {
-            const relationship = serverConnections.find((item) => item.person?.userId === person.userId);
-            const label = relationship?.status === "accepted" ? "Friend" : relationship?.direction === "incoming" ? "Confirm" : relationship ? "Pending" : "Add";
-            return <article key={person.userId}><span className="avatar avatar-gold">{person.displayName.slice(0, 1).toUpperCase()}</span><div className="friend-nameplate"><strong>{person.displayName}</strong><small>@{person.username} · {person.tid}</small></div><button disabled={label === "Friend" || label === "Pending"} onClick={async () => { if (relationship?.direction === "incoming") await acceptConnectionAction(relationship.id); else if (!relationship) await requestConnectionAction(person.userId); await refreshConnections(); }}>{label}</button></article>;
-          }) : null}
         </div>
-      )}
+      )}</>}
+      {actionError ? <p role="alert">{actionError}</p> : null}
     </section>
     {profile ? <FriendNamecard profile={profile} onClose={() => setProfile(null)} onMessage={() => onMessage(profile)} /> : null}
     {nicknameTarget ? <NicknameDialog target={nicknameTarget} onClose={() => setNicknameTarget(null)} onSaved={refreshConnections} /> : null}
@@ -769,7 +826,7 @@ function NicknameDialog({ target, onClose, onSaved }: { target: { id: string; na
   const ref = useRef<HTMLElement>(null);
   useDismissLayer(true, onClose, ref);
   const save = async () => { setSaving(true); setError(null); try { if (value.trim()) await setConnectionNicknameAction({ connectionId: target.id, nickname: value }); else await removeConnectionNicknameAction(target.id); await onSaved(); onClose(); } catch { setError("Could not save that nickname."); } finally { setSaving(false); } };
-  return <ModalLayer onClose={onClose}><section ref={ref} className="identity-dialog" role="dialog" aria-modal="true" aria-labelledby="nickname-title"><button className="overlay-close" onClick={onClose} aria-label="Close"><X size={17} /></button><p className="eyebrow">Private nickname</p><h2 id="nickname-title">{target.name}</h2><p>Only you will see this name.</p><label className="invite-link">Nickname<input value={value} maxLength={60} onChange={(event) => setValue(event.target.value)} placeholder="e.g. Army Jon" /></label><div className="overlay-actions"><button className="primary-action" disabled={saving} onClick={save}>{saving ? "Saving…" : "Save nickname"}</button><button onClick={onClose}>Cancel</button></div>{error ? <p className="composer-error" role="alert">{error}</p> : null}</section></ModalLayer>;
+  return <ModalLayer onClose={onClose}><section ref={ref} className="identity-dialog nickname-dialog" role="dialog" aria-modal="true" aria-labelledby="nickname-title"><button className="overlay-close" onClick={onClose} aria-label="Close"><X size={17} /></button><p className="eyebrow">Private nickname</p><h2 id="nickname-title">{target.name}</h2><p>Only you will see this name.</p><label className="invite-link">Nickname<input value={value} maxLength={60} onChange={(event) => setValue(event.target.value)} placeholder="e.g. Army Jon" /></label><div className="overlay-actions"><button className="primary-action" disabled={saving} onClick={save}>{saving ? "Saving…" : "Save nickname"}</button><button className="quiet-action" onClick={onClose}>Cancel</button></div>{error ? <p className="composer-error" role="alert">{error}</p> : null}</section></ModalLayer>;
 }
 
 function FriendNamecard({ profile, onClose, onMessage }: { profile: (typeof friends)[number]; onClose: () => void; onMessage: () => void }) {
@@ -1248,25 +1305,28 @@ function CreationOverlay({
   );
 }
 
-function MobileNav() {
+function MobileNav({ friendAttention, notificationCount, chatAttention }: { friendAttention: number; notificationCount: number; chatAttention: number }) {
   const user = useCurrentToskerUser() ?? prototypeUser;
   return (
     <nav className="mobile-app-nav" aria-label="Mobile destinations">
-      <Link href="/app">
+      <Link href="/app" aria-label={`Chats${chatAttention ? `, ${chatAttention} unread activities` : ""}`}>
         <span>
           <MessageCircle size={17} />
+          <AttentionMark count={chatAttention} label="unread activities" />
         </span>
         Chats
       </Link>
-      <Link href="/friends">
+      <Link href="/friends" aria-label={`Friends${friendAttention ? `, ${friendAttention} new requests` : ""}`}>
         <span>
           <UsersRound size={17} />
+          <AttentionMark count={friendAttention} label="new requests" />
         </span>
         Friends
       </Link>
-      <Link href="/notifications">
+      <Link href="/notifications" aria-label={`Notifications${notificationCount ? `, ${notificationCount} unread` : ""}`}>
         <span>
           <Bell size={17} />
+          <AttentionMark count={notificationCount} label="unread notifications" />
         </span>
         Notifications
       </Link>
@@ -1295,7 +1355,9 @@ export function MessagingApp({
 }) {
   useMobileViewport();
   const user = useCurrentToskerUser() ?? prototypeUser;
-  const identity = useToskerIdentity();
+  const baseIdentity = useToskerIdentity();
+  const snapshot = useSyncExternalStore(workspaceSnapshot.subscribe, () => workspaceSnapshot.get(baseIdentity?.userId), workspaceSnapshot.server);
+  const identity = useMemo(() => baseIdentity && snapshot.navigation ? { ...baseIdentity, ...snapshot.navigation } : baseIdentity, [baseIdentity, snapshot.navigation]);
   const state = useSyncExternalStore(
     prototypeStore.subscribe,
     prototypeStore.getSnapshot,
@@ -1305,7 +1367,7 @@ export function MessagingApp({
   const [overlay, setOverlay] = useState<Overlay>(
     workspace === "create" ? "room" : null,
   );
-  const [activity, setActivity] = useState<NotificationActivity[]>([]);
+  const activity = snapshot.activity;
   const [toast, setToast] = useState<NotificationActivity | null>(null);
   const seenActivity = useRef<Set<string> | null>(null);
   const activeConversationRef = useRef<string | null>(null);
@@ -1314,6 +1376,7 @@ export function MessagingApp({
   const closeAdd = useCallback(() => setOverlay(null), []);
   useDismissLayer(overlay === "add", closeAdd, addPanelRef);
   useEffect(() => {
+    const identity = baseIdentity;
     if (!identity) {
       seenActivity.current = null;
       return;
@@ -1330,13 +1393,13 @@ export function MessagingApp({
       pending = false;
       lastRefresh = Date.now();
       inFlight = true;
-      const next = await listNotificationsAction().catch(() => null);
+      const [next, nextNavigation] = await Promise.all([listNotificationsAction().catch(() => null), refreshWorkspaceNavigationAction().catch(() => null)]);
       inFlight = false;
       if (pending && active) pendingTimer = window.setTimeout(refresh, 100);
       if (!next) return;
       if (!active) return;
       const previous = seenActivity.current;
-      setActivity(next);
+      workspaceSnapshot.publish({ userId: identity.userId, activity: next, navigation: nextNavigation ?? workspaceSnapshot.get(identity.userId).navigation });
       seenActivity.current = new Set(next.map((item) => item.id));
       if (previous) {
         const incoming = next.find((item) => !previous.has(item.id) && !item.readAt && item.actorId !== identity.userId && !(item.type === "message" && item.conversationId === activeConversationRef.current));
@@ -1352,7 +1415,7 @@ export function MessagingApp({
     document.addEventListener("visibilitychange", refresh);
     window.addEventListener(ACTIVITY_REFRESH, refresh);
     return () => { active = false; window.clearInterval(timer); window.clearTimeout(toastTimer); window.clearTimeout(pendingTimer); document.removeEventListener("visibilitychange", refresh); window.removeEventListener(ACTIVITY_REFRESH, refresh); };
-  }, [identity]);
+  }, [baseIdentity]);
   const collapsed = useSyncExternalStore(
     collapseStore.subscribe,
     collapseStore.getSnapshot,
@@ -1365,8 +1428,8 @@ export function MessagingApp({
     identity && canonical?.kind === "my-room"
       ? { ...canonical, databaseId: identity.sandboxConversationId }
       : canonical;
-  const prototypeRoom = state.rooms.find((room) => room.slug === selectedSlug);
-  const prototypeChat = state.chats.find((chat) => chat.slug === selectedSlug);
+  const prototypeRoom = !identity ? state.rooms.find((room) => room.slug === selectedSlug) : undefined;
+  const prototypeChat = !identity ? state.chats.find((chat) => chat.slug === selectedSlug) : undefined;
   const serverRoom = identity?.rooms.find((room) => room.slug === selectedSlug);
   const serverSubroom = identity?.rooms.flatMap((room) => room.subrooms.map((subroom) => ({ parent: room, subroom }))).find(({ parent, subroom }) => `${parent.slug}--${subroom.id}` === selectedSlug);
   const serverChat = identity?.personalConversations.find((chat) => chat.slug === selectedSlug);
@@ -1444,28 +1507,26 @@ export function MessagingApp({
             context: prototypeChat.tid,
             messages: prototypeChat.messages,
           }
-        : selectedSlug
+        : selectedSlug && !identity
           ? conversations[0]
           : undefined));
   const realtime = useConversationRealtime(selected?.databaseId, identity?.userId);
   useEffect(() => { liveConnected.current = realtime.connected; }, [realtime.connected]);
   useEffect(() => { activeConversationRef.current = surface === "hall" ? null : selected?.databaseId ?? null; }, [selected?.databaseId, surface]);
-  const unreadByConversation = activity.reduce<Record<string, number>>((counts, item) => {
-    if (item.type === "message" && item.conversationId && !item.readAt) counts[item.conversationId] = (counts[item.conversationId] ?? 0) + 1;
-    return counts;
-  }, {});
+  const attention = deriveAttention(activity);
+  const unreadByConversation = attention.conversations;
   const latestActivityByConversation = activity.reduce<Record<string, string>>((latest, item) => {
     if (item.conversationId && (!latest[item.conversationId] || item.createdAt > latest[item.conversationId])) latest[item.conversationId] = item.createdAt;
     return latest;
   }, {});
-  const unreadForSurface = (kind: "message" | "hall") => activity.filter((item) => selected?.databaseId && item.conversationId === selected.databaseId && !item.readAt && (kind === "message" ? item.type === "message" : item.type === "hall_note" || item.type === "hall_pin")).length;
+  const unreadForSurface = (kind: "message" | "hall") => activity.filter((item) => selected?.databaseId && item.conversationId === selected.databaseId && !item.destinationReadAt && (kind === "message" ? item.type === "message" : item.type === "hall_note" || item.type === "hall_pin")).length;
   const activityHref = notificationHref;
   const messageFriend = (friend: (typeof friends)[number]) => {
     const chat = prototypeStore.createChat(friend);
     router.push(`/personal/${chat.slug}`);
   };
   return (
-    <main
+    <ToskerIdentityProvider identity={identity}><main
       className={`messaging-app ${selected ? "has-selection" : "list-only"} ${collapsed ? "sidebar-collapsed" : ""}`}
     >
       <AppSidebar
@@ -1476,6 +1537,8 @@ export function MessagingApp({
         onToggleCollapse={collapseStore.toggle}
         unreadByConversation={unreadByConversation}
         latestActivityByConversation={latestActivityByConversation}
+        friendAttention={attention.requests}
+        notificationCount={attention.notifications}
       />
       <div className="working-surface">
         {selected ? (
@@ -1500,8 +1563,10 @@ export function MessagingApp({
               <ChatSurface key={selected.slug} conversation={selected} realtime={realtime} />
             )}
           </>
+        ) : selectedSlug && identity ? (
+          <div className="desktop-welcome" role="status"><h2>Opening conversation…</h2><p>If this takes a moment, check your connection.</p></div>
         ) : workspace === "friends" ? (
-          <FriendsSurface onMessage={messageFriend} />
+          <FriendsSurface onMessage={messageFriend} requestActivity={activity.filter((item) => item.type === "connection_request" && !item.destinationReadAt)} />
         ) : workspace && workspace !== "create" ? (
           <ProductSurface surface={workspace} mode={state.mode} activity={activity} />
         ) : (
@@ -1530,7 +1595,7 @@ export function MessagingApp({
           </div>
         )}
       </div>
-      <MobileNav />
+      <MobileNav friendAttention={attention.requests} notificationCount={attention.notifications} chatAttention={Object.values(attention.conversations).reduce((sum, count) => sum + count, 0)} />
       {overlay === "choose" || overlay === "chat" || overlay === "room" ? (
         <CreationOverlay initial={overlay} onClose={() => setOverlay(null)} />
       ) : null}
@@ -1580,6 +1645,6 @@ export function MessagingApp({
         </ModalLayer>
       ) : null}
       {toast ? <button className="activity-toast" onClick={() => { router.push(activityHref(toast)); setToast(null); }} aria-label="Open new activity"><strong>{toast.actorName ?? "Someone"}</strong><span>{toast.type === "message" ? (toast.messageBody || "New message") : toast.type === "connection_request" ? "sent you a friend request" : toast.type === "connection_accepted" ? "accepted your friend request" : "updated Hall"}</span></button> : null}
-    </main>
+    </main></ToskerIdentityProvider>
   );
 }

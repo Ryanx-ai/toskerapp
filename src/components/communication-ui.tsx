@@ -25,6 +25,8 @@ import { MessageBubble } from "./message-bubble";
 import type { useConversationRealtime } from "./use-conversation-realtime";
 import { CHAT_REFRESH, HALL_REFRESH } from "@/lib/realtime-contract";
 import { EmojiPicker } from "./emoji-picker";
+import { listHallSnapshotAction } from "@/server/shared-state/actions";
+import { AttentionMark } from "./attention-mark";
 import { InteractionPopover } from "./interaction-popover";
 import { ModalLayer } from "./modal-layer";
 import type { HallReaction } from "@/lib/hall-contract";
@@ -205,14 +207,14 @@ export function SurfaceHeader({
           aria-current={surface === "chat" ? "page" : undefined}
           href={baseHref(conversation)}
         >
-          Chat{chatUnread ? <i className="surface-unread-dot" aria-label={`${chatUnread} new messages`} /> : null}
+          Chat<AttentionMark count={chatUnread} label="new messages" />
         </Link>
         <Link
           className={surface === "hall" ? "active" : ""}
           aria-current={surface === "hall" ? "page" : undefined}
           href={`${baseHref(conversation)}/hall`}
         >
-          Hall{hallUnread ? <i className="surface-unread-dot" aria-label="New Hall activity" /> : null}
+          Hall<AttentionMark count={hallUnread} label="new Hall activities" />
         </Link>
         <button onClick={onAdd} aria-label="Add Gizmo">
           <Plus size={15} />
@@ -771,10 +773,10 @@ export function HallSurface({
       pending = false;
       inFlight = true;
       try {
-        const items = await listHallItemsAction(conversation.databaseId!);
-        if (active && !mutating.current) {
-          setPersistentItems(items);
-          await markConversationReadAction(conversation.databaseId!, "hall");
+        const snapshot = await listHallSnapshotAction(conversation.databaseId!);
+        if (active && !document.hidden && !mutating.current) {
+          setPersistentItems(snapshot.items);
+          await markConversationReadAction(conversation.databaseId!, "hall", undefined, snapshot.activityIds);
         }
       } catch { if (active) setHallError("Hall couldn't be loaded."); }
       finally { inFlight = false; if (pending && active) pendingTimer = window.setTimeout(refresh, 100); }

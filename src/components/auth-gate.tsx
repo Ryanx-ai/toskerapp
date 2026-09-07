@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Show, SignInButton, SignUpButton } from "@clerk/nextjs";
 import { useSyncExternalStore } from "react";
 import { prototypeStore } from "@/lib/prototype-store";
+import { useToskerIdentity } from "@/components/tosker-identity";
 
 const demoStore = {
   subscribe(listener: () => void) {
@@ -18,6 +19,7 @@ const demoStore = {
 
 export function AuthGate({ children, allowDemo = true }: { children: React.ReactNode; allowDemo?: boolean }) {
   const pathname = usePathname();
+  const identity = useToskerIdentity();
   const demo = useSyncExternalStore(demoStore.subscribe, demoStore.getSnapshot, demoStore.getServerSnapshot);
   if (pathname.startsWith("/join/")) return children;
   if (allowDemo && demo) return <div className="demo-shell"><div className="demo-indicator" role="status">Demo</div>{children}<button className="demo-exit" onClick={() => { window.localStorage.removeItem("tosker.demo.mode"); window.dispatchEvent(new Event("tosker:demo")); }}>Exit Demo</button></div>;
@@ -50,7 +52,15 @@ export function AuthGate({ children, allowDemo = true }: { children: React.React
         </main>
       }
     >
-      {children}
+      {identity ? children : (
+        <main className="auth-page">
+          <section className="auth-card" role="alert">
+            <h1>Refresh your workspace</h1>
+            <p>Your session changed. Reload to continue with your Tosker identity.</p>
+            <button className="button button-primary" onClick={() => window.location.reload()}>Reload workspace</button>
+          </section>
+        </main>
+      )}
     </Show>
   );
 }

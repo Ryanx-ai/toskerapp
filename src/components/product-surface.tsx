@@ -382,7 +382,7 @@ function Notifications({ empty = false, persistent }: { empty?: boolean; persist
   const [filter, setFilter] = useState("All");
   const identity = useToskerIdentity();
   useEffect(() => {
-    if (identity && persistent.some((item) => !item.readAt)) void markNotificationsReadAction().catch(() => undefined);
+    if (identity && !document.hidden && persistent.some((item) => !item.readAt)) void markNotificationsReadAction(persistent.filter((item) => !item.readAt).slice(0, 500).map((item) => item.id)).catch(() => undefined);
   }, [identity, persistent]);
   const realItems = persistent.map((item) => ({
     id: item.id,
@@ -391,6 +391,7 @@ function Notifications({ empty = false, persistent }: { empty?: boolean; persist
     title: item.type === "message" ? "New message" : item.type === "connection_request" ? "New friend request" : item.type === "connection_accepted" ? "Friend request accepted" : "New Hall note",
     context: item.type === "message" ? `${item.actorName ?? "Someone"} sent you a message${item.messageBody ? `: ${item.messageBody}` : ""}` : item.type === "connection_request" ? `${item.actorName ?? "Someone"} sent you a friend request` : item.type === "connection_accepted" ? `${item.actorName ?? "Someone"} accepted your friend request` : `${item.actorName ?? "Someone"} added something to Hall`,
     time: new Date(item.createdAt).toLocaleDateString(),
+    destination: item.roomName ? `${item.roomName}${item.subroomId && item.conversationTitle ? ` / ${item.conversationTitle}` : ""} · ${item.type === "message" ? "Chat" : "Hall"}` : "",
     href: notificationHref(item),
   }));
   const source = identity ? realItems : notificationItems;
@@ -429,6 +430,7 @@ function Notifications({ empty = false, persistent }: { empty?: boolean; persist
                 <div>
                   <strong>{item.title}</strong>
                   <p>{item.context}</p>
+                  {"destination" in item && typeof item.destination === "string" ? <small>{item.destination}</small> : null}
                 </div>
                 <time>{item.time}</time>
                 <Link href={item.href}>Open</Link>

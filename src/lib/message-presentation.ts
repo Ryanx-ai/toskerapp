@@ -1,4 +1,4 @@
-type DatedMessage = { createdAt?: string; authorId?: string };
+type DatedMessage = { createdAt?: string; authorId?: string; deletedAt?: string | null; replyToId?: string | null };
 
 export function messageDay(value?: string) {
   const date = value ? new Date(value) : null;
@@ -14,6 +14,7 @@ export function messageDayLabel(value?: string, now = new Date()) {
 }
 
 export function groupMessages(previous: DatedMessage | undefined, message: DatedMessage) {
+  if (previous?.deletedAt || message.deletedAt || previous?.replyToId || message.replyToId) return false;
   if (!previous?.authorId || previous.authorId !== message.authorId || !previous.createdAt || !message.createdAt || messageDay(previous.createdAt) !== messageDay(message.createdAt)) return false;
   const elapsed = Date.parse(message.createdAt) - Date.parse(previous.createdAt);
   return elapsed >= 0 && elapsed <= 60_000;

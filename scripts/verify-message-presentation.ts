@@ -11,5 +11,8 @@ assert.equal(groupMessages(message("a", 0), message("a", 60000)), true);
 assert.equal(groupMessages(message("a", 0), message("a", 60001)), false);
 assert.equal(groupMessages(message("a", 0), message("b", 1)), false);
 assert.equal(groupMessages(message("a", 1), message("a", 0)), false);
+assert.equal(groupMessages({...message("a",0),deletedAt:now.toISOString()},message("a",1)),false);
+assert.equal(groupMessages(message("a",0),{...message("a",1),replyToId:"source"}),false);
+assert.equal(groupMessages({...message("a",0),replyToId:"source"},message("a",1)),false);
 assert.equal(groupMessages({ authorId: "a", createdAt: new Date(2026, 8, 7, 23, 59, 59).toISOString() }, { authorId: "a", createdAt: new Date(2026, 8, 8).toISOString() }), false);
 console.log("PASS: honest date labels and same-author/time/day grouping boundaries.");

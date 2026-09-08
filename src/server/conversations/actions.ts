@@ -5,12 +5,15 @@ import { revalidatePath } from "next/cache";
 
 import { requireCurrentActor } from "@/server/auth/clerk";
 import { getDatabase } from "@/server/db/client";
-import { conversationParticipants, conversationReads, conversations, messages, notifications, profiles, users } from "@/server/db/schema";
+import { conversationParticipants, conversationReads, conversations, messages, messageMentions, notifications, profiles, users } from "@/server/db/schema";
 import { hallScope, lockHallScope } from "@/server/hall/service";
 import { changeOwnMessage, setMessageReaction } from "./service";
 import type { ReactionSummary } from "@/lib/reaction-contract";
 import { publishMessageChanged, publishConversationActivity, publishUserActivity } from "@/server/realtime/provider";
 import { acknowledgeChat, acknowledgeDestination } from "@/server/attention/service";
+import { clearManualUnread } from "./preferences";
+import { validateMentionTargets } from "./mentions";
+import { adjustMentions, type MentionSpan } from "@/lib/mentions";
 
 export type PersistentMessage = {
   id: string;
@@ -57,7 +60,7 @@ export async function listMessagesAction(
   };
 }
 
-export async function sendMessageAction(input: { id: string; conversationId: string; body: string; replyToId?: string; traceId?: string }) {
+export async function sendMessageAction(input: { id: string; conversationId: string; body: string; replyToId?: string; traceId?: string; mentions?: MentionSpan[] }) {
   const started = performance.now();
   const actor = await requireCurrentActor();
   const authenticated = performance.now();
@@ -76,6 +79,7 @@ export async function sendMessageAction(input: { id: string; conversationId: str
     if (accepted.authorId !== actor.userId || accepted.conversationId !== input.conversationId) throw new Error("Message id unavailable.");
     return accepted;
   }
+  const mentions = await validateMentionTargets(tx, input.conversationId, body, adjustMentions(input.body, body, input.mentions ?? []));
   if (input.replyToId) {
     const [reply] = await tx.select({ id: messages.id }).from(messages).where(and(eq(messages.id, input.replyToId), eq(messages.conversationId, input.conversationId), isNull(messages.deletedAt))).for("share");
     if (!reply) throw new Error("Reply target unavailable in this conversation.");
@@ -86,6 +90,7 @@ export async function sendMessageAction(input: { id: string; conversationId: str
     .onConflictDoNothing()
     .returning({ createdAt: messages.createdAt });
   if (created) {
+    if (mentions.length) await tx.insert(messageMentions).values(mentions.map((mention) => ({ ...mention, messageId: input.id })));
     const recipients = await tx
       .select({ userId: conversationParticipants.userId })
       .from(conversationParticipants)
@@ -97,6 +102,7 @@ export async function sendMessageAction(input: { id: string; conversationId: str
         conversationId: input.conversationId,
         messageId: input.id,
         type: "message",
+        isMention: mentions.some((mention) => mention.userId === userId),
       })));
     }
   } else {
@@ -119,13 +125,14 @@ export async function sendMessageAction(input: { id: string; conversationId: str
   } };
 }
 
-export async function markConversationReadAction(conversationId: string, surface: "chat" | "hall" = "chat", throughMessageId?: string, activityIds: string[] = []) {
+export async function markConversationReadAction(conversationId: string, surface: "chat" | "hall" = "chat", throughMessageId?: string, activityIds: string[] = [], observedManualId?: string | null) {
   const actor = await requireCurrentActor();
   const db = getDatabase();
   await hallScope(db, actor, conversationId);
+  await clearManualUnread(db, actor, conversationId, surface, observedManualId);
   if (surface === "hall") {
     await acknowledgeDestination(db, actor, activityIds, conversationId);
-    if (activityIds.length) await publishUserActivity(actor.userId);
+    if (activityIds.length || observedManualId) await publishUserActivity(actor.userId);
     return;
   }
   if (surface === "chat") await db.insert(conversationReads)
@@ -134,7 +141,7 @@ export async function markConversationReadAction(conversationId: string, surface
       target: [conversationReads.conversationId, conversationReads.userId],
       set: { lastReadAt: new Date() },
     });
-  if (!throughMessageId) return;
+  if (!throughMessageId) { if (observedManualId) await publishUserActivity(actor.userId); return; }
   await acknowledgeChat(db, actor, conversationId, throughMessageId);
   await publishUserActivity(actor.userId);
 }

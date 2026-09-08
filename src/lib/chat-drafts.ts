@@ -1,6 +1,7 @@
+import { validMentionSpans, type MentionSpan } from "./mentions";
 export type DraftReply = { id: string; author: string; body: string };
-export type PendingSend = { id: string; body: string; replyToId?: string };
-export type ChatDraft = { body: string; reply: DraftReply | null; pending: PendingSend | null; updatedAt: number };
+export type PendingSend = { id: string; body: string; replyToId?: string; mentions?: MentionSpan[] };
+export type ChatDraft = { body: string; reply: DraftReply | null; pending: PendingSend | null; updatedAt: number; mentions?: MentionSpan[] };
 export const EMPTY_CHAT_DRAFT: ChatDraft = { body: "", reply: null, pending: null, updatedAt: 0 };
 const PREFIX = "tosker.chat-draft.v1:";
 const MAX_AGE = 24 * 60 * 60 * 1000;
@@ -16,6 +17,7 @@ export function parseChatDraft(raw: string | null, now = Date.now()): ChatDraft 
     if (!draft || typeof draft.body !== "string" || draft.body.length > 8000 || !Number.isFinite(draft.updatedAt) || now - draft.updatedAt > MAX_AGE || draft.updatedAt > now + 60_000) return EMPTY_CHAT_DRAFT;
     if (draft.reply !== null && (!draft.reply || typeof draft.reply.id !== "string" || draft.reply.id.length > 64 || typeof draft.reply.author !== "string" || draft.reply.author.length > 200 || typeof draft.reply.body !== "string" || draft.reply.body.length > 8000)) return EMPTY_CHAT_DRAFT;
     if (draft.pending !== null && (!draft.pending || typeof draft.pending.id !== "string" || !/^[a-f0-9-]{36}$/i.test(draft.pending.id) || typeof draft.pending.body !== "string" || draft.pending.body.length > 8000 || (draft.pending.replyToId !== undefined && (typeof draft.pending.replyToId !== "string" || draft.pending.replyToId.length > 64)))) return EMPTY_CHAT_DRAFT;
+    if (!validMentionSpans(draft.body, draft.mentions ?? []) || (draft.pending && !validMentionSpans(draft.pending.body, draft.pending.mentions ?? []))) return EMPTY_CHAT_DRAFT;
     return draft;
   } catch { return EMPTY_CHAT_DRAFT; }
 }
@@ -24,7 +26,7 @@ export function parseChatDraft(raw: string | null, now = Date.now()): ChatDraft 
 export function acknowledgeDraft(draft: ChatDraft, id: string): ChatDraft {
   if (draft.pending?.id !== id) return draft;
   const same = draft.body.trim() === draft.pending.body && draft.reply?.id === draft.pending.replyToId;
-  return { ...draft, ...(same ? { body: "", reply: null } : {}), pending: null };
+  return { ...draft, ...(same ? { body: "", reply: null, ...(draft.mentions ? { mentions: [] } : {}) } : {}), pending: null };
 }
 
 export function createChatDraftStore(storage: () => Pick<Storage, "getItem" | "setItem" | "removeItem"> | undefined) {

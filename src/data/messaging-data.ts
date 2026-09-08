@@ -4,6 +4,7 @@ export type Language = "English" | "Chinese" | "Japanese" | "Indonesian" | "Thai
 export type Message = {
   id: string;
   authorId?: string;
+  avatarUrl?: string | null;
   createdAt?: string;
   author: string;
   initials: string;
@@ -15,6 +16,8 @@ export type Message = {
   translation?: string;
   attachment?: { type: "image" | "file"; name: string; meta: string };
   replyTo?: string;
+  replyAuthor?: string | null;
+  mentions?: import("@/lib/mentions").MentionSpan[];
   reactions?: string[];
   reactionSummary?: import("@/lib/reaction-contract").ReactionSummary[];
   editedAt?: string | null;
@@ -23,6 +26,8 @@ export type Message = {
 };
 
 export type Conversation = {
+  identitySeed?: string;
+  avatarUrl?: string | null;
   databaseId?: string;
   slug: string;
   kind: ConversationKind;

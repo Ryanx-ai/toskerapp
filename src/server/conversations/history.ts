@@ -6,6 +6,7 @@ import { messages, profiles } from "@/server/db/schema";
 import { hallScope } from "@/server/hall/service";
 import { isConversationId } from "@/lib/realtime-contract";
 import type { ReactionSummary } from "@/lib/reaction-contract";
+import type { MentionSpan } from "@/lib/mentions";
 
 export type HistoryOptions = { before?: string; after?: string; target?: string; ids?: string[] };
 export class InvalidHistoryRequest extends Error {}
@@ -22,9 +23,11 @@ export async function readMessageHistory(db: ToskerDatabase, actor: Authenticate
     : options.ids ? inArray(messages.id, options.ids) : undefined;
   const ascending = Boolean(options.after || options.ids);
   const [rows, newest] = await Promise.all([
-    db.select({ id: messages.id, author: profiles.displayName, authorId: messages.authorId, body: messages.body, createdAt: messages.createdAt,
+    db.select({ id: messages.id, author: profiles.displayName, authorId: messages.authorId, avatarUrl: profiles.avatarUrl, body: messages.body, createdAt: messages.createdAt,
       editedAt: messages.editedAt, deletedAt: messages.deletedAt, replyToId: messages.replyToId,
       replyTo: sql<string | null>`(select case when m.deleted_at is not null then 'Message deleted' else left(m.body, 240) end from messages m where m.id = ${messages.replyToId} and m.conversation_id = ${conversationId})`,
+      replyAuthor: sql<string | null>`(select p.display_name from messages m join profiles p on p.user_id = m.author_id where m.id = ${messages.replyToId} and m.conversation_id = ${conversationId})`,
+      mentions: sql<MentionSpan[]>`coalesce((select json_agg(json_build_object('userId', mm.user_id, 'start', mm.start, 'length', mm.length, 'label', mm.label) order by mm.start) from message_mentions mm where mm.message_id = ${messages.id}), '[]'::json)`,
       reactionSummary: sql<ReactionSummary[]>`coalesce((select json_agg(r order by r.emoji) from (select emoji, count(*)::int as count, bool_or(mr.user_id = ${actor.userId}) as mine, array_agg(p.display_name order by p.display_name) as participants from message_reactions mr join profiles p on p.user_id = mr.user_id where message_id = ${messages.id} group by emoji) r), '[]'::json)`,
     }).from(messages).innerJoin(profiles, eq(profiles.userId, messages.authorId))
       .where(and(eq(messages.conversationId, conversationId), boundary))

@@ -274,6 +274,9 @@ export const conversationReads = pgTable(
     lastReadAt: timestamp("last_read_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
+    muted: boolean("muted").default(false).notNull(),
+    manualChatUnreadId: uuid("manual_chat_unread_id"),
+    manualHallUnreadId: uuid("manual_hall_unread_id"),
   },
   (table) => [
     primaryKey({ columns: [table.conversationId, table.userId] }),
@@ -307,6 +310,14 @@ export const messages = pgTable(
     ),
   ],
 );
+
+export const messageMentions = pgTable("message_mentions", {
+  messageId: uuid("message_id").notNull().references(() => messages.id, { onDelete: "cascade" }),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "restrict" }),
+  start: integer("start").notNull(),
+  length: integer("length").notNull(),
+  label: text("label").notNull(),
+}, (table) => [primaryKey({ columns: [table.messageId, table.start] }), index("message_mentions_user_idx").on(table.userId)]);
 
 export const messageReactions = pgTable("message_reactions", {
   messageId: uuid("message_id").notNull().references(() => messages.id, { onDelete: "cascade" }),
@@ -397,6 +408,7 @@ export const notifications = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     type: text("type").notNull(),
+    isMention: boolean("is_mention").default(false).notNull(),
     actorId: uuid("actor_id").references(() => users.id, {
       onDelete: "set null",
     }),

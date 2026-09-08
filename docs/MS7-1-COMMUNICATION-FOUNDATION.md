@@ -1,0 +1,11 @@
+# MS7.1.5 / .6 — server foundation checkpoint
+
+2026-09-09; baseline `bfb444d`. This is a coherent backend checkpoint, not a claim that the entire UX or milestone is complete. Existing `.1–.4` commits are preserved. The client integration and `.8` UX remain separate useful working-tree changes.
+
+Scope: additive viewer mute/manual read markers; actor-scoped preference mutations with compare-and-clear read semantics; bounded authorized conversation Search and Room/Subroom member endpoints; explicit canonical user mention spans, idempotent single-recipient mention classification; safe edit/tombstone maintenance and canonical reply attribution. Optional fields preserve compatibility with the prior client. Neon remains authority, Clerk identity, Ably signals, existing reconciliation intervals unchanged.
+
+Development migrations 0012/0013 applied and verified: 14 migrations / 46 foreign keys. `verify-communication-management`, `verify-mentions` (everyone/selected/owners, stale rows, revoked target, forged label), `verify-attention`, `verify-ms6a`, `verify-room-lifecycle`, `verify-hall-lifecycle`, database/schema/invariant checks PASS. Exact temporary suite fixtures cleaned, real users and existing conversations preserved. Draft/link/presentation tests and production dependency audit pass. Exact index snapshot exported outside the working tree: TypeScript/ESLint/production webpack build PASS with the previous client, proving backward compatibility. Full integration Turbopack build separately PASS. No uncommitted file was reset/restored/discarded to validate this snapshot.
+
+Read APIs are no-store, authenticate the caller, and recheck conversation membership/Subroom access. Mention targets are reauthorized inside the sending transaction; retry cannot duplicate message/mention notifications. Manual markers never generate notifications. Mute is viewer-specific and parent Room mute includes its children, while direct mentions retain attention. No media, AI, new provider or MS7.2.
+
+Release remains gated on client integration/UX and fresh integrated acceptance, exact browser-fixture cleanup, and the separately documented MS7.1.7 private-media provisioning or explicit founder deferral. No push/deploy is part of this backend checkpoint.

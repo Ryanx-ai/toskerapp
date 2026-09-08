@@ -1,0 +1,70 @@
+import assert from "node:assert/strict";
+import { and, eq, sql } from "drizzle-orm";
+import { getDatabase } from "../src/server/db/client";
+import { users, rooms, roomMemberships, conversations, conversationParticipants, messages, subrooms, notifications, conversationReads } from "../src/server/db/schema";
+import { searchConversation } from "../src/server/conversations/search";
+import { changeConversationPreference, clearManualUnread, listConversationPreferences } from "../src/server/conversations/preferences";
+import { deriveAttention } from "../src/lib/attention";
+
+const db = getDatabase(), roomId = crypto.randomUUID(), chatId = crypto.randomUUID(), childId = crypto.randomUUID(), childChatId = crypto.randomUUID();
+const slug = `ms715-management-${roomId.slice(0, 8)}`;
+async function main() {
+  const [a] = await db.select().from(users).where(eq(users.id, "0ee1e5a5-6d7a-4541-a6ca-ca69788997ef"));
+  const [b] = await db.select().from(users).where(eq(users.id, "d7a58753-9877-45b2-9fc7-cca188559fed"));
+  assert(a && b);
+  const actor = (user: typeof a) => ({ userId: user.id, authProvider: user.authProvider, authSubject: user.authSubject });
+  try {
+    await db.insert(rooms).values({ id: roomId, slug, name: "MS715 management acceptance", ownerId: a.id });
+    await db.insert(roomMemberships).values([{ roomId, userId: a.id, role: "owner" }, { roomId, userId: b.id, role: "member" }]);
+    await db.insert(subrooms).values({ id: childId, roomId, name: "Private child", visibility: "owners", createdBy: a.id });
+    await db.insert(conversations).values([{ id: chatId, roomId, kind: "room", isPrimary: true }, { id: childChatId, roomId, subroomId: childId, kind: "room" }]);
+    await db.insert(conversationParticipants).values([{ conversationId: chatId, userId: a.id }, { conversationId: chatId, userId: b.id }, { conversationId: childChatId, userId: a.id }]);
+    const ids = Array.from({ length: 55 }, () => crypto.randomUUID());
+    await db.insert(messages).values(ids.map((id, index) => ({ id, conversationId: chatId, authorId: a.id, body: `MS715 needle ${index} literal%_\\text`, createdAt: new Date(Date.now() - 100000 + Math.floor(index / 3) * 100), deletedAt: index === 0 ? new Date() : null })));
+    let page = await searchConversation(db, actor(a), chatId, "NEEDLE");
+    const all = [...page.results];
+    assert.equal(page.results.length, 20);
+    while (page.nextCursor) { page = await searchConversation(db, actor(a), chatId, "needle", page.nextCursor); all.push(...page.results); }
+    assert.equal(all.length, 54); assert.equal(new Set(all.map((row) => row.id)).size, 54); assert(!all.some((row) => row.id === ids[0]));
+    assert.equal((await searchConversation(db, actor(b), chatId, "%_\\text")).results.length, 20);
+    assert.equal((await searchConversation(db, actor(a), chatId, "not-present")).results.length, 0);
+    await assert.rejects(() => searchConversation(db, actor(b), childChatId, "needle"));
+    await assert.rejects(() => searchConversation(db, actor(a), chatId, "n"));
+    await assert.rejects(() => searchConversation(db, actor(a), chatId, "x".repeat(121)));
+    await assert.rejects(() => searchConversation(db, actor(a), chatId, "needle", "bad"));
+    assert.equal((await searchConversation(db, actor(a), childChatId, "needle", ids[1])).results.length, 0);
+    await changeConversationPreference(db, actor(a), chatId, { kind: "mute", muted: true });
+    let prefs = await listConversationPreferences(db, actor(a));
+    assert(prefs.find((p) => p.conversationId === chatId)?.muted);
+    assert(prefs.find((p) => p.conversationId === childChatId)?.inheritedMute);
+    assert(!(await listConversationPreferences(db, actor(b))).some((p) => p.conversationId === chatId && p.muted));
+    assert(!(await listConversationPreferences(db, actor(b))).some((p) => p.conversationId === childChatId));
+    await changeConversationPreference(db, actor(a), childChatId, { kind: "mute", muted: true });
+    await changeConversationPreference(db, actor(a), chatId, { kind: "mute", muted: false });
+    prefs = await listConversationPreferences(db, actor(a));
+    assert(prefs.find((p) => p.conversationId === childChatId)?.muted);
+    assert(!prefs.find((p) => p.conversationId === childChatId)?.inheritedMute);
+    await changeConversationPreference(db, actor(a), chatId, { kind: "unread", surface: "chat" });
+    const first = (await listConversationPreferences(db, actor(a))).find((p) => p.conversationId === chatId)!.manualChatUnreadId;
+    await changeConversationPreference(db, actor(a), chatId, { kind: "unread", surface: "chat" });
+    await changeConversationPreference(db, actor(a), chatId, { kind: "unread", surface: "hall" });
+    await clearManualUnread(db, actor(a), chatId, "chat", first);
+    let pref = (await listConversationPreferences(db, actor(a))).find((p) => p.conversationId === chatId)!;
+    assert(pref.manualChatUnreadId && pref.manualChatUnreadId !== first); assert(pref.manualHallUnreadId);
+    await clearManualUnread(db, actor(b), chatId, "chat", pref.manualChatUnreadId);
+    assert.equal((await listConversationPreferences(db, actor(a))).find((p) => p.conversationId === chatId)!.manualChatUnreadId, pref.manualChatUnreadId);
+    await clearManualUnread(db, actor(a), chatId, "chat", pref.manualChatUnreadId);
+    pref = (await listConversationPreferences(db, actor(a))).find((p) => p.conversationId === chatId)!;
+    assert.equal(pref.manualChatUnreadId, null); assert(pref.manualHallUnreadId);
+    const activity = [{ type: "message", conversationId: chatId, readAt: null, destinationReadAt: null, muted: true }, { type: "connection_request", conversationId: null, readAt: null, destinationReadAt: null, muted: false }];
+    const attention = deriveAttention(activity, [pref]);
+    assert.equal(attention.notifications, 1); assert.equal(attention.conversations[chatId], 2); assert.equal(attention.requests, 1);
+    assert.equal((await db.select({ count: sql<number>`count(*)::int` }).from(notifications).where(eq(notifications.conversationId, chatId)))[0].count, 0);
+    assert.equal((await db.select({ count: sql<number>`count(*)::int` }).from(messages).where(eq(messages.conversationId, chatId)))[0].count, 55);
+    await assert.rejects(() => changeConversationPreference(db, actor(b), childChatId, { kind: "unread", surface: "chat" }));
+    await assert.rejects(() => changeConversationPreference(db, actor(b), childChatId, { kind: "mute", muted: true }));
+    assert.equal((await db.select().from(conversationReads).where(and(eq(conversationReads.userId, b.id), eq(conversationReads.conversationId, childChatId)))).length, 0);
+    console.log("PASS: bounded search/literal wildcards/tombstone exclusion/private scope; persistent actor-only mute/inheritance/manual unread; stale/cross-user clear denied; independent bell/destination attention; no notification/message side effects.");
+  } finally { await db.delete(rooms).where(and(eq(rooms.id, roomId), eq(rooms.slug, slug))); }
+}
+main().then(() => process.exit(0)).catch((error: unknown) => { console.error("FAIL: communication management", { location: error instanceof Error ? error.stack?.match(/verify-communication-management\.ts:\d+:\d+/)?.[0] : undefined }); process.exit(1); });

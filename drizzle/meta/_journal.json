@@ -85,6 +85,20 @@
       "when": 1788791971557,
       "tag": "0011_omniscient_northstar",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1788881087041,
+      "tag": "0012_unusual_spot",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1788882104307,
+      "tag": "0013_omniscient_hulk",
+      "breakpoints": true
     }
   ]
 }

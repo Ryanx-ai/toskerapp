@@ -3,9 +3,10 @@ import { and, eq, isNull } from "drizzle-orm";
 import type { AuthenticatedActor } from "@/server/auth/actor";
 import { AuthorizationDeniedError } from "@/server/auth/authorize";
 import type { ToskerDatabase } from "@/server/db/client";
-import { messages, messageReactions } from "@/server/db/schema";
+import { messages, messageReactions, messageMentions, notifications } from "@/server/db/schema";
 import { lockHallScope } from "@/server/hall/service";
 import { validateEmoji } from "@/server/emoji";
+import { adjustMentions } from "@/lib/mentions";
 
 export async function setMessageReaction(db: ToskerDatabase, actor: AuthenticatedActor, input: { conversationId: string; messageId: string; emoji: string; active: boolean }) {
   validateEmoji(input.emoji);
@@ -27,6 +28,14 @@ export async function changeOwnMessage(db: ToskerDatabase, actor: AuthenticatedA
     const [message] = await tx.select().from(messages).where(and(eq(messages.id, input.messageId), eq(messages.conversationId, input.conversationId), eq(messages.authorId, actor.userId))).for("update");
     if (!message) throw new AuthorizationDeniedError("Only the author can change this message.");
     if (message.deletedAt) { if (input.remove) return; throw new Error("Message deleted."); }
+    const previousMentions = await tx.select().from(messageMentions).where(eq(messageMentions.messageId, message.id));
+    const retainedMentions = input.remove ? [] : adjustMentions(message.body, body!, previousMentions);
+    if (previousMentions.length) {
+      await tx.delete(messageMentions).where(eq(messageMentions.messageId, message.id));
+      if (retainedMentions.length) await tx.insert(messageMentions).values(retainedMentions.map((mention) => ({ ...mention, messageId: message.id })));
+      // Editing never creates attention, and deleted targeting must not remain a mention.
+      for (const mention of previousMentions) if (!retainedMentions.some((retained) => retained.userId === mention.userId)) await tx.update(notifications).set({ isMention: false }).where(and(eq(notifications.messageId, message.id), eq(notifications.userId, mention.userId)));
+    }
     await tx.update(messages).set(input.remove ? { body: "", deletedAt: new Date() } : { body: body!, editedAt: new Date() }).where(eq(messages.id, input.messageId));
     if (input.remove) await tx.delete(messageReactions).where(eq(messageReactions.messageId, input.messageId));
   });

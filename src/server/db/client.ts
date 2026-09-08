@@ -22,6 +22,7 @@ function createDatabase() {
 }
 
 export type ToskerDatabase = ReturnType<typeof createDatabase>;
+export type ToskerReader = Pick<ToskerDatabase, "select">;
 
 let database: ToskerDatabase | undefined;
 

@@ -10,6 +10,7 @@
 - Owner-only minimal management: name/tags, members/removal, current invites/revoke, Subroom entry. Preserve existing member invite permission unless source/security findings require a documented change.
 - Removal is access withdrawal, not a permanent ban. Rejoin requires a valid invitation; revoke previously accepted invitations for the departing target so a stale accepted token cannot silently restore membership. Unclaimed valid bearer invites remain governed by the existing single-recipient invite contract; owner can revoke them. Explain this in management.
 - Membership/participant/Subroom-access removal must be atomic and retain all historical authorship/content. Realtime revocation must finish before reporting success; assess provider failure/retry and join/remove races before enabling controls.
+- MS7.1.2 boundary: Room row locks serialize joins/revokes/creation/withdrawal; message mutations share-lock their Room and reauthorize inside the transaction. An actor-scoped transaction lock serializes short-lived token issuance with withdrawal. Provider revocation runs before withdrawal commits; failure rolls back the database changes instead of falsely reporting removal. Revocation uses the existing Ably client-ID mechanism and can briefly reconnect that user's other authorized contexts. [Ably documents near-immediate revocation with no reauth margin and issuance-time cutoff](https://ably.com/docs/auth/revocation); hence issuance must not race the cutoff. No new provider/schema/role system.
 - Hall author: edit/archive/delete own notes. Room owner: archive/delete/restore any note in an accessible Hall. Ordinary member: comment/react/reorder, not destructive actions on another author's note. Archive has a real scoped restore view; permanent deletion needs explicit confirmation. Pin/unpin never deletes original Chat.
 - No Room nicknames now. Canonical user IDs retain authorship; future Room display identity is inherited by child contexts and separate from private Friend aliases.
 
@@ -20,7 +21,7 @@ Shared acceptance and founder walkthrough: [MS7.1 stress scenarios](MS7-1-STRESS
 | Slice | Work | Status |
 |---|---|---|
 | MS7.1.1 | Safe Chat links; truthful core controls; drafts/retry/loading/date grouping | Local engineering checkpoint validated; full-wave/founder gate remains |
-| MS7.1.2 (planned) | Room management, leave/remove/invite lifecycle and authorization | Pending |
+| MS7.1.2 | Room management, leave/remove/invite lifecycle and authorization | Local engineering checkpoint validated; full-wave/founder gate remains |
 | MS7.1.3 (planned) | Hall author/owner policy; archive/restore; pin regression | Pending |
 | MS7.1.4 (planned) | Measured delivery path; 100/500+ history; drafts/retry; loading/error | Pending |
 | MS7.1.5 (planned) | Shared primitives, headers, menus, responsive/accessibility | Pending |

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useEffectEvent, useRef, useState } from "react";
-import { conversationChannel, typingChannel, userChannel, MESSAGE_CHANGED, TYPING_CHANGED, TYPING_TTL, USER_ACTIVITY, ACTIVITY_REFRESH, CHAT_REFRESH, HALL_REFRESH } from "@/lib/realtime-contract";
+import { conversationChannel, typingChannel, userChannel, MESSAGE_CHANGED, TYPING_CHANGED, TYPING_TTL, USER_ACTIVITY, ACTIVITY_REFRESH, CHAT_REFRESH, HALL_REFRESH, CONVERSATION_ACCESS_LOST } from "@/lib/realtime-contract";
 
 /** One workspace transport; demos never request a token or connect. */
 export function useConversationRealtime(conversationId: string | undefined, userId: string | undefined) {
@@ -28,6 +28,7 @@ export function useConversationRealtime(conversationId: string | undefined, user
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ conversationId }), signal: AbortSignal.timeout(10000),
             });
+            if (response.status === 403 && conversationId && !disposed) window.dispatchEvent(new CustomEvent(CONVERSATION_ACCESS_LOST, { detail: conversationId }));
             if (!response.ok || disposed) throw new Error("Realtime authorization unavailable.");
             callback(null, await response.json());
           } catch { callback("Realtime authorization unavailable.", null); }
@@ -77,7 +78,7 @@ export function useConversationRealtime(conversationId: string | undefined, user
         if (disposed) return;
         updateHealth();
         if (state.current === "connected") { changed(); refreshActivity(); window.dispatchEvent(new Event(HALL_REFRESH)); }
-        else { peers.clear(); updatePeers(); wasTyping = false; }
+        else { peers.clear(); updatePeers(); wasTyping = false; refreshActivity(); }
       });
       const onVisible = () => {
         if (document.hidden) { sendRef.current(false); peers.clear(); updatePeers(); }

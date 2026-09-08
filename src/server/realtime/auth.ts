@@ -5,11 +5,14 @@ import type { ToskerDatabase } from "@/server/db/client";
 import { hallScope } from "@/server/hall/service";
 import { conversationChannel, typingChannel, userChannel, isConversationId, REALTIME_TOKEN_TTL } from "@/lib/realtime-contract";
 import { getRealtimeServer } from "./provider";
+import { lockActorTokens } from "./access-lock";
 
 export async function issueConversationToken(db: ToskerDatabase, actor: AuthenticatedActor, conversationId?: string) {
   if (conversationId !== undefined && !isConversationId(conversationId)) throw new Error("Invalid conversation.");
-  // Participation alone is insufficient: recheck current Room/Subroom visibility.
-  if (conversationId) await hallScope(db, actor, conversationId);
+  return db.transaction(async (tx) => {
+  await lockActorTokens(tx, actor.userId);
+  // No token may finish issuance across a concurrent membership withdrawal.
+  if (conversationId) await hallScope(tx, actor, conversationId);
   return getRealtimeServer().auth.requestToken({
     clientId: actor.userId,
     ttl: REALTIME_TOKEN_TTL,
@@ -20,5 +23,6 @@ export async function issueConversationToken(db: ToskerDatabase, actor: Authenti
         [typingChannel(conversationId)]: ["subscribe", "publish"],
       } : {}),
     },
+  });
   });
 }

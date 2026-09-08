@@ -10,7 +10,7 @@ async function run(session, ...args) {
   const { stdout } = await exec(binary, ["--session", session, "--json", ...args], { timeout: 25000 });
   const result = JSON.parse(stdout);
   if (!result.success) throw new Error(`Browser command failed: ${args[0]}`);
-  return result.data?.result ?? result.data;
+  return args[0] === "eval" ? result.data?.result : result.data;
 }
 const evaluate = (session, js) => run(session, "eval", js);
 async function until(session, js, label) {
@@ -26,6 +26,7 @@ async function send(session, body) {
 async function action(session, id, label) {
   await until(session, "!document.querySelector('.message-edit-panel')", "previous dialog closed");
   await run(session, "scrollintoview", `#${id}`);
+  await until(session, `(()=>{const r=document.querySelector('#${id}').getBoundingClientRect();return r.top>=0&&r.bottom<=innerHeight})()`, "message scroll settled");
   await run(session, "click", `#${id} [aria-label="More message actions"]`);
   await until(session, "!!document.querySelector('.message-action-list')", "message menu open");
   const index = await evaluate(session, `Array.from(document.querySelectorAll('.message-action-list button')).findIndex(b=>b.textContent===${JSON.stringify(label)})`);
@@ -49,7 +50,9 @@ await until("ms71-a", `document.body.innerText.includes(${JSON.stringify(replyTe
 console.log("PASS: bidirectional Room send/reply.");
 for (const emoji of ["👍", "❤️"]) for (const session of sessions) {
   await run(session, "scrollintoview", `#${id}`);
+  await until(session, `(()=>{const r=document.querySelector('#${id}').getBoundingClientRect();return r.top>=0&&r.bottom<=innerHeight})()`, "reaction target visible");
   await run(session, "click", `#${id} [aria-label="React"]`);
+  await until(session, "document.querySelectorAll('.emoji-quick button').length>0", "reaction picker ready");
   const index = await evaluate(session, `Array.from(document.querySelectorAll('.emoji-quick button')).findIndex(b=>b.textContent===${JSON.stringify(emoji)})`);
   assert.ok(index >= 0);
   await run(session, "click", `.emoji-quick button:nth-child(${index + 1})`);

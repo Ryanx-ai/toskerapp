@@ -1,0 +1,76 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { X } from "lucide-react";
+import { roomDetailsAction, revokeRoomInviteAction, updateRoomAction, withdrawRoomMemberAction } from "@/server/rooms/actions";
+import { useToskerIdentity } from "./tosker-identity";
+import { ModalLayer } from "./modal-layer";
+import { ACTIVITY_REFRESH } from "@/lib/realtime-contract";
+
+type Details = Awaited<ReturnType<typeof roomDetailsAction>>;
+export function RoomDetails({ slug, onClose }: { slug: string; onClose: () => void }) {
+  const identity = useToskerIdentity(), router = useRouter();
+  const [data, setData] = useState<Details | null>(null);
+  const [name, setName] = useState("");
+  const [tags, setTags] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [feedback, setFeedback] = useState("");
+  const [confirm, setConfirm] = useState<{ userId: string; name: string } | null>(null);
+  const [attempt, setAttempt] = useState(0);
+  useEffect(() => {
+    let active = true;
+    roomDetailsAction(slug).then((result) => { if (active) { setData(result); setName(result.name); setTags(result.tags.join("\n")); setError(""); } })
+      .catch(() => { if (active) setError("Room details unavailable. Check your access or try again."); });
+    return () => { active = false; };
+  }, [slug, attempt]);
+  const run = async (operation: () => Promise<void>, message: string) => {
+    if (busy) return;
+    setBusy(true); setError(""); setFeedback("");
+    try {
+      await operation();
+      window.dispatchEvent(new Event(ACTIVITY_REFRESH));
+      setData(await roomDetailsAction(slug));
+      setFeedback(message);
+    } catch { setError("That change couldn't be completed. Check your connection and permissions, then retry."); }
+    finally { setBusy(false); }
+  };
+  const leaveOrRemove = async () => {
+    if (!data || !confirm || !identity || busy) return;
+    const target = confirm;
+    setBusy(true); setError("");
+    try {
+      await withdrawRoomMemberAction(data.id, target.userId);
+      window.dispatchEvent(new Event(ACTIVITY_REFRESH));
+      if (target.userId === identity.userId) { onClose(); router.replace("/app"); router.refresh(); return; }
+      setConfirm(null); setData(await roomDetailsAction(slug)); setFeedback("Member removed.");
+    } catch { setError("Access couldn't be withdrawn. Nothing is confirmed until the retry succeeds."); }
+    finally { setBusy(false); }
+  };
+  const owner = data?.role === "owner";
+  return <ModalLayer onClose={() => { if (!busy) onClose(); }}><section className="creation-panel room-details-panel" role="dialog" aria-modal="true" aria-labelledby="room-details-title">
+    <button className="overlay-close" aria-label="Close Room details" disabled={busy} onClick={onClose}><X size={17} /></button>
+    <p className="eyebrow">{owner ? "Manage Room" : "Room details"}</p>
+    <h2 id="room-details-title">{data?.name ?? "Room details"}</h2>
+    {!data ? error ? <button className="quiet-action" onClick={() => setAttempt((value) => value + 1)}>Retry</button> : <p role="status">Loading Room…</p> : confirm ? <div className="room-confirmation">
+      <h3>{confirm.userId === identity?.userId ? "Leave this Room?" : `Remove ${confirm.name}?`}</h3>
+      <p>Access to this Room and its Subrooms will end. Existing messages and notes stay. Rejoining requires a valid invitation.</p>
+      <div className="overlay-actions"><button disabled={busy} onClick={() => setConfirm(null)}>Cancel</button><button className="danger" disabled={busy} onClick={() => void leaveOrRemove()}>{busy ? "Withdrawing access…" : confirm.userId === identity?.userId ? "Leave Room" : "Remove member"}</button></div>
+    </div> : <>
+      {owner ? <form onSubmit={(event) => { event.preventDefault(); void run(() => updateRoomAction({ roomId: data.id, name, tags: tags.split("\n").map((tag) => tag.trim()).filter(Boolean) }), "Room saved."); }}>
+        <label>Room name<input value={name} maxLength={80} disabled={busy} onChange={(event) => setName(event.target.value)} /></label>
+        <label>Tags<textarea value={tags} disabled={busy} onChange={(event) => setTags(event.target.value)} aria-describedby="room-tags-help" maxLength={140} rows={3} /></label>
+        <small id="room-tags-help">One per line. Up to five tags, 24 characters each.</small>
+        <button className="primary-action" disabled={busy || !name.trim()} type="submit">Save Room</button>
+      </form> : data.tags.length ? <p className="room-detail-tags">{data.tags.join(" · ")}</p> : null}
+      <h3>Members · {data.members.length}</h3>
+      <ul className="room-member-list">{data.members.map((member) => <li key={member.userId}><span><strong>{member.name}</strong><small>{member.role === "owner" ? "Owner" : "Member"}{member.userId === identity?.userId ? " · You" : ""}</small></span>{owner && member.role !== "owner" ? <button className="danger" disabled={busy} onClick={() => setConfirm({ userId: member.userId, name: member.name })} aria-label={`Remove ${member.name}`}>Remove</button> : null}</li>)}</ul>
+      {owner ? <><h3>Invitations</h3><p className="room-management-note">Revoking a link stops future joins; it does not remove members. Removal is not a ban—another valid invitation can grant access again.</p>
+        {!data.invites.length ? <p>No invitations.</p> : <ul className="room-invite-list">{data.invites.map((invite) => <li key={invite.id}><span><strong>{new Date(invite.createdAt).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}</strong><small>{invite.status}</small></span>{["pending", "accepted"].includes(invite.status) ? <button disabled={busy} onClick={() => void run(() => revokeRoomInviteAction(data.id, invite.id), "Invitation revoked.")} aria-label={`Revoke invitation ${invite.id.slice(0, 8)}`}>Revoke</button> : null}</li>)}</ul>}
+      </> : <button className="danger" disabled={busy} onClick={() => identity && setConfirm({ userId: identity.userId, name: identity.displayName })}>Leave Room</button>}
+    </>}
+    {error ? <p className="composer-error" role="alert">{error}</p> : null}
+    {feedback ? <p role="status">{feedback}</p> : null}
+  </section></ModalLayer>;
+}

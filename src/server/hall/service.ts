@@ -3,13 +3,13 @@ import "server-only";
 import { and, asc, eq, isNull, or, sql } from "drizzle-orm";
 import type { AuthenticatedActor } from "@/server/auth/actor";
 import { AuthorizationDeniedError, requireConversationParticipant, requireRoomMember } from "@/server/auth/authorize";
-import type { ToskerDatabase } from "@/server/db/client";
-import { conversations, hallComments, hallCommentReactions, hallItems, hallReactions, profiles, subroomAccess, subrooms } from "@/server/db/schema";
+import type { ToskerDatabase, ToskerReader } from "@/server/db/client";
+import { conversations, hallComments, hallCommentReactions, hallItems, hallReactions, profiles, rooms, subroomAccess, subrooms } from "@/server/db/schema";
 import { validateEmoji } from "@/server/emoji";
 import type { ReactionSummary } from "@/lib/reaction-contract";
 import { HALL_REACTIONS, type HallReaction } from "@/lib/hall-contract";
 
-export async function hallScope(db: ToskerDatabase, actor: AuthenticatedActor, conversationId: string) {
+export async function hallScope(db: ToskerReader, actor: AuthenticatedActor, conversationId: string) {
   await requireConversationParticipant(db, actor, conversationId);
   const [conversation] = await db.select().from(conversations).where(eq(conversations.id, conversationId)).limit(1);
   if (!conversation) throw new AuthorizationDeniedError("Conversation not found.");
@@ -24,6 +24,13 @@ export async function hallScope(db: ToskerDatabase, actor: AuthenticatedActor, c
   return conversation.roomId && !conversation.subroomId
     ? or(eq(hallItems.conversationId, conversationId), and(isNull(hallItems.conversationId), eq(hallItems.roomId, conversation.roomId)))!
     : eq(hallItems.conversationId, conversationId);
+}
+
+/** Mutations call inside their transaction; withdrawal takes an exclusive Room lock. */
+export async function lockHallScope(tx: ToskerReader, actor: AuthenticatedActor, conversationId: string) {
+  const [conversation] = await tx.select({ roomId: conversations.roomId }).from(conversations).where(eq(conversations.id, conversationId));
+  if (conversation?.roomId) await tx.select({ id: rooms.id }).from(rooms).where(eq(rooms.id, conversation.roomId)).for("share");
+  return hallScope(tx, actor, conversationId);
 }
 
 export async function requireHallNote(db: ToskerDatabase, actor: AuthenticatedActor, conversationId: string, itemId: string) {

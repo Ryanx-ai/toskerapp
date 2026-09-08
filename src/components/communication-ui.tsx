@@ -41,6 +41,7 @@ import {
   ArrowUp,
   ChevronDown,
   Smile,
+  UsersRound,
   X,
 } from "lucide-react";
 
@@ -97,6 +98,7 @@ export function SurfaceHeader({
   surface,
   onInvite,
   onAddSubroom,
+  onManage,
   chatUnread = 0,
   hallUnread = 0,
 }: {
@@ -104,6 +106,7 @@ export function SurfaceHeader({
   surface: "chat" | "hall";
   onInvite?: () => void;
   onAddSubroom?: () => void;
+  onManage?: () => void;
   chatUnread?: number;
   hallUnread?: number;
 }) {
@@ -155,6 +158,7 @@ export function SurfaceHeader({
           Hall<AttentionMark count={hallUnread} label="new Hall activities" />
         </Link>
       </nav>
+      {onManage ? <button className="room-details-trigger action-icon" aria-label="Room details" title="Room details" onClick={onManage}><UsersRound size={17} /></button> : null}
       {contextAnchor && parentRoom ? <InteractionPopover anchor={contextAnchor} label="Room contexts" onClose={() => setContextAnchor(null)}><nav className="room-context-menu" aria-label="Room and Subrooms">
         <Link href={`/room/${parentRoom.slug}`} aria-current={conversation.slug === parentRoom.slug ? "page" : undefined} onClick={() => setContextAnchor(null)}>{parentRoom.name}</Link>
         {parentRoom.subrooms.map((child) => <Link key={child.id} className="context-child" href={`/room/${parentRoom.slug}/subroom/${child.id}`} aria-current={conversation.slug.endsWith(`--${child.id}`) ? "page" : undefined} onClick={() => setContextAnchor(null)}>{child.name}</Link>)}

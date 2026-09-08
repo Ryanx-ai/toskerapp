@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { requireCurrentActor } from "@/server/auth/clerk";
 import { getDatabase } from "@/server/db/client";
 import { conversationParticipants, conversationReads, conversations, messages, notifications, profiles, users } from "@/server/db/schema";
-import { hallScope } from "@/server/hall/service";
+import { hallScope, lockHallScope } from "@/server/hall/service";
 import { changeOwnMessage, setMessageReaction } from "./service";
 import type { ReactionSummary } from "@/lib/reaction-contract";
 import { publishMessageChanged, publishConversationActivity, publishUserActivity } from "@/server/realtime/provider";
@@ -63,12 +63,18 @@ export async function sendMessageAction(input: { id: string; conversationId: str
   if (!/^[0-9a-f-]{36}$/i.test(input.id)) throw new Error("Invalid message id.");
   if (!body || body.length > 8_000) throw new Error("Enter a message up to 8,000 characters.");
   const db = getDatabase();
-  await hallScope(db, actor, input.conversationId);
+  const created = await db.transaction(async (tx) => {
+  await lockHallScope(tx, actor, input.conversationId);
+  // A lost acknowledgement stays idempotent even if its source was later deleted.
+  const [accepted] = await tx.select({ authorId: messages.authorId, conversationId: messages.conversationId, createdAt: messages.createdAt }).from(messages).where(eq(messages.id, input.id));
+  if (accepted) {
+    if (accepted.authorId !== actor.userId || accepted.conversationId !== input.conversationId) throw new Error("Message id unavailable.");
+    return accepted;
+  }
   if (input.replyToId) {
-    const [reply] = await db.select({ id: messages.id }).from(messages).where(and(eq(messages.id, input.replyToId), eq(messages.conversationId, input.conversationId), isNull(messages.deletedAt))).limit(1);
+    const [reply] = await tx.select({ id: messages.id }).from(messages).where(and(eq(messages.id, input.replyToId), eq(messages.conversationId, input.conversationId), isNull(messages.deletedAt))).for("share");
     if (!reply) throw new Error("Reply target unavailable in this conversation.");
   }
-  const created = await db.transaction(async (tx) => {
   const [created] = await tx
     .insert(messages)
     .values({ id: input.id, conversationId: input.conversationId, authorId: actor.userId, body, replyToId: input.replyToId })

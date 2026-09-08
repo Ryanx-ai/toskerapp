@@ -3,7 +3,7 @@ import "server-only";
 import { and, eq } from "drizzle-orm";
 
 import type { AuthenticatedActor } from "./actor";
-import type { ToskerDatabase } from "@/server/db/client";
+import type { ToskerReader } from "@/server/db/client";
 import {
   conversationParticipants,
   roomMemberships,
@@ -15,7 +15,7 @@ export class AuthorizationDeniedError extends Error {
 }
 
 export async function requireRoomMember(
-  db: ToskerDatabase,
+  db: ToskerReader,
   actor: AuthenticatedActor,
   roomId: string,
 ) {
@@ -38,7 +38,7 @@ export async function requireRoomMember(
 }
 
 export async function requireRoomOwner(
-  db: ToskerDatabase,
+  db: ToskerReader,
   actor: AuthenticatedActor,
   roomId: string,
 ) {
@@ -64,7 +64,7 @@ export async function requireRoomOwner(
 }
 
 export async function requireConversationParticipant(
-  db: ToskerDatabase,
+  db: ToskerReader,
   actor: AuthenticatedActor,
   conversationId: string,
 ) {

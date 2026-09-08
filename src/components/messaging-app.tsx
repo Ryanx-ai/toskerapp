@@ -1,6 +1,7 @@
 "use client";
 import { useConversationRealtime } from "./use-conversation-realtime";
-import { ACTIVITY_REFRESH } from "@/lib/realtime-contract";
+import { RoomDetails } from "./room-details";
+import { ACTIVITY_REFRESH, CONVERSATION_ACCESS_LOST } from "@/lib/realtime-contract";
 import { notificationHref } from "@/lib/notification-href";
 import { deriveAttention } from "@/lib/attention";
 import { AttentionMark } from "./attention-mark";
@@ -28,7 +29,7 @@ import { FakeQr } from "@/components/fake-qr";
 import { IdentityCard } from "@/components/identity-card";
 import { useMobileViewport } from "@/components/use-mobile-viewport";
 import { ToskerIdentityProvider, useCurrentToskerUser, useToskerIdentity } from "@/components/tosker-identity";
-import { createRoomAction, createRoomInviteAction, createSubroomAction } from "@/server/rooms/actions";
+import { createRoomAction, createRoomInviteAction, createSubroomAction, findRoomMembersAction } from "@/server/rooms/actions";
 import { findPeopleAction, startPersonalConversationAction } from "@/server/conversations/actions";
 import { acceptConnectionAction, listConnectionsAction, requestConnectionAction, removeConnectionNicknameAction, setConnectionNicknameAction } from "@/server/connections/actions";
 import { listNotificationsAction } from "@/server/shared-state/actions";
@@ -55,7 +56,7 @@ import {
 } from "lucide-react";
 
 export type AppWorkspace = ProductWorkspace | "friends" | "create";
-type Overlay = "choose" | "chat" | "room" | "invite" | "subroom" | null;
+type Overlay = "choose" | "chat" | "room" | "invite" | "subroom" | "manage" | null;
 type NotificationActivity = Awaited<ReturnType<typeof listNotificationsAction>>[number];
 const nav = [
   { label: "Explore", icon: Compass, href: "/explore" },
@@ -222,8 +223,8 @@ function ConversationRow({
   unread?: number;
 }) {
   const [open, setOpen] = useState(false);
-  // Canonical lifecycle actions return only when backed by authorization and persistence.
-  const hasActions = !item.databaseId && item.kind !== "my-room";
+  // No prototype lifecycle menu in the beta shell. Real Room actions live in details.
+  const hasActions = false;
   const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const beginPress = () => {
     if (!hasActions) return;
@@ -623,7 +624,7 @@ function AppSidebar({
               key={item.slug}
               item={item}
               active={selected?.slug === item.slug}
-              pinned={!identity && state.pinned.includes(item.slug)}
+              pinned={false}
               onDropItem={identity ? () => undefined : prototypeStore.reorder}
               displayName={user.displayName}
               unread={(item.databaseId ? unreadByConversation[item.databaseId] ?? 0 : 0) + (item.kind === "room" && !item.slug.includes("--") ? serverSubrooms.filter((child) => child.slug.startsWith(`${item.slug}--`)).reduce((sum, child) => sum + (unreadByConversation[child.databaseId!] ?? 0), 0) : 0)}
@@ -868,7 +869,7 @@ function InviteOverlay({
         </button>
         <p className="eyebrow">Invite to this Room</p>
         <h2 id="invite-title">{nameOf(room)}</h2>
-        <p>Anyone with this link can understand the invitation and join.</p>
+        <p>One person can join with this link.</p>
         <div className="invite-layout">
           <FakeQr value={inviteUrl} />
           <div>
@@ -879,9 +880,9 @@ function InviteOverlay({
             <button
               className="primary-action"
               disabled={!inviteUrl}
-              onClick={() => {
-                navigator.clipboard?.writeText(inviteUrl);
-                setCopied(true);
+              onClick={async () => {
+                try { await navigator.clipboard.writeText(inviteUrl); setCopied(true); }
+                catch { setError("Copy unavailable. Select the invitation link to copy it."); }
               }}
             >
               {copied ? "Copied" : "Copy link"}
@@ -901,7 +902,7 @@ function SubroomOverlay({ room, onClose }: { room: Conversation; onClose: () => 
   const [name, setName] = useState("");
   const [visibility, setVisibility] = useState<"everyone" | "selected" | "owners">("everyone");
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<Array<{ userId: string; displayName: string; username: string; tid: string }>>([]);
+  const [results, setResults] = useState<Array<{ userId: string; displayName: string; username: string }>>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -911,10 +912,10 @@ function SubroomOverlay({ room, onClose }: { room: Conversation; onClose: () => 
     if (!identity || query.trim().length < 2 || visibility !== "selected") return;
     let active = true;
     const timer = window.setTimeout(() => {
-      findPeopleAction(query).then((next) => active && setResults(next)).catch(() => active && setResults([]));
+      findRoomMembersAction(room.slug, query).then((next) => active && setResults(next)).catch(() => active && setResults([]));
     }, 180);
     return () => { active = false; window.clearTimeout(timer); };
-  }, [identity, query, visibility]);
+  }, [identity, query, visibility, room.slug]);
   const visibleResults = visibility === "selected" && query.trim().length >= 2 ? results : [];
   const create = async () => {
     if (!name.trim()) return;
@@ -948,12 +949,12 @@ function SubroomOverlay({ room, onClose }: { room: Conversation; onClose: () => 
           <select value={visibility} onChange={(event) => setVisibility(event.target.value as typeof visibility)}>
             <option value="everyone">Everyone in Room</option>
             <option value="selected">Selected people</option>
-            <option value="owners">Owners / moderators</option>
+            <option value="owners">Room owner only</option>
           </select>
         </label>
         {visibility === "selected" ? (
           <>
-            <label className="wizard-field"><span>People</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search by name, username or TID" /></label>
+            <label className="wizard-field"><span>Room members</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search Room members" /></label>
             {visibleResults.length ? <div className="friend-list compact" aria-label="Subroom people results">{visibleResults.map((person) => {
               const selected = selectedIds.includes(person.userId);
               return <article key={person.userId}><span className="avatar avatar-pink">{person.displayName.slice(0, 2).toUpperCase()}</span><div><strong>{person.displayName}</strong><small>@{person.username}</small></div><button className={selected ? "selected" : ""} onClick={() => setSelectedIds((current) => selected ? current.filter((id) => id !== person.userId) : [...current, person.userId])}>{selected ? "Added" : "Add"}</button></article>;
@@ -1476,6 +1477,16 @@ export function MessagingApp({
           ? conversations[0]
           : undefined));
   const realtime = useConversationRealtime(selected?.databaseId, identity?.userId);
+  useEffect(() => {
+    const denied = (event: Event) => {
+      if ((event as CustomEvent<string>).detail !== selected?.databaseId) return;
+      setOverlay(null);
+      window.dispatchEvent(new Event(ACTIVITY_REFRESH));
+      router.replace("/app");
+    };
+    window.addEventListener(CONVERSATION_ACCESS_LOST, denied);
+    return () => window.removeEventListener(CONVERSATION_ACCESS_LOST, denied);
+  }, [router, selected?.databaseId]);
   useEffect(() => { liveConnected.current = realtime.connected; }, [realtime.connected]);
   useEffect(() => { activeConversationRef.current = surface === "hall" ? null : selected?.databaseId ?? null; }, [selected?.databaseId, surface]);
   const attention = deriveAttention(activity);
@@ -1511,8 +1522,9 @@ export function MessagingApp({
             <SurfaceHeader
               conversation={selected}
               surface={surface}
-              onInvite={() => setOverlay("invite")}
+              onInvite={identity ? () => setOverlay("invite") : undefined}
               onAddSubroom={contextRoom?.role === "owner" ? () => setOverlay("subroom") : undefined}
+              onManage={contextRoom ? () => setOverlay("manage") : undefined}
               chatUnread={unreadForSurface("message")}
               hallUnread={unreadForSurface("hall")}
             />
@@ -1528,7 +1540,7 @@ export function MessagingApp({
             )}
           </>
         ) : selectedSlug && identity ? (
-          <div className="desktop-welcome" role="status"><h2>Opening conversation…</h2><p>If this takes a moment, check your connection.</p></div>
+          <div className="desktop-welcome" role="status"><h2>Conversation unavailable</h2><p>Check your access or return to Chats.</p><Link className="quiet-action" href="/app">Return to Chats</Link></div>
         ) : workspace === "friends" ? (
           <FriendsSurface onMessage={messageFriend} requestActivity={activity.filter((item) => item.type === "connection_request" && !item.destinationReadAt)} />
         ) : workspace && workspace !== "create" ? (
@@ -1569,6 +1581,7 @@ export function MessagingApp({
       {overlay === "subroom" && selected?.kind === "room" && identity ? (
         <SubroomOverlay room={parentConversation ?? selected} onClose={() => setOverlay(null)} />
       ) : null}
+      {overlay === "manage" && contextRoom ? <RoomDetails slug={contextRoom.slug} onClose={() => setOverlay(null)} /> : null}
       {toast ? <button className="activity-toast" onClick={() => { router.push(activityHref(toast)); setToast(null); }} aria-label="Open new activity"><strong>{toast.actorName ?? "Someone"}</strong><span>{toast.type === "message" ? (toast.messageBody || "New message") : toast.type === "connection_request" ? "sent you a friend request" : toast.type === "connection_accepted" ? "accepted your friend request" : "updated Hall"}</span></button> : null}
     </main></ToskerIdentityProvider>
   );

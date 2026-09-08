@@ -6,6 +6,7 @@ export const USER_ACTIVITY = "activity.changed";
 export const CHAT_REFRESH = "tosker:chat-refresh";
 export const HALL_REFRESH = "tosker:hall-refresh";
 export const ACTIVITY_REFRESH = "tosker:activity-refresh";
+export const CONVERSATION_ACCESS_LOST = "tosker:conversation-access-lost";
 export const TYPING_CHANGED = "typing.changed";
 export const TYPING_TTL = 5000;
 export const MESSAGE_CHANGED = "message.changed";

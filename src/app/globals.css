@@ -1025,3 +1025,23 @@ h1,h2,h3 { font-family:var(--font-mermaid),Georgia,serif; font-weight:400; lette
   font-size: 11px;
   line-height: 15px;
 }
+
+/* One bounded Room management surface; uses the existing modal/control tokens. */
+.room-details-trigger { grid-column:3; justify-self:end; flex:none; }
+.room-details-panel { width:min(560px,calc(100vw - 24px)); max-height:calc(100dvh - 32px); overflow-y:auto; }
+.room-details-panel h2,.room-details-panel h3,.room-confirmation h3 { overflow-wrap:anywhere; }
+.room-details-panel h3 { margin:24px 0 10px; font-size:14px; }
+.room-details-panel form,.room-details-panel label { display:grid; gap:8px; }
+.room-details-panel form { gap:12px; }
+.room-details-panel input,.room-details-panel textarea { width:100%; min-width:0; min-height:44px; padding:10px 12px; border:1px solid var(--border); border-radius:10px; background:var(--surface); color:var(--text-primary); font:inherit; }
+.room-details-panel form > button { justify-self:start; }
+.room-management-note,.room-details-panel small { color:var(--text-secondary); font-size:11px; line-height:1.5; }
+.room-member-list,.room-invite-list { list-style:none; margin:0; padding:0; display:grid; gap:8px; }
+.room-member-list li,.room-invite-list li { display:flex; gap:12px; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border); }
+.room-member-list li > span,.room-invite-list li > span { min-width:0; display:grid; gap:4px; overflow-wrap:anywhere; }
+.room-member-list strong,.room-invite-list strong { font-size:12px; }
+.room-details-panel button:not(.overlay-close) { min-height:40px; padding:8px 12px; cursor:pointer; }
+.room-member-list button,.room-invite-list button { flex:none; border:0; border-radius:8px; background:var(--surface); color:var(--text-secondary); }
+.room-member-list button:hover,.room-invite-list button:hover { background:var(--surface-hover); color:var(--text-primary); }
+.room-details-panel .danger { color:var(--danger,#f28b9c); }
+@media(max-width:640px) { .room-details-trigger { grid-area:1/2; } .room-details-panel input,.room-details-panel textarea { font-size:16px; } }

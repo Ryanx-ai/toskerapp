@@ -16,9 +16,9 @@ export function getRealtimeServer() {
   return client ??= new Rest({ key, logLevel: 0, httpRequestTimeout: 5000 });
 }
 
-/** Call after committing a membership/access removal, before acknowledging it.
- * Current product has no removal endpoint; administrative removals must use this
- * boundary too. Never accept the target actor directly from an untrusted request.
+/** Room withdrawal calls this under the actor issuance lock before committing.
+ * Failure rolls back withdrawal; success is never reported with live old tokens.
+ * Administrative removals must use the same boundary, not direct membership SQL.
  */
 export async function revokeActorRealtime(userId: string) {
   const result = await getRealtimeServer().auth.revokeTokens([{ type: "clientId", value: userId }], { allowReauthMargin: false });

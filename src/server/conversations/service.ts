@@ -4,14 +4,14 @@ import type { AuthenticatedActor } from "@/server/auth/actor";
 import { AuthorizationDeniedError } from "@/server/auth/authorize";
 import type { ToskerDatabase } from "@/server/db/client";
 import { messages, messageReactions } from "@/server/db/schema";
-import { hallScope } from "@/server/hall/service";
+import { lockHallScope } from "@/server/hall/service";
 import { validateEmoji } from "@/server/emoji";
 
 export async function setMessageReaction(db: ToskerDatabase, actor: AuthenticatedActor, input: { conversationId: string; messageId: string; emoji: string; active: boolean }) {
   validateEmoji(input.emoji);
   if (typeof input.active !== "boolean") throw new Error("Invalid reaction state.");
-  await hallScope(db, actor, input.conversationId);
   await db.transaction(async (tx) => {
+    await lockHallScope(tx, actor, input.conversationId);
     const [message] = await tx.select({ id: messages.id }).from(messages).where(and(eq(messages.id, input.messageId), eq(messages.conversationId, input.conversationId), isNull(messages.deletedAt))).for("update");
     if (!message) throw new AuthorizationDeniedError("Message unavailable.");
     if (input.active) await tx.insert(messageReactions).values({ messageId: input.messageId, userId: actor.userId, emoji: input.emoji }).onConflictDoNothing();
@@ -20,10 +20,10 @@ export async function setMessageReaction(db: ToskerDatabase, actor: Authenticate
 }
 
 export async function changeOwnMessage(db: ToskerDatabase, actor: AuthenticatedActor, input: { conversationId: string; messageId: string; body?: string; remove?: boolean }) {
-  await hallScope(db, actor, input.conversationId);
   const body = input.body?.trim();
   if (!input.remove && (!body || body.length > 8000)) throw new Error("Enter a message up to 8,000 characters.");
   await db.transaction(async (tx) => {
+    await lockHallScope(tx, actor, input.conversationId);
     const [message] = await tx.select().from(messages).where(and(eq(messages.id, input.messageId), eq(messages.conversationId, input.conversationId), eq(messages.authorId, actor.userId))).for("update");
     if (!message) throw new AuthorizationDeniedError("Only the author can change this message.");
     if (message.deletedAt) { if (input.remove) return; throw new Error("Message deleted."); }

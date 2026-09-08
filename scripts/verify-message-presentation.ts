@@ -1,0 +1,15 @@
+import assert from "node:assert/strict";
+import { groupMessages, messageDayLabel } from "../src/lib/message-presentation";
+const now = new Date(2026, 8, 8, 12);
+assert.equal(messageDayLabel(now.toISOString(), now), "Today");
+assert.equal(messageDayLabel(new Date(2026, 8, 7, 12).toISOString(), now), "Yesterday");
+assert.equal(messageDayLabel(undefined, now), "Conversation");
+assert.equal(messageDayLabel("invalid", now), "Conversation");
+assert.notEqual(messageDayLabel(new Date(2026, 8, 1).toISOString(), now), "Today");
+const message = (authorId: string, offset: number) => ({ authorId, createdAt: new Date(now.getTime() + offset).toISOString() });
+assert.equal(groupMessages(message("a", 0), message("a", 60000)), true);
+assert.equal(groupMessages(message("a", 0), message("a", 60001)), false);
+assert.equal(groupMessages(message("a", 0), message("b", 1)), false);
+assert.equal(groupMessages(message("a", 1), message("a", 0)), false);
+assert.equal(groupMessages({ authorId: "a", createdAt: new Date(2026, 8, 7, 23, 59, 59).toISOString() }, { authorId: "a", createdAt: new Date(2026, 8, 8).toISOString() }), false);
+console.log("PASS: honest date labels and same-author/time/day grouping boundaries.");

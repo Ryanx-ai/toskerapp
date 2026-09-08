@@ -30,7 +30,6 @@ import { useMobileViewport } from "@/components/use-mobile-viewport";
 import { ToskerIdentityProvider, useCurrentToskerUser, useToskerIdentity } from "@/components/tosker-identity";
 import { createRoomAction, createRoomInviteAction, createSubroomAction } from "@/server/rooms/actions";
 import { findPeopleAction, startPersonalConversationAction } from "@/server/conversations/actions";
-import { installRoomCapabilityAction } from "@/server/shared-state/actions";
 import { acceptConnectionAction, listConnectionsAction, requestConnectionAction, removeConnectionNicknameAction, setConnectionNicknameAction } from "@/server/connections/actions";
 import { listNotificationsAction } from "@/server/shared-state/actions";
 import {
@@ -56,7 +55,7 @@ import {
 } from "lucide-react";
 
 export type AppWorkspace = ProductWorkspace | "friends" | "create";
-type Overlay = "choose" | "chat" | "room" | "invite" | "add" | "subroom" | null;
+type Overlay = "choose" | "chat" | "room" | "invite" | "subroom" | null;
 type NotificationActivity = Awaited<ReturnType<typeof listNotificationsAction>>[number];
 const nav = [
   { label: "Explore", icon: Compass, href: "/explore" },
@@ -101,7 +100,6 @@ const friends = [
     status: "Offline",
   },
 ];
-const things = ["Poll", "Schedule", "Map", "Board"];
 const roomTags = DEFAULT_ROOM_TAGS;
 const COLLAPSE_KEY = "tosker.sidebar.collapsed";
 const collapseStore = {
@@ -194,23 +192,12 @@ function ContextMenu({
       {label}
     </button>
   );
-  if (item.kind === "my-room")
-    return (
-      <div ref={ref} className="context-menu conversation-context" role="menu">
-        {action("Mark unread")}
-        {action("Mute")}
-      </div>
-    );
   return (
     <div ref={ref} className="context-menu conversation-context" role="menu">
       {action(pinned ? "Unpin" : "Pin to top", () =>
         prototypeStore.togglePinned(item.slug),
       )}
-      {action("Mark unread")}
-      {action("Mute")}
-      {item.kind === "room" ? action("Manage Room") : null}
       {action("Archive", () => prototypeStore.archive(item.slug))}
-      {item.kind === "room" ? action("Leave Room") : null}
       <hr />
       <button className="danger" onClick={() => setConfirming(true)}>
         Nuke {item.kind === "room" ? "Room" : "conversation"}
@@ -235,8 +222,11 @@ function ConversationRow({
   unread?: number;
 }) {
   const [open, setOpen] = useState(false);
+  // Canonical lifecycle actions return only when backed by authorization and persistence.
+  const hasActions = !item.databaseId && item.kind !== "my-room";
   const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const beginPress = () => {
+    if (!hasActions) return;
     pressTimer.current = setTimeout(() => {
       window.dispatchEvent(new Event("tosker:close-popovers"));
       setOpen(true);
@@ -248,7 +238,7 @@ function ConversationRow({
   return (
     <div
       className={`conversation-row-shell ${active ? "active" : ""} ${item.tag === "SUBROOM" ? "subroom-row" : ""}`}
-      draggable={item.kind !== "my-room"}
+      draggable={hasActions}
       onDragStart={(event) => {
         event.dataTransfer.effectAllowed = "move";
         event.dataTransfer.setData("text/plain", item.slug);
@@ -256,6 +246,7 @@ function ConversationRow({
       }}
       onDragEnd={(event) => event.currentTarget.classList.remove("is-dragging")}
       onDragOver={(event) => {
+        if (!hasActions) return;
         event.preventDefault();
         event.currentTarget.classList.add("drag-target");
       }}
@@ -263,11 +254,13 @@ function ConversationRow({
         event.currentTarget.classList.remove("drag-target")
       }
       onDrop={(event) => {
+        if (!hasActions) return;
         event.preventDefault();
         event.currentTarget.classList.remove("drag-target");
         onDropItem(event.dataTransfer.getData("text/plain"), item.slug);
       }}
       onContextMenu={(event) => {
+        if (!hasActions) return;
         event.preventDefault();
         window.dispatchEvent(new Event("tosker:close-popovers"));
         setOpen(true);
@@ -280,7 +273,7 @@ function ConversationRow({
       <Link
         href={hrefOf(item)}
         className="conversation-row"
-        aria-label={`${nameOf(item, displayName)}${item.kind === "room" ? ", Room" : ""}`}
+        aria-label={`${nameOf(item, displayName)}${item.kind === "room" ? item.tag === "SUBROOM" ? ", Subroom" : ", Room" : ""}`}
         data-name={nameOf(item, displayName)}
       >
         <Avatar item={item} />
@@ -300,7 +293,7 @@ function ConversationRow({
           ) : null}
         </span>
       </Link>
-      {item.kind !== "my-room" ? (
+      {hasActions ? (
         <button
           className="row-options"
           aria-label={`Actions for ${nameOf(item)}`}
@@ -313,7 +306,7 @@ function ConversationRow({
           <MoreHorizontal size={15} />
         </button>
       ) : null}
-      {open ? (
+      {open && hasActions ? (
         <ContextMenu
           item={item}
           pinned={pinned}
@@ -517,8 +510,8 @@ function AppSidebar({
       ? -1
       : b.kind === "my-room"
         ? 1
-        : Number(state.pinned.includes(b.slug)) -
-            Number(state.pinned.includes(a.slug)) ||
+        : (!identity ? Number(state.pinned.includes(b.slug)) -
+            Number(state.pinned.includes(a.slug)) : 0) ||
           (latestActivityByConversation[b.databaseId ?? ""] ?? "").localeCompare(latestActivityByConversation[a.databaseId ?? ""] ?? "") ||
           rank(a) - rank(b),
   );
@@ -986,8 +979,7 @@ function CreationOverlay({
   const [mode, setMode] = useState(initial);
   const [step, setStep] = useState(1);
   const [name, setName] = useState("");
-  const [tags, setTags] = useState<string[]>([]);
-  const [selectedThings, setThings] = useState<string[]>([]);
+  const [tags, setTags] = useState<string[]>(["Just Chilling"]);
   const [customTag, setCustomTag] = useState("");
   const [acceptedFriends, setAcceptedFriends] = useState<Awaited<ReturnType<typeof listConnectionsAction>>>([]);
   const user = useCurrentToskerUser() ?? prototypeUser;
@@ -1044,13 +1036,13 @@ function CreationOverlay({
     setSaveError("");
     try {
       if (!identity) {
-        const created = prototypeStore.createRoom({ name, tags, things: selectedThings });
+        const created = prototypeStore.createRoom({ name, tags, things: [] });
         router.push(`/room/${created.slug}`); onClose(); return;
       }
       const created = await createRoomAction({
         name,
         tags,
-        capabilities: selectedThings,
+        capabilities: [],
       });
       setRoom(created);
       setStep(5);
@@ -1062,7 +1054,7 @@ function CreationOverlay({
     }
   };
   const nextRoom = () => {
-    if (step === 3) void finishRoom();
+    if (step === 2) void finishRoom();
     else setStep((current) => current + 1);
   };
   return (
@@ -1172,7 +1164,7 @@ function CreationOverlay({
           <>
             <div className="wizard-progress">
               <span>Room</span>
-              <b>{step < 5 ? `${step} / 3` : "Ready"}</b>
+              <b>{step < 5 ? `${step} / 2` : "Ready"}</b>
             </div>
             {step === 1 ? (
               <>
@@ -1224,30 +1216,6 @@ function CreationOverlay({
                 }}>Add tag</button></div>
               </>
             ) : null}
-            {step === 3 ? (
-              <>
-                <h2>Add things</h2>
-                <p>Optional. You can do this later.</p>
-                <div className="option-grid">
-                  {things.map((thing, index) => (
-                    <button
-                      autoFocus={index === 0}
-                      className={selectedThings.includes(thing) ? "active" : ""}
-                      onClick={() =>
-                        setThings((current) =>
-                          current.includes(thing)
-                            ? current.filter((item) => item !== thing)
-                            : [...current, thing],
-                        )
-                      }
-                      key={thing}
-                    >
-                      {thing}
-                    </button>
-                  ))}
-                </div>
-              </>
-            ) : null}
             {step === 5 && room ? (
               <div className="room-ready">
                 <FakeQr value={`${typeof window !== "undefined" ? window.location.origin : ""}/join/${room.inviteToken}`} />
@@ -1291,7 +1259,7 @@ function CreationOverlay({
                 >
                   {step === 1
                     ? "Next"
-                    : step === 3
+                    : step === 2
                       ? saving ? "Creating…" : "Create Room"
                       : "Next"}
                 </button>
@@ -1372,9 +1340,6 @@ export function MessagingApp({
   const seenActivity = useRef<Set<string> | null>(null);
   const activeConversationRef = useRef<string | null>(null);
   const liveConnected = useRef(false);
-  const addPanelRef = useRef<HTMLElement>(null);
-  const closeAdd = useCallback(() => setOverlay(null), []);
-  useDismissLayer(overlay === "add", closeAdd, addPanelRef);
   useEffect(() => {
     const identity = baseIdentity;
     if (!identity) {
@@ -1546,7 +1511,6 @@ export function MessagingApp({
             <SurfaceHeader
               conversation={selected}
               surface={surface}
-              onAdd={() => setOverlay("add")}
               onInvite={() => setOverlay("invite")}
               onAddSubroom={contextRoom?.role === "owner" ? () => setOverlay("subroom") : undefined}
               chatUnread={unreadForSurface("message")}
@@ -1604,45 +1568,6 @@ export function MessagingApp({
       ) : null}
       {overlay === "subroom" && selected?.kind === "room" && identity ? (
         <SubroomOverlay room={parentConversation ?? selected} onClose={() => setOverlay(null)} />
-      ) : null}
-      {overlay === "add" ? (
-        <ModalLayer onClose={() => setOverlay(null)}>
-          <section ref={addPanelRef} className="creation-panel" role="dialog" aria-modal="true" aria-labelledby="add-title">
-            <button
-              className="overlay-close"
-              onClick={() => setOverlay(null)}
-              aria-label="Close"
-            >
-              <X size={17} />
-            </button>
-            <h2 id="add-title">Add something</h2>
-            <p>Add to this space.</p>
-            <div className="option-grid">
-              {[...things, "Photo Wall"].map((item, index) => {
-                const installed = contextRoom?.capabilities.includes(item) ?? prototypeRoom?.things.includes(item) ?? false;
-                const supported = things.includes(item);
-                return (
-                <button
-                  autoFocus={index === 0}
-                  key={item}
-                  className={installed ? "active" : ""}
-                  disabled={installed || selected?.kind !== "room" || Boolean(identity && !supported)}
-                  aria-label={`${item}${installed ? ", Added" : ""}`}
-                  onClick={async () => {
-                    if (!selected || selected.kind !== "room") return;
-                    if (identity && selected.databaseId) {
-                      await installRoomCapabilityAction({ conversationId: selected.databaseId, capability: item });
-                      router.refresh();
-                    } else prototypeStore.addThing({ slug: selected.slug, name: selected.name, thing: item });
-                    setOverlay(null);
-                  }}
-                >
-                  {item}{installed ? <small>Added</small> : null}
-                </button>
-              );})}
-            </div>
-          </section>
-        </ModalLayer>
       ) : null}
       {toast ? <button className="activity-toast" onClick={() => { router.push(activityHref(toast)); setToast(null); }} aria-label="Open new activity"><strong>{toast.actorName ?? "Someone"}</strong><span>{toast.type === "message" ? (toast.messageBody || "New message") : toast.type === "connection_request" ? "sent you a friend request" : toast.type === "connection_accepted" ? "accepted your friend request" : "updated Hall"}</span></button> : null}
     </main></ToskerIdentityProvider>

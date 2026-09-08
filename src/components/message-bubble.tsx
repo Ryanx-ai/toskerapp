@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { Copy, Languages, MoreHorizontal, Pencil, Pin, Reply, SmilePlus, Trash2 } from "lucide-react";
+import { Copy, MoreHorizontal, Pencil, Pin, Reply, SmilePlus, Trash2 } from "lucide-react";
+import { messageTextParts } from "@/lib/message-links";
 import type { Message } from "@/data/messaging-data";
 import type { ReactionSummary } from "@/lib/reaction-contract";
 import { EmojiPicker, ReactionChips } from "./emoji-picker";
@@ -13,9 +14,8 @@ export function MessageBubble({ message, grouped, onReply, onReaction, onChange,
   onChange: (id: string, body?: string, remove?: boolean) => Promise<void>;
   onPin?: (message: Message) => Promise<void>;
 }) {
-  const [panel, setPanel] = useState<"menu" | "emoji" | "translation" | null>(null);
+  const [panel, setPanel] = useState<"menu" | "emoji" | null>(null);
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
-  const [translated, setTranslated] = useState(false);
   const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [draft, setDraft] = useState(message.body);
@@ -36,7 +36,7 @@ export function MessageBubble({ message, grouped, onReply, onReaction, onChange,
   const values: ReactionSummary[] = message.reactionSummary ?? [...new Set(message.reactions ?? [])].map((emoji) => ({ emoji, count: message.reactions!.filter((item) => item === emoji).length, mine: false, participants: [] }));
   return <article id={`message-${message.id}`} className={`message-row ${message.mine ? "mine" : ""} ${grouped ? "is-grouped" : ""} ${message.deletedAt ? "message-deleted" : ""}`}
     onContextMenu={(event) => { if (message.deletedAt) return; event.preventDefault(); show("menu", event.currentTarget); }}
-    onKeyDown={(event) => { if (event.key === "ContextMenu" || (event.shiftKey && event.key === "F10")) { event.preventDefault(); show("menu", event.currentTarget); } }}>
+    onKeyDown={(event) => { if (!message.deletedAt && (event.key === "ContextMenu" || (event.shiftKey && event.key === "F10"))) { event.preventDefault(); show("menu", event.currentTarget); } }}>
     {grouped ? <span className="message-avatar-spacer" aria-hidden="true" /> : <span className={`avatar avatar-${message.color} avatar-pattern`}>{message.initials}</span>}
     <div className="message-column">
       {!grouped ? <div className="message-author"><strong>{message.author}</strong><time>{message.time}</time></div> : null}
@@ -48,10 +48,9 @@ export function MessageBubble({ message, grouped, onReply, onReaction, onChange,
           press.current = setTimeout(() => { show("menu", element); }, 600);
         }} onPointerMove={(event) => { if (Math.hypot(event.clientX - start.current.x, event.clientY - start.current.y) > 8) cancelPress(); }} onPointerUp={cancelPress} onPointerCancel={cancelPress}>
           {message.replyTo ? <blockquote>{message.replyTo}</blockquote> : null}
-          <p>{message.body}</p>
+          <p>{message.deletedAt ? message.body : messageTextParts(message.body).map((part, index) => part.href ? <a key={index} className="message-link" href={part.href} target="_blank" rel="noopener noreferrer" title="Opens in a new tab" aria-label={`${part.text} (opens in new tab)`}>{part.text}</a> : part.text)}</p>
           {message.editedAt && !message.deletedAt ? <small className="message-edited">edited</small> : null}
           {message.attachment ? <p className="message-attachment">{message.attachment.name} · {message.attachment.meta}</p> : null}
-          {translated && message.translation ? <div className="translation"><p>{message.translation}</p><span>Demo translation · {message.language} → English</span></div> : null}
         </div>
         {!message.deletedAt ? <div className="message-hover-actions">
           <button aria-label="React" onClick={(event) => show("emoji", event.currentTarget)}><SmilePlus size={16} /></button>
@@ -63,13 +62,11 @@ export function MessageBubble({ message, grouped, onReply, onReaction, onChange,
       {error ? <p role="alert" className="composer-error">{error}</p> : null}
     </div>
     {panel ? <InteractionPopover anchor={anchor} label="Message actions" onClose={() => setPanel(null)}>
-      {panel === "emoji" ? <EmojiPicker onClose={() => setPanel(null)} onPick={(emoji) => void run(() => onReaction(message.id, emoji, !values.find((value) => value.emoji === emoji)?.mine))} /> : panel === "translation" ? <div className="translation-options"><strong>Translation options</strong><p>{message.translation ? `Demo: ${message.language} → English` : "Translation isn't connected yet. Your message stays private; no text is sent to a translation service."}</p><button onClick={() => setPanel("menu")}>Back</button></div> : <div className="message-action-list">
+      {panel === "emoji" ? <EmojiPicker onClose={() => setPanel(null)} onPick={(emoji) => void run(() => onReaction(message.id, emoji, !values.find((value) => value.emoji === emoji)?.mine))} /> : <div className="message-action-list">
         <button onClick={() => setPanel("emoji")}><SmilePlus size={16} />React</button>
         <button onClick={() => { onReply(message); setPanel(null); }}><Reply size={16} />Reply</button>
         <button onClick={() => void run(() => navigator.clipboard.writeText(message.body))}><Copy size={16} />Copy</button>
         {onPin ? <button disabled={busy} onClick={() => void run(() => onPin(message))}><Pin size={16} />Pin to Hall</button> : null}
-        <button onClick={() => { if (message.translation) { setTranslated(!translated); setPanel(null); } else setPanel("translation"); }}><Languages size={16} />{translated ? "Hide translation" : "Translate"}</button>
-        <button onClick={() => setPanel("translation")}><Languages size={16} />Translation options</button>
         {message.mine ? <><hr /><button onClick={() => { setDraft(message.body); setEditing(true); setPanel(null); }}><Pencil size={16} />Edit</button><button className="danger" onClick={() => { setDeleting(true); setPanel(null); }}><Trash2 size={16} />Delete</button></> : null}
       </div>}
     </InteractionPopover> : null}

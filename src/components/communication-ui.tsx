@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import {
+  Fragment,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -24,6 +25,8 @@ import { HallNoteInteractions } from "@/components/hall-note-interactions";
 import { MessageBubble } from "./message-bubble";
 import type { useConversationRealtime } from "./use-conversation-realtime";
 import { CHAT_REFRESH, HALL_REFRESH } from "@/lib/realtime-contract";
+import { acknowledgeDraft, chatDraftKey, chatDrafts, type DraftReply } from "@/lib/chat-drafts";
+import { groupMessages, messageDay, messageDayLabel } from "@/lib/message-presentation";
 import { EmojiPicker } from "./emoji-picker";
 import { listHallSnapshotAction } from "@/server/shared-state/actions";
 import { AttentionMark } from "./attention-mark";
@@ -31,32 +34,16 @@ import { InteractionPopover } from "./interaction-popover";
 import { ModalLayer } from "./modal-layer";
 import type { HallReaction } from "@/lib/hall-contract";
 import {
-  CalendarDays,
   ArrowLeft,
   GripVertical,
-  File,
-  ImageIcon,
   MoreHorizontal,
-  Paperclip,
-  Phone,
   Plus,
-  Search,
   ArrowUp,
   ChevronDown,
-  Settings,
   Smile,
-  Video,
   X,
 } from "lucide-react";
 
-const utilityCopy: Record<string, string> = {
-  Search: "Search this conversation.",
-  Voice: "Voice calls are coming later.",
-  Video: "Video calls are coming later.",
-  Calendar: "Calendar isn't connected yet.",
-  Settings: "More settings are coming later.",
-  More: "More conversation tools will live here.",
-};
 const titleOf = (conversation: Conversation, displayName = prototypeUser.displayName) =>
   conversation.kind === "my-room"
     ? `${displayName}'s Sandbox`
@@ -105,34 +92,9 @@ function openLayer() {
   window.dispatchEvent(new Event("tosker:close-popovers"));
 }
 
-function UtilityButton({
-  label,
-  icon: Icon,
-  onOpen,
-  expanded,
-}: {
-  label: string;
-  icon: React.ComponentType<{ size?: number }>;
-  onOpen: (label: string) => void;
-  expanded: boolean;
-}) {
-  return (
-    <button
-      className="action-icon"
-      data-tip={label}
-      aria-label={label}
-      aria-expanded={expanded}
-      onClick={() => onOpen(label)}
-    >
-      <Icon size={16} />
-    </button>
-  );
-}
-
 export function SurfaceHeader({
   conversation,
   surface,
-  onAdd,
   onInvite,
   onAddSubroom,
   chatUnread = 0,
@@ -140,7 +102,6 @@ export function SurfaceHeader({
 }: {
   conversation: Conversation;
   surface: "chat" | "hall";
-  onAdd: () => void;
   onInvite?: () => void;
   onAddSubroom?: () => void;
   chatUnread?: number;
@@ -150,29 +111,6 @@ export function SurfaceHeader({
   const identity = useToskerIdentity();
   const parentRoom = conversation.kind === "room" ? identity?.rooms.find((room) => room.slug === conversation.slug.split("--")[0]) : undefined;
   const [contextAnchor, setContextAnchor] = useState<HTMLElement | null>(null);
-  const [panel, setPanel] = useState<string | null>(null);
-  const popoverRef = useRef<HTMLDivElement>(null);
-  useDismissLayer(Boolean(panel), () => setPanel(null), popoverRef);
-  const utilities: Array<[string, React.ComponentType<{ size?: number }>]> =
-    conversation.kind === "my-room"
-      ? [
-          ["Search", Search],
-          ["Calendar", CalendarDays],
-          ["Settings", Settings],
-          ["More", MoreHorizontal],
-        ]
-      : [
-          ["Search", Search],
-          ["Voice", Phone],
-          ["Video", Video],
-          ["Calendar", CalendarDays],
-          ["Settings", Settings],
-          ["More", MoreHorizontal],
-        ];
-  const showPanel = (label: string) => {
-    openLayer();
-    setPanel(label);
-  };
   return (
     <header className="conversation-header">
       <div className="header-identity-zone">
@@ -216,28 +154,7 @@ export function SurfaceHeader({
         >
           Hall<AttentionMark count={hallUnread} label="new Hall activities" />
         </Link>
-        <button onClick={onAdd} aria-label="Add Gizmo">
-          <Plus size={15} />
-          <small>Add</small>
-        </button>
       </nav>
-      <div className="header-utilities">
-        {utilities.map(([label, icon]) => (
-          <UtilityButton
-            key={label}
-            label={label}
-            icon={icon}
-            onOpen={showPanel}
-            expanded={panel === label}
-          />
-        ))}
-      </div>
-      {panel ? (
-        <div ref={popoverRef} className="header-popover" role="dialog">
-          <strong>{panel}</strong>
-          {panel === "More" ? utilities.filter(([label]) => label !== "More").map(([label]) => <button key={label} onClick={() => setPanel(label)}>{label}</button>) : <><p>{utilityCopy[panel]}</p><button onClick={() => setPanel(null)}>Got it</button></>}
-        </div>
-      ) : null}
       {contextAnchor && parentRoom ? <InteractionPopover anchor={contextAnchor} label="Room contexts" onClose={() => setContextAnchor(null)}><nav className="room-context-menu" aria-label="Room and Subrooms">
         <Link href={`/room/${parentRoom.slug}`} aria-current={conversation.slug === parentRoom.slug ? "page" : undefined} onClick={() => setContextAnchor(null)}>{parentRoom.name}</Link>
         {parentRoom.subrooms.map((child) => <Link key={child.id} className="context-child" href={`/room/${parentRoom.slug}/subroom/${child.id}`} aria-current={conversation.slug.endsWith(`--${child.id}`) ? "page" : undefined} onClick={() => setContextAnchor(null)}>{child.name}</Link>)}
@@ -250,19 +167,21 @@ export function SurfaceHeader({
 
 function Composer({
   name,
+  value,
+  onValue,
   reply,
   onCancelReply,
   onSend,
   onTyping,
 }: {
   name: string;
-  reply: Message | null;
+  value: string;
+  onValue: (value: string) => void;
+  reply: DraftReply | null;
   onCancelReply: () => void;
   onSend: (body: string) => Promise<boolean>;
   onTyping: (active: boolean) => void;
 }) {
-  const [value, setValue] = useState("");
-  const [toolNote, setToolNote] = useState("");
   const [sending, setSending] = useState(false);
   const [emojiAnchor, setEmojiAnchor] = useState<HTMLElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -272,7 +191,7 @@ function Composer({
     onTyping(false);
     setSending(true);
     try {
-      if (await onSend(draft.trim())) setValue((current) => current === draft ? "" : current);
+      await onSend(draft.trim());
     } finally { setSending(false); }
     inputRef.current?.focus({ preventScroll: true });
   };
@@ -291,15 +210,6 @@ function Composer({
       ) : null}
       <div className="composer">
         <div className="composer-tools">
-          <button aria-label="Attach" onClick={() => setToolNote("Attachments are planned for a later milestone.")}>
-            <Paperclip size={17} />
-          </button>
-          <button aria-label="Add image" onClick={() => setToolNote("Image sharing is planned for a later milestone.")}>
-            <ImageIcon size={17} />
-          </button>
-          <button aria-label="Add file" onClick={() => setToolNote("File sharing is planned for a later milestone.")}>
-            <File size={17} />
-          </button>
           <button aria-label="Add emoji" onClick={(event) => setEmojiAnchor(event.currentTarget)}>
             <Smile size={17} />
           </button>
@@ -307,7 +217,7 @@ function Composer({
         <textarea
           ref={inputRef}
           value={value}
-          onChange={(event) => { setValue(event.target.value); onTyping(Boolean(event.target.value.trim())); }}
+          onChange={(event) => { onValue(event.target.value); onTyping(Boolean(event.target.value.trim())); }}
           onBlur={() => onTyping(false)}
           onKeyDown={(event) => {
             if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
@@ -330,11 +240,10 @@ function Composer({
           <ArrowUp size={19} />
         </button>
       </div>
-      {toolNote ? <p className="composer-hint" role="status">{toolNote}</p> : null}
       {emojiAnchor ? <InteractionPopover anchor={emojiAnchor} label="Insert emoji" onClose={() => setEmojiAnchor(null)}><EmojiPicker onClose={() => setEmojiAnchor(null)} onPick={(emoji) => {
         const input = inputRef.current;
         const from = input?.selectionStart ?? value.length, to = input?.selectionEnd ?? value.length;
-        setValue((current) => (current.slice(0, from) + emoji + current.slice(to)).slice(0, 8000));
+        onValue((value.slice(0, from) + emoji + value.slice(to)).slice(0, 8000));
         setEmojiAnchor(null);
         requestAnimationFrame(() => { input?.focus(); input?.setSelectionRange(from + emoji.length, from + emoji.length); });
       }} /></InteractionPopover> : null}
@@ -344,12 +253,17 @@ function Composer({
 
 export function ChatSurface({ conversation, realtime }: { conversation: Conversation; realtime: ReturnType<typeof useConversationRealtime> }) {
   const user = useCurrentToskerUser() ?? prototypeUser;
+  const identity = useToskerIdentity();
+  const draftKey = chatDraftKey(identity?.userId, conversation.databaseId ?? conversation.slug);
+  const draft = useSyncExternalStore(chatDrafts.subscribe, () => chatDrafts.get(draftKey), chatDrafts.server);
+  const reply = draft.reply;
+  const setReply = (reply: DraftReply | null) => chatDrafts.update(draftKey, (current) => ({ ...current, reply: reply ? { id: reply.id, body: reply.body, author: reply.author } : null }));
   const state = useSyncExternalStore(
     prototypeStore.subscribe,
     prototypeStore.getSnapshot,
     prototypeStore.getServerSnapshot,
   );
-  const initial =
+  const initial = conversation.databaseId ? [] :
     conversation.kind === "my-room"
       ? state.sandboxMessages.length
         ? state.sandboxMessages
@@ -358,8 +272,9 @@ export function ChatSurface({ conversation, realtime }: { conversation: Conversa
           : []
       : conversation.messages;
   const [messages, setMessages] = useState(initial);
+  const [loaded, setLoaded] = useState(!conversation.databaseId);
+  const [fetchError, setFetchError] = useState(false);
   const [messageError, setMessageError] = useState<string | null>(null);
-  const [reply, setReply] = useState<Message | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const nearBottom = useRef(true);
   const alive = useRef(true);
@@ -367,7 +282,6 @@ export function ChatSurface({ conversation, realtime }: { conversation: Conversa
   const pendingMessages = useRef(false);
   const readThrough = useRef<string | null>(null);
   const lastCanonicalId = useRef<string | null>(null);
-  const retryDraft = useRef<{ id: string; body: string; replyToId?: string } | null>(null);
   const mergePersisted = useCallback((current: Message[], incoming: Message[]) => {
     const byId = new Map(current.map((message) => [message.id, message]));
     let changed = false;
@@ -419,7 +333,14 @@ export function ChatSurface({ conversation, realtime }: { conversation: Conversa
       mine: message.mine,
     } satisfies Message));
     lastCanonicalId.current = persisted.at(-1)?.id ?? null;
-    setMessages((current) => mergePersisted(replaceWindow ? current.filter((message) => message.id === retryDraft.current?.id) : current, mapped));
+    setLoaded(true);
+    setFetchError(false);
+    const pendingId = chatDrafts.get(draftKey).pending?.id;
+    if (pendingId && mapped.some((message) => message.id === pendingId && message.mine)) {
+      chatDrafts.update(draftKey, (current) => acknowledgeDraft(current, pendingId));
+      setMessageError(null);
+    }
+    setMessages((current) => mergePersisted(replaceWindow ? current.filter((message) => message.id === pendingId) : current, mapped));
     setMessageError((current) => current === "Messages couldn't be loaded. Try again." ? null : current);
     const latest = persisted.at(-1)?.id ?? "empty";
     if (readThrough.current !== latest) {
@@ -428,16 +349,16 @@ export function ChatSurface({ conversation, realtime }: { conversation: Conversa
     }
     } while (pendingMessages.current && alive.current && !document.hidden);
     } finally { loadingMessages.current = false; }
-  }, [conversation.databaseId, mergePersisted]);
+  }, [conversation.databaseId, draftKey, mergePersisted]);
   const { typingCount, connected, sendTyping } = realtime;
   const lastMessageId = messages.at(-1)?.id;
   useEffect(() => {
     if (!conversation.databaseId) return;
     alive.current = true;
     let active = true;
-    queueMicrotask(() => void loadPersisted().catch(() => active && setMessageError("Messages couldn't be loaded. Try again.")));
-    const timer = window.setInterval(() => void loadPersisted().catch(() => undefined), connected ? 60000 : 12000);
-    const onVisible = () => void loadPersisted().catch(() => undefined);
+    const onVisible = () => void loadPersisted().catch(() => active && setFetchError(true));
+    queueMicrotask(onVisible);
+    const timer = window.setInterval(onVisible, connected ? 60000 : 12000);
     document.addEventListener("visibilitychange", onVisible);
     window.addEventListener(CHAT_REFRESH, onVisible);
     return () => { active = false; alive.current = false; window.clearInterval(timer); document.removeEventListener("visibilitychange", onVisible); window.removeEventListener(CHAT_REFRESH, onVisible); };
@@ -460,11 +381,12 @@ export function ChatSurface({ conversation, realtime }: { conversation: Conversa
       prototypeStore.addRoomMessage(conversation.slug, message);
   };
   const send = async (body: string) => {
-    const previous = retryDraft.current;
+    const previous = chatDrafts.get(draftKey).pending;
     const id = previous?.body === body && previous.replyToId === reply?.id ? previous.id : crypto.randomUUID();
-    retryDraft.current = { id, body, replyToId: reply?.id };
+    chatDrafts.update(draftKey, (current) => ({ ...current, pending: { id, body, replyToId: reply?.id } }));
     const message: Message = {
       id,
+      authorId: identity?.userId,
       author: user.displayName,
       initials: user.initials,
       body,
@@ -480,17 +402,17 @@ export function ChatSurface({ conversation, realtime }: { conversation: Conversa
     setMessageError(null);
     if (!conversation.databaseId) {
       persist(message);
-      retryDraft.current = null;
-      setReply(null);
+      chatDrafts.update(draftKey, (current) => acknowledgeDraft(current, id));
       return true;
     }
     try {
       const saved = await sendMessageAction({ id: message.id, conversationId: conversation.databaseId, body, replyToId: reply?.id });
-      retryDraft.current = null;
+      chatDrafts.update(draftKey, (current) => acknowledgeDraft(current, id));
       if (saved.createdAt) setMessages((current) => mergePersisted(current, current.filter((item) => item.id === message.id).map((item) => ({ ...item, createdAt: saved.createdAt! }))));
-      setReply((current) => current?.id === reply?.id ? null : current);
       return true;
     } catch {
+      // A canonical refresh can confirm the send before a delayed response fails.
+      if (chatDrafts.get(draftKey).pending?.id !== id) return true;
       setMessages((current) => current.filter((item) => item.id !== message.id));
       setMessageError("Delivery couldn't be confirmed. You can safely retry.");
       return false;
@@ -527,15 +449,13 @@ export function ChatSurface({ conversation, realtime }: { conversation: Conversa
       >
         {messages.length ? (
           <>
-            <div className="day-marker">
-              <span>Today</span>
-            </div>
             {messages.map((message, index) => {
               const previous = messages[index - 1];
-              const grouped = Boolean(previous && previous.authorId && message.authorId && previous.authorId === message.authorId && message.createdAt && previous.createdAt && Date.parse(message.createdAt) - Date.parse(previous.createdAt) <= 60_000);
+              const grouped = groupMessages(previous, message);
               return (
+              <Fragment key={message.id}>
+              {!previous || messageDay(previous.createdAt) !== messageDay(message.createdAt) ? <div className="day-marker"><span>{messageDayLabel(message.createdAt)}</span></div> : null}
               <MessageBubble
-                key={message.id}
                 message={message}
                 grouped={grouped}
                 onReply={setReply}
@@ -550,9 +470,12 @@ export function ChatSurface({ conversation, realtime }: { conversation: Conversa
                     : undefined
                 }
               />
+              </Fragment>
               );
             })}
           </>
+        ) : !loaded || fetchError ? (
+          <p className="chat-load-state" role="status">{fetchError ? "Messages couldn't be loaded." : "Loading messages…"}</p>
         ) : (
           <div className="conversation-empty">
             <div className="empty-art" aria-hidden="true">
@@ -572,13 +495,15 @@ export function ChatSurface({ conversation, realtime }: { conversation: Conversa
             </h2>
             <p>
               {conversation.kind === "my-room"
-                ? "Links, thoughts, notes, explore plugins"
+                ? "Keep a thought or send yourself a note."
                 : "Invite someone or say something!"}
             </p>
           </div>
         )}
       </div>
       <Composer
+        value={draft.body}
+        onValue={(body) => chatDrafts.update(draftKey, (current) => ({ ...current, body }))}
         onTyping={sendTyping}
         name={titleOf(conversation)}
         reply={reply}
@@ -589,6 +514,7 @@ export function ChatSurface({ conversation, realtime }: { conversation: Conversa
         {typingCount ? conversation.kind === "personal" ? `${titleOf(conversation)} is typing…` : typingCount === 1 ? "Someone is typing…" : "People are typing…" : !connected ? "Connecting to live updates…" : ""}
       </p> : null}
       {messageError ? <p className="composer-error" role="alert">{messageError}</p> : null}
+      {fetchError ? <p className="composer-error" role="alert">Updates unavailable. <button onClick={() => { setFetchError(false); void loadPersisted().catch(() => setFetchError(true)); }}>Retry</button></p> : null}
     </section>
   );
 }
@@ -753,7 +679,6 @@ export function HallSurface({
   const [persistentItems, setPersistentItems] = useState<HallSurfaceItem[]>([]);
   const [hallError, setHallError] = useState("");
   const [saving, setSaving] = useState(false);
-  const [photoHint, setPhotoHint] = useState(false);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [targetId, setTargetId] = useState<string | null>(null);
   const [orderNotice, setOrderNotice] = useState("");
@@ -885,9 +810,7 @@ export function HallSurface({
             <div className="composed-note-editor">
               <input autoFocus aria-label="Title" placeholder="Title" value={noteTitle} disabled={saving} onChange={(event) => setNoteTitle(event.target.value)} maxLength={80} />
               <textarea aria-label="Note" placeholder="Note / description" maxLength={4000} disabled={saving} value={noteBody} onChange={(event) => setNoteBody(event.target.value)} rows={5} />
-              <button type="button" className="attachment-boundary" aria-disabled="true" onClick={() => setPhotoHint(true)} onDragOver={(event) => { event.preventDefault(); event.dataTransfer.dropEffect = "none"; }} onDrop={(event) => { event.preventDefault(); setPhotoHint(true); }}><ImageIcon size={20} /><span>Image or file<small>Uploads not configured</small></span></button>
             </div>
-            {photoHint ? <p role="status">Uploads aren’t available yet. No file was uploaded or saved.</p> : null}
             <div className="wizard-actions"><button className="button button-primary primary-action" disabled={!noteTitle.trim() || saving} onClick={async () => {
               if (saving) return;
               setSaving(true);
@@ -899,7 +822,7 @@ export function HallSurface({
                 } catch { setHallError("Hall note couldn't be saved."); setSaving(false); return; }
               } else if (editingItem) prototypeStore.updateHallItem(conversation.slug, editingItem, { title: noteTitle, body: noteBody });
               else prototypeStore.addHallNote({ slug: conversation.slug, name: conversation.name, title: noteTitle, body: noteBody });
-              setCreating(false); setNoteTitle(""); setNoteBody(""); setSaving(false); setPhotoHint(false);
+              setCreating(false); setNoteTitle(""); setNoteBody(""); setSaving(false);
             }}>{saving ? "Saving…" : editingItem ? "Save" : "Add note"}</button></div>
             {hallError ? <p role="alert">{hallError}</p> : null}
           </section>

@@ -73,8 +73,8 @@ console.log("PASS: thumbs-up/heart each aggregate two; A removes thumbs-up leavi
 await action("ms71-a", id, "Edit");
 await run("ms71-a", "fill", '[aria-label="Edit message text"]', edited);
 await run("ms71-a", "click", ".message-edit-panel .primary-action");
-for (const session of sessions) await until(session, `document.querySelector('#${id} .message-edited') && Array.from(document.querySelectorAll('blockquote')).some(b=>b.textContent===${JSON.stringify(edited)})`, "edited source and canonical quote");
+for (const session of sessions) await until(session, `document.querySelector('#${id} .message-edited') && Array.from(document.querySelectorAll('.reply-source > span')).some(b=>b.textContent===${JSON.stringify(edited)})`, "edited source and canonical quote");
 await action("ms71-a", id, "Delete");
 await run("ms71-a", "click", ".message-edit-panel .danger");
-for (const session of sessions) await until(session, `document.querySelector('#${id}')?.classList.contains('message-deleted') && Array.from(document.querySelectorAll('blockquote')).some(b=>b.textContent==='Message deleted')`, "source tombstone and quote");
+for (const session of sessions) await until(session, `document.querySelector('#${id}')?.classList.contains('message-deleted') && Array.from(document.querySelectorAll('.reply-source > span')).some(b=>b.textContent==='Message deleted')`, "source tombstone and quote");
 console.log("PASS: own edit/delete propagate to A/B with edited state and canonical reply tombstone.");

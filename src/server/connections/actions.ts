@@ -23,7 +23,7 @@ export async function listConnectionsAction() {
   const rows = await db.select().from(connections).where(or(eq(connections.requesterId, actor.userId), eq(connections.addresseeId, actor.userId)));
   return Promise.all(rows.map(async (connection) => {
     const otherId = connection.requesterId === actor.userId ? connection.addresseeId : connection.requesterId;
-    const [person] = await db.select({ userId: users.id, displayName: profiles.displayName, username: profiles.username, tid: users.tid, presenceStatus: profiles.presenceStatus }).from(users).innerJoin(profiles, eq(profiles.userId, users.id)).where(eq(users.id, otherId)).limit(1);
+    const [person] = await db.select({ userId: users.id, displayName: profiles.displayName, username: profiles.username, tid: users.tid, presenceStatus: profiles.presenceStatus, avatarUrl: profiles.avatarUrl }).from(users).innerJoin(profiles, eq(profiles.userId, users.id)).where(eq(users.id, otherId)).limit(1);
     const [nickname] = await db.select({ value: connectionNicknames.nickname }).from(connectionNicknames).where(and(eq(connectionNicknames.connectionId, connection.id), eq(connectionNicknames.userId, actor.userId))).limit(1);
     return { id: connection.id, status: connection.status, direction: connection.addresseeId === actor.userId ? "incoming" as const : "outgoing" as const, person: person ? { ...person, nickname: nickname?.value ?? null } : undefined };
   }));

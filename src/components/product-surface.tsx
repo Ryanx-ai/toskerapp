@@ -224,7 +224,7 @@ function Settings() {
         <IdentityCard
           compact
           label="Your identity"
-          profile={{ name: user.displayName, username: user.username, tid: user.tid, initials: user.initials, color: "gold", status: user.role }}
+          profile={{ userId: identity?.userId, avatarUrl: identity?.avatarUrl, name: user.displayName, username: user.username, tid: user.tid, initials: user.initials, color: "gold", status: user.role }}
         />
       </div>
       {identity ? <label className="presence-control">Your status
@@ -386,9 +386,9 @@ function Notifications({ empty = false, persistent }: { empty?: boolean; persist
   }, [identity, persistent]);
   const realItems = persistent.map((item) => ({
     id: item.id,
-    type: item.type === "message" ? "Mentions" : item.type.startsWith("connection") ? "Activity" : "Rooms",
+    type: item.type === "message" ? item.isMention ? "Mentions" : "Messages" : item.type.startsWith("connection") ? "Activity" : "Rooms",
     icon: item.type.startsWith("connection") ? UserPlus : Pin,
-    title: item.type === "message" ? "New message" : item.type === "connection_request" ? "New friend request" : item.type === "connection_accepted" ? "Friend request accepted" : "New Hall note",
+    title: item.type === "message" ? item.isMention ? "Mentioned you" : "New message" : item.type === "connection_request" ? "New friend request" : item.type === "connection_accepted" ? "Friend request accepted" : "New Hall note",
     context: item.type === "message" ? `${item.actorName ?? "Someone"} sent you a message${item.messageBody ? `: ${item.messageBody}` : ""}` : item.type === "connection_request" ? `${item.actorName ?? "Someone"} sent you a friend request` : item.type === "connection_accepted" ? `${item.actorName ?? "Someone"} accepted your friend request` : `${item.actorName ?? "Someone"} added something to Hall`,
     time: new Date(item.createdAt).toLocaleDateString(),
     destination: item.roomName ? `${item.roomName}${item.subroomId && item.conversationTitle ? ` / ${item.conversationTitle}` : ""} · ${item.type === "message" ? "Chat" : "Hall"}` : "",
@@ -408,7 +408,7 @@ function Notifications({ empty = false, persistent }: { empty?: boolean; persist
       />
       <section className="notifications-workspace">
         <nav aria-label="Notification filters">
-          {["All", "Mentions", "Rooms", "Activity"].map((item) => (
+          {["All", "Messages", "Mentions", "Rooms", "Activity"].map((item) => (
             <button
               key={item}
               className={filter === item ? "active" : ""}
@@ -452,12 +452,13 @@ function Notifications({ empty = false, persistent }: { empty?: boolean; persist
 
 function Profile() {
   const user = useCurrentToskerUser() ?? prototypeUser;
+  const identity = useToskerIdentity();
   return (
     <ProductChrome current="profile">
       <section className="profile-surface">
         <IdentityCard
           label="Your Namecard"
-          profile={{ name: user.displayName, username: user.username, tid: user.tid, initials: user.initials, color: "gold", status: user.role }}
+          profile={{ userId: identity?.userId, avatarUrl: identity?.avatarUrl, name: user.displayName, username: user.username, tid: user.tid, initials: user.initials, color: "gold", status: user.role }}
           action={<button disabled>Edit profile</button>}
         />
         <Link href="/" className="landing-footer-link profile-landing-link">View landing page</Link>

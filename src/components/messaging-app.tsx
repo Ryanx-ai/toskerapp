@@ -5,9 +5,12 @@ import { ACTIVITY_REFRESH, CONVERSATION_ACCESS_LOST } from "@/lib/realtime-contr
 import { notificationHref } from "@/lib/notification-href";
 import { deriveAttention } from "@/lib/attention";
 import { AttentionMark } from "./attention-mark";
+import { PersonAvatar, RoomAvatar } from "./identity-avatar";
+import { RoomCategory } from "./room-category";
 import type { refreshWorkspaceNavigationAction } from "@/server/accounts/actions";
 import { acknowledgeFriendRequestsAction } from "@/server/connections/actions";
 import { workspaceSnapshot } from "./workspace-snapshot";
+import type { ConversationPreference } from "@/lib/conversation-preferences";
 /* eslint-disable react/no-unescaped-entities */
 
 import Image from "next/image";
@@ -139,16 +142,10 @@ function Avatar({
   item,
   large = false,
 }: {
-  item: Pick<Conversation, "initials" | "color" | "kind">;
+  item: Conversation;
   large?: boolean;
 }) {
-  return (
-    <span
-      className={`avatar avatar-${item.color} avatar-pattern ${item.kind === "room" ? "avatar-room" : ""} ${large ? "avatar-large" : ""}`}
-    >
-      {item.initials}
-    </span>
-  );
+  return item.kind === "room" ? <RoomAvatar name={item.name} seed={item.identitySeed ?? item.slug.split("--")[0]} subroom={item.tag === "SUBROOM"} className={large ? "avatar-large" : ""} /> : <PersonAvatar seed={item.identitySeed ?? item.slug} initials={item.initials} imageUrl={item.avatarUrl} className={large ? "avatar-large" : ""} />;
 }
 
 function ContextMenu({
@@ -280,10 +277,9 @@ function ConversationRow({
         <Avatar item={item} />
         <span className="conversation-copy">
           <span className="conversation-name">
-            {nameOf(item, displayName)}{" "}
-            {item.kind === "room" ? <small>{item.tag ?? "ROOM"}</small> : null}
+            <span>{nameOf(item, displayName)}</span>
           </span>
-          <span className="conversation-preview">{item.preview}</span>
+          <span className="conversation-preview">{item.kind === "room" && item.tag !== "SUBROOM" ? <RoomCategory value={item.tag ?? "Room"} /> : item.preview}</span>
         </span>
         <span className="conversation-trailing">
           <time>{item.time}</time>
@@ -326,15 +322,15 @@ function ProfileRegion({
   notificationCount?: number;
 }) {
   const user = useCurrentToskerUser() ?? prototypeUser;
+  const identity = useToskerIdentity();
   return (
     <div className="sidebar-bottom">
       <div className="profile-nameplate">
         <Link className="profile-avatar-button" href="/profile" aria-label="Open your Namecard">
-        <span className="avatar avatar-gold profile-avatar">
-          {user.initials}
+        <PersonAvatar seed={identity?.userId ?? "demo-self"} initials={user.initials} imageUrl={identity?.avatarUrl} className="profile-avatar">
           <i className="profile-avatar-badge" aria-hidden="true" />
           <PresenceMark status={"presenceStatus" in user ? user.presenceStatus as "online" | "idle" | "away" | "meeting" : undefined} label />
-        </span>
+        </PersonAvatar>
         </Link>
         <span>
           <strong>{user.displayName}</strong>
@@ -379,6 +375,7 @@ function ProfileRegion({
 
 function AppSidebar({
   selected,
+  surface,
   workspace,
   onCreate,
   collapsed,
@@ -389,6 +386,7 @@ function AppSidebar({
   notificationCount,
 }: {
   selected?: Conversation;
+  surface: "chat" | "hall";
   workspace?: AppWorkspace;
   onCreate: () => void;
   collapsed: boolean;
@@ -419,7 +417,7 @@ function AppSidebar({
   const standard = identity
     ? conversations
         .filter((item) => item.kind === "my-room")
-        .map((item) => ({ ...item, databaseId: identity.sandboxConversationId }))
+        .map((item) => ({ ...item, databaseId: identity.sandboxConversationId, identitySeed: identity.userId, avatarUrl: identity.avatarUrl }))
     : state.mode === "new"
       ? conversations.filter((item) => item.kind === "my-room")
       : conversations;
@@ -466,6 +464,8 @@ function AppSidebar({
     href: `/room/${room.slug}/subroom/${subroom.id}`,
   })));
   const serverChats: Conversation[] = (identity?.personalConversations ?? []).map((chat) => ({
+    identitySeed: chat.userId,
+    avatarUrl: chat.avatarUrl,
     slug: chat.slug,
     kind: "personal",
     name: chat.nickname || chat.displayName,
@@ -491,7 +491,7 @@ function AppSidebar({
       context: chat.tid,
       messages: chat.messages,
     }));
-  const visibleServerSubrooms = !workspace || selected ? serverSubrooms : [];
+  const visibleServerSubrooms = !workspace && surface === "chat" ? serverSubrooms : selected?.tag === "SUBROOM" ? serverSubrooms.filter((child) => child.slug.split("--")[0] === selected.slug.split("--")[0]) : [];
   const all = [...standard, ...serverChats, ...serverRooms, ...visibleServerSubrooms, ...(identity ? [] : localChats), ...(identity ? [] : localRooms)].filter(
     (item) => Boolean(identity) || !state.archived.includes(item.slug),
   );
@@ -749,7 +749,7 @@ function FriendsSurface({
           const label = person.userId === identity.userId ? "You" : relationship?.status === "accepted" ? "Friend" : relationship?.direction === "incoming" ? "Accept" : relationship ? "Pending" : "Add";
           const name = relationship?.person?.nickname || person.displayName;
           return <article key={person.userId}>
-            <span className="avatar avatar-pink avatar-pattern">{person.displayName.slice(0, 2).toUpperCase()}</span>
+            <PersonAvatar seed={person.userId} initials={person.displayName.slice(0, 2).toUpperCase()} />
             <div className="discovery-identity"><strong>{name}</strong><small>@{person.username}</small><small>{person.tid}</small></div>
             <div className="discovery-actions"><span className="relationship-state">{label === "Accept" ? "Request received" : label === "Add" ? "" : label}</span>
               {label === "Friend" ? <button aria-label={`Message ${name}`} disabled={Boolean(busyId)} onClick={() => void actOnPerson(person.userId, async () => { const chat = await startPersonalConversationAction(person.userId); router.push(`/personal/${chat.slug}`); })}><MessageCircle size={16} /></button> : label === "Add" || label === "Accept" ? <button disabled={Boolean(busyId)} onClick={() => void actOnPerson(person.userId, () => label === "Accept" && relationship ? acceptConnectionAction(relationship.id) : requestConnectionAction(person.userId))}>{busyId === person.userId ? "Saving…" : label}</button> : null}
@@ -772,13 +772,13 @@ function FriendsSurface({
       {tab === "Requests" ? (
         serverConnections.filter((item) => item.status === "pending" && item.direction === "incoming").length ? (
           <div className="friend-list">{serverConnections.filter((item) => item.status === "pending" && item.direction === "incoming").map((item) => item.person ? (
-            <article key={item.id}><span className="avatar avatar-pink">{item.person.displayName.slice(0, 1).toUpperCase()}</span><div><strong>{item.person.displayName}</strong><small>@{item.person.username} · {item.person.tid}</small></div><button disabled={Boolean(busyId)} onClick={() => void actOnPerson(item.person!.userId, () => acceptConnectionAction(item.id))}>{busyId === item.person.userId ? "Saving…" : "Accept"}</button></article>
+            <article key={item.id}><PersonAvatar seed={item.person.userId} imageUrl={item.person.avatarUrl} initials={item.person.displayName.slice(0, 1).toUpperCase()} /><div><strong>{item.person.displayName}</strong><small>@{item.person.username} · {item.person.tid}</small></div><button disabled={Boolean(busyId)} onClick={() => void actOnPerson(item.person!.userId, () => acceptConnectionAction(item.id))}>{busyId === item.person.userId ? "Saving…" : "Accept"}</button></article>
           ) : null)}</div>
         ) : <div className="two-line-empty"><h2>No new requests</h2><p>You're all caught up</p></div>
       ) : (
           <div className="friend-list">
           {identity ? serverConnections.filter((item) => item.status === "accepted" && item.person && (tab !== "Online" || item.person.presenceStatus === "online") && `${item.person.nickname ?? ""} ${item.person.displayName} ${item.person.username} ${item.person.tid}`.toLowerCase().includes(query.toLowerCase())).map((item) => item.person ? (
-            <article key={item.id}><span className="avatar avatar-pink avatar-pattern">{item.person.displayName.slice(0, 1).toUpperCase()}<PresenceMark status={item.person.presenceStatus} /></span><div className="friend-nameplate"><strong>{item.person.nickname || item.person.displayName}</strong><small>@{item.person.username} · {item.person.tid}</small></div><i>Friend</i><div className="friend-actions"><button aria-label={`Message ${item.person.nickname || item.person.displayName}`} onClick={async () => { const chat = await startPersonalConversationAction(item.person!.userId); router.push(`/personal/${chat.slug}`); router.refresh(); }}><MessageCircle size={15} /></button><button aria-label={`More actions for ${item.person.nickname || item.person.displayName}`} aria-expanded={friendMenuId === item.id} onClick={() => setFriendMenuId(friendMenuId === item.id ? null : item.id)}><MoreHorizontal size={16} /></button>{friendMenuId === item.id ? <div className="context-menu friend-context-menu"><button onClick={() => { setFriendMenuId(null); setNicknameTarget({ id: item.id, name: item.person!.displayName, nickname: item.person!.nickname }); }}>{item.person.nickname ? "Edit nickname" : "Set nickname"}</button>{item.person.nickname ? <button onClick={async () => { await removeConnectionNicknameAction(item.id); await refreshConnections(); setFriendMenuId(null); }}>Remove nickname</button> : null}</div> : null}</div></article>
+            <article key={item.id}><PersonAvatar seed={item.person.userId} imageUrl={item.person.avatarUrl} initials={item.person.displayName.slice(0, 1).toUpperCase()}><PresenceMark status={item.person.presenceStatus} /></PersonAvatar><div className="friend-nameplate"><strong>{item.person.nickname || item.person.displayName}</strong><small>@{item.person.username} · {item.person.tid}</small></div><i>Friend</i><div className="friend-actions"><button aria-label={`Message ${item.person.nickname || item.person.displayName}`} onClick={async () => { const chat = await startPersonalConversationAction(item.person!.userId); router.push(`/personal/${chat.slug}`); router.refresh(); }}><MessageCircle size={15} /></button><button aria-label={`More actions for ${item.person.nickname || item.person.displayName}`} aria-expanded={friendMenuId === item.id} onClick={() => setFriendMenuId(friendMenuId === item.id ? null : item.id)}><MoreHorizontal size={16} /></button>{friendMenuId === item.id ? <div className="context-menu friend-context-menu"><button onClick={() => { setFriendMenuId(null); setNicknameTarget({ id: item.id, name: item.person!.displayName, nickname: item.person!.nickname }); }}>{item.person.nickname ? "Edit nickname" : "Set nickname"}</button>{item.person.nickname ? <button onClick={async () => { await removeConnectionNicknameAction(item.id); await refreshConnections(); setFriendMenuId(null); }}>Remove nickname</button> : null}</div> : null}</div></article>
           ) : null) : shown
             .filter((friend) => tab !== "Online" || friend.status === "Online")
             .map((friend) => (
@@ -905,20 +905,23 @@ function SubroomOverlay({ room, onClose }: { room: Conversation; onClose: () => 
   const [results, setResults] = useState<Array<{ userId: string; displayName: string; username: string }>>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  const [searchState, setSearchState] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [error, setError] = useState("");
   const panelRef = useRef<HTMLElement>(null);
-  useDismissLayer(true, onClose, panelRef);
+  const close = () => { if (!saving) onClose(); };
+  useDismissLayer(true, close, panelRef);
   useEffect(() => {
     if (!identity || query.trim().length < 2 || visibility !== "selected") return;
     let active = true;
+    queueMicrotask(() => { if (active) { setResults([]); setSearchState("loading"); } });
     const timer = window.setTimeout(() => {
-      findRoomMembersAction(room.slug, query).then((next) => active && setResults(next)).catch(() => active && setResults([]));
+      findRoomMembersAction(room.slug, query).then((next) => { if (active) { setResults(next); setSearchState("ready"); } }).catch(() => { if (active) setSearchState("error"); });
     }, 180);
     return () => { active = false; window.clearTimeout(timer); };
   }, [identity, query, visibility, room.slug]);
   const visibleResults = visibility === "selected" && query.trim().length >= 2 ? results : [];
   const create = async () => {
-    if (!name.trim()) return;
+    if (!name.trim() || saving) return;
     setSaving(true);
     setError("");
     try {
@@ -933,20 +936,20 @@ function SubroomOverlay({ room, onClose }: { room: Conversation; onClose: () => 
     }
   };
   return (
-    <ModalLayer onClose={onClose}>
+    <ModalLayer onClose={close}>
       <section ref={panelRef} className="creation-panel" role="dialog" aria-modal="true" aria-labelledby="subroom-title">
-        <button className="overlay-close" onClick={onClose} aria-label="Close"><X size={17} /></button>
-        <button className="overlay-back" onClick={onClose}><ArrowLeft size={16} /> Back</button>
+        <button className="overlay-close" disabled={saving} onClick={close} aria-label="Close"><X size={17} /></button>
+        <button className="overlay-back" disabled={saving} onClick={close}><ArrowLeft size={16} /> Back</button>
         <p className="eyebrow">Add to {nameOf(room)}</p>
         <h2 id="subroom-title">Create a Subroom</h2>
         <p>A focused space inside this Room.</p>
         <label className="wizard-field">
           <span>Name</span>
-          <input autoFocus value={name} maxLength={60} onChange={(event) => setName(event.target.value)} placeholder="ONIC MLBB" />
+          <input autoFocus disabled={saving} value={name} maxLength={60} onChange={(event) => setName(event.target.value)} placeholder="ONIC MLBB" />
         </label>
         <label className="wizard-field">
           <span>Visibility</span>
-          <select value={visibility} onChange={(event) => setVisibility(event.target.value as typeof visibility)}>
+          <select disabled={saving} value={visibility} onChange={(event) => setVisibility(event.target.value as typeof visibility)}>
             <option value="everyone">Everyone in Room</option>
             <option value="selected">Selected people</option>
             <option value="owners">Room owner only</option>
@@ -954,14 +957,15 @@ function SubroomOverlay({ room, onClose }: { room: Conversation; onClose: () => 
         </label>
         {visibility === "selected" ? (
           <>
-            <label className="wizard-field"><span>Room members</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search Room members" /></label>
+            <label className="wizard-field"><span>Room members</span><input disabled={saving} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search Room members" /></label>
+            {query.trim().length >= 2 ? <p role={searchState === "error" ? "alert" : "status"}>{searchState === "loading" ? "Finding members…" : searchState === "error" ? "Members couldn't be loaded. Try another search." : !visibleResults.length ? "No matching members." : `${selectedIds.length} selected`}</p> : <p>Type at least 2 characters to find Room members.</p>}
             {visibleResults.length ? <div className="friend-list compact" aria-label="Subroom people results">{visibleResults.map((person) => {
               const selected = selectedIds.includes(person.userId);
-              return <article key={person.userId}><span className="avatar avatar-pink">{person.displayName.slice(0, 2).toUpperCase()}</span><div><strong>{person.displayName}</strong><small>@{person.username}</small></div><button className={selected ? "selected" : ""} onClick={() => setSelectedIds((current) => selected ? current.filter((id) => id !== person.userId) : [...current, person.userId])}>{selected ? "Added" : "Add"}</button></article>;
+              return <article key={person.userId}><PersonAvatar seed={person.userId} initials={person.displayName.slice(0, 2)} /><div><strong>{person.displayName}</strong><small>@{person.username}</small></div><button disabled={saving} className={selected ? "selected" : ""} onClick={() => setSelectedIds((current) => selected ? current.filter((id) => id !== person.userId) : [...current, person.userId])}>{selected ? "Added" : "Add"}</button></article>;
             })}</div> : null}
           </>
         ) : null}
-        <div className="overlay-actions"><button className="primary-action" disabled={!name.trim() || saving} onClick={() => void create()}>{saving ? "Creating…" : "Create Subroom"}</button><button onClick={onClose}>Cancel</button></div>
+        <div className="overlay-actions"><button className="primary-action" disabled={!name.trim() || saving} onClick={() => void create()}>{saving ? "Creating…" : "Create Subroom"}</button><button disabled={saving} onClick={close}>Cancel</button></div>
         {error ? <p className="composer-error" role="alert">{error}</p> : null}
       </section>
     </ModalLayer>
@@ -1207,7 +1211,7 @@ function CreationOverlay({
                       }
                       key={tag}
                     >
-                      {tag}
+                      <RoomCategory value={tag} />
                     </button>
                   ))}
                 </div>
@@ -1326,7 +1330,7 @@ export function MessagingApp({
   const user = useCurrentToskerUser() ?? prototypeUser;
   const baseIdentity = useToskerIdentity();
   const snapshot = useSyncExternalStore(workspaceSnapshot.subscribe, () => workspaceSnapshot.get(baseIdentity?.userId), workspaceSnapshot.server);
-  const identity = useMemo(() => baseIdentity && snapshot.navigation ? { ...baseIdentity, ...snapshot.navigation } : baseIdentity, [baseIdentity, snapshot.navigation]);
+  const identity = useMemo(() => baseIdentity && snapshot.navigation && snapshot.navigationBasis === baseIdentity ? { ...baseIdentity, ...snapshot.navigation } : baseIdentity, [baseIdentity, snapshot.navigation, snapshot.navigationBasis]);
   const state = useSyncExternalStore(
     prototypeStore.subscribe,
     prototypeStore.getSnapshot,
@@ -1337,6 +1341,8 @@ export function MessagingApp({
     workspace === "create" ? "room" : null,
   );
   const activity = snapshot.activity;
+  const [readingPaused, setReadingPaused] = useState(false);
+  useEffect(() => { queueMicrotask(() => setReadingPaused(false)); }, [selectedSlug, surface]);
   const [toast, setToast] = useState<NotificationActivity | null>(null);
   const seenActivity = useRef<Set<string> | null>(null);
   const activeConversationRef = useRef<string | null>(null);
@@ -1360,7 +1366,7 @@ export function MessagingApp({
       lastRefresh = Date.now();
       inFlight = true;
       const snapshot = await fetch("/api/workspace", { credentials: "same-origin", cache: "no-store", signal: AbortSignal.timeout(15000) })
-        .then(async (response) => response.ok ? await response.json() as { activity: Awaited<ReturnType<typeof listNotificationsAction>>; navigation: Awaited<ReturnType<typeof refreshWorkspaceNavigationAction>> } : null)
+        .then(async (response) => response.ok ? await response.json() as { activity: Awaited<ReturnType<typeof listNotificationsAction>>; navigation: Awaited<ReturnType<typeof refreshWorkspaceNavigationAction>>; preferences: ConversationPreference[] } : null)
         .catch(() => null);
       const next = snapshot?.activity, nextNavigation = snapshot?.navigation;
       inFlight = false;
@@ -1368,10 +1374,10 @@ export function MessagingApp({
       if (!next) return;
       if (!active) return;
       const previous = seenActivity.current;
-      workspaceSnapshot.publish({ userId: identity.userId, activity: next, navigation: nextNavigation ?? workspaceSnapshot.get(identity.userId).navigation });
+      workspaceSnapshot.publish({ userId: identity.userId, activity: next, navigation: nextNavigation ?? workspaceSnapshot.get(identity.userId).navigation, preferences: snapshot?.preferences ?? [], navigationBasis: identity });
       seenActivity.current = new Set(next.map((item) => item.id));
       if (previous) {
-        const incoming = next.find((item) => !previous.has(item.id) && !item.readAt && item.actorId !== identity.userId && !(item.type === "message" && item.conversationId === activeConversationRef.current));
+        const incoming = next.find((item) => !previous.has(item.id) && !item.readAt && !item.muted && item.actorId !== identity.userId && !(item.type === "message" && item.conversationId === activeConversationRef.current));
         if (incoming) {
           setToast(incoming);
           window.clearTimeout(toastTimer);
@@ -1395,7 +1401,7 @@ export function MessagingApp({
     : undefined;
   const authenticatedCanonical =
     identity && canonical?.kind === "my-room"
-      ? { ...canonical, databaseId: identity.sandboxConversationId }
+      ? { ...canonical, databaseId: identity.sandboxConversationId, identitySeed: identity.userId, avatarUrl: identity.avatarUrl }
       : canonical;
   const prototypeRoom = !identity ? state.rooms.find((room) => room.slug === selectedSlug) : undefined;
   const prototypeChat = !identity ? state.chats.find((chat) => chat.slug === selectedSlug) : undefined;
@@ -1424,6 +1430,8 @@ export function MessagingApp({
       : serverChat
       ? {
           slug: serverChat.slug,
+          identitySeed: serverChat.userId,
+          avatarUrl: serverChat.avatarUrl,
           kind: "personal" as const,
           name: serverChat.nickname || serverChat.displayName,
           initials: serverChat.displayName.split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase(),
@@ -1492,13 +1500,14 @@ export function MessagingApp({
   }, [router, selected?.databaseId]);
   useEffect(() => { liveConnected.current = realtime.connected; }, [realtime.connected]);
   useEffect(() => { activeConversationRef.current = surface === "hall" ? null : selected?.databaseId ?? null; }, [selected?.databaseId, surface]);
-  const attention = deriveAttention(activity);
+  const attention = deriveAttention(activity, snapshot.preferences);
+  const selectedPreference = snapshot.preferences.find((pref) => pref.conversationId === selected?.databaseId);
   const unreadByConversation = attention.conversations;
   const latestActivityByConversation = activity.reduce<Record<string, string>>((latest, item) => {
     if (item.conversationId && (!latest[item.conversationId] || item.createdAt > latest[item.conversationId])) latest[item.conversationId] = item.createdAt;
     return latest;
   }, {});
-  const unreadForSurface = (kind: "message" | "hall") => activity.filter((item) => selected?.databaseId && item.conversationId === selected.databaseId && !item.destinationReadAt && (kind === "message" ? item.type === "message" : item.type === "hall_note" || item.type === "hall_pin")).length;
+  const unreadForSurface = (kind: "message" | "hall") => Number(Boolean(kind === "message" ? selectedPreference?.manualChatUnreadId : selectedPreference?.manualHallUnreadId)) + activity.filter((item) => selected?.databaseId && item.conversationId === selected.databaseId && !item.destinationReadAt && (kind === "message" ? item.type === "message" : item.type === "hall_note" || item.type === "hall_pin")).length;
   const activityHref = notificationHref;
   const messageFriend = (friend: (typeof friends)[number]) => {
     const chat = prototypeStore.createChat(friend);
@@ -1510,6 +1519,7 @@ export function MessagingApp({
     >
       <AppSidebar
         selected={selected}
+        surface={surface}
         workspace={workspace}
         onCreate={() => setOverlay("choose")}
         collapsed={collapsed}
@@ -1525,6 +1535,8 @@ export function MessagingApp({
             <SurfaceHeader
               conversation={selected}
               surface={surface}
+              preference={selectedPreference}
+              onReadingPause={setReadingPaused}
               onInvite={identity ? () => setOverlay("invite") : undefined}
               onAddSubroom={contextRoom?.role === "owner" ? () => setOverlay("subroom") : undefined}
               onManage={contextRoom ? () => setOverlay("manage") : undefined}
@@ -1534,12 +1546,14 @@ export function MessagingApp({
             {surface === "hall" ? (
               <HallSurface
                 connected={realtime.connected}
+                manualUnreadId={selectedPreference?.manualHallUnreadId}
+                readingPaused={readingPaused}
                 key={selected.slug}
                 conversation={selected}
                 empty={Boolean(identity) || Boolean(prototypeRoom && !canonical)}
               />
             ) : (
-              <ChatSurface key={selected.slug} conversation={selected} realtime={realtime} />
+              <ChatSurface key={selected.slug} conversation={selected} realtime={realtime} manualUnreadId={selectedPreference?.manualChatUnreadId} readingPaused={readingPaused} />
             )}
           </>
         ) : selectedSlug && identity ? (
@@ -1584,7 +1598,7 @@ export function MessagingApp({
       {overlay === "subroom" && selected?.kind === "room" && identity ? (
         <SubroomOverlay room={parentConversation ?? selected} onClose={() => setOverlay(null)} />
       ) : null}
-      {overlay === "manage" && contextRoom ? <RoomDetails slug={contextRoom.slug} onClose={() => setOverlay(null)} /> : null}
+      {overlay === "manage" && contextRoom ? <RoomDetails slug={contextRoom.slug} onClose={() => setOverlay(null)} onInvite={() => setOverlay("invite")} onAddSubroom={contextRoom.role === "owner" ? () => setOverlay("subroom") : undefined} /> : null}
       {toast ? <button className="activity-toast" onClick={() => { router.push(activityHref(toast)); setToast(null); }} aria-label="Open new activity"><strong>{toast.actorName ?? "Someone"}</strong><span>{toast.type === "message" ? (toast.messageBody || "New message") : toast.type === "connection_request" ? "sent you a friend request" : toast.type === "connection_accepted" ? "accepted your friend request" : "updated Hall"}</span></button> : null}
     </main></ToskerIdentityProvider>
   );

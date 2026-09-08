@@ -1,0 +1,61 @@
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
+import assert from "node:assert/strict";
+const exec=promisify(execFile),bin=process.env.AGENT_BROWSER_BIN;
+if(!bin)throw new Error("Set AGENT_BROWSER_BIN.");
+async function run(s,...args){const {stdout}=await exec(bin,["--session",s,"--json",...args],{timeout:45000});const out=JSON.parse(stdout);assert(out.success);return args[0]==="eval"?out.data?.result:out.data;}
+const ev=(s,js)=>run(s,"eval",js);
+async function until(s,js,label){const end=Date.now()+60000;while(Date.now()<end){if(await ev(s,js))return;await new Promise(r=>setTimeout(r,400));}throw new Error(`Timed out: ${label}`);}
+const a="ms71-a",b="ms71-b",path="/room/ms714-history-26ba8c8f",cid="7a03d40e-6da6-4322-8af3-418987567f2c",marker=`MS716 browser ${Date.now()}`;
+const click=(s,name)=>run(s,"find","role","button","click","--name",name,"--exact");
+await run(b,"open",`http://localhost:3000${path}/hall`);await until(b,"!!document.querySelector('.hall-surface')","B Hall");
+assert(!await ev(b,"!!document.querySelector('[aria-label=Muted]')"),"Dedicated QA preference initially unmuted");
+await click(b,"Conversation options");await click(b,"Mute");await until(b,"!!document.querySelector('[aria-label=Muted]')","B mutes ordinary activity");
+await run(a,"open",`http://localhost:3000${path}`);await until(a,"document.querySelectorAll('.message-row').length>0","A Chat");
+assert(["","@"].includes(await ev(a,"document.querySelector('.composer textarea').value")),"Preserve unrelated drafts");
+await run(a,"click",".composer textarea");await ev(a,"document.querySelector('.composer textarea').select();true");await run(a,"press","Backspace");await until(a,"document.querySelector('.composer textarea').value===''","test draft cleared");
+assert.equal(await ev(a,"document.querySelector('.composer textarea').value"),"");
+await run(a,"fill",".composer textarea","@");await until(a,"document.querySelectorAll('.mention-suggestions [role=option]').length===2","authorized A/B suggestions");
+await run(a,"press","ArrowDown");await run(a,"press","Enter");
+assert.equal(await ev(a,"document.querySelector('.composer textarea').value"),"@tosker-user-b-clerk-test ");
+await run(a,"type",".composer textarea",marker);
+await run(a,"reload");await until(a,`document.querySelector('.composer textarea')?.value.includes(${JSON.stringify(marker)})&&document.querySelectorAll('.message-row').length>0`,"mention draft persists");
+try {
+  await run(a,"set","offline","on");await click(a,"Send message");
+  await until(a,"document.body.innerText.includes('Delivery couldn')","offline send error");
+  assert((await ev(a,"document.querySelector('.composer textarea').value")).includes(marker));
+  await run(a,"set","offline","off");await click(a,"Send message");
+  await until(a,"document.querySelector('.composer textarea').value===''","retry acknowledged");
+  await until(b,"!!document.querySelector('.surface-tabs a:first-child .attention-mark')","B Chat attention on Hall");
+  const activity=await ev(b,`fetch('/api/workspace').then(r=>r.json()).then(v=>v.activity.filter(n=>n.conversationId==='${cid}'&&n.messageBody?.includes(${JSON.stringify(marker)})).map(n=>({isMention:n.isMention,muted:n.muted,id:n.messageId})))`);
+  assert.equal(activity.length,1);assert.equal(activity[0].isMention,true);assert.equal(activity[0].muted,false,"Direct mention retains attention in muted Room");
+  await run(b,"click",`.surface-tabs a[href="${path}"]`);
+  await until(b,`Array.from(document.querySelectorAll('.message-row')).some(e=>e.textContent.includes(${JSON.stringify(marker)})&&!!e.querySelector('.message-mention'))`,"B canonical mention renders");
+  const source=`#message-${activity[0].id}`;
+  await run(b,"scrollintoview",source);await run(b,"click",`${source} [aria-label=Reply]`);
+  await run(b,"fill",".composer textarea",`${marker} reply`);await click(b,"Send message");
+  await until(b,"document.querySelector('.composer textarea').value===''","reply accepted");
+  await until(a,`Array.from(document.querySelectorAll('.message-row')).some(e=>e.querySelector('.message-bubble > p')?.textContent===${JSON.stringify(marker+" reply")})`,"reply crosses clients");
+  const reply=await ev(a,`Array.from(document.querySelectorAll('.message-row')).find(e=>e.querySelector('.message-bubble > p')?.textContent===${JSON.stringify(marker+" reply")}).id`);
+  await run(a,"scrollintoview",`#${reply}`);await run(a,"click",`#${reply} .reply-source`);
+  await until(a,`document.activeElement?.id==='message-${activity[0].id}'&&!!document.querySelector('.message-source-highlight')`,"reply jump focuses/highlights source");
+  await until(a,"!document.querySelector('.message-source-highlight')","highlight expires");
+  await click(a,"Search conversation");await run(a,"fill",".conversation-search input",marker);await run(a,"press","Enter");
+  await until(a,"document.querySelectorAll('.conversation-search-result').length>0","search source again");
+  await run(a,"click",`.conversation-search-result[href="${path}?message=${activity[0].id}"]`);
+  await until(a,`document.activeElement?.id==='message-${activity[0].id}'&&!!document.querySelector('.message-source-highlight')`,"same URL search re-locates source");
+  await until(a,"!document.querySelector('.message-source-highlight')","repeated highlight expires");
+  await click(a,"Search conversation");await run(a,"fill",".conversation-search input",marker);await run(a,"press","Escape");
+  await until(a,"!document.querySelector('dialog[open]')","search Escape closes");
+  assert.equal(await ev(a,"document.activeElement?.getAttribute('aria-label')"),"Search conversation");
+  await run(a,"fill",".composer textarea","@");await until(a,"!!document.querySelector('.mention-suggestions')","mention picker reopens");
+  await run(a,"press","Escape");assert.equal(await ev(a,"!!document.querySelector('.mention-suggestions')"),false);assert.equal(await ev(a,"document.querySelector('.composer textarea').value"),"@");
+  await run(a,"click",".composer textarea");await ev(a,"document.querySelector('.composer textarea').select();true");await run(a,"press","Backspace");await until(a,"document.querySelector('.composer textarea').value===''","test draft cleared");
+  for(let i=0;i<10;i++) { await run(a,"type",".composer textarea","@");await until(a,"document.querySelectorAll('.mention-suggestions [role=option]').length===2","bounded mention selection");await run(a,"press","ArrowDown");await run(a,"press","Enter"); }
+  await run(a,"type",".composer textarea","@");await until(a,"document.querySelectorAll('.mention-suggestions [role=option]').length===2","eleventh suggestion");
+  const beforeLimit=await ev(a,"document.querySelector('.composer textarea').value");await run(a,"press","Enter");
+  await until(a,"document.body.innerText.includes('Use up to 10 mentions')","explicit limit feedback");assert.equal(await ev(a,"document.querySelector('.composer textarea').value"),beforeLimit);
+  await run(a,"press","Escape");await run(a,"click",".composer textarea");await ev(a,"document.querySelector('.composer textarea').select();true");await run(a,"press","Backspace");await until(a,"document.querySelector('.composer textarea').value===''","test draft cleared");
+  await click(b,"Conversation options");await click(b,"Unmute");await until(b,"!document.querySelector('[aria-label=Muted]')","restore B QA preference");
+  console.log(`PASS: ${marker}; authorized @ keyboard selection, draft reload/offline retry, one mention notification, A/B canonical rendering/reply, shared focused source jump, temporary highlight, Search and mention Escape semantics.`);
+} finally {await run(a,"set","offline","off").catch(()=>undefined);}

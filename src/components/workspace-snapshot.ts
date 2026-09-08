@@ -2,13 +2,16 @@
 
 import type { refreshWorkspaceNavigationAction } from "@/server/accounts/actions";
 import type { listNotificationsAction } from "@/server/shared-state/actions";
+import type { ConversationPreference } from "@/lib/conversation-preferences";
 
 type Snapshot = {
   userId: string | null;
   navigation: Awaited<ReturnType<typeof refreshWorkspaceNavigationAction>> | null;
   activity: Awaited<ReturnType<typeof listNotificationsAction>>;
+  preferences: ConversationPreference[];
+  navigationBasis?: object;
 };
-const empty: Snapshot = { userId: null, navigation: null, activity: [] };
+const empty: Snapshot = { userId: null, navigation: null, activity: [], preferences: [] };
 let current = empty;
 const listeners = new Set<() => void>();
 

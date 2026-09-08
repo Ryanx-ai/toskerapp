@@ -2,7 +2,45 @@
 
 Use [the unchanged numbered scenario script](MS7-1-STRESS-SCENARIOS.md) for engineering and founder walkthrough. This ledger is evidence, not a substitute for the script. **Not run ≠ pass.** Partial checks do not certify an entire scenario. Repeat affected scenarios after each internal patch and the complete applicable suite before canonical deployment. Founder approval is required for lock.
 
-## Current run — MS7.1.1 local checkpoint (2026-09-08)
+## Current continuation — MS7.1.5 / .6 / .8 (2026-09-09)
+
+Latest backend checkpoint `449caf8`; .1–.4 preserved. Client integration is a separate local checkpoint, not a full-wave release or founder lock. Canonical production unchanged. Private media remains reserved .7, blocked on provisioning or explicit founder deferral; [capability decisions](MS7-1-CORE-CAPABILITIES.md) supersede the historical hide-only inventory.
+
+### Current acceptance
+
+- Management service PASS: authorized literal Search/cursors/tombstone exclusion/private denial, viewer-only mute/parent inheritance, manual Chat/Hall marker isolation and compare-and-clear races. No communication records from preferences.
+- Mentions service PASS: explicit canonical spans, everyone/selected/owners member scope, stale/private/removed/forged targets denied, draft/edit shifts, overwritten/deleted spans clear, canonical reply author/tombstones, no duplicate edit notifications.
+- Development migrations0012/0013 applied additively; db:check/db:verify PASS (14 migrations46 FKs). MS6A, Room withdrawal/Ably token races, Hall lifecycle and real MS6B token capability/forgery/revocation/provider delivery PASS. Exact temporary service-suite fixtures cleaned in finally.
+- Real A/B management PASS: A-only mute/reload/unmute, B isolation, manual unread/rail/reload/consumption, old Search source/highlight,390px no results and Escape/focus.
+- Real grammar PASS: canonical @ selection/draft/reload/offline retry, one mention notification, B Chat-only attention, muted-Room direct mention exception, B reply/A canonical source, repeated same-URL Search rehighlight. Initial marker `MS716 browser 1788882396515`; subsequent grammar fixtures remain in exact history QA Room.
+- Focused composer PASS: Escape→clear→retype @, ten stable explicit spans/caret, eleventh refusal without modifying text, feedback clearing and Shift+Enter. No records sent by limit test. Caret restoration occurs in layout before next input.
+- Fresh A/B reaction/edit/delete PASS: two emoji chips, exact actor counts/selection across reload, source edits and canonical reply tombstones. Older-history GET failure retains place/draft; retry, old reply→Hall/Chat/reload/offline send recover once.
+- Fresh integrated Room PASS: `/room/ms719-integrated-1788885047459-80440f`, selected child `485a1cb2-8111-4c34-b400-ba8aa8a2aa0c`; default category/empty state, no observed Home/unavailable flash, normal B invitation/join, scoped parent/child messages and mention membership, traffic during Chat/Hall switching, non-Chat parent ladder collapse, shared Hall note and both reloads.
+- Retained-source UI PASS: Personal, Room, Subroom and Sandbox pin→Hall persisted reference→authorized source focus/highlight→unpin preserves original. This supersedes the historical Open in Chat omission. Exact QA Personal message `9ba19061-93c5-48fa-bd61-b0d6b8a2ca79`; Sandbox message `fb693ab8-f974-4074-99d5-18064f17f5fd`; never delete their conversations.
+- Eight-width matrix PASS:320/375/390/430/768/1024/1440/1728 Chat/Hall, functional type, composer, @, Search and Hall editor. Updated16-context control inventory at1440/390 PASS. Friends390 screenshot inspected; actual Notices filtering shows real Mentions separate from ordinary Messages. Final Notifications typography check follows.
+- 720×450 practical200% equivalent fits Chat/composer/Search; actual browser zoom, physical mobile keyboard/touch/OS eviction, screen-reader speech and exact clipboard readback not certified.
+- Security HTTP: anonymous members/search401, foreign-origin403, private-child B403, duplicate query400, private/no-store PASS. Secret/client bundle scan PASS, .env.local ignored. Production npm audit clean; four moderate dev-only drizzle-kit→esm-loader→esbuild findings (GHSA-67mh-4wv8-2f99). Do not apply breaking force downgrade.
+- Static checks and production build passed before the newest targeted-source unread-race correction; rerun and browser evidence required below. Exact backend index TS/lint/webpack build passed independently with previous client.
+
+### Defects and honest test limitations
+
+Search native Escape initially cleared input without closing; explicit close/focus restoration fixed and retested. Repeated same-URL source jump required scoped UI event; fixed/retested. Escape dismissal persisted after clear/retype @; reset on text edits fixed/retested. A new combined-attention test found denied target lookup could fall back to normal reading and consume Chat unread; targeted lookup now enters history hold before its request, keeps hold on error and provides Latest recovery. Fresh rebuild/retest recorded below.
+
+Harness corrections: old reply assertion included new author text; now checks body separately. Empty fill/modifier Select All did not select text on this Mac session; native textarea selection plus real Backspace and empty-state assertion used. Persistent eval declarations use IIFEs. Fresh Room test initially stopped after creation on obsolete header selector, then resumed same fixture. Extended grammar passed send/reply/mute/highlight before cleanup failed; focused composer proves its corrected remainder. Combined attention initially expected different denied-target wording; corrected to actual alert, then uncovered the real unread race. No failed/partial run is reported as a full PASS.
+
+### Final local client-checkpoint gate (2026-09-09)
+
+TypeScript, ESLint and production Turbopack build PASS on final product source. Draft/date/grouping/link tests and actor-isolated UI snapshot tests PASS. Deterministic palette, Room Unicode graphemes and strict approved-avatar URL checks PASS. Development invariant audit PASS:6 users/profiles/Sandboxes, no duplicate TIDs/memberships/Personal pairs or orphan Hall pins. Existing browser fixtures deliberately remain for the unresolved release gate.
+
+`browser-ms719-attention.mjs` PASS on corrected build: three A messages + Hall note; B bell/list acknowledgement preserves both destination markers, Chat clears alone then Hall. Denied foreign target cannot render the foreign message and does not consume unread. Real secondary browser tab produced observed `hidden`→`visible` events (no synthetic override): three new ordered unique messages and a Hall note recovered, foreground Chat consumed only Chat, Hall retained/cleared independently, no stale composer error. Single-message background pass preceded the expanded pass. Markers `MS719 combined 1788895912201` and `MS719 combined 1788896089454` remain in the exact integrated QA Room; earlier failed test marker `MS719 combined 1788891780674` also retained.
+
+`browser-ms719-keyboard-mobile.mjs` PASS: Notifications320/390 typography14/13/12 and filter wrapping, real mention classification; native Tab reaches Search, Enter focuses its text field, modal Tab never reaches a background control, Escape restores trigger; Space/options/Home/End/Escape work. Native Chromium briefly reports body focus between modal controls; this is documented, not mistaken for a focusable background action. Search initially focused Close due React autoFocus preceding native showModal; scoped post-open input focus fixed/retested. Manual unread survives denied source lookup; explicit Latest removes the error/hold and consumes it. No records sent by this keyboard test.
+
+Local startup snapshot shows meaningful canonical content without a framework error overlay. Browser navigation once preceded Ready and got connection refused; normal post-Ready retry passed. An earlier interrupted route stream logged `destination stream closed early`; no persistent UI failure was established. Sampled runtime/browser checks and production smoke are distinct; production has not been tested for MS7.1 because it has not been deployed.
+
+Remaining full-wave gates: private-media provisioning or explicit founder deferral; owner destructive-policy and convenience deferral review; final mixed busy-context/physical/assistive limits review; exact QA cleanup; canonical push/deploy/live A/B smoke. No founder-ready/lock claim, no MS7.2.
+
+## Historical run — MS7.1.1 local checkpoint (2026-09-08)
 
 - Commit: local checkpoint based on `c6286b9`; exact new SHA is recorded in the subsequent active-slice entry. No canonical push/deploy.
 - Scope: safe plain-text HTTP(S) links; remove unsupported Chat utilities, translation, composer/Hall uploads and Gizmo installation/starter choices; hide fake authenticated conversation lifecycle/reorder actions; two-step Room creation with Just Chilling selected; actor/conversation-scoped tab-local draft/reply/idempotency recovery; distinct Chat loading/fetch-error states.
@@ -33,13 +71,13 @@ Use [the unchanged numbered scenario script](MS7-1-STRESS-SCENARIOS.md) for engi
 | 06 Message actions | PARTIAL: real right-click/release, explicit menu, Enter, Shift+F10, Escape/focus return and 390px explicit action path PASS; B has no Edit/Delete on A; own edit/delete exercised. Clipboard write resolves, but automation read-back is denied, so exact clipboard contents require founder check. Physical touch long-press untested | Pending |
 | 07 Links | PASS: A/B safe HTTPS link, new-tab label/noopener/noreferrer, unsafe javascript remains text; B reload preserves message; real click opens separate HTTPS Example Domain tab and original Chat stays. 15 parser cases PASS | Pending |
 | 08 Long messages | PASS: 500 chars, 1,500+ readable chars, 1,500 unbroken W characters, multiline and emoji-heavy content delivered to both users; exact trimmed text; 1440/390/320/430 geometry fits composer, messages and actions. 430 screenshot visually inspected. Initial harness incorrectly expected trailing whitespace that sending trims; corrected expectation, verified the same existing records without resending | Pending |
-| 09 Long history | Not run | Pending |
-| 10 Create Room | Partial: two-step create, Just Chilling default + Travel/Osaka selection, immediate rail/open, no starter Gizmos. Read-only DB verifies name/tags/no capabilities; B reload retains Room/message. Full fresh-room/loading regression pending | Pending |
+| 09 Long history | PASS at `.4`: 525-row DB and browser traversal, stable cursor ties, max 200 unique rendered records and preserved anchors. Fresh older-window failure/reply recovery also PASS after grammar changes | Pending |
+| 10 Create Room | PASS: two-step create/default Just Chilling, no starter Gizmos, earlier custom tags verified; fresh `.9` Room/open observer shows no Home/unavailable flash, correct empty state, normal B invite/join and persisted history | Pending |
 | 11 Invite/join | PASS: real B rejoin through a fresh link, correct Room identity, repeat link shows Already joined/Open Room; owner/member list has two users. Database concurrent duplicate join produces one membership | Pending |
 | 12 Room Chat | PASS: real bidirectional Room send/reply; while B views Hall A sends, Chat alone indicates activity, opening Chat clears it and shows one message; no self unread | Pending |
 | 13 Subrooms | PASS: A creates Gaming and Trip Planning, B receives both in navigation, parent switcher returns correctly, child Chat excludes parent history. Selected QA is created using current-Room-member search; selected B opens persisted child and has no Add Subroom control. Switching traffic remains separate scenario 15 | Pending |
 | 14 Restricted Subroom | PASS: A creates owner-only Budget Secret; B has no rail/switcher entry and exact child URL returns 404. Service scope checks also deny B | Pending |
-| 15 Activity while switching | Not run | Pending |
+| 15 Activity while switching | PASS fresh `.9`: B child message while A views child Hall → Chat-only attention; child read clears; parent excludes child body, parent Hall change reaches B without changing child history; both reload preserve note | Pending |
 | 16 Leave | PASS: real B confirms Leave, returns to Chats and loses Room navigation; old accepted invitation is denied, fresh invitation restores access | Pending |
 | 17 Remove member | PASS: real A removes B while B views public child; composer/navigation disappear, parent/child deep links deny, fresh valid invite allows rejoin. Database suite verifies historical authorship retained | Pending |
 | 18 Revoke invite | PASS: owner UI revokes pending invitation; exact bearer URL shows Invite unavailable. Service rejects member revocation and joins using revoked tokens | Pending |
@@ -49,20 +87,20 @@ Use [the unchanged numbered scenario script](MS7-1-STRESS-SCENARIOS.md) for engi
 | 22 Hall reorder | PASS: menu Move later, arrow-key reversal and actual native grip drag synchronize to B; order persists on both reloads; shared color also reaches B | Pending |
 | 23 Hall archive/restore | PASS: real author archive/restore and owner moderation of B note, active/archived views synchronize, member has no recovery controls on A's note, comments/reactions and restored state survive both reloads | Pending |
 | 24 Hall delete policy | PASS: B has no Edit/Archive/Nuke on A; own Nuke requires native confirmation, Escape cancels without deletion, confirmation removes B note on both clients. Service owner moderation, member denial and comment/reaction cascade pass; 390px confirmation fits | Pending |
-| 25 Chat pin reference | PASS for retained controls: service deduplicates concurrent pins; actual UI pin/member unpin preserves original Chat. Open in Chat is DEFERRED/HIDDEN until older-message lookup is reliable | Pending |
-| 26 Independent attention | Not run | Pending |
-| 27 Background/recovery | Not run | Pending |
-| 28 Offline gap | Not run | Pending |
+| 25 Chat pin reference | PASS: service deduplicates concurrent pins; real Personal/Room/Subroom/Sandbox pin→Hall→source focus/highlight→unpin preserves original. Authorized older lookup also covered by Search/reply tests | Pending |
+| 26 Independent attention | PASS final `.9`: A three messages + Hall note; B bell/list acknowledgement leaves both destinations; Chat clears alone then Hall. Denied foreign source remains unread after race fix | Pending |
+| 27 Background/recovery | PASS final `.9` native hidden→visible tab: A three ordered messages + Hall while B hidden; foreground recovers exactly once, Chat consumption/Hall attention independent, Hall persists/clears, no stale composer error. No synthetic visibility override; OS eviction remains untested | Pending |
+| 28 Offline gap | PASS at `.4`: 55 seeded missed records reconcile without duplicates and without yanking held history; fresh final mixed-chaos run remains separate | Pending |
 | 29 Long names | Partial: existing long A display name and fixture Room fit sampled Chat; full matrix pending | Pending |
-| 30 Empty Room | Partial: quiet fresh Chat, no sample messages; loading/error distinction remains debt | Pending |
+| 30 Empty Room | PASS fresh `.9` creation/join: scoped quiet empty Chat for both real users, no sample messages or observed generic welcome/unavailable flash | Pending |
 | 31 Busy Room | Not run | Pending |
-| 32 Responsive | Partial: 1280 screenshot, 390 screenshot/geometry, 320 Chat/composer geometry show no horizontal overflow. Other widths/flows pending | Pending |
-| 33 200% | Not run | Pending |
-| 34 Keyboard | Partial: message actions keyboard open/Escape/focus return pass; full route/modal traversal pending | Pending |
+| 32 Responsive | PASS bounded `.8` matrix: 320/375/390/430/768/1024/1440/1728 Chat/Hall, computed type, composer, mentions, Search and note modal. Updated 1440/390 Personal/Room/Subroom/Sandbox control sweep PASS. Physical keyboard/touch and full fresh integrated scenario remain explicit | Pending |
+| 33 200% | PARTIAL/practical equivalent: 720×450 Chat/composer and Search modal fit without page overflow. Actual browser zoom and physical-device keyboard/assistive speech remain founder checks, not certified by viewport emulation | Pending |
+| 34 Keyboard | PARTIAL/full-scenario scope: message action keys/Escape and new Search Tab/Enter/input/native modal/restore, options Space/Home/End/Escape PASS; broader route traversal and physical assistive input remain founder checks | Pending |
 | 35 Access loss | PASS: actual removed B loses child composer/navigation and exact parent/child URLs deny; database/Ably suite verifies old-token rejection, serialized renewal/removal, failed-provider rollback and post-removal mutation denial | Pending |
-| 36 Latency trace | Not run | Pending |
+| 36 Latency trace | PASS measured `.4` content-free traces: Personal/Room/Subroom visibility medians 3975/5441/6119ms vs 7885/8584/10224ms baseline; Ably signals 17–64ms. Development server/DB roundtrip debt remains, no production SLA | Pending |
 | 37 No dead controls | PASS for current retained inventory: source/action-boundary audit plus 1440/390px Personal/Room/Subroom/Sandbox Chat/Hall sweep; unsupported utilities and fake row actions absent, sampled message menus contain only real actions. Room lifecycle and Hall mutations independently exercised with A/B. Repeat after later MS7.1 slices; this does not certify the full milestone | Pending |
-| 38 Error states | Partial: local Clerk recovery observed; product failure simulations pending | Pending |
+| 38 Error states | PARTIAL: offline send/retry, failed history fetch/retry, denied source, unavailable authorization and Clerk normal recovery exercised; full physical/OS failure coverage not claimed | Pending |
 | 39 Founder free-play | Founder-only qualitative evidence; cannot be certified by engineering | Pending |
 | 40 Would I use this? | Founder-only decision; cannot be certified by engineering | Pending |
 

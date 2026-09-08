@@ -1,16 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
 import { roomDetailsAction, revokeRoomInviteAction, updateRoomAction, withdrawRoomMemberAction } from "@/server/rooms/actions";
 import { useToskerIdentity } from "./tosker-identity";
 import { ModalLayer } from "./modal-layer";
 import { ACTIVITY_REFRESH } from "@/lib/realtime-contract";
+import { RoomCategory } from "./room-category";
+import { PersonAvatar } from "./identity-avatar";
+import { workspaceSnapshot } from "./workspace-snapshot";
+import { setConversationPreferenceAction } from "@/server/conversations/preference-actions";
 
 type Details = Awaited<ReturnType<typeof roomDetailsAction>>;
-export function RoomDetails({ slug, onClose }: { slug: string; onClose: () => void }) {
+export function RoomDetails({ slug, onClose, onInvite, onAddSubroom }: { slug: string; onClose: () => void; onInvite?: () => void; onAddSubroom?: () => void }) {
   const identity = useToskerIdentity(), router = useRouter();
+  const snapshot = useSyncExternalStore(workspaceSnapshot.subscribe, () => workspaceSnapshot.get(identity?.userId), workspaceSnapshot.server);
+  const room = identity?.rooms.find((entry) => entry.slug === slug);
+  const muted = snapshot.preferences.some((pref) => pref.conversationId === room?.conversationId && pref.muted);
   const [data, setData] = useState<Details | null>(null);
   const [name, setName] = useState("");
   const [tags, setTags] = useState("");
@@ -63,12 +71,17 @@ export function RoomDetails({ slug, onClose }: { slug: string; onClose: () => vo
         <label>Tags<textarea value={tags} disabled={busy} onChange={(event) => setTags(event.target.value)} aria-describedby="room-tags-help" maxLength={140} rows={3} /></label>
         <small id="room-tags-help">One per line. Up to five tags, 24 characters each.</small>
         <button className="primary-action" disabled={busy || !name.trim()} type="submit">Save Room</button>
-      </form> : data.tags.length ? <p className="room-detail-tags">{data.tags.join(" · ")}</p> : null}
+      </form> : data.tags.length ? <div className="room-detail-tags">{data.tags.map((tag) => <RoomCategory key={tag} value={tag} />)}</div> : null}
       <h3>Members · {data.members.length}</h3>
-      <ul className="room-member-list">{data.members.map((member) => <li key={member.userId}><span><strong>{member.name}</strong><small>{member.role === "owner" ? "Owner" : "Member"}{member.userId === identity?.userId ? " · You" : ""}</small></span>{owner && member.role !== "owner" ? <button className="danger" disabled={busy} onClick={() => setConfirm({ userId: member.userId, name: member.name })} aria-label={`Remove ${member.name}`}>Remove</button> : null}</li>)}</ul>
+      <ul className="room-member-list">{data.members.map((member) => <li key={member.userId}><PersonAvatar seed={member.userId} initials={member.name.slice(0, 2)} /><span><strong>{member.name}</strong><small>{member.role === "owner" ? "Owner" : "Member"}{member.userId === identity?.userId ? " · You" : ""}</small></span>{owner && member.role !== "owner" ? <button className="danger" disabled={busy} onClick={() => setConfirm({ userId: member.userId, name: member.name })} aria-label={`Remove ${member.name}`}>Remove</button> : null}</li>)}</ul>
       {owner ? <><h3>Invitations</h3><p className="room-management-note">Revoking a link stops future joins; it does not remove members. Removal is not a ban—another valid invitation can grant access again.</p>
         {!data.invites.length ? <p>No invitations.</p> : <ul className="room-invite-list">{data.invites.map((invite) => <li key={invite.id}><span><strong>{new Date(invite.createdAt).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}</strong><small>{invite.status}</small></span>{["pending", "accepted"].includes(invite.status) ? <button disabled={busy} onClick={() => void run(() => revokeRoomInviteAction(data.id, invite.id), "Invitation revoked.")} aria-label={`Revoke invitation ${invite.id.slice(0, 8)}`}>Revoke</button> : null}</li>)}</ul>}
       </> : <button className="danger" disabled={busy} onClick={() => identity && setConfirm({ userId: identity.userId, name: identity.displayName })}>Leave Room</button>}
+      {onInvite ? <button className="quiet-action" disabled={busy} onClick={onInvite}>Invite people</button> : null}
+      <h3>Structure</h3>
+      <nav className="room-structure" aria-label="Room structure"><Link href={`/room/${slug}`} onClick={onClose}>Room Chat</Link>{room?.subrooms.map((child) => <Link key={child.id} href={`/room/${slug}/subroom/${child.id}`} onClick={onClose}>{child.name}</Link>)}</nav>
+      {owner && onAddSubroom ? <button className="quiet-action" disabled={busy} onClick={onAddSubroom}>Add Subroom</button> : null}
+      {room?.conversationId ? <><h3>My Room preferences</h3><button className="quiet-action" aria-pressed={muted} disabled={busy} onClick={() => void run(() => setConversationPreferenceAction(room.conversationId, { kind: "mute", muted: !muted }), muted ? "Room unmuted." : "Room muted.")}>{muted ? "Unmute Room" : "Mute Room"}</button><p className="room-management-note">Only for you. Quiets this Room and its Subrooms; messages and unread stay. Direct mentions still notify. Subrooms you muted separately stay muted when you unmute the Room.</p></> : null}
     </>}
     {error ? <p className="composer-error" role="alert">{error}</p> : null}
     {feedback ? <p role="status">{feedback}</p> : null}

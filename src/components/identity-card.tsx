@@ -1,4 +1,8 @@
+import { PersonAvatar } from "@/components/identity-avatar";
+
 export type IdentityCardProfile = {
+  userId?: string;
+  avatarUrl?: string | null;
   name: string;
   username: string;
   tid: string;
@@ -20,9 +24,7 @@ export function IdentityCard({
   return (
     <article className={`namecard ${compact ? "namecard-compact" : ""}`}>
       <div className="namecard-banner" aria-hidden="true" />
-      <span className={`avatar avatar-${profile.color} namecard-avatar`}>
-        {profile.initials}
-      </span>
+      <PersonAvatar seed={profile.userId ?? profile.tid} initials={profile.initials} imageUrl={profile.avatarUrl} className="namecard-avatar" />
       <div className="namecard-body">
         <h2>{profile.name}</h2>
         <strong>{profile.username} · {profile.tid}</strong>

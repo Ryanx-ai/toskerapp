@@ -5,7 +5,7 @@
 ## Contracts / bounded choices
 
 - Neon remains durable authority; Clerk identity and the existing scoped Ably transport remain. Keep 60s connected reconciliation / 12s unavailable fallback. No new provider, storage or calls.
-- Hide unsupported conversation Search, translation, attachments, calls/video/calendar and placeholder utilities. Hide capability installation/starter selection until MS7.5; retain existing records without advertising them as working tools. Optional Mute/manual unread/private Room pin/archive/delete remain absent rather than fake.
+- Founder correction: [core capability decisions](MS7-1-CORE-CAPABILITIES.md) supersede the historical hidden inventory. Build scoped Search, persistent Mute/manual unread and coherent communication management in MS7.1. Hiding is not completion. Media is a separate provisioning gate; calls/translation remain explicit foundations and Schedule is a Gizmo. Unsupported controls remain absent until real.
 - Ordinary members may leave after confirmation. Owners cannot leave or be removed; no ownership transfer, Room deletion or orphaning in this wave.
 - Owner-only minimal management: name/tags, members/removal, current invites/revoke, Subroom entry. Preserve existing member invite permission unless source/security findings require a documented change.
 - Removal is access withdrawal, not a permanent ban. Rejoin requires a valid invitation; revoke previously accepted invitations for the departing target so a stale accepted token cannot silently restore membership. Unclaimed valid bearer invites remain governed by the existing single-recipient invite contract; owner can revoke them. Explain this in management.
@@ -23,9 +23,12 @@ Shared acceptance and founder walkthrough: [MS7.1 stress scenarios](MS7-1-STRESS
 | MS7.1.1 | Safe Chat links; truthful core controls; drafts/retry/loading/date grouping | Local engineering checkpoint validated; full-wave/founder gate remains |
 | MS7.1.2 | Room management, leave/remove/invite lifecycle and authorization | Local engineering checkpoint validated; full-wave/founder gate remains |
 | MS7.1.3 | Hall author/owner policy; archive/restore; pin regression; core-control inventory | Local engineering checkpoint validated; full-wave/founder gate remains |
-| MS7.1.4 (planned) | Measured delivery path; 100/500+ history; drafts/retry; loading/error | Pending |
-| MS7.1.5 (planned) | Shared primitives, headers, menus, responsive/accessibility | Pending |
-| MS7.1.6 (planned) | Two-user adverse-path/security/full release gate | Pending |
+| MS7.1.4 | Measured delivery path; 525 history; drafts/retry; loading/error | Validated local `bfb444d` |
+| MS7.1.5 | Core communication management: Search, Mute, manual unread, compact Room preferences | Backend `449caf8`; UI and targeted DB/A-B management validation PASS, integration checkpoint pending |
+| MS7.1.6 | Mentions, replies/source targeting and Chat grammar | Backend `449caf8`; real mentions/retry/attention/source-jump and focused composer validation PASS; integrated gate remains |
+| MS7.1.7 | Media foundation | Reserved; private storage provisioning gate |
+| MS7.1.8 | Shared identity/primitives, loading, menus, responsive/accessibility | Implemented; eight-width targeted matrix and 16-context control sweep PASS; fresh chained scenario/zoom/release gate remains |
+| MS7.1.9 | Two-user adverse-path/security/completeness/full release gate | Pending; required founder deferrals are not assumed |
 
 ## Baseline inspection
 

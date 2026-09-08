@@ -1,7 +1,13 @@
 "use client";
+import { MESSAGE_LOCATION_REQUEST, type MessageLocationRequest } from "@/lib/message-location";
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { ConversationSearch } from "./conversation-search";
+import { adjustMentions, type MentionSpan, type MentionCandidate } from "@/lib/mentions";
+import { setConversationPreferenceAction } from "@/server/conversations/preference-actions";
+import { type ConversationPreference, EMPTY_PREFERENCE } from "@/lib/conversation-preferences";
 import {
   Fragment,
   useCallback,
@@ -26,10 +32,11 @@ import { prototypeStore } from "@/lib/prototype-store";
 import { HallNoteInteractions } from "@/components/hall-note-interactions";
 import { MessageBubble } from "./message-bubble";
 import type { useConversationRealtime } from "./use-conversation-realtime";
-import { CHAT_REFRESH, HALL_REFRESH } from "@/lib/realtime-contract";
+import { ACTIVITY_REFRESH, CHAT_REFRESH, HALL_REFRESH } from "@/lib/realtime-contract";
 import { acknowledgeDraft, chatDraftKey, chatDrafts, type DraftReply } from "@/lib/chat-drafts";
 import { groupMessages, messageDay, messageDayLabel } from "@/lib/message-presentation";
 import { communicationTiming } from "@/lib/communication-performance";
+import { PersonAvatar, RoomAvatar } from "./identity-avatar";
 import { EmojiPicker } from "./emoji-picker";
 import { listHallSnapshotAction } from "@/server/shared-state/actions";
 import { AttentionMark } from "./attention-mark";
@@ -38,6 +45,8 @@ import { ModalLayer } from "./modal-layer";
 import type { HallReaction } from "@/lib/hall-contract";
 import {
   ArrowLeft,
+  Search,
+  BellOff,
   GripVertical,
   MoreHorizontal,
   Plus,
@@ -104,6 +113,8 @@ export function SurfaceHeader({
   onManage,
   chatUnread = 0,
   hallUnread = 0,
+  preference,
+  onReadingPause,
 }: {
   conversation: Conversation;
   surface: "chat" | "hall";
@@ -112,28 +123,38 @@ export function SurfaceHeader({
   onManage?: () => void;
   chatUnread?: number;
   hallUnread?: number;
+  preference?: ConversationPreference;
+  onReadingPause?: (paused: boolean) => void;
 }) {
   const user = useCurrentToskerUser() ?? prototypeUser;
   const identity = useToskerIdentity();
   const parentRoom = conversation.kind === "room" ? identity?.rooms.find((room) => room.slug === conversation.slug.split("--")[0]) : undefined;
   const [contextAnchor, setContextAnchor] = useState<HTMLElement | null>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [controlsAnchor, setControlsAnchor] = useState<HTMLElement | null>(null);
+  const [controlBusy, setControlBusy] = useState(false);
+  const [controlFeedback, setControlFeedback] = useState("");
+  const router = useRouter();
+  const pref = preference ?? EMPTY_PREFERENCE;
+  const changePreference = async (kind: "mute" | "unread") => {
+    if (!conversation.databaseId || controlBusy) return;
+    setControlBusy(true); setControlFeedback("");
+    if (kind === "unread") onReadingPause?.(true);
+    try {
+      await setConversationPreferenceAction(conversation.databaseId, kind === "mute" ? { kind, muted: !pref.muted } : { kind, surface });
+      window.dispatchEvent(new Event(ACTIVITY_REFRESH));
+      setControlsAnchor(null);
+      if (kind === "unread") { router.push("/app"); }
+    } catch { setControlFeedback("That change couldn't be saved. Try again."); onReadingPause?.(false); }
+    finally { setControlBusy(false); }
+  };
   return (
     <header className="conversation-header">
       <div className="header-identity-zone">
         <Link href="/app" className="mobile-back" aria-label="Back">
           <ArrowLeft size={18} />
         </Link>
-        <span
-          className={`avatar avatar-${conversation.color} avatar-pattern ${conversation.kind === "room" ? "avatar-room" : ""} avatar-large`}
-          role={conversation.kind === "room" ? "img" : undefined}
-          aria-label={
-            conversation.kind === "room"
-              ? `${titleOf(conversation, user.displayName)} Room`
-              : undefined
-          }
-        >
-          {conversation.initials}
-        </span>
+        {conversation.kind === "room" ? <RoomAvatar name={conversation.name} seed={conversation.identitySeed ?? conversation.slug.split("--")[0]} subroom={conversation.tag === "SUBROOM"} className="avatar-large" /> : <PersonAvatar seed={conversation.identitySeed ?? conversation.slug} initials={conversation.initials} imageUrl={conversation.avatarUrl} className="avatar-large" />}
         <div className="active-copy">
           {parentRoom ? <button className="room-context-trigger" aria-label={`Switch Room context: ${parentRoom.name}${conversation.tag === "SUBROOM" ? ` / ${conversation.name}` : ""}`} aria-haspopup="dialog" aria-expanded={Boolean(contextAnchor)} onClick={(event) => setContextAnchor(event.currentTarget)}><span>{parentRoom.name}</span><ChevronDown size={15} /></button> : <h2>{titleOf(conversation, user.displayName)}</h2>}
           {conversation.kind === "personal" && conversation.presenceStatus ? <span className="header-presence"><i className={`presence-mark ${conversation.presenceStatus}`} aria-label={{ online: "Online", idle: "Idle", away: "Away", meeting: "In a meeting" }[conversation.presenceStatus]} />{{ online: "Online", idle: "Idle", away: "Away", meeting: "In a meeting" }[conversation.presenceStatus]}</span> : null}
@@ -161,7 +182,21 @@ export function SurfaceHeader({
           Hall<AttentionMark count={hallUnread} label="new Hall activities" />
         </Link>
       </nav>
-      {onManage ? <button className="room-details-trigger action-icon" aria-label="Room details" title="Room details" onClick={onManage}><UsersRound size={17} /></button> : null}
+      <div className="core-header-controls">
+        {conversation.databaseId ? <button className="action-icon" aria-label="Search conversation" title="Search conversation" onClick={() => setSearchOpen(true)}><Search size={17} /></button> : null}
+        {pref.muted || pref.inheritedMute ? <span title={pref.inheritedMute ? "Muted by Room" : "Muted"} aria-label={pref.inheritedMute ? "Muted by Room" : "Muted"}><BellOff size={14} /></span> : null}
+        {conversation.databaseId || onManage ? <button className="action-icon" aria-label="Conversation options" title="Conversation options" aria-expanded={Boolean(controlsAnchor)} onClick={(event) => { setControlFeedback(""); setControlsAnchor(event.currentTarget); }}><MoreHorizontal size={17} /></button> : null}
+      </div>
+      {searchOpen && conversation.databaseId ? <ConversationSearch key={conversation.databaseId} conversationId={conversation.databaseId} name={titleOf(conversation, user.displayName)} href={baseHref(conversation)} onClose={() => setSearchOpen(false)} /> : null}
+      {controlsAnchor ? <InteractionPopover anchor={controlsAnchor} label="Conversation options" onClose={() => { if (!controlBusy) setControlsAnchor(null); }}><div className="room-context-menu communication-options">
+        {onManage ? <button disabled={controlBusy} onClick={() => { setControlsAnchor(null); onManage(); }}><UsersRound size={15} />Room details</button> : null}
+        {conversation.databaseId ? <>
+          <button disabled={controlBusy || pref.inheritedMute} onClick={() => void changePreference("mute")}>{pref.inheritedMute ? "Muted by Room" : pref.muted ? "Unmute" : "Mute"}</button>
+          <p>{conversation.kind === "room" && conversation.tag !== "SUBROOM" ? "Mute quiets this Room and its Subrooms. " : "Mute quiets notifications. "}Messages and unread indicators stay. Direct mentions still notify.</p>
+          <button disabled={controlBusy} onClick={() => void changePreference("unread")}>Mark {surface === "hall" ? "Hall" : "Chat"} unread</button>
+        </> : null}
+        {controlBusy ? <p role="status">Saving…</p> : null}{controlFeedback ? <p role="alert">{controlFeedback}</p> : null}
+      </div></InteractionPopover> : null}
       {contextAnchor && parentRoom ? <InteractionPopover anchor={contextAnchor} label="Room contexts" onClose={() => setContextAnchor(null)}><nav className="room-context-menu" aria-label="Room and Subrooms">
         <Link href={`/room/${parentRoom.slug}`} aria-current={conversation.slug === parentRoom.slug ? "page" : undefined} onClick={() => setContextAnchor(null)}>{parentRoom.name}</Link>
         {parentRoom.subrooms.map((child) => <Link key={child.id} className="context-child" href={`/room/${parentRoom.slug}/subroom/${child.id}`} aria-current={conversation.slug.endsWith(`--${child.id}`) ? "page" : undefined} onClick={() => setContextAnchor(null)}>{child.name}</Link>)}
@@ -180,6 +215,8 @@ function Composer({
   onCancelReply,
   onSend,
   onTyping,
+  mentionConversationId,
+  onMention,
 }: {
   name: string;
   value: string;
@@ -188,22 +225,70 @@ function Composer({
   onCancelReply: () => void;
   onSend: (body: string) => Promise<boolean>;
   onTyping: (active: boolean) => void;
+  mentionConversationId?: string;
+  onMention: (body: string, span: MentionSpan) => boolean;
 }) {
   const [sending, setSending] = useState(false);
   const [emojiAnchor, setEmojiAnchor] = useState<HTMLElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const mentionSelection = useRef<number | null>(null);
+  useLayoutEffect(() => {
+    if (mentionSelection.current === null) return;
+    inputRef.current?.focus();
+    inputRef.current?.setSelectionRange(mentionSelection.current, mentionSelection.current);
+    mentionSelection.current = null;
+  }, [value]);
+  const [caret, setCaret] = useState(value.length);
+  const [focused, setFocused] = useState(false);
+  const [dismissedMention, setDismissedMention] = useState("");
+  const [suggestions, setSuggestions] = useState<MentionCandidate[]>([]);
+  const [suggestionState, setSuggestionState] = useState<"loading" | "ready" | "error">("loading");
+  const [suggestionIndex, setSuggestionIndex] = useState(0);
+  const mentionMatch = value.slice(0, caret).match(/(?:^|\s)@([^\s@]{0,80})$/u);
+  const mentionQuery = mentionMatch?.[1] ?? null;
+  const mentionKey = `${value}:${caret}`;
+  const mentionOpen = Boolean(mentionConversationId && focused && mentionQuery !== null && dismissedMention !== mentionKey && !emojiAnchor);
+  useEffect(() => {
+    if (!mentionOpen || !mentionConversationId || mentionQuery === null) return;
+    const controller = new AbortController();
+    queueMicrotask(() => { if (!controller.signal.aborted) { setSuggestions([]); setSuggestionIndex(0); setSuggestionState("loading"); } });
+    const timer = setTimeout(async () => {
+      try {
+        const response = await fetch(`/api/conversations/${encodeURIComponent(mentionConversationId)}/members?q=${encodeURIComponent(mentionQuery)}`, { cache: "no-store", credentials: "same-origin", signal: AbortSignal.any([controller.signal, AbortSignal.timeout(15000)]) });
+        if (!response.ok) throw new Error();
+        const data = await response.json() as { members: MentionCandidate[] };
+        if (!controller.signal.aborted) { setSuggestions(data.members); setSuggestionState("ready"); }
+      } catch { if (!controller.signal.aborted) setSuggestionState("error"); }
+    }, 180);
+    return () => { clearTimeout(timer); controller.abort(); };
+  }, [mentionConversationId, mentionOpen, mentionQuery]);
+  const selectMention = (candidate: MentionCandidate) => {
+    if (mentionQuery === null) return;
+    const start = caret - mentionQuery.length - 1;
+    const label = `@${candidate.username ?? candidate.name}`;
+    const body = `${value.slice(0, start)}${label} ${value.slice(caret)}`;
+    if (body.length > 8000) return;
+    const nextCaret = start + label.length + 1;
+    mentionSelection.current = nextCaret;
+    if (!onMention(body, { userId: candidate.userId, start, length: label.length, label })) { mentionSelection.current = null; return; }
+    setCaret(nextCaret);
+    setDismissedMention(`${body}:${nextCaret}`);
+  };
   const send = async () => {
     if (!value.trim() || sending) return;
     const draft = value;
     onTyping(false);
     setSending(true);
     try {
-      await onSend(draft.trim());
+      await onSend(draft);
     } finally { setSending(false); }
     inputRef.current?.focus({ preventScroll: true });
   };
   return (
     <div className="composer-wrap">
+      {mentionOpen ? <div className="mention-suggestions" id="composer-mention-options" role="listbox" aria-label="Mention a member">
+        {suggestionState !== "ready" ? <p role="status">{suggestionState === "error" ? "Members couldn't be loaded. Close and try again." : "Loading members…"}</p> : !suggestions.length ? <p role="status">No matching members.</p> : suggestions.map((candidate, index) => <button key={candidate.userId} id={`mention-option-${index}`} role="option" aria-selected={index === suggestionIndex} tabIndex={-1} onPointerDown={(event) => event.preventDefault()} onClick={() => selectMention(candidate)}><strong>{candidate.name}</strong>{candidate.username ? <small>@{candidate.username}</small> : null}</button>)}
+      </div> : null}
       {reply ? (
         <div className="reply-context">
           <div>
@@ -224,9 +309,26 @@ function Composer({
         <textarea
           ref={inputRef}
           value={value}
-          onChange={(event) => { onValue(event.target.value); onTyping(Boolean(event.target.value.trim())); }}
-          onBlur={() => onTyping(false)}
+          onChange={(event) => { setDismissedMention(""); setCaret(event.target.selectionStart); onValue(event.target.value); onTyping(Boolean(event.target.value.trim())); }}
+          onSelect={(event) => setCaret(event.currentTarget.selectionStart)}
+          onFocus={() => setFocused(true)}
+          onBlur={() => { onTyping(false); setFocused(false); }}
+          role={mentionConversationId ? "combobox" : undefined}
+          aria-autocomplete={mentionConversationId ? "list" : undefined}
+          aria-expanded={mentionConversationId ? mentionOpen : undefined}
+          aria-controls={mentionOpen ? "composer-mention-options" : undefined}
+          aria-activedescendant={mentionOpen && suggestions.length && suggestionState === "ready" ? `mention-option-${suggestionIndex}` : undefined}
           onKeyDown={(event) => {
+            if (event.nativeEvent.isComposing) return;
+            if (mentionOpen && event.key === "Escape") { event.preventDefault(); event.stopPropagation(); setDismissedMention(mentionKey); return; }
+            if (mentionOpen && ["ArrowDown", "ArrowUp", "Enter"].includes(event.key) && !event.shiftKey) {
+              event.preventDefault();
+              if (suggestionState === "ready" && suggestions.length) {
+                if (event.key === "Enter") selectMention(suggestions[suggestionIndex]);
+                else setSuggestionIndex((current) => (current + (event.key === "ArrowDown" ? 1 : -1) + suggestions.length) % suggestions.length);
+              }
+              return;
+            }
             if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
               event.preventDefault();
               send();
@@ -267,7 +369,12 @@ function displayMessages(persisted: HistoryPage["messages"]): Message[] {
   }));
 }
 
-export function ChatSurface({ conversation, realtime }: { conversation: Conversation; realtime: ReturnType<typeof useConversationRealtime> }) {
+export function ChatSurface({ conversation, realtime, manualUnreadId, readingPaused = false }: { conversation: Conversation; realtime: ReturnType<typeof useConversationRealtime>; manualUnreadId?: string | null; readingPaused?: boolean }) {
+  const router = useRouter();
+  const targetMessage = useSearchParams().get("message");
+  const [targetError, setTargetError] = useState(false);
+  const [targetRetry, setTargetRetry] = useState(0);
+  const [targetNotice, setTargetNotice] = useState("");
   const user = useCurrentToskerUser() ?? prototypeUser;
   const identity = useToskerIdentity();
   const draftKey = chatDraftKey(identity?.userId, conversation.databaseId ?? conversation.slug);
@@ -299,7 +406,7 @@ export function ChatSurface({ conversation, realtime }: { conversation: Conversa
   const [newerAvailable, setNewerAvailable] = useState(false);
   const [pageLoading, setPageLoading] = useState(false);
   const [pageError, setPageError] = useState(false);
-  const historyMode = useRef(false);
+  const historyMode = useRef(Boolean(targetMessage));
   const paging = useRef(false);
   const historyEpoch = useRef(0);
   const scrollAnchor = useRef<{ id?: string; top?: number; latest?: boolean } | null>(null);
@@ -318,7 +425,7 @@ export function ChatSurface({ conversation, realtime }: { conversation: Conversa
     let changed = false;
     incoming.forEach((message) => {
       const previous = byId.get(message.id);
-      if (!previous || previous.createdAt !== message.createdAt || previous.body !== message.body || previous.author !== message.author || previous.replyTo !== message.replyTo || previous.editedAt !== message.editedAt || previous.deletedAt !== message.deletedAt || JSON.stringify(previous.reactionSummary) !== JSON.stringify(message.reactionSummary)) {
+      if (!previous || previous.createdAt !== message.createdAt || previous.body !== message.body || previous.author !== message.author || previous.avatarUrl !== message.avatarUrl || previous.replyTo !== message.replyTo || previous.replyAuthor !== message.replyAuthor || previous.editedAt !== message.editedAt || previous.deletedAt !== message.deletedAt || JSON.stringify(previous.mentions) !== JSON.stringify(message.mentions) || JSON.stringify(previous.reactionSummary) !== JSON.stringify(message.reactionSummary)) {
         byId.set(message.id, { ...previous, ...message }); changed = true;
       }
     });
@@ -331,13 +438,14 @@ export function ChatSurface({ conversation, realtime }: { conversation: Conversa
   }, []);
   const acknowledgeVisible = useCallback(() => {
     requestAnimationFrame(() => {
-      if (!conversation.databaseId || !alive.current || document.hidden || historyMode.current || !nearBottom.current) return;
+      if (!conversation.databaseId || !alive.current || document.hidden || historyMode.current || !nearBottom.current || readingPaused) return;
       const latest = currentMessages.current.at(-1)?.id;
-      if (!latest || latest === chatDrafts.get(draftKey).pending?.id || readThrough.current === latest) return;
-      readThrough.current = latest;
-      void markConversationReadAction(conversation.databaseId, "chat", latest).catch(() => { if (readThrough.current === latest) readThrough.current = null; });
+      const boundary = `${latest ?? "empty"}:${manualUnreadId ?? ""}`;
+      if ((!latest && !manualUnreadId) || (latest && latest === chatDrafts.get(draftKey).pending?.id) || readThrough.current === boundary) return;
+      readThrough.current = boundary;
+      void markConversationReadAction(conversation.databaseId, "chat", latest, [], manualUnreadId).catch(() => { if (readThrough.current === boundary) readThrough.current = null; });
     });
-  }, [conversation.databaseId, draftKey]);
+  }, [conversation.databaseId, draftKey, manualUnreadId, readingPaused]);
   const loadPersisted = useCallback(async () => {
     if (!conversation.databaseId || document.hidden) return;
     if (loadingMessages.current || paging.current) { pendingMessages.current = true; return; }
@@ -404,6 +512,7 @@ export function ChatSurface({ conversation, realtime }: { conversation: Conversa
       const merged = direction === "latest" ? mapped : mergePersisted(currentMessages.current, mapped);
       const next = direction === "older" ? merged.slice(0, 200) : merged.slice(-200);
       historyMode.current = direction !== "latest";
+      if (direction === "latest") { setTargetError(false); setTargetNotice(""); }
       setHistoryView(historyMode.current);
       nearBottom.current = direction === "latest";
       scrollAnchor.current = direction === "latest" ? { latest: true } : position;
@@ -431,6 +540,43 @@ export function ChatSurface({ conversation, realtime }: { conversation: Conversa
     window.addEventListener(CHAT_REFRESH, onVisible);
     return () => { active = false; alive.current = false; window.clearInterval(timer); document.removeEventListener("visibilitychange", onVisible); window.removeEventListener(CHAT_REFRESH, onVisible); };
   }, [conversation.databaseId, loadPersisted, connected]);
+  useEffect(() => {
+    if (!targetMessage || !conversation.databaseId) return;
+    let active = true;
+    let highlightTimer: ReturnType<typeof setTimeout> | undefined;
+    const epoch = ++historyEpoch.current;
+    // Target navigation must not consume latest unread while lookup is pending
+    // or denied. Only explicit Latest/normal Chat consumption exits this hold.
+    historyMode.current = true; nearBottom.current = false;
+    paging.current = true;
+    queueMicrotask(() => { if (active) { setHistoryView(true); setPageLoading(true); setTargetError(false); setTargetNotice("Locating message…"); } });
+    void fetchMessageHistory(conversation.databaseId, { target: targetMessage }).then((page) => {
+      if (!active || epoch !== historyEpoch.current) return;
+      if (!page.messages.some((message) => message.id === targetMessage)) throw new Error("Source unavailable");
+      historyMode.current = true; nearBottom.current = false;
+      setHistoryView(true); setOlderCursor(page.nextCursor?.id ?? null);
+      setNewerAvailable(Boolean(page.latest && page.latest.id !== targetMessage));
+      scrollAnchor.current = { id: `message-${targetMessage}`, top: (scrollRef.current?.getBoundingClientRect().top ?? 0) + 80 };
+      setMessages(() => displayMessages(page.messages));
+      setLoaded(true); setFetchError(false);
+      requestAnimationFrame(() => {
+        if (!active) return;
+        const node = document.getElementById(`message-${targetMessage}`);
+        node?.classList.remove("message-source-highlight");
+        // One quiet, non-flashing highlight; no permanent attention mutation.
+        requestAnimationFrame(() => { if (active) { node?.classList.add("message-source-highlight"); node?.focus({ preventScroll: true }); setTargetNotice("Message located."); highlightTimer = setTimeout(() => { node?.classList.remove("message-source-highlight"); if (active) setTargetNotice(""); }, 4000); } });
+      });
+    }).catch(() => { if (active) { setTargetError(true); setTargetNotice(""); } }).finally(() => { if (active) { paging.current = false; setPageLoading(false); window.dispatchEvent(new Event(CHAT_REFRESH)); } });
+    return () => { active = false; paging.current = false; clearTimeout(highlightTimer); document.getElementById(`message-${targetMessage}`)?.classList.remove("message-source-highlight"); };
+  }, [conversation.databaseId, targetMessage, targetRetry, setMessages]);
+  useEffect(() => {
+    const locateAgain = (event: Event) => {
+      const detail = (event as CustomEvent<MessageLocationRequest>).detail;
+      if (detail?.conversationId === conversation.databaseId && detail.messageId === targetMessage) setTargetRetry((value) => value + 1);
+    };
+    window.addEventListener(MESSAGE_LOCATION_REQUEST, locateAgain);
+    return () => window.removeEventListener(MESSAGE_LOCATION_REQUEST, locateAgain);
+  }, [conversation.databaseId, targetMessage]);
   useLayoutEffect(() => {
     const area = scrollRef.current;
     if (area) area.scrollTop = area.scrollHeight;
@@ -461,14 +607,18 @@ export function ChatSurface({ conversation, realtime }: { conversation: Conversa
       return false;
     }
     const previous = chatDrafts.get(draftKey).pending;
-    const id = previous?.body === body && previous.replyToId === reply?.id ? previous.id : crypto.randomUUID();
-    chatDrafts.update(draftKey, (current) => ({ ...current, pending: { id, body, replyToId: reply?.id } }));
+    const rawBody = body;
+    body = body.trim();
+    const mentions = adjustMentions(rawBody, body, chatDrafts.get(draftKey).mentions ?? []);
+    const id = previous?.body === body && previous.replyToId === reply?.id && JSON.stringify(previous.mentions ?? []) === JSON.stringify(mentions) ? previous.id : crypto.randomUUID();
+    chatDrafts.update(draftKey, (current) => ({ ...current, pending: { id, body, replyToId: reply?.id, mentions } }));
     const message: Message = {
       id,
       authorId: identity?.userId,
       author: user.displayName,
       initials: user.initials,
       body,
+      mentions,
       replyTo: reply?.body,
       replyToId: reply?.id,
       time: "Now",
@@ -487,7 +637,7 @@ export function ChatSurface({ conversation, realtime }: { conversation: Conversa
     try {
       const traceId = crypto.randomUUID(), started = performance.now();
       communicationTiming("send-start", { traceId });
-      const saved = await sendMessageAction({ id: message.id, conversationId: conversation.databaseId, body, replyToId: reply?.id, traceId });
+      const saved = await sendMessageAction({ id: message.id, conversationId: conversation.databaseId, body, replyToId: reply?.id, traceId, mentions });
       communicationTiming("send-returned", { traceId, durationMs: performance.now() - started, ...saved.timing });
       chatDrafts.update(draftKey, (current) => acknowledgeDraft(current, id));
       if (saved.createdAt) setMessages((current) => mergePersisted(current, current.filter((item) => item.id === message.id).map((item) => ({ ...item, createdAt: saved.createdAt! }))));
@@ -520,6 +670,7 @@ export function ChatSurface({ conversation, realtime }: { conversation: Conversa
   };
   return (
     <section className="conversation-surface art-layer-ready" data-realtime={conversation.databaseId ? connected ? "connected" : "reconnecting" : undefined}>
+      <span className="sr-only" role="status">{targetNotice}</span>
       <div
         ref={scrollRef}
         className={`message-scroll ${messages.length ? "" : "is-empty"}`}
@@ -535,6 +686,7 @@ export function ChatSurface({ conversation, realtime }: { conversation: Conversa
       >
         {conversation.databaseId && olderCursor ? <div className="history-page-controls"><button className="quiet-action" disabled={pageLoading} onClick={() => void navigateHistory("older", olderCursor)}>{pageLoading ? "Loading messages…" : "Older messages"}</button></div> : null}
         {pageError ? <p className="composer-error" role="alert">History couldn’t be loaded. Your place is saved; try the history control again.</p> : null}
+        {targetError ? <p className="composer-error" role="alert">That message couldn’t be opened. Your draft is still here. <button className="quiet-action" onClick={() => setTargetRetry((value) => value + 1)}>Retry</button></p> : null}
         {messages.length ? (
           <>
             {messages.map((message, index) => {
@@ -549,8 +701,9 @@ export function ChatSurface({ conversation, realtime }: { conversation: Conversa
                 onReply={setReply}
                 onReaction={react}
                 onChange={change}
+                onLocate={conversation.databaseId ? (id) => { if (id === targetMessage) setTargetRetry((value) => value + 1); else router.push(`${baseHref(conversation)}?message=${id}`, { scroll: false }); } : undefined}
                 onPin={
-                  conversation.kind === "room"
+                  conversation.databaseId || conversation.kind === "room"
                     ? async (item) => {
                         if (conversation.databaseId) await pinMessageToHallAction({ conversationId: conversation.databaseId, messageId: item.id });
                         else prototypeStore.pinMessageToHall({ slug: conversation.slug, name: conversation.name, message: item });
@@ -592,7 +745,19 @@ export function ChatSurface({ conversation, realtime }: { conversation: Conversa
       {historyView ? <div className="history-latest"><button className="quiet-action" disabled={pageLoading} onClick={() => void navigateHistory("latest")}>{newerAvailable ? "New messages · Latest" : "Latest messages"}<ArrowUp size={14} className="point-down" aria-hidden="true" /></button>{newerAvailable ? <button className="quiet-action" disabled={pageLoading} onClick={() => void navigateHistory("newer", messages.at(-1)?.id)}>Newer messages</button> : null}</div> : null}
       <Composer
         value={draft.body}
-        onValue={(body) => chatDrafts.update(draftKey, (current) => ({ ...current, body }))}
+        onValue={(body) => {
+          chatDrafts.update(draftKey, (current) => ({ ...current, body, mentions: adjustMentions(current.body, body, current.mentions ?? []) }));
+          setMessageError((current) => current === "Use up to 10 mentions per message." ? null : current);
+        }}
+        mentionConversationId={conversation.kind === "room" ? conversation.databaseId : undefined}
+        onMention={(body, span) => {
+          const current = chatDrafts.get(draftKey);
+          const mentions = [...adjustMentions(current.body, body, current.mentions ?? []), span].sort((a, b) => a.start - b.start);
+          if (mentions.length > 10) { setMessageError("Use up to 10 mentions per message."); return false; }
+          chatDrafts.update(draftKey, (value) => ({ ...value, body, mentions }));
+          setMessageError(null);
+          return true;
+        }}
         onTyping={sendTyping}
         name={titleOf(conversation)}
         reply={reply}
@@ -728,7 +893,7 @@ function PersistentHallCard({
           </>}
           {!archived ? <><button disabled={busy || !canEarlier} onClick={() => { onReorder("left"); setOpen(false); }}>Move earlier</button>
           <button disabled={busy || !canLater} onClick={() => { onReorder("right"); setOpen(false); }}>Move later</button></> : null}
-          {/* Source navigation stays hidden until bounded history can resolve any pinned message, not just the latest page. */}
+          {pinned && item.sourceMessageId && conversation.databaseId ? <Link href={`${baseHref(conversation)}?message=${item.sourceMessageId}`} onClick={() => setOpen(false)}>Open in Chat</Link> : null}
         </div>
       ) : null}
       {confirming && onNuke ? <ModalLayer onClose={() => { if (!busy) setConfirming(false); }}><section className="creation-panel hall-nuke-panel" role="alertdialog" aria-label="Nuke note confirmation"><h2>Nuke this note?</h2><p>The note, comments and reactions will be permanently deleted. This cannot be undone.</p><div className="overlay-actions"><button disabled={busy} onClick={() => setConfirming(false)}>Cancel</button><button className="danger" disabled={busy} onClick={async () => { if (await onNuke()) setConfirming(false); }}>{busy ? "Deleting…" : "Nuke"}</button></div>{mutationError ? <p role="alert">{mutationError}</p> : null}</section></ModalLayer> : null}
@@ -740,10 +905,14 @@ export function HallSurface({
   conversation,
   empty,
   connected,
+  manualUnreadId,
+  readingPaused = false,
 }: {
   conversation: Conversation;
   empty: boolean;
   connected: boolean;
+  manualUnreadId?: string | null;
+  readingPaused?: boolean;
 }) {
   const currentUser = useCurrentToskerUser();
   const state = useSyncExternalStore(
@@ -787,7 +956,7 @@ export function HallSurface({
         if (active && !document.hidden && !mutating.current) {
           setPersistentItems(snapshot.items);
           setLoaded(true); setHallError("");
-          if (!archivedView) await markConversationReadAction(conversation.databaseId!, "hall", undefined, snapshot.activityIds);
+          if (!archivedView && !readingPaused) await markConversationReadAction(conversation.databaseId!, "hall", undefined, snapshot.activityIds, manualUnreadId);
         }
       } catch { if (active) setHallError("Hall couldn't be loaded."); }
       finally { inFlight = false; if (pending && active) pendingTimer = window.setTimeout(refresh, 100); }
@@ -797,7 +966,7 @@ export function HallSurface({
     document.addEventListener("visibilitychange", refresh);
     window.addEventListener(HALL_REFRESH, refresh);
     return () => { active = false; window.clearInterval(timer); window.clearTimeout(pendingTimer); document.removeEventListener("visibilitychange", refresh); window.removeEventListener(HALL_REFRESH, refresh); };
-  }, [conversation.databaseId, connected, archivedView]);
+  }, [conversation.databaseId, connected, archivedView, manualUnreadId, readingPaused]);
   const runMutation = async (operation: () => Promise<void>) => {
     if (mutating.current) return false;
     mutating.current = true;

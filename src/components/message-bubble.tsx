@@ -7,12 +7,22 @@ import type { ReactionSummary } from "@/lib/reaction-contract";
 import { EmojiPicker, ReactionChips } from "./emoji-picker";
 import { InteractionPopover } from "./interaction-popover";
 import { ModalLayer } from "./modal-layer";
+import { PersonAvatar } from "./identity-avatar";
+import { validMentionSpans, type MentionSpan } from "@/lib/mentions";
 
-export function MessageBubble({ message, grouped, onReply, onReaction, onChange, onPin }: {
+function MessageText({ body, mentions = [] }: { body: string; mentions?: MentionSpan[] }) {
+  const text = (value: string) => messageTextParts(value).map((part, index) => part.href ? <a key={index} className="message-link" href={part.href} target="_blank" rel="noopener noreferrer" title="Opens in a new tab" aria-label={`${part.text} (opens in new tab)`}>{part.text}</a> : part.text);
+  if (!validMentionSpans(body, mentions) || !mentions.length) return <>{text(body)}</>;
+  const spans = [...mentions].sort((a, b) => a.start - b.start);
+  return <>{spans.map((span, index) => <span key={span.start}>{text(body.slice(index ? spans[index - 1].start + spans[index - 1].length : 0, span.start))}<span className="message-mention" title="Mentioned member">{span.label}</span></span>)}{text(body.slice(spans.at(-1)!.start + spans.at(-1)!.length))}</>;
+}
+
+export function MessageBubble({ message, grouped, onReply, onReaction, onChange, onPin, onLocate }: {
   message: Message; grouped?: boolean; onReply: (message: Message) => void;
   onReaction: (id: string, emoji: string, active: boolean) => Promise<void>;
   onChange: (id: string, body?: string, remove?: boolean) => Promise<void>;
   onPin?: (message: Message) => Promise<void>;
+  onLocate?: (id: string) => void;
 }) {
   const [panel, setPanel] = useState<"menu" | "emoji" | null>(null);
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
@@ -34,12 +44,12 @@ export function MessageBubble({ message, grouped, onReply, onReaction, onChange,
     finally { setBusy(false); }
   };
   const values: ReactionSummary[] = message.reactionSummary ?? [...new Set(message.reactions ?? [])].map((emoji) => ({ emoji, count: message.reactions!.filter((item) => item === emoji).length, mine: false, participants: [] }));
-  return <article id={`message-${message.id}`} className={`message-row ${message.mine ? "mine" : ""} ${grouped ? "is-grouped" : ""} ${message.deletedAt ? "message-deleted" : ""}`}
+  return <article id={`message-${message.id}`} tabIndex={-1} aria-label={`Message from ${message.author}`} className={`message-row ${message.mine ? "mine" : ""} ${grouped ? "is-grouped" : ""} ${message.deletedAt ? "message-deleted" : ""}`}
     onContextMenu={(event) => { if (message.deletedAt) return; event.preventDefault(); show("menu", event.currentTarget); }}
     onKeyDown={(event) => { if (!message.deletedAt && (event.key === "ContextMenu" || (event.shiftKey && event.key === "F10"))) { event.preventDefault(); show("menu", event.currentTarget); } }}>
-    {grouped ? <span className="message-avatar-spacer" aria-hidden="true" /> : <span className={`avatar avatar-${message.color} avatar-pattern`}>{message.initials}</span>}
+    {grouped ? <span className="message-avatar-spacer" aria-hidden="true" /> : <PersonAvatar seed={message.authorId ?? message.author} initials={message.initials} imageUrl={message.avatarUrl} />}
     <div className="message-column">
-      {!grouped ? <div className="message-author"><strong>{message.author}</strong><time>{message.time}</time></div> : null}
+      {!grouped ? <div className="message-author"><strong>{message.author}</strong><time dateTime={message.createdAt} title={message.createdAt ? new Date(message.createdAt).toLocaleString() : undefined}>{message.time}</time></div> : <time className="grouped-message-time" dateTime={message.createdAt} title={message.createdAt ? new Date(message.createdAt).toLocaleString() : undefined}>{message.time}</time>}
       <div className="message-body-wrap">
         <div className="message-bubble" onPointerDown={(event) => {
           if (event.pointerType !== "touch" || message.deletedAt || (event.target as HTMLElement).closest("button,a")) return;
@@ -47,9 +57,9 @@ export function MessageBubble({ message, grouped, onReply, onReaction, onChange,
           const element = event.currentTarget;
           press.current = setTimeout(() => { show("menu", element); }, 600);
         }} onPointerMove={(event) => { if (Math.hypot(event.clientX - start.current.x, event.clientY - start.current.y) > 8) cancelPress(); }} onPointerUp={cancelPress} onPointerCancel={cancelPress}>
-          {message.replyTo ? <blockquote>{message.replyTo}</blockquote> : null}
-          <p>{message.deletedAt ? message.body : messageTextParts(message.body).map((part, index) => part.href ? <a key={index} className="message-link" href={part.href} target="_blank" rel="noopener noreferrer" title="Opens in a new tab" aria-label={`${part.text} (opens in new tab)`}>{part.text}</a> : part.text)}</p>
-          {message.editedAt && !message.deletedAt ? <small className="message-edited">edited</small> : null}
+          {message.replyTo ? <blockquote>{message.replyToId && onLocate ? <button className="reply-source" onClick={() => onLocate(message.replyToId!)} aria-label={`Open reply source${message.replyAuthor ? ` from ${message.replyAuthor}` : ""}`}><strong>{message.replyAuthor ?? "Reply"}</strong><span>{message.replyTo}</span></button> : <><strong>{message.replyAuthor ?? "Reply"}</strong>{message.replyTo}</>}</blockquote> : null}
+          <p>{message.deletedAt ? message.body : <MessageText body={message.body} mentions={message.mentions} />}</p>
+          {message.editedAt && !message.deletedAt ? <small className="message-edited" title={`Edited ${new Date(message.editedAt).toLocaleString()}`}>edited</small> : null}
           {message.attachment ? <p className="message-attachment">{message.attachment.name} · {message.attachment.meta}</p> : null}
         </div>
         {!message.deletedAt ? <div className="message-hover-actions">

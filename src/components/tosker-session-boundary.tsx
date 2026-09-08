@@ -35,7 +35,7 @@ export async function ToskerSessionBoundary({
       subject: userId,
       displayName,
       usernameHint: clerkUser.username || emailName,
-      avatarUrl: clerkUser.imageUrl,
+      avatarUrl: clerkUser.hasImage ? clerkUser.imageUrl : null,
     });
   } catch {
     return <BootstrapFailure />;

@@ -44,7 +44,7 @@ try {
   await run("ms71-a", "set", "offline", "off");
   await run("ms71-a", "click", ".send-button");
   await until("ms71-a", "document.querySelector('.composer textarea').value===''", "retry acknowledgement");
-  for (const s of ["ms71-a", "ms71-b"]) await until(s, `Array.from(document.querySelectorAll('.message-row')).filter(e=>e.querySelector('.message-bubble > p')?.textContent==='MS714 recovery draft'&&e.querySelector('blockquote')?.textContent===${JSON.stringify(source.body)}).length===1`, "one durable reply to older source");
+  for (const s of ["ms71-a", "ms71-b"]) await until(s, `Array.from(document.querySelectorAll('.message-row')).filter(e=>e.querySelector('.message-bubble > p')?.textContent==='MS714 recovery draft'&&e.querySelector('.reply-source > span')?.textContent===${JSON.stringify(source.body)}).length===1`, "one durable reply to older source");
   console.log("PASS: failed older GET preserves window/draft, retry recovers; older reply survives Chat/Hall/reload, offline send retains draft/quote, retry delivers exactly once to A/B.");
 } finally {
   await run("ms71-a", "network", "unroute", route).catch(() => undefined);

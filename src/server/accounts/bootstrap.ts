@@ -68,6 +68,8 @@ export type CanonicalIdentity = {
     subrooms: Array<{ id: string; name: string; visibility: "everyone" | "selected" | "owners"; conversationId: string }>;
   }>;
   personalConversations: Array<{
+    userId: string;
+    avatarUrl: string | null;
     conversationId: string;
     slug: string;
     displayName: string;
@@ -181,6 +183,14 @@ export async function ensureToskerAccount(
       throw new Error("Unable to establish a Tosker profile.");
     }
 
+    // Only verified provider-owned photos are synchronized here. A future Tosker
+    // uploaded path is not overwritten by Clerk's generated initials image.
+    const providerPhoto = !profile.avatarUrl || /^https:\/\/(?:img\.clerk\.com|images\.clerk\.dev)\//.test(profile.avatarUrl);
+    if (identity.avatarUrl !== undefined && providerPhoto && profile.avatarUrl !== identity.avatarUrl) {
+      await tx.update(profiles).set({ avatarUrl: identity.avatarUrl }).where(eq(profiles.userId, user.id));
+      profile = { ...profile, avatarUrl: identity.avatarUrl };
+    }
+
     await tx
       .insert(conversations)
       .values({
@@ -262,7 +272,7 @@ export async function getWorkspaceNavigation(userId: string): Promise<Pick<Canon
     .where(and(eq(conversationParticipants.userId, account.userId), eq(conversations.kind, "personal")));
   const personalConversations = await Promise.all(personalRows.map(async ({ conversationId }) => {
     const [other] = await db
-      .select({ displayName: profiles.displayName, username: profiles.username, tid: users.tid, presenceStatus: profiles.presenceStatus, userId: users.id })
+      .select({ displayName: profiles.displayName, username: profiles.username, tid: users.tid, presenceStatus: profiles.presenceStatus, userId: users.id, avatarUrl: profiles.avatarUrl })
       .from(conversationParticipants)
       .innerJoin(users, eq(users.id, conversationParticipants.userId))
       .innerJoin(profiles, eq(profiles.userId, users.id))
@@ -274,7 +284,7 @@ export async function getWorkspaceNavigation(userId: string): Promise<Pick<Canon
       .leftJoin(connectionNicknames, and(eq(connectionNicknames.connectionId, connections.id), eq(connectionNicknames.userId, account.userId)))
       .where(and(eq(connections.status, "accepted"), or(and(eq(connections.requesterId, account.userId), eq(connections.addresseeId, other.userId)), and(eq(connections.addresseeId, account.userId), eq(connections.requesterId, other.userId)))))
       .limit(1);
-    return { conversationId, slug: `chat-${conversationId}`, displayName: other.displayName, username: other.username, tid: other.tid, nickname: relationship?.nickname ?? null, presenceStatus: other.presenceStatus };
+    return { conversationId, slug: `chat-${conversationId}`, displayName: other.displayName, username: other.username, tid: other.tid, nickname: relationship?.nickname ?? null, presenceStatus: other.presenceStatus, userId: other.userId, avatarUrl: other.avatarUrl };
   }));
 
   return {

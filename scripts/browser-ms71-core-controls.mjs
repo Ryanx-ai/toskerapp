@@ -31,7 +31,12 @@ async function main() {
         await run("open", `http://localhost:3000${path}${surface === "Hall" ? "/hall" : ""}`);
         await until("!!document.querySelector('.conversation-header')&&!document.querySelector('.chat-load-state,.hall-load-status')", `${name} ${surface} loaded`);
         const controls = await ev(`Array.from(document.querySelectorAll('.conversation-header button,.conversation-header a,.composer-wrap button,.row-options')).filter(${visible}).map(e=>e.getAttribute('aria-label')||e.textContent.trim())`);
-        for (const control of controls) assert(!/search|mute|mark unread|voice|video|calendar|attach|image|file|translate|gizmo|coming soon|prototype/i.test(control), `Unsupported core control: ${control}`);
+        for (const control of controls) assert(!/voice|video|calendar|attach|image|file|translate|gizmo|coming soon|prototype/i.test(control), `Unsupported core control: ${control}`);
+        // MS7.1.5 restored real scoped Search and viewer preferences; hidden no longer means complete.
+        await run("find", "role", "button", "click", "--name", "Search conversation", "--exact");
+        await until("!!document.querySelector('.conversation-search input')", "scoped search opens");
+        await run("press", "Escape");
+        await until("!document.querySelector('dialog[open]')", "search dismisses");
         assert.equal(await ev("document.documentElement.scrollWidth<=innerWidth+1"), true, `${name} ${surface} page overflow`);
         if (surface === "Chat") {
           const selector = await ev("Array.from(document.querySelectorAll('.message-row:not(.message-deleted)')).find(e=>e.querySelector('[aria-label=\"More message actions\"]'))?.id");

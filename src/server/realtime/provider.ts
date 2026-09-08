@@ -6,6 +6,7 @@ import { conversationChannel, userChannel, MESSAGE_CHANGED, USER_ACTIVITY } from
 import { eq } from "drizzle-orm";
 import { getDatabase } from "@/server/db/client";
 import { conversationParticipants } from "@/server/db/schema";
+import type { DeliveryTrace } from "@/lib/communication-performance";
 
 let client: Rest | undefined;
 
@@ -26,11 +27,11 @@ export async function revokeActorRealtime(userId: string) {
 }
 
 /** Best-effort acceleration AFTER Neon commits; delivery failure is not send failure. */
-export async function publishMessageChanged(conversationId: string) {
+export async function publishMessageChanged(conversationId: string, trace?: DeliveryTrace) {
   if (!process.env.ABLY_API_KEY) return;
   try {
     await getRealtimeServer().channels.get(conversationChannel(conversationId)).publish({
-      id: randomUUID(), name: MESSAGE_CHANGED, data: { version: 1 },
+      id: randomUUID(), name: MESSAGE_CHANGED, data: { version: 1, ...(trace ? { trace } : {}) },
     });
   } catch {
     console.warn("[realtime] Message signal unavailable; canonical reconciliation retained.");

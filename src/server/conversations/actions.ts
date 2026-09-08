@@ -57,14 +57,19 @@ export async function listMessagesAction(
   };
 }
 
-export async function sendMessageAction(input: { id: string; conversationId: string; body: string; replyToId?: string }) {
+export async function sendMessageAction(input: { id: string; conversationId: string; body: string; replyToId?: string; traceId?: string }) {
+  const started = performance.now();
   const actor = await requireCurrentActor();
+  const authenticated = performance.now();
   const body = input.body.trim();
   if (!/^[0-9a-f-]{36}$/i.test(input.id)) throw new Error("Invalid message id.");
   if (!body || body.length > 8_000) throw new Error("Enter a message up to 8,000 characters.");
   const db = getDatabase();
+  const transactionStarted = performance.now();
+  let authorized = transactionStarted;
   const created = await db.transaction(async (tx) => {
   await lockHallScope(tx, actor, input.conversationId);
+  authorized = performance.now();
   // A lost acknowledgement stays idempotent even if its source was later deleted.
   const [accepted] = await tx.select({ authorId: messages.authorId, conversationId: messages.conversationId, createdAt: messages.createdAt }).from(messages).where(eq(messages.id, input.id));
   if (accepted) {
@@ -102,9 +107,16 @@ export async function sendMessageAction(input: { id: string; conversationId: str
   }
   return created;
   });
+  const committed = performance.now(), committedAt = Date.now();
   revalidatePath("/app");
-  await Promise.all([publishMessageChanged(input.conversationId), publishConversationActivity(input.conversationId, "chat")]);
-  return { id: input.id, createdAt: created?.createdAt.toISOString() ?? null };
+  const publishing = performance.now();
+  const trace = input.traceId && /^[0-9a-f-]{36}$/i.test(input.traceId) ? { id: input.traceId, committedAt, publishedAt: Date.now() } : undefined;
+  await Promise.all([publishMessageChanged(input.conversationId, trace), publishConversationActivity(input.conversationId, "chat")]);
+  return { id: input.id, createdAt: created?.createdAt.toISOString() ?? null, timing: {
+    authMs: authenticated - started, authorizationMs: authorized - transactionStarted,
+    transactionMs: committed - transactionStarted, publishMs: performance.now() - publishing,
+    totalMs: performance.now() - started,
+  } };
 }
 
 export async function markConversationReadAction(conversationId: string, surface: "chat" | "hall" = "chat", throughMessageId?: string, activityIds: string[] = []) {

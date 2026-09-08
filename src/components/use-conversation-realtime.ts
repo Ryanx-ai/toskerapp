@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useEffectEvent, useRef, useState } from "react";
+import { communicationTiming, deliveryTrace } from "@/lib/communication-performance";
 import { conversationChannel, typingChannel, userChannel, MESSAGE_CHANGED, TYPING_CHANGED, TYPING_TTL, USER_ACTIVITY, ACTIVITY_REFRESH, CHAT_REFRESH, HALL_REFRESH, CONVERSATION_ACCESS_LOST } from "@/lib/realtime-contract";
 
 /** One workspace transport; demos never request a token or connect. */
@@ -70,10 +71,15 @@ export function useConversationRealtime(conversationId: string | undefined, user
         else peers.delete(message.clientId);
         updatePeers();
       }).catch(() => undefined);
-      const changed = () => { if (!disposed) onChange(); };
-      void channel?.subscribe(MESSAGE_CHANGED, changed).then(changed).catch(() => undefined);
+      const changed = (message?: { data?: { trace?: unknown } }) => {
+        if (disposed) return;
+        const trace = deliveryTrace(message?.data?.trace);
+        if (trace) communicationTiming("signal", { traceId: trace.id, commitToSignalMs: Date.now() - trace.committedAt, publishToSignalMs: Date.now() - trace.publishedAt });
+        onChange();
+      };
+      void channel?.subscribe(MESSAGE_CHANGED, changed).then(() => changed()).catch(() => undefined);
       // Attachment/re-attachment closes the fetch-before-subscribe race.
-      channel?.on("attached", changed);
+      channel?.on("attached", () => changed());
       realtime.connection.on((state) => {
         if (disposed) return;
         updateHealth();

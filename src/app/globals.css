@@ -1053,3 +1053,8 @@ h1,h2,h3 { font-family:var(--font-mermaid),Georgia,serif; font-weight:400; lette
 .hall-view-switch button:hover,.hall-view-switch button[aria-pressed="true"] { color:var(--text-primary); background:var(--surface-hover); }
 .hall-load-status { color:var(--text-secondary); font-size:13px; }
 .hall-object button:disabled { opacity:.45; cursor:default; }
+.history-page-controls { display:flex; justify-content:center; padding:10px 0; }
+.message-scroll { scroll-behavior:auto; }
+.history-latest { display:flex; justify-content:center; gap:8px; padding:4px 12px; }
+.history-latest button { display:inline-flex; align-items:center; gap:8px; }
+.history-latest .point-down { rotate:180deg; }

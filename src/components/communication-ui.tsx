@@ -11,7 +11,9 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import { changeOwnMessageAction, listMessagesAction, markConversationReadAction, sendMessageAction, setMessageReactionAction } from "@/server/conversations/actions";
+import { changeOwnMessageAction, markConversationReadAction, sendMessageAction, setMessageReactionAction } from "@/server/conversations/actions";
+import type { HistoryPage } from "@/server/conversations/history";
+import { fetchMessageHistory } from "@/lib/message-history";
 import { archiveHallNoteAction, restoreHallNoteAction, changeHallItemColorAction, createHallNoteAction, editHallNoteAction, listHallItemsAction, nukeHallNoteAction, pinMessageToHallAction, reorderHallItemAction, unpinHallItemAction } from "@/server/shared-state/actions";
 import {
   hallNotices,
@@ -27,6 +29,7 @@ import type { useConversationRealtime } from "./use-conversation-realtime";
 import { CHAT_REFRESH, HALL_REFRESH } from "@/lib/realtime-contract";
 import { acknowledgeDraft, chatDraftKey, chatDrafts, type DraftReply } from "@/lib/chat-drafts";
 import { groupMessages, messageDay, messageDayLabel } from "@/lib/message-presentation";
+import { communicationTiming } from "@/lib/communication-performance";
 import { EmojiPicker } from "./emoji-picker";
 import { listHallSnapshotAction } from "@/server/shared-state/actions";
 import { AttentionMark } from "./attention-mark";
@@ -255,6 +258,15 @@ function Composer({
   );
 }
 
+function displayMessages(persisted: HistoryPage["messages"]): Message[] {
+  return persisted.map((message) => ({ ...message,
+    initials: message.author.split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase(),
+    replyTo: message.replyTo ?? undefined,
+    time: new Date(message.createdAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
+    color: message.mine ? "gold" : "pink",
+  }));
+}
+
 export function ChatSurface({ conversation, realtime }: { conversation: Conversation; realtime: ReturnType<typeof useConversationRealtime> }) {
   const user = useCurrentToskerUser() ?? prototypeUser;
   const identity = useToskerIdentity();
@@ -275,7 +287,22 @@ export function ChatSurface({ conversation, realtime }: { conversation: Conversa
           ? conversation.messages
           : []
       : conversation.messages;
-  const [messages, setMessages] = useState(initial);
+  const [messages, setMessageState] = useState(initial);
+  const currentMessages = useRef<Message[]>(initial);
+  const setMessages = useCallback((update: (current: Message[]) => Message[]) => {
+    const next = update(currentMessages.current);
+    currentMessages.current = next;
+    setMessageState(next);
+  }, []);
+  const [olderCursor, setOlderCursor] = useState<string | null>(null);
+  const [historyView, setHistoryView] = useState(false);
+  const [newerAvailable, setNewerAvailable] = useState(false);
+  const [pageLoading, setPageLoading] = useState(false);
+  const [pageError, setPageError] = useState(false);
+  const historyMode = useRef(false);
+  const paging = useRef(false);
+  const historyEpoch = useRef(0);
+  const scrollAnchor = useRef<{ id?: string; top?: number; latest?: boolean } | null>(null);
   const [loaded, setLoaded] = useState(!conversation.databaseId);
   const [fetchError, setFetchError] = useState(false);
   const [messageError, setMessageError] = useState<string | null>(null);
@@ -302,41 +329,40 @@ export function ChatSurface({ conversation, realtime }: { conversation: Conversa
       return (Number.isNaN(aTime) ? 0 : aTime) - (Number.isNaN(bTime) ? 0 : bTime) || a.id.localeCompare(b.id);
     });
   }, []);
+  const acknowledgeVisible = useCallback(() => {
+    requestAnimationFrame(() => {
+      if (!conversation.databaseId || !alive.current || document.hidden || historyMode.current || !nearBottom.current) return;
+      const latest = currentMessages.current.at(-1)?.id;
+      if (!latest || latest === chatDrafts.get(draftKey).pending?.id || readThrough.current === latest) return;
+      readThrough.current = latest;
+      void markConversationReadAction(conversation.databaseId, "chat", latest).catch(() => { if (readThrough.current === latest) readThrough.current = null; });
+    });
+  }, [conversation.databaseId, draftKey]);
   const loadPersisted = useCallback(async () => {
     if (!conversation.databaseId || document.hidden) return;
-    if (loadingMessages.current) { pendingMessages.current = true; return; }
+    if (loadingMessages.current || paging.current) { pendingMessages.current = true; return; }
     loadingMessages.current = true;
     try {
     do {
     pendingMessages.current = false;
-    let page = await listMessagesAction(conversation.databaseId);
+    const epoch = historyEpoch.current;
+    const fetchStarted = performance.now();
+    communicationTiming("read-start");
+    const retainedIds = currentMessages.current.map((message) => message.id).filter((id) => id !== chatDrafts.get(draftKey).pending?.id).slice(0, 200);
+    const retainingHistory = historyMode.current && retainedIds.length > 0;
+    let page = await fetchMessageHistory(conversation.databaseId, retainingHistory ? { ids: retainedIds } : {});
     const persisted = [...page.messages];
-    // Catch gaps larger than one page after a long disconnection. Keep a bounded
-    // recent window if more than 500 messages arrived; never show a false gap.
+    // Recover a multi-page offline gap without an indefinitely growing DOM.
     let pages = 1;
-    while (lastCanonicalId.current && !persisted.some((message) => message.id === lastCanonicalId.current) && page.nextCursor && pages < 10 && alive.current && !document.hidden) {
-      page = await listMessagesAction(conversation.databaseId, page.nextCursor);
+    while (!retainingHistory && lastCanonicalId.current && !persisted.some((message) => message.id === lastCanonicalId.current) && page.nextCursor && pages < 4 && alive.current && !document.hidden) {
+      page = await fetchMessageHistory(conversation.databaseId, { before: page.nextCursor.id });
       persisted.unshift(...page.messages); pages++;
     }
     const replaceWindow = Boolean(lastCanonicalId.current && !persisted.some((message) => message.id === lastCanonicalId.current));
-    if (!alive.current || document.hidden) return;
-    const mapped = persisted.map((message) => ({
-      id: message.id,
-      authorId: message.authorId,
-      createdAt: message.createdAt,
-      author: message.author,
-      initials: message.author.split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase(),
-      body: message.body,
-      reactionSummary: message.reactionSummary,
-      editedAt: message.editedAt,
-      deletedAt: message.deletedAt,
-      replyToId: message.replyToId,
-      replyTo: message.replyTo ?? undefined,
-      time: new Date(message.createdAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
-      color: message.mine ? "gold" : "pink",
-      mine: message.mine,
-    } satisfies Message));
-    lastCanonicalId.current = persisted.at(-1)?.id ?? null;
+    communicationTiming("read-returned", { durationMs: performance.now() - fetchStarted, rows: persisted.length });
+    if (!alive.current || document.hidden || epoch !== historyEpoch.current) return;
+    const mapped = displayMessages(persisted);
+    if (!retainingHistory) lastCanonicalId.current = persisted.at(-1)?.id ?? null;
     setLoaded(true);
     setFetchError(false);
     const pendingId = chatDrafts.get(draftKey).pending?.id;
@@ -344,18 +370,56 @@ export function ChatSurface({ conversation, realtime }: { conversation: Conversa
       chatDrafts.update(draftKey, (current) => acknowledgeDraft(current, pendingId));
       setMessageError(null);
     }
-    setMessages((current) => mergePersisted(replaceWindow ? current.filter((message) => message.id === pendingId) : current, mapped));
-    setMessageError((current) => current === "Messages couldn't be loaded. Try again." ? null : current);
-    const latest = persisted.at(-1)?.id ?? "empty";
-    if (readThrough.current !== latest) {
-      if (persisted.length) await markConversationReadAction(conversation.databaseId, "chat", persisted.at(-1)!.id);
-      readThrough.current = latest;
+    const current = currentMessages.current;
+    const merged = mergePersisted(retainingHistory || replaceWindow ? current.filter((message) => message.id === pendingId) : current, mapped);
+    const next = merged.slice(-200);
+    if (!retainingHistory) {
+      if (!current.length || replaceWindow) setOlderCursor(page.nextCursor?.id ?? null);
+      if (merged.length > 200) setOlderCursor(next[0].id);
     }
+    setNewerAvailable(Boolean(page.latest && page.latest.id !== next.at(-1)?.id));
+    setMessages(() => next);
+    setMessageError((current) => current === "Messages couldn't be loaded. Try again." ? null : current);
+    acknowledgeVisible();
     } while (pendingMessages.current && alive.current && !document.hidden);
-    } finally { loadingMessages.current = false; }
-  }, [conversation.databaseId, draftKey, mergePersisted]);
+    } finally {
+      loadingMessages.current = false;
+      if (pendingMessages.current && alive.current && !paging.current) {
+        pendingMessages.current = false;
+        window.setTimeout(() => { if (alive.current) window.dispatchEvent(new Event(CHAT_REFRESH)); }, 100);
+      }
+    }
+  }, [conversation.databaseId, draftKey, mergePersisted, setMessages, acknowledgeVisible]);
+  const navigateHistory = useCallback(async (direction: "older" | "newer" | "latest", cursor?: string) => {
+    if (!conversation.databaseId || paging.current) return false;
+    paging.current = true; setPageLoading(true); setPageError(false);
+    const epoch = ++historyEpoch.current;
+    const area = scrollRef.current;
+    const anchor = area && Array.from(area.querySelectorAll<HTMLElement>(".message-row")).find((row) => row.getBoundingClientRect().bottom > area.getBoundingClientRect().top);
+    const position = anchor ? { id: anchor.id, top: anchor.getBoundingClientRect().top } : {};
+    try {
+      const page = await fetchMessageHistory(conversation.databaseId, direction === "older" ? { before: cursor } : direction === "newer" ? { after: cursor } : {});
+      if (!alive.current || epoch !== historyEpoch.current) return false;
+      const mapped = displayMessages(page.messages);
+      const merged = direction === "latest" ? mapped : mergePersisted(currentMessages.current, mapped);
+      const next = direction === "older" ? merged.slice(0, 200) : merged.slice(-200);
+      historyMode.current = direction !== "latest";
+      setHistoryView(historyMode.current);
+      nearBottom.current = direction === "latest";
+      scrollAnchor.current = direction === "latest" ? { latest: true } : position;
+      setMessages(() => next);
+      if (direction === "older" || direction === "latest") setOlderCursor(page.nextCursor?.id ?? null);
+      else if (merged.length > 200) setOlderCursor(next[0]?.id ?? null);
+      setNewerAvailable(Boolean(page.latest && page.latest.id !== next.at(-1)?.id));
+      lastCanonicalId.current = next.at(-1)?.id ?? null;
+      setLoaded(true); setFetchError(false);
+      acknowledgeVisible();
+      return true;
+    } catch { if (alive.current) setPageError(true); return false; }
+    finally { paging.current = false; if (alive.current) { setPageLoading(false); window.dispatchEvent(new Event(CHAT_REFRESH)); } }
+  }, [conversation.databaseId, mergePersisted, setMessages, acknowledgeVisible]);
   const { typingCount, connected, sendTyping } = realtime;
-  const lastMessageId = messages.at(-1)?.id;
+  useEffect(() => { if (loaded) communicationTiming("render", { rows: messages.length }); }, [messages, loaded]);
   useEffect(() => {
     if (!conversation.databaseId) return;
     alive.current = true;
@@ -371,11 +435,18 @@ export function ChatSurface({ conversation, realtime }: { conversation: Conversa
     const area = scrollRef.current;
     if (area) area.scrollTop = area.scrollHeight;
   }, [conversation.slug]);
-  useEffect(() => {
+  useLayoutEffect(() => {
     const area = scrollRef.current;
-    if (area && nearBottom.current)
-      area.scrollTo({ top: area.scrollHeight, behavior: "smooth" });
-  }, [lastMessageId]);
+    if (!area) return;
+    const anchor = scrollAnchor.current;
+    if (anchor) {
+      const element = anchor.id ? document.getElementById(anchor.id) : null;
+      if (anchor.latest) area.scrollTop = area.scrollHeight;
+      else if (element && anchor.top !== undefined) area.scrollTop += element.getBoundingClientRect().top - anchor.top;
+      else area.scrollTop = 0;
+      scrollAnchor.current = null;
+    } else if (nearBottom.current && !historyMode.current) area.scrollTop = area.scrollHeight;
+  }, [messages]);
   const persist = (message: Message) => {
     if (conversation.kind === "my-room")
       prototypeStore.addSandboxMessage(message);
@@ -385,6 +456,10 @@ export function ChatSurface({ conversation, realtime }: { conversation: Conversa
       prototypeStore.addRoomMessage(conversation.slug, message);
   };
   const send = async (body: string) => {
+    if (historyMode.current && !await navigateHistory("latest")) {
+      setMessageError("Latest messages couldn't be loaded. Your draft is still here.");
+      return false;
+    }
     const previous = chatDrafts.get(draftKey).pending;
     const id = previous?.body === body && previous.replyToId === reply?.id ? previous.id : crypto.randomUUID();
     chatDrafts.update(draftKey, (current) => ({ ...current, pending: { id, body, replyToId: reply?.id } }));
@@ -410,7 +485,10 @@ export function ChatSurface({ conversation, realtime }: { conversation: Conversa
       return true;
     }
     try {
-      const saved = await sendMessageAction({ id: message.id, conversationId: conversation.databaseId, body, replyToId: reply?.id });
+      const traceId = crypto.randomUUID(), started = performance.now();
+      communicationTiming("send-start", { traceId });
+      const saved = await sendMessageAction({ id: message.id, conversationId: conversation.databaseId, body, replyToId: reply?.id, traceId });
+      communicationTiming("send-returned", { traceId, durationMs: performance.now() - started, ...saved.timing });
       chatDrafts.update(draftKey, (current) => acknowledgeDraft(current, id));
       if (saved.createdAt) setMessages((current) => mergePersisted(current, current.filter((item) => item.id === message.id).map((item) => ({ ...item, createdAt: saved.createdAt! }))));
       return true;
@@ -449,8 +527,14 @@ export function ChatSurface({ conversation, realtime }: { conversation: Conversa
           const area = event.currentTarget;
           nearBottom.current =
             area.scrollHeight - area.scrollTop - area.clientHeight < 80;
+          if (!paging.current && !nearBottom.current && !historyMode.current && conversation.databaseId) {
+            historyMode.current = true; historyEpoch.current++; setHistoryView(true);
+          }
+          if (nearBottom.current) acknowledgeVisible();
         }}
       >
+        {conversation.databaseId && olderCursor ? <div className="history-page-controls"><button className="quiet-action" disabled={pageLoading} onClick={() => void navigateHistory("older", olderCursor)}>{pageLoading ? "Loading messages…" : "Older messages"}</button></div> : null}
+        {pageError ? <p className="composer-error" role="alert">History couldn’t be loaded. Your place is saved; try the history control again.</p> : null}
         {messages.length ? (
           <>
             {messages.map((message, index) => {
@@ -505,6 +589,7 @@ export function ChatSurface({ conversation, realtime }: { conversation: Conversa
           </div>
         )}
       </div>
+      {historyView ? <div className="history-latest"><button className="quiet-action" disabled={pageLoading} onClick={() => void navigateHistory("latest")}>{newerAvailable ? "New messages · Latest" : "Latest messages"}<ArrowUp size={14} className="point-down" aria-hidden="true" /></button>{newerAvailable ? <button className="quiet-action" disabled={pageLoading} onClick={() => void navigateHistory("newer", messages.at(-1)?.id)}>Newer messages</button> : null}</div> : null}
       <Composer
         value={draft.body}
         onValue={(body) => chatDrafts.update(draftKey, (current) => ({ ...current, body }))}

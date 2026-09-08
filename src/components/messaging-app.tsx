@@ -5,7 +5,7 @@ import { ACTIVITY_REFRESH, CONVERSATION_ACCESS_LOST } from "@/lib/realtime-contr
 import { notificationHref } from "@/lib/notification-href";
 import { deriveAttention } from "@/lib/attention";
 import { AttentionMark } from "./attention-mark";
-import { refreshWorkspaceNavigationAction } from "@/server/accounts/actions";
+import type { refreshWorkspaceNavigationAction } from "@/server/accounts/actions";
 import { acknowledgeFriendRequestsAction } from "@/server/connections/actions";
 import { workspaceSnapshot } from "./workspace-snapshot";
 /* eslint-disable react/no-unescaped-entities */
@@ -32,7 +32,7 @@ import { ToskerIdentityProvider, useCurrentToskerUser, useToskerIdentity } from 
 import { createRoomAction, createRoomInviteAction, createSubroomAction, findRoomMembersAction } from "@/server/rooms/actions";
 import { findPeopleAction, startPersonalConversationAction } from "@/server/conversations/actions";
 import { acceptConnectionAction, listConnectionsAction, requestConnectionAction, removeConnectionNicknameAction, setConnectionNicknameAction } from "@/server/connections/actions";
-import { listNotificationsAction } from "@/server/shared-state/actions";
+import type { listNotificationsAction } from "@/server/shared-state/actions";
 import {
   ChatSurface,
   HallSurface,
@@ -1359,7 +1359,10 @@ export function MessagingApp({
       pending = false;
       lastRefresh = Date.now();
       inFlight = true;
-      const [next, nextNavigation] = await Promise.all([listNotificationsAction().catch(() => null), refreshWorkspaceNavigationAction().catch(() => null)]);
+      const snapshot = await fetch("/api/workspace", { credentials: "same-origin", cache: "no-store", signal: AbortSignal.timeout(15000) })
+        .then(async (response) => response.ok ? await response.json() as { activity: Awaited<ReturnType<typeof listNotificationsAction>>; navigation: Awaited<ReturnType<typeof refreshWorkspaceNavigationAction>> } : null)
+        .catch(() => null);
+      const next = snapshot?.activity, nextNavigation = snapshot?.navigation;
       inFlight = false;
       if (pending && active) pendingTimer = window.setTimeout(refresh, 100);
       if (!next) return;

@@ -12,7 +12,7 @@ import {
   useSyncExternalStore,
 } from "react";
 import { changeOwnMessageAction, listMessagesAction, markConversationReadAction, sendMessageAction, setMessageReactionAction } from "@/server/conversations/actions";
-import { archiveHallNoteAction, changeHallItemColorAction, createHallNoteAction, editHallNoteAction, listHallItemsAction, nukeHallNoteAction, pinMessageToHallAction, reorderHallItemAction, unpinHallItemAction } from "@/server/shared-state/actions";
+import { archiveHallNoteAction, restoreHallNoteAction, changeHallItemColorAction, createHallNoteAction, editHallNoteAction, listHallItemsAction, nukeHallNoteAction, pinMessageToHallAction, reorderHallItemAction, unpinHallItemAction } from "@/server/shared-state/actions";
 import {
   hallNotices,
   type Conversation,
@@ -524,17 +524,9 @@ export function ChatSurface({ conversation, realtime }: { conversation: Conversa
 }
 
 function HallCard({ notice }: { notice: (typeof hallNotices)[number] }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  useDismissLayer(open, () => setOpen(false), ref);
   return (
     <article
       className={`notice-card notice-${notice.accent}`}
-      onContextMenu={(event) => {
-        event.preventDefault();
-        openLayer();
-        setOpen(true);
-      }}
     >
       <span className="notice-icon">{notice.icon}</span>
       <div>
@@ -545,23 +537,6 @@ function HallCard({ notice }: { notice: (typeof hallNotices)[number] }) {
           {notice.author} · {notice.time}
         </footer>
       </div>
-      <button
-        className="hall-card-more"
-        onClick={() => {
-          openLayer();
-          setOpen(true);
-        }}
-        aria-label={`Actions for ${notice.title}`}
-      >
-        <MoreHorizontal size={15} />
-      </button>
-      {open ? (
-        <div ref={ref} className="context-menu hall-context">
-          <button onClick={() => { navigator.clipboard?.writeText(notice.title); setOpen(false); }}>
-            Copy title
-          </button>
-        </div>
-      ) : null}
     </article>
   );
 }
@@ -573,6 +548,8 @@ type HallSurfaceItem = {
   body: string;
   author: string;
   authorId?: string;
+  canModerate?: boolean;
+  archived?: boolean;
   createdAt?: string;
   time?: string;
   color?: string;
@@ -593,6 +570,7 @@ function PersistentHallCard({
   onColor,
   onReorder,
   onArchive,
+  onRestore,
   onNuke,
   onUnpin,
   onChanged,
@@ -603,13 +581,18 @@ function PersistentHallCard({
   onDragEnd,
   onDragOver,
   onDrop,
+  busy,
+  canEarlier,
+  canLater,
+  mutationError,
 }: {
   item: HallSurfaceItem;
   conversation: Conversation;
   onColor: (color: string) => void;
   onReorder: (direction: "left" | "right") => void;
-  onArchive: () => void;
-  onNuke: () => void;
+  onArchive?: () => void;
+  onRestore?: () => void;
+  onNuke?: () => Promise<boolean>;
   onUnpin: () => void;
   onChanged: () => Promise<void>;
   onEdit?: () => void;
@@ -619,43 +602,51 @@ function PersistentHallCard({
   onDragEnd: () => void;
   onDragOver: (event: React.DragEvent) => void;
   onDrop: (event: React.DragEvent) => void;
+  busy: boolean;
+  canEarlier: boolean;
+  canLater: boolean;
+  mutationError: string;
 }) {
   const [open, setOpen] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [colorsOpen, setColorsOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  useDismissLayer(open || confirming, () => { setOpen(false); setConfirming(false); setColorsOpen(false); }, ref);
+  useDismissLayer(open, () => { setOpen(false); setColorsOpen(false); }, ref);
   const pinned = item.kind === "pinned_message" || item.kind === "pinned-message";
+  const archived = Boolean(item.archivedAt || item.archived);
   return (
-    <article data-hall-id={item.id} onDragOver={onDragOver} onDrop={onDrop} className={`notice-card hall-object hall-local-${pinned ? "pinned-message" : "note"} hall-color-${item.color ?? "neutral"} ${dragging ? "hall-dragging" : ""} ${dropTarget ? "hall-drop-target" : ""}`}>
+    <article data-hall-id={item.id} aria-busy={busy} onDragOver={archived ? undefined : onDragOver} onDrop={archived ? undefined : onDrop} className={`notice-card hall-object hall-local-${pinned ? "pinned-message" : "note"} hall-color-${item.color ?? "neutral"} ${dragging ? "hall-dragging" : ""} ${dropTarget ? "hall-drop-target" : ""}`}>
       <span className="notice-icon">{pinned ? "⌖" : "✎"}</span>
       <div>
         {pinned ? <small>Pinned from Chat</small> : null}
         <h3>{item.title ?? "Pinned from Chat"}</h3>
         <p>{item.body}</p>
+        <footer>{item.author}</footer>
       </div>
-      <button className="hall-drag-handle" draggable onDragStart={onDragStart} onDragEnd={onDragEnd} aria-label={`Reorder ${item.title ?? "pinned message"}; use arrow keys to move`} title="Drag to reorder · Arrow keys to move" onKeyDown={(event) => {
-        if (["ArrowLeft", "ArrowUp", "ArrowRight", "ArrowDown"].includes(event.key)) { event.preventDefault(); onReorder(event.key === "ArrowLeft" || event.key === "ArrowUp" ? "left" : "right"); }
-      }}><GripVertical size={16} /></button>
-      {!pinned && conversation.databaseId ? <HallNoteInteractions conversationId={conversation.databaseId} item={item} onChanged={onChanged} /> : null}
-      <button className="hall-card-more" onClick={() => { openLayer(); setOpen((value) => !value); }} aria-label={`Actions for ${item.title ?? "Pinned message"}`} aria-expanded={open}>
+      {!archived ? <button className="hall-drag-handle" disabled={busy || (!canEarlier && !canLater)} draggable={!busy} onDragStart={onDragStart} onDragEnd={onDragEnd} aria-label={`Reorder ${item.title ?? "pinned message"}; use arrow keys to move`} title="Drag to reorder · Arrow keys to move" onKeyDown={(event) => {
+        if (["ArrowLeft", "ArrowUp", "ArrowRight", "ArrowDown"].includes(event.key)) { event.preventDefault(); const earlier = event.key === "ArrowLeft" || event.key === "ArrowUp"; if (earlier ? canEarlier : canLater) onReorder(earlier ? "left" : "right"); }
+      }}><GripVertical size={16} /></button> : null}
+      {!archived && !pinned && conversation.databaseId ? <HallNoteInteractions conversationId={conversation.databaseId} item={item} onChanged={onChanged} /> : null}
+      {!archived || onRestore || onNuke ? <button className="hall-card-more" disabled={busy} onClick={() => { openLayer(); setOpen((value) => !value); }} aria-label={`Actions for ${item.title ?? "Pinned message"}`} aria-expanded={open}>
         <MoreHorizontal size={15} />
-      </button>
+      </button> : null}
       {open ? (
         <div ref={ref} className="context-menu hall-context" role="menu">
-          {pinned ? <button onClick={onUnpin}>Unpin from Hall</button> : <>
+          {pinned ? <button disabled={busy} onClick={() => { setOpen(false); onUnpin(); }}>Unpin from Hall</button> : <>
+            {archived ? onRestore ? <button disabled={busy} onClick={() => { setOpen(false); onRestore(); }}>Restore</button> : null : <>
             {onEdit ? <button onClick={() => { setOpen(false); onEdit(); }}>Edit</button> : null}
             <button onClick={() => setColorsOpen((value) => !value)} aria-expanded={colorsOpen}>Change color</button>
-            {colorsOpen ? <div className="hall-color-options" role="group" aria-label="Hall note colors">{hallColors.map((color) => <button key={color} className={`hall-color-choice hall-color-${color}`} aria-label={color} onClick={() => { onColor(color); setOpen(false); }}>{color}</button>)}</div> : null}
-            <button onClick={onArchive}>Archive</button>
-            <button className="danger" onClick={() => setConfirming(true)}>Nuke</button>
+            {colorsOpen ? <div className="hall-color-options" role="group" aria-label="Hall note colors">{hallColors.map((color) => <button key={color} className={`hall-color-choice hall-color-${color}`} aria-label={color} aria-pressed={(item.color ?? "neutral") === color} disabled={busy} onClick={() => { onColor(color); setOpen(false); }}>{color}</button>)}</div> : null}
+            {onArchive ? <button disabled={busy} onClick={() => { setOpen(false); onArchive(); }}>Archive</button> : null}
+            </>}
+            {onNuke ? <button className="danger" disabled={busy} onClick={() => { setOpen(false); setConfirming(true); }}>Nuke</button> : null}
           </>}
-          <button onClick={() => { onReorder("left"); setOpen(false); }}>Move earlier</button>
-          <button onClick={() => { onReorder("right"); setOpen(false); }}>Move later</button>
-          {pinned && item.sourceMessageId ? <Link className="context-menu-link" href={`${baseHref(conversation)}#message-${item.sourceMessageId}`}>Open in Chat</Link> : null}
+          {!archived ? <><button disabled={busy || !canEarlier} onClick={() => { onReorder("left"); setOpen(false); }}>Move earlier</button>
+          <button disabled={busy || !canLater} onClick={() => { onReorder("right"); setOpen(false); }}>Move later</button></> : null}
+          {/* Source navigation stays hidden until bounded history can resolve any pinned message, not just the latest page. */}
         </div>
       ) : null}
-      {confirming ? <div ref={ref} className="confirm-menu" role="alertdialog" aria-label="Nuke note confirmation"><strong>Nuke this note?</strong><p>This cannot be undone.</p><div><button onClick={() => setConfirming(false)}>Cancel</button><button className="danger" onClick={onNuke}>Nuke</button></div></div> : null}
+      {confirming && onNuke ? <ModalLayer onClose={() => { if (!busy) setConfirming(false); }}><section className="creation-panel hall-nuke-panel" role="alertdialog" aria-label="Nuke note confirmation"><h2>Nuke this note?</h2><p>The note, comments and reactions will be permanently deleted. This cannot be undone.</p><div className="overlay-actions"><button disabled={busy} onClick={() => setConfirming(false)}>Cancel</button><button className="danger" disabled={busy} onClick={async () => { if (await onNuke()) setConfirming(false); }}>{busy ? "Deleting…" : "Nuke"}</button></div>{mutationError ? <p role="alert">{mutationError}</p> : null}</section></ModalLayer> : null}
     </article>
   );
 }
@@ -681,6 +672,11 @@ export function HallSurface({
   const [noteTitle, setNoteTitle] = useState("");
   const [noteBody, setNoteBody] = useState("");
   const [persistentItems, setPersistentItems] = useState<HallSurfaceItem[]>([]);
+  const [archivedView, setArchivedView] = useState(false);
+  const currentHallView = useRef(false);
+  const [loaded, setLoaded] = useState(!conversation.databaseId);
+  const [operationBusy, setOperationBusy] = useState(false);
+  const draftNoteId = useRef<string | null>(null);
   const [hallError, setHallError] = useState("");
   const [saving, setSaving] = useState(false);
   const [draggingId, setDraggingId] = useState<string | null>(null);
@@ -688,8 +684,8 @@ export function HallSurface({
   const [orderNotice, setOrderNotice] = useState("");
   const mutating = useRef(false);
   const noteRef = useRef<HTMLElement>(null);
-  useDismissLayer(creating, () => setCreating(false), noteRef);
-  const localItems = room?.hallItems ?? [];
+  useDismissLayer(creating, () => { if (!saving) setCreating(false); }, noteRef);
+  const localItems = (room?.hallItems ?? []).filter((item) => Boolean(item.archived) === archivedView);
   useEffect(() => {
     if (!conversation.databaseId) return;
     let active = true;
@@ -702,10 +698,11 @@ export function HallSurface({
       pending = false;
       inFlight = true;
       try {
-        const snapshot = await listHallSnapshotAction(conversation.databaseId!);
+        const snapshot = await listHallSnapshotAction(conversation.databaseId!, archivedView);
         if (active && !document.hidden && !mutating.current) {
           setPersistentItems(snapshot.items);
-          await markConversationReadAction(conversation.databaseId!, "hall", undefined, snapshot.activityIds);
+          setLoaded(true); setHallError("");
+          if (!archivedView) await markConversationReadAction(conversation.databaseId!, "hall", undefined, snapshot.activityIds);
         }
       } catch { if (active) setHallError("Hall couldn't be loaded."); }
       finally { inFlight = false; if (pending && active) pendingTimer = window.setTimeout(refresh, 100); }
@@ -715,20 +712,23 @@ export function HallSurface({
     document.addEventListener("visibilitychange", refresh);
     window.addEventListener(HALL_REFRESH, refresh);
     return () => { active = false; window.clearInterval(timer); window.clearTimeout(pendingTimer); document.removeEventListener("visibilitychange", refresh); window.removeEventListener(HALL_REFRESH, refresh); };
-  }, [conversation.databaseId, connected]);
+  }, [conversation.databaseId, connected, archivedView]);
   const runMutation = async (operation: () => Promise<void>) => {
-    if (mutating.current) return;
+    if (mutating.current) return false;
     mutating.current = true;
+    setOperationBusy(true);
     setHallError("");
-    try { await operation(); await refreshPersistentItems(); }
-    catch { setHallError("That change couldn't be saved. Please try again."); }
-    finally { mutating.current = false; window.dispatchEvent(new Event(HALL_REFRESH)); }
+    let changed = false;
+    try { await operation(); changed = true; await refreshPersistentItems(); }
+    catch { setHallError(changed ? "Change saved. Refresh Hall to see it." : "That change couldn't be saved. Please try again."); }
+    finally { mutating.current = false; setOperationBusy(false); window.dispatchEvent(new Event(HALL_REFRESH)); }
+    return changed;
   };
   const reorder = (itemId: string, direction?: "left" | "right", dropId?: string) => {
     const databaseId = conversation.databaseId;
     const from = displayedItems.findIndex((item) => item.id === itemId);
     const to = dropId ? displayedItems.findIndex((item) => item.id === dropId) : from + (direction === "left" ? -1 : 1);
-    if (from < 0 || to < 0 || to >= displayedItems.length || to === from || mutating.current) return;
+    if (archivedView || from < 0 || to < 0 || to >= displayedItems.length || to === from || mutating.current) return;
     if (databaseId) {
       const previous = persistentItems;
       const next = [...previous];
@@ -748,11 +748,16 @@ export function HallSurface({
     const databaseId = conversation.databaseId;
     if (!databaseId) return;
     try {
-      setPersistentItems(await listHallItemsAction(databaseId));
-    } catch {
+      const next = await listHallItemsAction(databaseId, archivedView);
+      if (currentHallView.current !== archivedView) return;
+      setPersistentItems(next);
+      setLoaded(true); setHallError("");
+    } catch (error) {
+      if (currentHallView.current !== archivedView) return;
       setHallError("Hall couldn't be refreshed.");
+      throw error;
     }
-  }, [conversation.databaseId]);
+  }, [conversation.databaseId, archivedView, setPersistentItems, setLoaded, setHallError]);
   const contextual =
     conversation.kind === "my-room"
       ? {
@@ -775,15 +780,18 @@ export function HallSurface({
     >
       <header>
         <div>
-          <h2>{contextual.title}</h2>
+          <h2>{archivedView ? "Archived notes" : contextual.title}</h2>
           {conversation.kind === "room" && contextual.support ? <p>{contextual.support}</p> : null}
         </div>
+        <div className="hall-view-switch" role="group" aria-label="Hall view">{[false, true].map((archived) => <button key={String(archived)} aria-pressed={archivedView === archived} disabled={operationBusy || saving} onClick={() => { if (archivedView === archived) return; currentHallView.current = archived; setArchivedView(archived); setPersistentItems([]); setLoaded(!conversation.databaseId); setHallError(""); }}>{archived ? "Archived" : "Board"}</button>)}</div>
       </header>
+      {!loaded && !hallError ? <p className="hall-load-status" role="status">Loading Hall…</p> : null}
+      {loaded && archivedView && !displayedItems.length ? <p role="status">No archived notes.</p> : null}
       <div className="notice-list">
-          <button className="new-hall-card" onClick={() => { setEditingItem(null); setNoteTitle(""); setNoteBody(""); setCreating(true); }}>
+          {!archivedView ? <button className="new-hall-card" disabled={operationBusy} onClick={() => { draftNoteId.current = null; setEditingItem(null); setNoteTitle(""); setNoteBody(""); setHallError(""); setCreating(true); }}>
             <Plus size={16} /> New Note
-          </button>
-          {displayedItems.map((item) => <PersistentHallCard key={item.id} item={item} conversation={conversation}
+          </button> : null}
+          {displayedItems.map((item, index) => <PersistentHallCard key={item.id} item={item} conversation={conversation} busy={operationBusy} mutationError={hallError} canEarlier={index > 0} canLater={index < displayedItems.length - 1}
             onChanged={refreshPersistentItems} dragging={draggingId === item.id} dropTarget={targetId === item.id}
             onEdit={item.kind === "note" && (("authorId" in item && item.authorId === currentUser?.userId) || !conversation.databaseId) ? () => { setEditingItem(item.id); setNoteTitle(item.title ?? ""); setNoteBody(item.body); setCreating(true); } : undefined}
             onDragStart={(event) => {
@@ -797,10 +805,11 @@ export function HallSurface({
             onDrop={(event) => { event.preventDefault(); if (draggingId && event.dataTransfer.getData("application/x-tosker-hall") === draggingId) reorder(draggingId, undefined, item.id); setDraggingId(null); setTargetId(null); }}
             onColor={(color) => { const databaseId = conversation.databaseId; if (databaseId) void runMutation(() => changeHallItemColorAction({ conversationId: databaseId, itemId: item.id, color })); else prototypeStore.updateHallItem(conversation.slug, item.id, { color: color as "neutral" | "ivory" | "gold" | "pink" | "green" | "blue" }); }}
             onReorder={(direction) => reorder(item.id, direction)}
-            onArchive={() => { const databaseId = conversation.databaseId; if (databaseId) void runMutation(() => archiveHallNoteAction({ conversationId: databaseId, itemId: item.id })); else prototypeStore.archiveHallItem(conversation.slug, item.id); }}
-            onNuke={() => { const databaseId = conversation.databaseId; if (databaseId) void runMutation(() => nukeHallNoteAction({ conversationId: databaseId, itemId: item.id })); else prototypeStore.nukeHallItem(conversation.slug, item.id); }}
+            onArchive={!archivedView && (!conversation.databaseId || ("canModerate" in item && item.canModerate)) ? () => { const databaseId = conversation.databaseId; if (databaseId) void runMutation(() => archiveHallNoteAction({ conversationId: databaseId, itemId: item.id })); else prototypeStore.archiveHallItem(conversation.slug, item.id); } : undefined}
+            onRestore={archivedView && (!conversation.databaseId || ("canModerate" in item && item.canModerate)) ? () => { const databaseId = conversation.databaseId; if (databaseId) void runMutation(() => restoreHallNoteAction({ conversationId: databaseId, itemId: item.id })); else prototypeStore.updateHallItem(conversation.slug, item.id, { archived: false }); } : undefined}
+            onNuke={!conversation.databaseId || ("canModerate" in item && item.canModerate) ? async () => { const databaseId = conversation.databaseId; if (databaseId) return runMutation(() => nukeHallNoteAction({ conversationId: databaseId, itemId: item.id })); prototypeStore.nukeHallItem(conversation.slug, item.id); return true; } : undefined}
             onUnpin={() => { const databaseId = conversation.databaseId; if (databaseId) void runMutation(() => unpinHallItemAction({ conversationId: databaseId, itemId: item.id })); else prototypeStore.unpinHallItem(conversation.slug, item.id); }} />)}
-          {!empty
+          {!empty && !archivedView
             ? hallNotices.map((notice) => (
                 <HallCard notice={notice} key={notice.id} />
               ))
@@ -812,18 +821,20 @@ export function HallSurface({
             <button className="overlay-close" disabled={saving} onClick={() => setCreating(false)} aria-label="Close"><X size={17} /></button>
             <h2 id="hall-note-title" className="note-editor-label">{editingItem ? "Edit note" : "New note"}</h2>
             <div className="composed-note-editor">
-              <input autoFocus aria-label="Title" placeholder="Title" value={noteTitle} disabled={saving} onChange={(event) => setNoteTitle(event.target.value)} maxLength={80} />
-              <textarea aria-label="Note" placeholder="Note / description" maxLength={4000} disabled={saving} value={noteBody} onChange={(event) => setNoteBody(event.target.value)} rows={5} />
+              <input autoFocus aria-label="Title" placeholder="Title" value={noteTitle} disabled={saving} onChange={(event) => { draftNoteId.current = null; setNoteTitle(event.target.value); }} maxLength={80} />
+              <textarea aria-label="Note" placeholder="Note / description" maxLength={4000} disabled={saving} value={noteBody} onChange={(event) => { draftNoteId.current = null; setNoteBody(event.target.value); }} rows={5} />
             </div>
             <div className="wizard-actions"><button className="button button-primary primary-action" disabled={!noteTitle.trim() || saving} onClick={async () => {
               if (saving) return;
-              setSaving(true);
+              setSaving(true); setHallError("");
               if (conversation.databaseId) {
+                let saved = false;
                 try {
                   if (editingItem) await editHallNoteAction({ conversationId: conversation.databaseId, itemId: editingItem, title: noteTitle, body: noteBody });
-                  else await createHallNoteAction({ conversationId: conversation.databaseId, title: noteTitle, body: noteBody });
+                  else { draftNoteId.current ??= crypto.randomUUID(); await createHallNoteAction({ id: draftNoteId.current, conversationId: conversation.databaseId, title: noteTitle, body: noteBody }); }
+                  saved = true;
                   setPersistentItems(await listHallItemsAction(conversation.databaseId));
-                } catch { setHallError("Hall note couldn't be saved."); setSaving(false); return; }
+                } catch { setHallError(saved ? "Note saved. Refresh Hall to see it." : "Hall note couldn't be saved. Please try again."); if (saved) setCreating(false); setSaving(false); return; }
               } else if (editingItem) prototypeStore.updateHallItem(conversation.slug, editingItem, { title: noteTitle, body: noteBody });
               else prototypeStore.addHallNote({ slug: conversation.slug, name: conversation.name, title: noteTitle, body: noteBody });
               setCreating(false); setNoteTitle(""); setNoteBody(""); setSaving(false);
@@ -832,7 +843,7 @@ export function HallSurface({
           </section>
         </ModalLayer>
       ) : null}
-      {hallError ? <p role="alert">{hallError}</p> : null}
+      {hallError ? <p role="alert">{hallError} {conversation.databaseId ? <button className="quiet-action" disabled={operationBusy} onClick={() => void refreshPersistentItems().catch(() => undefined)}>Refresh Hall</button> : null}</p> : null}
       <span className="sr-only" role="status">{orderNotice}</span>
     </section>
   );

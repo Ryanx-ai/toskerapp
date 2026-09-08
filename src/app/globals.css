@@ -1045,3 +1045,11 @@ h1,h2,h3 { font-family:var(--font-mermaid),Georgia,serif; font-weight:400; lette
 .room-member-list button:hover,.room-invite-list button:hover { background:var(--surface-hover); color:var(--text-primary); }
 .room-details-panel .danger { color:var(--danger,#f28b9c); }
 @media(max-width:640px) { .room-details-trigger { grid-area:1/2; } .room-details-panel input,.room-details-panel textarea { font-size:16px; } }
+
+/* Hall recovery reuses the restrained surface selection vocabulary. */
+.hall-surface > header { flex-wrap:wrap; gap:16px; }
+.hall-view-switch { display:flex; gap:4px; align-items:center; }
+.hall-view-switch button { min-height:40px; padding:8px 12px; border:0; border-radius:8px; background:transparent; color:var(--text-secondary); font:inherit; font-size:12px; cursor:pointer; }
+.hall-view-switch button:hover,.hall-view-switch button[aria-pressed="true"] { color:var(--text-primary); background:var(--surface-hover); }
+.hall-load-status { color:var(--text-secondary); font-size:13px; }
+.hall-object button:disabled { opacity:.45; cursor:default; }

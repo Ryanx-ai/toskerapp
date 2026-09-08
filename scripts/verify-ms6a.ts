@@ -17,7 +17,8 @@ async function main() {
   assert(aUser && bUser && outsiderUser, "Two existing isolated test users and outsider required");
   const actor = (user: typeof users.$inferSelect) => ({ userId: user.id, authProvider: user.authProvider, authSubject: user.authSubject });
   const a = actor(aUser), b = actor(bUser), outsider = actor(outsiderUser);
-  const notificationCount = (await db.select({ id: notifications.id }).from(notifications)).length;
+  const fixtureNotifications = () => db.select({ id: notifications.id }).from(notifications).where(eq(notifications.roomId, roomId));
+  const notificationCount = (await fixtureNotifications()).length;
   try {
     await db.insert(rooms).values({ id: roomId, ownerId: a.userId, slug: `qa-ms6a-${roomId}`, name: "Temporary MS6A verification" });
     await db.insert(roomMemberships).values([{ roomId, userId: a.userId, role: "owner" }, { roomId, userId: b.userId, role: "member" }]);
@@ -76,7 +77,7 @@ async function main() {
     assert.equal((await db.select().from(messageReactions).where(eq(messageReactions.messageId, messageId))).length, 0);
     await assert.rejects(() => setMessageReaction(db, a, reaction));
     await assert.rejects(() => changeOwnMessage(db, a, { conversationId, messageId, body: "Restore" }));
-    assert.equal((await db.select({ id: notifications.id }).from(notifications)).length, notificationCount, "Metadata actions do not create notifications");
+    assert.equal((await fixtureNotifications()).length, notificationCount, "Metadata actions do not create notifications in the isolated fixture");
     await db.delete(hallItems).where(eq(hallItems.id, itemId));
     assert.equal((await db.select().from(hallCommentReactions).where(eq(hallCommentReactions.commentId, commentId))).length, 0);
     console.log(JSON.stringify({ ms6a: "PASS", twoUsers: true, reactionStack: true, idempotence: true, ownerOnlyEditDelete: true, tombstoneClearsBody: true, hallAuthorEdit: true, commentReactions: true, targetScopeDenied: true, ownersSubroomDenied: true, customTags: true, deterministicReorder: true, metadataNoNotifications: true, cascadeCleanup: true }));

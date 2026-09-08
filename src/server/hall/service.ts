@@ -41,6 +41,12 @@ export async function requireHallNote(db: ToskerDatabase, actor: AuthenticatedAc
   return item;
 }
 
+async function lockHallNote(tx: ToskerReader, actor: AuthenticatedActor, conversationId: string, itemId: string) {
+  const scope = await lockHallScope(tx, actor, conversationId);
+  const [item] = await tx.select({ id: hallItems.id }).from(hallItems).where(and(scope, eq(hallItems.id, itemId), eq(hallItems.kind, "note"), isNull(hallItems.archivedAt))).for("update");
+  if (!item) throw new AuthorizationDeniedError("Note unavailable in this Hall.");
+}
+
 export async function listHallComments(db: ToskerDatabase, actor: AuthenticatedActor, conversationId: string, itemId: string, before?: string) {
   await requireHallNote(db, actor, conversationId, itemId);
   const rows = await db.select({ id: hallComments.id, body: hallComments.body, createdAt: hallComments.createdAt, author: profiles.displayName, authorId: hallComments.authorId,
@@ -54,41 +60,49 @@ export async function listHallComments(db: ToskerDatabase, actor: AuthenticatedA
 }
 
 export async function addHallComment(db: ToskerDatabase, actor: AuthenticatedActor, input: { conversationId: string; itemId: string; body: string; id: string }) {
-  await requireHallNote(db, actor, input.conversationId, input.itemId);
   const body = input.body.trim();
   if (!body || body.length > 1000 || !/^[0-9a-f-]{36}$/i.test(input.id)) throw new Error("Enter a comment up to 1,000 characters.");
   // The client-generated ID makes retries safe; author always comes from auth.
-  await db.insert(hallComments).values({ id: input.id, itemId: input.itemId, authorId: actor.userId, body }).onConflictDoNothing();
+  await db.transaction(async (tx) => {
+    await lockHallNote(tx, actor, input.conversationId, input.itemId);
+    await tx.insert(hallComments).values({ id: input.id, itemId: input.itemId, authorId: actor.userId, body }).onConflictDoNothing();
+  });
 }
 
 export async function setHallReaction(db: ToskerDatabase, actor: AuthenticatedActor, input: { conversationId: string; itemId: string; reaction: HallReaction; active: boolean }) {
-  await requireHallNote(db, actor, input.conversationId, input.itemId);
   if (!HALL_REACTIONS.some((entry) => entry.key === input.reaction) || typeof input.active !== "boolean") throw new Error("Unsupported reaction.");
-  if (input.active) await db.insert(hallReactions).values({ itemId: input.itemId, userId: actor.userId, reaction: input.reaction }).onConflictDoNothing();
-  else await db.delete(hallReactions).where(and(eq(hallReactions.itemId, input.itemId), eq(hallReactions.userId, actor.userId), eq(hallReactions.reaction, input.reaction)));
+  await db.transaction(async (tx) => {
+    await lockHallNote(tx, actor, input.conversationId, input.itemId);
+    if (input.active) await tx.insert(hallReactions).values({ itemId: input.itemId, userId: actor.userId, reaction: input.reaction }).onConflictDoNothing();
+    else await tx.delete(hallReactions).where(and(eq(hallReactions.itemId, input.itemId), eq(hallReactions.userId, actor.userId), eq(hallReactions.reaction, input.reaction)));
+  });
 }
 
 export async function setCommentReaction(db: ToskerDatabase, actor: AuthenticatedActor, input: { conversationId: string; itemId: string; commentId: string; emoji: string; active: boolean }) {
-  await requireHallNote(db, actor, input.conversationId, input.itemId);
   validateEmoji(input.emoji);
   if (typeof input.active !== "boolean") throw new Error("Invalid reaction state.");
-  const [comment] = await db.select({ id: hallComments.id }).from(hallComments).where(and(eq(hallComments.id, input.commentId), eq(hallComments.itemId, input.itemId))).limit(1);
+  await db.transaction(async (tx) => {
+  await lockHallNote(tx, actor, input.conversationId, input.itemId);
+  const [comment] = await tx.select({ id: hallComments.id }).from(hallComments).where(and(eq(hallComments.id, input.commentId), eq(hallComments.itemId, input.itemId))).limit(1);
   if (!comment) throw new AuthorizationDeniedError("Comment unavailable in this note.");
-  if (input.active) await db.insert(hallCommentReactions).values({ commentId: input.commentId, userId: actor.userId, emoji: input.emoji }).onConflictDoNothing();
-  else await db.delete(hallCommentReactions).where(and(eq(hallCommentReactions.commentId, input.commentId), eq(hallCommentReactions.userId, actor.userId), eq(hallCommentReactions.emoji, input.emoji)));
+  if (input.active) await tx.insert(hallCommentReactions).values({ commentId: input.commentId, userId: actor.userId, emoji: input.emoji }).onConflictDoNothing();
+  else await tx.delete(hallCommentReactions).where(and(eq(hallCommentReactions.commentId, input.commentId), eq(hallCommentReactions.userId, actor.userId), eq(hallCommentReactions.emoji, input.emoji)));
+  });
 }
 
 export async function editHallNote(db: ToskerDatabase, actor: AuthenticatedActor, input: { conversationId: string; itemId: string; title: string; body: string }) {
-  const scope = await hallScope(db, actor, input.conversationId);
   const title = input.title.trim(), body = input.body.trim();
   if (!title || title.length > 80 || body.length > 4000) throw new Error("Enter a valid note.");
-  const [updated] = await db.update(hallItems).set({ title, body, updatedAt: new Date() }).where(and(scope, eq(hallItems.id, input.itemId), eq(hallItems.kind, "note"), eq(hallItems.authorId, actor.userId), isNull(hallItems.archivedAt))).returning({ id: hallItems.id });
+  await db.transaction(async (tx) => {
+  const scope = await lockHallScope(tx, actor, input.conversationId);
+  const [updated] = await tx.update(hallItems).set({ title, body, updatedAt: new Date() }).where(and(scope, eq(hallItems.id, input.itemId), eq(hallItems.kind, "note"), eq(hallItems.authorId, actor.userId), isNull(hallItems.archivedAt))).returning({ id: hallItems.id });
   if (!updated) throw new AuthorizationDeniedError("Only the note author can edit it.");
+  });
 }
 
 export async function moveHallItem(db: ToskerDatabase, actor: AuthenticatedActor, input: { conversationId: string; itemId: string; targetId?: string; direction?: "left" | "right" }) {
-  const scope = await hallScope(db, actor, input.conversationId);
   await db.transaction(async (tx) => {
+    const scope = await lockHallScope(tx, actor, input.conversationId);
     // Serialize reorder operations per board. Normalize ties from older records.
     await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${input.conversationId}))`);
     const items = await tx.select({ id: hallItems.id }).from(hallItems).where(and(scope, isNull(hallItems.archivedAt)))

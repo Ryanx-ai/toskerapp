@@ -22,7 +22,7 @@ Shared acceptance and founder walkthrough: [MS7.1 stress scenarios](MS7-1-STRESS
 |---|---|---|
 | MS7.1.1 | Safe Chat links; truthful core controls; drafts/retry/loading/date grouping | Local engineering checkpoint validated; full-wave/founder gate remains |
 | MS7.1.2 | Room management, leave/remove/invite lifecycle and authorization | Local engineering checkpoint validated; full-wave/founder gate remains |
-| MS7.1.3 (planned) | Hall author/owner policy; archive/restore; pin regression | Pending |
+| MS7.1.3 | Hall author/owner policy; archive/restore; pin regression; core-control inventory | Local engineering checkpoint validated; full-wave/founder gate remains |
 | MS7.1.4 (planned) | Measured delivery path; 100/500+ history; drafts/retry; loading/error | Pending |
 | MS7.1.5 (planned) | Shared primitives, headers, menus, responsive/accessibility | Pending |
 | MS7.1.6 (planned) | Two-user adverse-path/security/full release gate | Pending |

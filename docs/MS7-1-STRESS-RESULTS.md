@@ -44,12 +44,12 @@ Use [the unchanged numbered scenario script](MS7-1-STRESS-SCENARIOS.md) for engi
 | 17 Remove member | PASS: real A removes B while B views public child; composer/navigation disappear, parent/child deep links deny, fresh valid invite allows rejoin. Database suite verifies historical authorship retained | Pending |
 | 18 Revoke invite | PASS: owner UI revokes pending invitation; exact bearer URL shows Invite unavailable. Service rejects member revocation and joins using revoked tokens | Pending |
 | 19 Owner edge | PASS: owner sees no Leave; member sees no management/removal controls. Service blocks owner leave/removal, unauthorized management and forged targets | Pending |
-| 20 Hall create | Not run | Pending |
-| 21 Hall comments/reactions | Not run | Pending |
-| 22 Hall reorder | Not run | Pending |
-| 23 Hall archive/restore | Pending Hall slice | Pending |
-| 24 Hall delete policy | Pending Hall slice | Pending |
-| 25 Chat pin reference | Not run | Pending |
+| 20 Hall create | PASS: real A/B create and own edit, other client sees canonical content; native editor/loading states used, no upload placeholder | Pending |
+| 21 Hall comments/reactions | PASS: B comment retained for A; two note reactions aggregate; comment reaction reaches A, survives B reload and own removal reaches A. Service retry/actor/scope tests pass | Pending |
+| 22 Hall reorder | PASS: menu Move later, arrow-key reversal and actual native grip drag synchronize to B; order persists on both reloads; shared color also reaches B | Pending |
+| 23 Hall archive/restore | PASS: real author archive/restore and owner moderation of B note, active/archived views synchronize, member has no recovery controls on A's note, comments/reactions and restored state survive both reloads | Pending |
+| 24 Hall delete policy | PASS: B has no Edit/Archive/Nuke on A; own Nuke requires native confirmation, Escape cancels without deletion, confirmation removes B note on both clients. Service owner moderation, member denial and comment/reaction cascade pass; 390px confirmation fits | Pending |
+| 25 Chat pin reference | PASS for retained controls: service deduplicates concurrent pins; actual UI pin/member unpin preserves original Chat. Open in Chat is DEFERRED/HIDDEN until older-message lookup is reliable | Pending |
 | 26 Independent attention | Not run | Pending |
 | 27 Background/recovery | Not run | Pending |
 | 28 Offline gap | Not run | Pending |
@@ -61,14 +61,14 @@ Use [the unchanged numbered scenario script](MS7-1-STRESS-SCENARIOS.md) for engi
 | 34 Keyboard | Partial: message actions keyboard open/Escape/focus return pass; full route/modal traversal pending | Pending |
 | 35 Access loss | PASS: actual removed B loses child composer/navigation and exact parent/child URLs deny; database/Ably suite verifies old-token rejection, serialized renewal/removal, failed-provider rollback and post-removal mutation denial | Pending |
 | 36 Latency trace | Not run | Pending |
-| 37 No dead controls | Partial: changed Chat header/composer/A/B menus and authenticated rows inspected; Hall editor has only working text inputs, no upload placeholder. Remaining Hall/later management sweep pending | Pending |
+| 37 No dead controls | PASS for current retained inventory: source/action-boundary audit plus 1440/390px Personal/Room/Subroom/Sandbox Chat/Hall sweep; unsupported utilities and fake row actions absent, sampled message menus contain only real actions. Room lifecycle and Hall mutations independently exercised with A/B. Repeat after later MS7.1 slices; this does not certify the full milestone | Pending |
 | 38 Error states | Partial: local Clerk recovery observed; product failure simulations pending | Pending |
 | 39 Founder free-play | Founder-only qualitative evidence; cannot be certified by engineering | Pending |
 | 40 Would I use this? | Founder-only decision; cannot be certified by engineering | Pending |
 
 ## Patch record template
 
-### Active MS7.1.2 candidate
+### Historical MS7.1.2 candidate — superseded by acceptance below
 
 MS7.1.1 checkpoint: `428b8aa` — `fix: harden MS7.1.1 chat interactions and draft recovery`. Local only. Room slice is uncommitted/unvalidated: real details/name/tags/member list, member leave, owner removal, invitation revocation, serialized joins/withdrawal/token issuance, access-loss recovery. No schema migration. Owner leave/delete/transfer remain hidden. Do not infer acceptance from these implementations.
 
@@ -80,22 +80,23 @@ Every visible core control must work; explanations of future/prototype-only func
 
 | Control / shared surface | Inventory status | Current evidence / remaining gate |
 |---|---|---|
-| Conversation-history Search in header | REMOVED | Authenticated Personal/Room header browser checked; Subroom/Sandbox sweep pending. Rail search remains real navigation filtering, not message-history search |
-| Voice / Video / Calendar / placeholder header utilities | REMOVED | Header source removal and A/B Chat browser check; final all-context sweep pending |
-| Attach / Image / File / Hall upload | REMOVED | Composer and Hall editor checks; no storage provisioned |
-| Translate | REMOVED | Message action menu removal; no translation backend |
+| Conversation-history Search in header | REMOVED | Personal/Room/Subroom/Sandbox Chat and Hall checked at 1440/390px. Rail search remains real navigation filtering, not message-history search |
+| Voice / Video / Calendar / placeholder header utilities | REMOVED | Shared header source audit and all four authenticated contexts at 1440/390px |
+| Attach / Image / File / Hall upload | REMOVED | Shared composer/editor source audit and desktop/mobile browser checks; no storage provisioned |
+| Translate | REMOVED | Only React/Reply/Copy/Pin/Edit/Delete can appear in the shared message menu; browser menu inventory checked where messages exist |
 | Mute / manual Mark unread / fake row pin/reorder/archive/delete | DEFERRED/HIDDEN | Row lifecycle menus hidden throughout beta, including signed-out demo. Real authenticated Room management lives in Room details; signed-out server-only Invite is hidden |
-| Send / Reply / Edit own / Delete own / React | IMPLEMENTED | Scenarios 01–05/08/12 PASS; repeat after permission slice |
+| Send / Reply / Edit own / Delete own / React | IMPLEMENTED | Scenarios 01–05/08/12 PASS; A/B Chat mutation/reload regression also passes after Room permission changes |
 | Copy | IMPLEMENTED | Browser write acknowledged; clipboard read-back unavailable, founder exact-text check remains |
 | Safe HTTP(S) message links | IMPLEMENTED | Scenario 07 PASS; unsafe schemes stay text |
-| Room create / Invite / Join | IMPLEMENTED | Creation/join partial browser evidence; race/revocation gate pending |
+| Room create / Invite / Join | IMPLEMENTED | Two-step Room creation and canonical fixture checks; actual A/B invite/join/revoke/rejoin, concurrent duplicate join and token revocation pass |
 | Manage Room / members / name / tags | IMPLEMENTED | Owner rename reaches B, restore persists; member list and restricted controls pass in browser; service name/tag authorization passes |
 | Leave member / Remove member / Revoke invite | IMPLEMENTED | Real A/B removal/leave/revoke/rejoin pass; server permission, rollback and actual old-Ably-token rejection pass |
 | Owner Leave / Room Delete / Transfer ownership | DEFERRED/HIDDEN | No orphaning contract invented; no visible control |
-| Parent/Subroom switcher / Create Subroom | IMPLEMENTED | Existing real capability; current-wave complete sweep pending |
-| Hall New Note / Edit own / comments / reactions / reorder | IMPLEMENTED | Existing real capabilities; MS7.1.3 policy and browser tests pending |
-| Hall Archive / Restore | IMPLEMENTED / DEFERRED/HIDDEN | Existing Archive is not yet beta-ready: restore missing. Must ship real recovery or remove Archive in MS7.1.3; release blocker |
-| Hall Delete/Nuke / Unpin | IMPLEMENTED | Existing mutation; moderation/confirmation/reference gate pending MS7.1.3 |
+| Parent/Subroom switcher / Create Subroom | IMPLEMENTED | Public/owner-only/selected child creation and authorized navigation pass; unauthorized entries hidden; switching-traffic stress remains separate |
+| Hall New Note / Edit own / comments / reactions / reorder | IMPLEMENTED | Real A/B creation/edit/comment/note and comment reactions, menu/keyboard/native drag order and reload persistence pass |
+| Hall Archive / Restore | IMPLEMENTED | Real scoped Archived view/restore, author/owner policy and preserved comment/reaction content pass in Development and A/B browser tests |
+| Hall Delete/Nuke / Unpin | IMPLEMENTED | Author/owner authorization and confirmed Nuke/cancel/Escape pass; real member unpin removes only the reference and preserves the source Chat message |
+| Hall Open in Chat | DEFERRED/HIDDEN | Fragment-only navigation cannot guarantee an older source outside the initial 50-message page. Hidden until the history slice provides an authorized bounded source lookup; pin/unpin remain available |
 
 ### MS7.1.1 — Chat/action truthfulness checkpoint
 
@@ -114,6 +115,20 @@ Based on `428b8aa`. Owner name/tags/member management, confirmed member leave/re
 Selected-member creation browser PASS (`browser-ms712-selected.mjs`): current-member B selectable, persisted selected child opens for B, nonowner has no child creation action. Final Chat UI regression PASS after Room-lock changes: bidirectional send/reply, exact actor reaction counts and reload, own edit/delete with canonical reply tombstones. Harness now waits for reaction picker rendering and settled target bounds; the initial immediate picker query was not evidence of a product reaction defect.
 
 Full-wave Hall moderation/archive recovery, history/latency, responsive/adverse-path and no-dead-control sweep remain release gates. No push/deploy or founder lock.
+
+### MS7.1.3 — Hall lifecycle and core-control checkpoint
+
+Base `eda4451` (completed MS7.1.2). Existing `archivedAt` now drives Board/Archived views and author/owner Restore. Native-note destruction requires author or current Room owner and current conversation/Subroom access. Color/reorder/comment/reaction remain shared non-destructive actions. Room locks reauthorize Hall mutations inside the transaction; note locks serialize archive/delete with comments/reactions. Author-only content editing remains unchanged. Pin/unpin operates on the Hall reference, never the original Chat record. Note creation has a client-generated retry ID; duplicate acceptance cannot duplicate notifications. No schema changes.
+
+`verify-hall-lifecycle.ts` PASS: real Development author/owner/member restrictions, archive/restore content/comment/reaction preservation, duplicate creation/notifications, scoped pin/unpin, delete cascade, private-child denial and Hall-mutation/withdrawal race. Personal and Sandbox lifecycle/outsider denial also pass. Exact temporary Room and exact additional test-note IDs cleaned in finally; no account or existing conversation deleted. Fresh production build/TypeScript/lint/diff pass. Two-user browser evidence follows.
+
+No-dead-control corrections: native Archive has recovery; unauthorized destructive actions are hidden; boundary reorder actions disabled; destructive confirmation uses native modal/focus containment and displays errors; static demo sample-card Copy menu removed. Demo archived flags now actually filter Board/Archived rather than leaving an archived card displayed. Production remains unchanged.
+
+Browser lifecycle PASS on QA prefix `MS713 mtshjq9q`: create/edit, member action restrictions, comments/reactions, author/owner archive/restore and reload, Nuke/Escape/cancel, 390px modal. Screenshot `/tmp/tosker-ms713-mobile-confirmation.png` visually inspected. A/B automation returned to `about:blank` in earlier runs; retained isolated profiles recovered through normal navigation, without auth bypass. Earlier browser click preceded edit-dialog dismissal; harness now waits. `verify-ms6a.ts` initially failed its global notification count because concurrent browser note creation legitimately added two records; assertion is now scoped to its isolated Room and rerun PASS. No failed evidence is presented as a product pass.
+
+Keeping/reorder evidence: comment reaction reaches A, B reload retains selection, B removal reaches A. Later runs skip that verified phase explicitly. Menu, arrow-key and native grip reorder, shared color and both reloads PASS. Native drag harness initially released on dragenter rather than dragover; extra movements inside the destination produced a real drop, consistent with [Playwright's native drag guidance](https://playwright.dev/docs/input#drag-and-drop). The post-build rerun also exposed a disabled-grip race in the harness after color save; waiting for the sender's enabled grip resolved it and the final full keeping phase PASS. Pin/source navigation within the recent window passed, but source review exposed the older-page limitation; Open in Chat is therefore hidden, not certified generally. Final rebuilt-browser regression confirms its absence and member unpin preserving Chat. Final mobile screenshot `/tmp/tosker-ms713-current.png` inspected; meaningful Hall content/controls, no captured browser errors.
+
+`browser-ms71-core-controls.mjs` PASS across Personal, Room, Subroom and Sandbox, Chat and Hall, at 1440×900 and 390×844: deferred header/composer/row controls absent, sampled message menus limited to implemented actions, Board/Archived navigation and page gutters work. This is 16 context/viewport checks, not 16 independent tests of every mutation. Actual mutations and authorization are covered by the separate A/B lifecycle, Chat and Hall suites. Repeat this inventory after later slices add or change controls. No full-wave founder readiness, push, deployment or lock is claimed.
 
 ## Founder observations (39–40)
 

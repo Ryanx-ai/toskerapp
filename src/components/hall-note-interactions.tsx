@@ -32,7 +32,7 @@ export function HallNoteInteractions({ conversationId, item, onChanged }: {
         const byId = new Map(current.comments.map((comment) => [comment.id, comment]));
         next.comments.forEach((comment) => byId.set(comment.id, comment));
         return { hasMore: current.comments.length > 30 ? current.hasMore : next.hasMore, comments: [...byId.values()].sort((a, b) => a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id)) };
-      }); setLoading(false); } })
+      }); setLoading(false); setError(""); } })
       .catch(() => { if (active) { setError("Comments couldn't be loaded."); setLoading(false); } });
     return () => { active = false; };
   }, [expanded, conversationId, item]);

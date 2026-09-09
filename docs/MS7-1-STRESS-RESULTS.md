@@ -4,7 +4,16 @@ Use [the unchanged numbered scenario script](MS7-1-STRESS-SCENARIOS.md) for engi
 
 ## Active final-candidate continuation — 2026-09-09
 
-**Current outcome: local engineering gate complete for the Development founder-review candidate; commit/deployment/live smoke pending.** Evidence below is chronological, including failures and their final reruns. Physical-device/assistive checks and founder39–40 remain explicitly uncertified; this is not a lock.
+**Current outcome: engineering development complete for founder review; canonical build live, live isolated A/B smoke and guarded cleanup PASS. MS7.1 NOT LOCKED.** Evidence below is chronological, including failures and their final reruns. Physical-device/assistive checks and founder39–40 remain explicitly uncertified.
+
+### Verified canonical release
+
+- Product commit`fd76555f27d9e32e46dae444e5d0dc444ee7f03b` — `fix: complete MS7.1 stress and responsive hardening`, pushed main with all six prior checkpoints preserved. Verified deployment`dpl_WU2K6AuQXPLeKTKRraGiQL34wFAp`, READY for that exact SHA, [immutable build](https://tosker-qqbb6luwh-pangea6.vercel.app) and [canonical alias](https://toskerapp.vercel.app/). Subsequent documentation/QA-only metadata commits may redeploy the identical application source; verify Git/alias when resuming.
+- Live ordinary isolated Clerk A/B PASS: fresh Room default/empty state, normal invitation/join, selected child/member suggestion scope, parent/child messages isolated, Chat/Hall attention independent, Hall persistent after both reloads, Personal typing, A→B message/B→A reply and canonical quote after both reloads. No auth bypass. Landing200 and anonymous message/member/search401 private/no-store.
+- Canonical timing, three samples/context: median acknowledgement Personal701ms / Room406ms / Subroom426ms; send-to-visible668/873/657ms; canonical read290/307/303ms; server183/87/95ms. All nine required a real Ably signal, not fallback-only success. These are small Development-service samples on Vercel, not production SLOs. Browser↔server wall clocks differed (some raw commit-to-signal deltas were negative); those values are invalid durations and excluded. The harness now omits that cross-host metric; client-local and server-local durations remain separate.
+- Exact live fixture`17c2333a-7554-4035-840a-52d8cf1dafbe`/child`68525ea3-433f-4c4c-841b-25796448a131` and five individually verified Personal QA messages removed after successful smoke/timing, reviewed fingerprint`dc18fcd65c81386734c9788c640efc3a19346fc40b19580f454ff71500e66469`. Two Room conversations/eight messages/one Hall note cascaded. Users and all Sandbox/Personal conversations unchanged; external reply/pin guards pass. No application undo. Post-cleanup invariant audit again6 users/profiles/Sandboxes,2 Rooms/3 memberships,5 Personal conversations,23 messages,7 notes/1 pin,3 capabilities,5 connections,26 notifications; zero duplicates/orphans. No further test fixtures left from this continuation's enumerated set.
+
+### Chronological local gate evidence
 
 Base `8b6d29c`; fresh remote fetch confirms six ahead / zero behind. This is new execution evidence, separate from inherited passes below. No new schema, provider or auth model. Current source changes are bounded CSS: long Subroom Structure links no longer force a wide management grid; tablet header utility column now accommodates Search + options; long message/reply author names wrap inside their own content bounds.
 

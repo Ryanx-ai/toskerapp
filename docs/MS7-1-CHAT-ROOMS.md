@@ -1,6 +1,6 @@
 # MS7.1 — Chat / Rooms beta hardening
 
-2026-09-08. IN PROGRESS; not deployed or founder-locked. Baseline `c6286b9` (`f005f6d` product). Approved backlog: `MS7-PRODUCT-STRESS-AUDIT.md` and founder MS7.1 brief. No MS7.2–7.5 work.
+Updated2026-09-09. DEVELOPMENT COMPLETE FOR FOUNDER REVIEW; canonical review build live, **NOT FOUNDER-LOCKED**. Product`fd76555` preserves all earlier MS7.1 checkpoints; engineering gates, exact cleanup and live isolated A/B smoke passed. [Walkthrough](MS7-1-FOUNDER-WALKTHROUGH.md) and [release evidence](MS7-1-STRESS-RESULTS.md) define the next step. Approved backlog: `MS7-PRODUCT-STRESS-AUDIT.md` and founder MS7.1 brief. No MS7.2–7.5 work.
 
 State alignment 2026-09-09: HEAD `8b6d29c`; existing local checkpoints preserved. [Canonical roadmap](ROADMAP.md) introduces MS7.6 and moves private attachments to its provisioning backlog. The subsequent founder development-continuation directive authorizes the remaining engineering/stress gate → canonical founder review. This does not retroactively turn documentation-only work into implementation evidence.
 

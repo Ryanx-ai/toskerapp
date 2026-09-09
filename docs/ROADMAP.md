@@ -6,7 +6,7 @@ Updated 2026-09-09 by the founder's roadmap-memory/state-alignment brief. This i
 
 - MS6 is COMPLETE AND LOCKED.
 - MS7.1 — Chat + Rooms Productization / Beta Hardening — is IN PROGRESS and unlocked. Preserve all local checkpoints, including `428b8aa`, `eda4451`, `b3bd7a1`, `bfb444d`, `449caf8` and `8b6d29c`; re-inspect Git on resume.
-- Canonical product remains the locked MS6B build. This roadmap update changes no production state.
+- Canonical founder-review product is now MS7.1 checkpoint`fd76555`, deployed READY with live isolated A/B smoke and guarded QA cleanup verified. Engineering development is complete for review; MS7.1 itself remains unlocked pending founder walkthrough39–40, any required patch and explicit approval. The earlier roadmap-alignment pass itself changed no production state.
 - The documentation-only alignment pass is complete. The founder's 2026-09-09 MS7.1 development-continuation directive now authorizes resumption through the engineering gate and canonical founder review. No later milestone or automatic lock is authorized. Historical alignment evidence remains documentation-only.
 
 ## Provisioning classification during MS7.1–7.5

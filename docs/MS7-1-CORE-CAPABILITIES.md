@@ -1,6 +1,6 @@
 # MS7.1 core capability decision ledger
 
-Updated 2026-09-09. Founder correction supersedes the earlier hidden-control inventory. Hidden is a presentation state, not acceptance. `.1–.4` preserved; `.5/.6` backend checkpoint `449caf8`, client integration locally validated separately. No deployment of the expanded wave yet.
+Updated2026-09-09. Founder correction supersedes the earlier hidden-control inventory. Hidden is a presentation state, not acceptance. `.1–.4` preserved; `.5/.6` backend`449caf8`, client`8b6d29c`, final hardening`fd76555`. Canonical founder-review deployment and live isolated A/B smoke are verified in the [results ledger](MS7-1-STRESS-RESULTS.md). MS7.1 is not locked; proposed capabilities remain proposed.
 
 Latest founder roadmap alignment: client checkpoint `8b6d29c` is preserved. [ROADMAP.md](ROADMAP.md) supersedes the former attachment gate: private attachments are **MS7.6 provisioning backlog P-001**, not a current MS7.1 blocker. The separate September 9 continuation directive has now authorized development and the complete release gate; provisioning remains out of scope. The capability A/B/C/D classes below are not the roadmap's provisioning A/B/C classes.
 

@@ -1,6 +1,6 @@
 # MS7.1 founder walkthrough — candidate preparation
 
-Status: **NOT YET FOUNDER-READY**. The current local continuation still requires the full release gate, canonical deployment and live isolated A/B smoke. This brief prepares review; it does not claim those gates passed or lock MS7.1.
+Status: **READY FOR FOUNDER WALKTHROUGH — NOT LOCKED**. Product checkpoint `fd76555f27d9e32e46dae444e5d0dc444ee7f03b` is pushed and live at [Tosker](https://toskerapp.vercel.app/). Verified product deployment`dpl_WU2K6AuQXPLeKTKRraGiQL34wFAp` is READY; live isolated A/B Room/Subroom/Hall/Personal/typing/reply/reload smoke passed. Exact QA fixtures were cleaned with post-cleanup invariants passing. A documentation/QA-harness-only follow-up does not change application behavior. Founder scenarios39–40 and explicit approval remain required.
 
 Use the same [numbered stress scenarios](MS7-1-STRESS-SCENARIOS.md) as engineering. Evidence and known gaps are in [the results ledger](MS7-1-STRESS-RESULTS.md). Keep two genuinely separate authenticated users. Do not use real private information for testing; record defects with context, actor, device, expected/actual behavior and reproduction steps.
 
@@ -14,7 +14,7 @@ Use the same [numbered stress scenarios](MS7-1-STRESS-SCENARIOS.md) as engineeri
 
 ## Boundaries to understand before reviewing
 
-- The canonical review target uses Development Clerk/Neon/Ably, not a launch-ready Production stack. Development latency is measured in the ledger; do not infer a provider SLA. Exact current samples will be added after the final run.
+- The canonical review target uses Development Clerk/Neon/Ably, not a launch-ready Production stack. The hosted three-sample/context medians were0.67s Personal/0.87s Room/0.66s Subroom, versus5.27/5.75/7.28s through the local server. These are small measurements, not a provider SLA; see the ledger's clock-domain caveat.
 - Text Chat, scoped Search, mentions, replies, Mute/manual unread, Room/member/invite management and Hall are core; expected controls must work. Private attachments are unimplemented MS7.6 P-001, not a fake picker. Calls/translation are later; Schedule belongs to the MS9 Gizmo direction. No new AI/media infrastructure in this patch.
 - [Owner lifecycle](MS7-1-OWNER-LIFECYCLE-REVIEW.md) requires a separate founder policy decision. Safe absence does not prevent reviewing today's candidate; hiding is not a claim of eventual product completeness.
 - Viewport emulation is not physical-device, assistive-technology or OS-background certification. Final engineering evidence must name these limits explicitly.

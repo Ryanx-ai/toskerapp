@@ -1,6 +1,6 @@
 # MS7.1 modern Chat grammar — bounded contract
 
-Updated 2026-09-09 for the authorized development continuation. `.1–.4` preserved; `.5/.6` backend `449caf8`, client/UX `8b6d29c`; integrated/release `.9` still in progress. The old `.7` media reservation moved to MS7.6 backlog under [ROADMAP.md](ROADMAP.md). No MS7.2 or ToskerBot implementation. The separate development directive has arrived; current fresh evidence is recorded in the results ledger, without an inferred founder lock.
+Updated2026-09-09 after the authorized development continuation. `.1–.4` preserved; `.5/.6` backend`449caf8`, client/UX`8b6d29c`, final hardening`fd76555`; engineering/release`.9` complete for founder review with canonical live A/B smoke recorded in the results ledger. The old`.7` media reservation moved to MS7.6 backlog under [ROADMAP.md](ROADMAP.md). No MS7.2 or ToskerBot implementation. Founder walkthrough and explicit approval remain required; no inferred lock.
 
 ## Focused evidence and interpretation
 

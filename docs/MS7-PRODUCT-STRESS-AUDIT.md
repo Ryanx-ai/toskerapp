@@ -1,5 +1,7 @@
 # Post-MS6B product stress audit — founder review
 
+Historical audit snapshot. Current state/order is governed by [CODEX-HANDOFF.md](../CODEX-HANDOFF.md) and [ROADMAP.md](ROADMAP.md): MS6 locked, MS7.1 in progress at local `8b6d29c`, private attachments moved to MS7.6 backlog. Audit-time “not begun”/authorization statements below are historical, not current recovery instructions. The 2026-09-09 alignment update starts no development.
+
 2026-09-07. **REPORT ONLY: MS7 implementation has not begun.**
 
 Closeout annotation: founder approved this report. Its validated audit fixes were preserved and shipped with the bounded final MS6B attention/discovery patch `f005f6d`, deployed and live-verified; see `docs/MS6B-ACCEPTANCE.md`. References below to local/uncommitted fixes describe audit-time status. MS6/MS6A/MS6B are now locked; MS7.1 still requires subsequent explicit authorization. Other findings and policy decisions remain open.

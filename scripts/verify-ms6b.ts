@@ -12,9 +12,11 @@ const roomId = crypto.randomUUID(), conversationId = crypto.randomUUID(), childI
 const clients: Realtime[] = [];
 
 async function main() {
-  const candidates = await db.select({ user: users, name: profiles.displayName }).from(users).innerJoin(profiles, eq(users.id, profiles.userId));
-  const aUser = candidates.find(({ name }) => name.includes("tosker.user.a"))?.user;
-  const bUser = candidates.find(({ name }) => name.includes("tosker.user.b"))?.user;
+  // Display names are mutable and are deliberately stressed by scenario 29.
+  // Resolve the known QA identities without depending on their presentation.
+  const candidates = await db.select({ user: users, username: profiles.username }).from(users).innerJoin(profiles, eq(users.id, profiles.userId));
+  const aUser = candidates.find(({ user, username }) => user.id === "0ee1e5a5-6d7a-4541-a6ca-ca69788997ef" && username === "tosker-user-a-clerk-test")?.user;
+  const bUser = candidates.find(({ user, username }) => user.id === "d7a58753-9877-45b2-9fc7-cca188559fed" && username === "tosker-user-b-clerk-test")?.user;
   assert(aUser && bUser, "Existing test users required");
   const actor = (user: typeof users.$inferSelect) => ({ userId: user.id, authProvider: user.authProvider, authSubject: user.authSubject });
   const a = actor(aUser), b = actor(bUser);

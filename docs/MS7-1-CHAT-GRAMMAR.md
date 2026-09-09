@@ -1,6 +1,6 @@
 # MS7.1 modern Chat grammar — bounded contract
 
-2026-09-08. Latest overnight addendum extends the current WIP, not the milestone boundary. `.1–.4` preserved; `.5` Search/Mute/manual unread/Room preferences under validation. New `.6` mentions + source navigation; media moves to reserved `.7`; existing unfinished UX to `.8`; integrated/release `.9`. No MS7.2 or ToskerBot implementation.
+Updated 2026-09-09 for the authorized development continuation. `.1–.4` preserved; `.5/.6` backend `449caf8`, client/UX `8b6d29c`; integrated/release `.9` still in progress. The old `.7` media reservation moved to MS7.6 backlog under [ROADMAP.md](ROADMAP.md). No MS7.2 or ToskerBot implementation. The separate development directive has arrived; current fresh evidence is recorded in the results ledger, without an inferred founder lock.
 
 ## Focused evidence and interpretation
 
@@ -20,12 +20,12 @@ Reply source navigation restores context; it should share Search/Hall's authoriz
 - **Lifecycle system text:** do not inject join/leave chatter into Chat. Membership/management/activity surfaces already carry current context; preserve historical authorship. Reconsider only with a concrete continuity gap.
 - **Composer gate:** Enter/Shift+Enter/IME, mentions vs emoji/Escape, reply/draft/failed retry/long text/focus; new grammar must not regress existing behavior.
 
-## MS7.1.7 attachment foundation blocker
+## Former MS7.1.7 attachment foundation — moved to MS7.6
 
-Private storage still unprovisioned locally. Exact provider, founder action, environment separation, private upload/download authorization, validation, progress/retry, deletion/quotas and beta scope are in [core capabilities](MS7-1-CORE-CAPABILITIES.md#media-provisioning-gate--only-this-capability-paused). No fake upload controls. This is an explicit reserved MS7.1 slice, not an unspecified future milestone.
+Founder explicitly classifies private attachments as [MS7.6 backlog P-001](MS7-6-PROVISIONING-BACKLOG.md), not a current MS7.1 blocker unless future explicit instruction promotes it. Preserve the [prior media assessment](MS7-1-CORE-CAPABILITIES.md#media-provisioning-backlog--ms76) for future authorized work. No provisioning or fake upload controls now; no claim the feature is implemented.
 
 ## Remaining release gate
 
 Targeted implementation evidence (2026-09-09): real A/B mention selection/draft/reload/offline retry, exactly one mention notification, direct-mention exception under Room mute, canonical reply and repeated same-URL source highlighting PASS. A/B own edit/delete updates reply text/tombstones; older reply survives history/Hall/reload/offline retry. Focused composer PASS for Escape→clear→retype @, ten stable targets/caret, explicit eleventh rejection without text mutation, feedback clearing and Shift+Enter. No initial New divider or in-Chat lifecycle spam added. Backend checkpoint `449caf8`; UI integration and fresh whole-wave release gate remain separate.
 
-`.5/.6/.8` client integration is implemented with targeted A/B and responsive evidence; backend checkpoint is `449caf8`. Remaining: media provisioning or explicit founder deferral → final `.9` integrated completeness/control gate, exact QA cleanup, canonical deployment/live verification. Denied source navigation now holds reading state during lookup/failure; explicit Latest recovery exits the hold. No founder-ready/lock claim until justified; physical mobile/screen-reader limitations remain explicit.
+`.5/.6/.8` client integration is committed as `8b6d29c` with targeted A/B and responsive evidence; backend checkpoint is `449caf8`. After separate authorization: recover/test/optimize/finish grammar → identify/classify/document provisioning needs → final `.9` engineering/stress/control gate and exact cleanup → canonical deployment/live verification → founder walkthrough/patch → explicit lock. Media provisioning is no longer a prerequisite. Denied source navigation holds reading state during lookup/failure; explicit Latest recovery exits the hold. No founder-ready/lock claim; physical mobile/screen-reader limitations remain explicit.

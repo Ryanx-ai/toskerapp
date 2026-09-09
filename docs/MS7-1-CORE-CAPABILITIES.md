@@ -2,6 +2,8 @@
 
 Updated 2026-09-09. Founder correction supersedes the earlier hidden-control inventory. Hidden is a presentation state, not acceptance. `.1–.4` preserved; `.5/.6` backend checkpoint `449caf8`, client integration locally validated separately. No deployment of the expanded wave yet.
 
+Latest founder roadmap alignment: client checkpoint `8b6d29c` is preserved. [ROADMAP.md](ROADMAP.md) supersedes the former attachment gate: private attachments are **MS7.6 provisioning backlog P-001**, not a current MS7.1 blocker. The separate September 9 continuation directive has now authorized development and the complete release gate; provisioning remains out of scope. The capability A/B/C/D classes below are not the roadmap's provisioning A/B/C classes.
+
 ## Expected communication contract — focused research
 
 These are product interpretations, not a cloned competitor matrix. Current official help checked September 8; historical release posts establish provenance, not a claim that a feature is newly released.
@@ -17,7 +19,7 @@ Interaction contract: restrained hover actions plus persistent overflow, native 
 
 ## Decisions
 
-A = implement MS7.1. B = separate foundation/policy, explicitly tracked. C = not necessary for beta, hidden pending founder review. D = reject old mental model. B/C proposals are not silent founder approval of beta completeness.
+A = implement MS7.1. B = separate foundation/policy, explicitly tracked. C = not necessary for beta, hidden pending founder review. D = reject old mental model. B/C proposals are not silent founder approval of beta completeness; the founder has now explicitly assigned attachments to MS7.6, without declaring that capability implemented or unnecessary for eventual beta.
 
 | Capability / convention | Tosker interpretation | Class | Beta importance / does hiding weaken beta? | Complexity / infrastructure | Milestone / current status |
 |---|---|---|---|---|---|
@@ -33,7 +35,7 @@ A = implement MS7.1. B = separate foundation/policy, explicitly tracked. C = not
 | Pin-to-Hall / retained information | First-class reference in each authorized Hall, source jump, unpin preserves original | A | High / yes | Existing Hall/history | IMPLEMENTED; Personal/Room/Subroom/Sandbox real UI source roundtrip PASS |
 | Hall archive/restore/delete | Author/owner scope, real archived view, confirmed permanent Nuke | A | High / yes | Existing services | `.3` validated |
 | History / link handling | Bounded older/newer/latest; safe HTTP(S); drafts survive navigation | A | Essential / yes | Existing services | `.1/.4` validated |
-| Image/file/drag-drop attachments | Real private objects, authorized metadata/downloads, retry/progress/preview | B | High / yes; blocking sub-capability, not solved | Medium–high / private storage provisioning | `.7` reserved; founder provisioning needed below |
+| Image/file/drag-drop attachments | Real private objects, authorized metadata/downloads, retry/progress/preview | B | Important and unimplemented; explicitly not a current MS7.1 blocker | Medium–high / private storage provisioning | MS7.6 backlog P-001; no provisioning now unless later explicitly promoted |
 | Shared media/files browser | Later Resources projection of authorized attachments, not duplicate storage | B | Useful; uploads matter before gallery | Medium / media foundation | After media; no Resources build now |
 | Voice/video/calls | Joinable authorized active Room/Subroom Call context; conditional surface | B | Important later, acceptable current deferral per brief | High / signaling/media provider + device/privacy | Future communication foundation; hidden, no WebRTC |
 | Translation | Opt-in per message/Hall, original preserved, target language and privacy explicit | B | Important audience fit, current deferral per brief | Medium–high / reviewed service or native on-device | Future foundation; hidden, no API tonight |
@@ -45,15 +47,17 @@ A = implement MS7.1. B = separate foundation/policy, explicitly tracked. C = not
 | Fake install/starter/Gizmo controls | No installation without functioning capability | C | Not needed for Chat/Room beta | Runtime foundation | MS7.5/MS9; hidden, records retained |
 | Room logo/skin/governed brand | Stable Room-owned appearance separate from viewer preferences | B | Later customization, not required tonight | Media + governance | MS7.2/MS10; inheritance doc preserved |
 
-No A capability above becomes a Gizmo. Calls are communication context, not a fake calendar button; Schedule becomes a Gizmo. C proposals and owner/media decisions stay explicit at the founder gate.
+No A capability above becomes a Gizmo. Calls are communication context, not a fake calendar button; Schedule becomes a Gizmo. C proposals and unsafe owner lifecycle decisions remain explicit; media scheduling is resolved to MS7.6 by the founder, not a prerequisite token request for MS7.1.
 
-## Media provisioning gate — only this capability paused
+## Media provisioning backlog — MS7.6
 
-Local secure boolean check: `BLOB_READ_WRITE_TOKEN` absent; no public Blob token variable. No storage resource or credential was created or changed.
+Canonical intake/status: [MS7.6 P-001](MS7-6-PROVISIONING-BACKLOG.md#p-001--private-attachments--object-media-storage). The previous provisioning/deferral stop is superseded. Do not provision now or fake uploads; future explicit founder instruction can promote this to a current-wave blocker. The following is preserved prior assessment, not a new provider selection or immediate action request. Revalidate provider availability, cost and security at the authorized provisioning phase.
 
-Recommend **Vercel private Blob**, alongside the existing host, subject to founder acceptance of its public-beta status. Private downloads go through Tosker authorization; never publish an unrestricted object URL. Founder action: in the Tosker project's Storage, create a **Private** Development Blob store and connect its server-only `BLOB_READ_WRITE_TOKEN` to Development. Install locally securely, never paste into chat. The canonical founder-review URL currently uses Vercel's Production target with Development services: separately approve connecting that same Development store to this target for review. Future genuine Preview/Production data require separate stores/tokens, not automatic sharing. [Private storage and setup](https://vercel.com/docs/vercel-blob/private-storage).
+Last engineering check reported `BLOB_READ_WRITE_TOKEN` absent and no public Blob token variable. No environment check, resource or credential change was performed in the roadmap-alignment pass.
 
-Current Hobby allowance: 1 GB stored, 10 GB transfer, 10,000 simple and 2,000 advanced operations; Hobby over-limit access is constrained rather than unlimited pay-as-you-go. Pro has included usage then metering. Private delivery also incurs applicable Function/network usage; region and plan affect cost. Confirm dashboard plan/region/budget before provisioning. This is not a promise of zero cost. [Pricing](https://vercel.com/docs/vercel-blob/usage-and-pricing).
+Prior recommendation: **Vercel private Blob**, alongside the existing host, subject to founder acceptance of its public-beta status at assessment time. Private downloads go through Tosker authorization; never publish an unrestricted object URL. Future founder action, only when authorized: approve provider/budget/environment scope, create a **Private** Development store and securely connect its server-only token. Never paste it into chat. The canonical founder-review URL uses Vercel's Production target with Development services: any shared review-store connection needs separate approval. Future genuine Preview/Production data require deliberate separation, not automatic token sharing. [Private storage and setup](https://vercel.com/docs/vercel-blob/private-storage).
+
+Prior September 8 assessment recorded Hobby allowance of 1 GB stored, 10 GB transfer, 10,000 simple and 2,000 advanced operations, with constrained over-limit access; Pro includes usage then metering. Private delivery may also incur Function/network usage. These figures were not refreshed by this documentation pass: recheck plan/region/pricing/budget before provisioning. This is not a promise of zero cost. [Pricing](https://vercel.com/docs/vercel-blob/usage-and-pricing).
 
 Proposed smallest implementation: 10 MB per file, small per-message count, JPEG/PNG/WebP and conservative document allowlist; server-issued short-lived scoped upload permission after current conversation authorization, random object key; validate actual bytes/type/size before finalization (reject active HTML/SVG/executables); durable pending/ready/failed metadata and idempotent message finalization. Neon stores metadata only. Client progress/cancel/retry, selection and drag/drop, no sending pending uploads as accepted messages. Ably invalidates only after durable accepted message. Download endpoint rechecks current Personal/Room/Subroom access every time and streams private content with safe disposition/no shared cache; image preview only validated raster. Deletion uses tombstone + retryable object cleanup; abandoned-upload cleanup and bounded quotas required. Native clients reuse this authorization contract. Antivirus/expanded file formats require separate review; do not advertise scanning that is absent.
 
@@ -65,12 +69,12 @@ Calls: Room/Subroom scope issues short-lived join grants to an approved future m
 
 ## Revised remaining internal map
 
-Final overnight map: `.5` core management → `.6` mentions/navigation → `.7` reserved media → `.8` UX → `.9` integrated/release. See [Chat grammar](MS7-1-CHAT-GRAMMAR.md). Commit boundaries may combine a coherent backend/client integration; they do not fabricate completion of blocked slices.
+Current internal map preserves `.5` core management, `.6` mentions/navigation, `.8` UX and `.9` integrated/release. The old `.7` media reservation is moved to MS7.6, not completed or silently renumbered. See [Chat grammar](MS7-1-CHAT-GRAMMAR.md) and the canonical roadmap. Commit boundaries can combine coherent backend/client integration without fabricating milestone completion.
 
 - `.1–.4`: preserved at `bfb444d`.
-- `.5/.6`: implemented backend `449caf8`; client integration has targeted A/B evidence, final gate remains separate.
-- `.7`: media foundation reserved/provisioning-gated; no fake controls or fabricated completion.
+- `.5/.6`: implemented backend `449caf8`, client `8b6d29c`; targeted A/B evidence, final gate remains separate.
+- `.7` historical reservation: moved to MS7.6 backlog; no fake controls or fabricated completion.
 - `.8`: local UX normalization implemented; eight-width matrix and all-context controls PASS, physical/assistive limits explicit.
 - `.9`: integrated abuse/release: fresh A/B chained scenarios, independent completeness + control-function gates, exact cleanup, canonical deploy/live test only after engineering validation and required founder decisions.
 
-Do not mark proposed/unfinished rows implemented. Owner destructive lifecycle policy, private-media provisioning or explicit deferral, and proposed C convenience deferrals require founder review. Do not start MS7.2. Several-second Development latency remains recorded; no security-compromising performance rewrite.
+Do not mark proposed/unfinished rows implemented. Owner destructive lifecycle policy and proposed C convenience deferrals require founder review; private media is already classified into MS7.6. The authorized continuation follows engineering/stress validation → canonical founder-review deployment → walkthrough/patch → explicit lock. Do not start MS7.2. Several-second Development latency remains recorded; active core performance/correctness still needs judgment, not automatic MS7.6 deferral.

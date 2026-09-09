@@ -113,6 +113,7 @@ export function SurfaceHeader({
   onManage,
   chatUnread = 0,
   hallUnread = 0,
+  unreadByConversation,
   preference,
   onReadingPause,
 }: {
@@ -123,6 +124,7 @@ export function SurfaceHeader({
   onManage?: () => void;
   chatUnread?: number;
   hallUnread?: number;
+  unreadByConversation?: Readonly<Record<string, number>>;
   preference?: ConversationPreference;
   onReadingPause?: (paused: boolean) => void;
 }) {
@@ -158,7 +160,7 @@ export function SurfaceHeader({
         <div className="active-copy">
           {parentRoom ? <button className="room-context-trigger" aria-label={`Switch Room context: ${parentRoom.name}${conversation.tag === "SUBROOM" ? ` / ${conversation.name}` : ""}`} aria-haspopup="dialog" aria-expanded={Boolean(contextAnchor)} onClick={(event) => setContextAnchor(event.currentTarget)}><span>{parentRoom.name}</span><ChevronDown size={15} /></button> : <h2>{titleOf(conversation, user.displayName)}</h2>}
           {conversation.kind === "personal" && conversation.presenceStatus ? <span className="header-presence"><i className={`presence-mark ${conversation.presenceStatus}`} aria-label={{ online: "Online", idle: "Idle", away: "Away", meeting: "In a meeting" }[conversation.presenceStatus]} />{{ online: "Online", idle: "Idle", away: "Away", meeting: "In a meeting" }[conversation.presenceStatus]}</span> : null}
-          {conversation.kind === "room" && conversation.context ? <span>{parentRoom ? conversation.name : conversation.context}</span> : null}
+          {conversation.kind === "room" && conversation.context ? <span className="header-context" title={parentRoom ? conversation.name : conversation.context}>{parentRoom ? conversation.name : conversation.context}</span> : null}
         </div>
         {conversation.kind === "room" && onInvite ? (
           <button className="invite-button primary-action" onClick={onInvite}>
@@ -198,8 +200,8 @@ export function SurfaceHeader({
         {controlBusy ? <p role="status">Saving…</p> : null}{controlFeedback ? <p role="alert">{controlFeedback}</p> : null}
       </div></InteractionPopover> : null}
       {contextAnchor && parentRoom ? <InteractionPopover anchor={contextAnchor} label="Room contexts" onClose={() => setContextAnchor(null)}><nav className="room-context-menu" aria-label="Room and Subrooms">
-        <Link href={`/room/${parentRoom.slug}`} aria-current={conversation.slug === parentRoom.slug ? "page" : undefined} onClick={() => setContextAnchor(null)}>{parentRoom.name}</Link>
-        {parentRoom.subrooms.map((child) => <Link key={child.id} className="context-child" href={`/room/${parentRoom.slug}/subroom/${child.id}`} aria-current={conversation.slug.endsWith(`--${child.id}`) ? "page" : undefined} onClick={() => setContextAnchor(null)}>{child.name}</Link>)}
+        <Link href={`/room/${parentRoom.slug}`} aria-current={conversation.slug === parentRoom.slug ? "page" : undefined} onClick={() => setContextAnchor(null)}>{parentRoom.name}<AttentionMark count={unreadByConversation?.[parentRoom.conversationId] ?? 0} label="unread activities" /></Link>
+        {parentRoom.subrooms.map((child) => <Link key={child.id} className="context-child" href={`/room/${parentRoom.slug}/subroom/${child.id}`} aria-current={conversation.slug.endsWith(`--${child.id}`) ? "page" : undefined} onClick={() => setContextAnchor(null)}>{child.name}<AttentionMark count={unreadByConversation?.[child.conversationId] ?? 0} label="unread activities" /></Link>)}
         {parentRoom.role === "owner" && onAddSubroom ? <><hr /><button onClick={() => { setContextAnchor(null); onAddSubroom(); }}><Plus size={15} />Add Subroom</button></> : null}
       </nav></InteractionPopover> : null}
     </header>

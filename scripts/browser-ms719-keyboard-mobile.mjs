@@ -6,6 +6,16 @@ if(!bin)throw new Error("Set AGENT_BROWSER_BIN.");
 async function run(...args){const {stdout}=await exec(bin,["--session","ms71-b","--json",...args],{timeout:45000});const out=JSON.parse(stdout);assert(out.success);return args[0]==="eval"?out.data?.result:out.data;}
 const ev=js=>run("eval",js);
 async function until(js,label){const end=Date.now()+60000;while(Date.now()<end){if(await ev(js))return;await new Promise(r=>setTimeout(r,350));}throw new Error(`Timed out: ${label}`);}
+async function foreground() {
+  if (!await ev("document.hidden")) return;
+  const { tabs } = await run("tab", "list"), current = tabs.find(tab => tab.active);
+  assert(current, "Retain the actual current browser tab");
+  const label = `ms719-focus-${Date.now()}`;
+  await run("tab", "new", "--label", label, "about:blank");
+  await run("tab", current.tabId); await run("tab", "close", label);
+  await until("!document.hidden", "native foreground transition completes");
+  console.log("Harness: native temporary-tab switch/close restored foreground; no visibility override.");
+}
 for(const width of [320,390]){
   await run("set","viewport",`${width}`,"844");await run("open","http://localhost:3000/notifications");await until("!!document.querySelector('.notification-list article')","canonical notifications");
   const metrics=await ev("(()=>{const s=x=>getComputedStyle(document.querySelector(x));return {overflow:document.documentElement.scrollWidth>innerWidth,title:s('.notification-list strong').fontSize,body:s('.notification-list p').fontSize,meta:s('.notification-list time').fontSize,filterOverflow:document.querySelector('.notifications-workspace > nav').scrollWidth>document.querySelector('.notifications-workspace > nav').clientWidth}})()");
@@ -27,6 +37,7 @@ await run("press","Tab");assert.equal(await ev("document.activeElement?.getAttri
 await run("press","End");assert.match(await ev("document.activeElement.textContent"),/Mark Chat unread/);await run("press","Home");await run("press","Escape");await until("document.activeElement?.getAttribute('aria-label')==='Conversation options'&&!document.querySelector('.interaction-popover')","Options Escape restores focus");
 await run("press","Space");await until("!!document.querySelector('.communication-options')","options for unread");await run("press","End");await run("press","Enter");await until("location.pathname==='/app'","manual unread saved");
 await run("open","http://localhost:3000/room/ms719-integrated-1788885047459-80440f?message=667f8507-7f3e-4c69-9fcc-95f3c8d344c8");
+await foreground();
 await until("document.querySelector('.composer-error')?.textContent.includes('That message couldn’t be opened')&&!!document.querySelector('.surface-tabs a:first-child .attention-mark')&&!!document.querySelector('.message-row')","denied source preserves manual unread and renders recoverable context");
 await run("click",".history-latest button:first-child");await until("!document.querySelector('.composer-error')&&!document.querySelector('.surface-tabs a:first-child .attention-mark')&&!document.querySelector('.history-latest')","explicit Latest recovers and consumes unread");
 console.log("PASS: 320/390 Notifications readable typography, wrapping, real Mentions category; native Tab/Enter Search, modal focus containment/Escape restore, Space/options/Home/End/Escape; denied source preserves manual unread, explicit Latest clears error and consumes. No destructive actions or messages sent. Physical assistive/touch limitations remain.");

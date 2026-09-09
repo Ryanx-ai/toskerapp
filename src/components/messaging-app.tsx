@@ -1542,6 +1542,7 @@ export function MessagingApp({
               onManage={contextRoom ? () => setOverlay("manage") : undefined}
               chatUnread={unreadForSurface("message")}
               hallUnread={unreadForSurface("hall")}
+              unreadByConversation={unreadByConversation}
             />
             {surface === "hall" ? (
               <HallSurface

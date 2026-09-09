@@ -1,0 +1,14 @@
+# MS7.1 owner lifecycle — founder decision, not implementation
+
+2026-09-09. Current safe behavior: ordinary members can leave; the owner cannot leave, be removed, transfer ownership, archive or delete the Room. Existing history stays attributed. No new owner-lifecycle control is authorized by this recommendation.
+
+**Release classification:** does not block a truthful, safe MS7.1 founder-review deployment while these controls remain absent. It does block eventual owner-lifecycle completeness. Founder approval is required before implementing the policy or scheduling its slice; MS7.6 provisioning does not resolve it.
+
+| Decision | Recommended future contract | Required safeguards |
+|---|---|---|
+| Transfer ownership | Offer to one eligible existing member; they explicitly accept. Transfer alone does not make the former owner leave. | Recheck both memberships and current owner inside one transaction; atomically change owner/roles, never zero owners. Expire/cancel pending offers. Disclose Room and all child-context responsibilities, including owner-only Subroom access. Reissue scoped tokens and reconcile navigation. |
+| Room archive | Prefer reversible, owner-controlled read-only closure before irreversible deletion. Members retain authorized history, and can tell why sending is unavailable. | Apply coherently to Chat/Hall/Subrooms; pause new joins and mutations, revoke pending invitations, preserve private-child access boundaries. Notify members once. Define restore and invitation reissue deliberately. Not the same as Hall note archive or a viewer privately hiding a conversation. |
+| Room deletion | Separate later destructive decision with explicit retention/recovery period before purge. | Show all affected Subrooms/history/Hall and future objects; revoke access/invites/realtime immediately. Define recoverability, legal/retention duties and final purge first. Durable, retryable cleanup must cover references/notifications and future storage without deleting users, Sandboxes or unrelated Personal Chat. Do not promise deletion while cleanup is incomplete. |
+| Owner leave | Allow only after an accepted transfer, then use ordinary confirmed member withdrawal. With no eligible successor, retain owner membership until approved archive/delete policy is available. | No automatic successor selection, invisible promotion or orphaning. Preserve historical attribution, withdraw child access and tokens, revoke the leaving member's accepted invitations under existing policy. |
+
+Open founder questions: whether transfer requires acceptance (recommended), who can restore an archived Room, whether former owners retain ordinary access to previously owner-only children (recommended: no implicit grant), retention/recovery duration before deletion, and member notice/cancellation expectations. These are product-policy questions, not reasons to add a new provider or role hierarchy during MS7.1.

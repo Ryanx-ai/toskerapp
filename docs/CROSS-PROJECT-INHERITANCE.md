@@ -2,6 +2,8 @@
 
 2026-09-08. Preserve useful R&D, not whole old products. Inspect → understand → extract → translate into Tosker → implement only in the relevant authorized milestone. Curate for genuine collaborative fit; do not force every experiment into Tosker. MS7.1 remains the active priority. No source-project integration or source-project mutation is authorized by this document.
 
+2026-09-09 roadmap alignment: [ROADMAP.md](ROADMAP.md) owns milestone order. The separate MS7.1 development directive has now authorized the engineering/release continuation, not broader source archaeology. TethrLink → MS7.2 identity/namecards; Luna/LunaVault → MS7.1/7.2 Room/settings/governance architecture and later customization/skins; HUDL → MS9 collaborative Gizmos. Provisioning needs are classified against [MS7.6 intake](MS7-6-PROVISIONING-BACKLOG.md), not permission to provision or to defer active core correctness.
+
 ## Evidence and safety
 
 The entries below are **founder-supplied opportunities, not researched findings**. Source archaeology is deferred while the active MS7.1 engineering slice is incomplete. Verify directories exist before using them; do not invent, move, rename, delete, upgrade, migrate or deploy any source project. Read-only README/handoff/docs/screenshots/core workflows/models/tokens first; do not exhaustively read generated files or spend hours repairing old apps. If multiple Luna projects exist, compare Git, handoff, source and modification context before choosing.

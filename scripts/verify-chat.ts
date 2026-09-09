@@ -1,4 +1,4 @@
-import { count, eq } from "drizzle-orm";
+import { and, count, eq, isNull, sql } from "drizzle-orm";
 
 import { AuthorizationDeniedError, requireConversationParticipant } from "../src/server/auth/authorize";
 import { getDatabase } from "../src/server/db/client";
@@ -8,7 +8,13 @@ const db = getDatabase();
 const subject = `ms5-chat-denial-${crypto.randomUUID()}`;
 
 async function main() {
-  const [shared] = await db.select({ id: conversations.id }).from(conversations).where(eq(conversations.kind, "room")).limit(1);
+  // Subrooms also use kind=room and may intentionally have only their owner.
+  // Select an actually populated shared parent, not an arbitrary first row.
+  const [shared] = await db.select({ id: conversations.id }).from(conversations).where(and(
+    eq(conversations.kind, "room"), isNull(conversations.subroomId),
+    sql`(select count(*) from ${conversationParticipants} where ${conversationParticipants.conversationId} = ${conversations.id}) >= 2`,
+    sql`exists (select 1 from ${messages} where ${messages.conversationId} = ${conversations.id})`,
+  )).limit(1);
   if (!shared) throw new Error("A shared Room conversation is required for this check.");
   const [outsider] = await db.insert(users).values({ authProvider: "verification", authSubject: subject, tid: `TID-CHECK-${crypto.randomUUID().slice(0, 4).toUpperCase()}` }).returning({ id: users.id });
   try {

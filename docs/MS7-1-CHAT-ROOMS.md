@@ -2,10 +2,12 @@
 
 2026-09-08. IN PROGRESS; not deployed or founder-locked. Baseline `c6286b9` (`f005f6d` product). Approved backlog: `MS7-PRODUCT-STRESS-AUDIT.md` and founder MS7.1 brief. No MS7.2–7.5 work.
 
+State alignment 2026-09-09: HEAD `8b6d29c`; existing local checkpoints preserved. [Canonical roadmap](ROADMAP.md) introduces MS7.6 and moves private attachments to its provisioning backlog. The subsequent founder development-continuation directive authorizes the remaining engineering/stress gate → canonical founder review. This does not retroactively turn documentation-only work into implementation evidence.
+
 ## Contracts / bounded choices
 
 - Neon remains durable authority; Clerk identity and the existing scoped Ably transport remain. Keep 60s connected reconciliation / 12s unavailable fallback. No new provider, storage or calls.
-- Founder correction: [core capability decisions](MS7-1-CORE-CAPABILITIES.md) supersede the historical hidden inventory. Build scoped Search, persistent Mute/manual unread and coherent communication management in MS7.1. Hiding is not completion. Media is a separate provisioning gate; calls/translation remain explicit foundations and Schedule is a Gizmo. Unsupported controls remain absent until real.
+- Founder correction: [core capability decisions](MS7-1-CORE-CAPABILITIES.md) supersede the historical hidden inventory. Scoped Search, persistent Mute/manual unread and coherent communication management belong in MS7.1. Hiding is not completion. Private media is now [MS7.6 backlog P-001](MS7-6-PROVISIONING-BACKLOG.md), not a current MS7.1 blocker; calls/translation remain explicit foundations and Schedule is a Gizmo. Unsupported controls remain absent until real.
 - Ordinary members may leave after confirmation. Owners cannot leave or be removed; no ownership transfer, Room deletion or orphaning in this wave.
 - Owner-only minimal management: name/tags, members/removal, current invites/revoke, Subroom entry. Preserve existing member invite permission unless source/security findings require a documented change.
 - Removal is access withdrawal, not a permanent ban. Rejoin requires a valid invitation; revoke previously accepted invitations for the departing target so a stale accepted token cannot silently restore membership. Unclaimed valid bearer invites remain governed by the existing single-recipient invite contract; owner can revoke them. Explain this in management.
@@ -24,10 +26,10 @@ Shared acceptance and founder walkthrough: [MS7.1 stress scenarios](MS7-1-STRESS
 | MS7.1.2 | Room management, leave/remove/invite lifecycle and authorization | Local engineering checkpoint validated; full-wave/founder gate remains |
 | MS7.1.3 | Hall author/owner policy; archive/restore; pin regression; core-control inventory | Local engineering checkpoint validated; full-wave/founder gate remains |
 | MS7.1.4 | Measured delivery path; 525 history; drafts/retry; loading/error | Validated local `bfb444d` |
-| MS7.1.5 | Core communication management: Search, Mute, manual unread, compact Room preferences | Backend `449caf8`; UI and targeted DB/A-B management validation PASS, integration checkpoint pending |
-| MS7.1.6 | Mentions, replies/source targeting and Chat grammar | Backend `449caf8`; real mentions/retry/attention/source-jump and focused composer validation PASS; integrated gate remains |
-| MS7.1.7 | Media foundation | Reserved; private storage provisioning gate |
-| MS7.1.8 | Shared identity/primitives, loading, menus, responsive/accessibility | Implemented; eight-width targeted matrix and 16-context control sweep PASS; fresh chained scenario/zoom/release gate remains |
+| MS7.1.5 | Core communication management: Search, Mute, manual unread, compact Room preferences | Backend `449caf8`, client `8b6d29c`; targeted DB/A-B management validation PASS; full-wave gate remains |
+| MS7.1.6 | Mentions, replies/source targeting and Chat grammar | Backend `449caf8`, client `8b6d29c`; real mentions/retry/attention/source-jump and focused composer validation PASS; integrated gate remains |
+| MS7.1.7 (historical reservation) | Media foundation | Moved to MS7.6 backlog P-001 by founder; not implemented, not a current MS7.1 blocker |
+| MS7.1.8 | Shared identity/primitives, loading, menus, responsive/accessibility | Client `8b6d29c`; eight-width targeted matrix and 16-context control sweep PASS; full-wave/physical/release gate remains |
 | MS7.1.9 | Two-user adverse-path/security/completeness/full release gate | Pending; required founder deferrals are not assumed |
 
 ## Baseline inspection
@@ -39,5 +41,7 @@ Two existing isolated authenticated Development browsers inspected canonical bef
 Candidate MS7.1.1 TS/lint/build, whitespace, 15 safe-link parser cases and read-only UI fixture persistence pass. Partial browser checks are recorded separately in the numbered ledger; this is not full MS7.1 acceptance. Remaining full gate: migration/schema/invariants, real Ably scope/revocation, Chat/Hall/Room service tests, two isolated-user browser abuse, 100/500+ history, 320/375/390/430/768/1024/1440/1728 plus 200% equivalent, focus/menus/destructive confirmation, runtime/secret/dependency checks and exact QA cleanup. Local coherent checkpoints permitted; push/deploy only after full gate. Founder walkthrough precedes MS7.1 lock.
 
 ## Future hooks (notes only)
+
+Follow [the authorized next-phase sequence](ROADMAP.md#next-ms71-phase--authorized-by-the-separate-continuation-directive): recover → test → optimize → core grammar → identify/classify/document provisioning debt → full engineering/stress gate → canonical founder-review deployment → founder walkthrough/patch → explicit lock. Dependencies needed to validate active core behavior remain current-wave blockers; useful interrupting provisioning moves to MS7.6, not all backend correctness work. MS15 retains full launch priming. [Owner lifecycle recommendation](MS7-1-OWNER-LIFECYCLE-REVIEW.md) is a founder policy decision, not implementation or a blocker to a safe review build with those controls absent.
 
 Calls are future joinable active Room/Subroom contexts, authorized by the same membership boundary; no permanent inactive Call tab, signaling/runtime/device access now. Media needs separately authorized object storage, access, retention and quotas; never base64 Postgres or local fake uploads. Gizmos need real first-party runtime before installation is advertised. Public-beta operations still require explicitly authorized environment separation.

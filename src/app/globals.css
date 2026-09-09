@@ -830,7 +830,7 @@ h1,h2,h3 { font-family:var(--font-mermaid),Georgia,serif; font-weight:400; lette
 .hall-inline-error { margin-top:8px!important; color:inherit!important; }
 .hall-note-context button:disabled { opacity:.55; cursor:default; }
 @media (min-width:641px) and (max-width:1100px) {
-  .conversation-header { grid-template-columns:minmax(140px,1fr) auto 34px; gap:8px; padding-inline:14px; }
+  .conversation-header { grid-template-columns:minmax(0,1fr) auto auto; gap:8px; padding-inline:14px; }
   .conversation-header .header-utilities .action-icon:not(:last-child) { display:none; }
   .notice-list { grid-template-columns:repeat(2,minmax(0,1fr)); }
 }
@@ -1062,9 +1062,9 @@ h1,h2,h3 { font-family:var(--font-mermaid),Georgia,serif; font-weight:400; lette
 /* Shared identity geometry; photos and deterministic fallback use the same frame. */
 .person-avatar > svg,.person-avatar > img { display:block; width:100%; height:100%; border-radius:50%; object-fit:cover; }
 .person-avatar { isolation:isolate; }
-.reply-source { display:grid; gap:4px; width:100%; padding:4px 0; border:0; background:transparent; color:inherit; text-align:left; cursor:pointer; font:inherit; }
+.reply-source { display:grid; grid-template-columns:minmax(0,1fr); gap:4px; width:100%; padding:4px 0; border:0; background:transparent; color:inherit; text-align:left; cursor:pointer; font:inherit; }
 .reply-source:hover { filter:brightness(1.2); }
-.reply-source > span { overflow-wrap:anywhere; }
+.reply-source > span,.reply-source > strong,.reply-context strong { overflow-wrap:anywhere; }
 .message-row .grouped-message-time { display:block; color:var(--text-secondary); font-size:11px; padding:0 4px 2px; opacity:0; }
 .message-row:hover .grouped-message-time,.message-row:focus-within .grouped-message-time { opacity:1; }
 .message-mention { border-radius:4px; padding:1px 2px; color:var(--text-primary); background:rgba(234,166,77,.22); font-weight:600; }
@@ -1078,7 +1078,8 @@ h1,h2,h3 { font-family:var(--font-mermaid),Georgia,serif; font-weight:400; lette
 
 /* MS7.1 functional legibility: shared measurements, not a new visual system. */
 .message-bubble > p { font-size:15px; line-height:1.55; }
-.message-author strong { font-size:14px; line-height:1.4; }
+.message-author strong { min-width:0; overflow-wrap:anywhere; font-size:14px; line-height:1.4; }
+.message-author time { flex:none; }
 .message-author time,.message-edited,.message-row .grouped-message-time { font-size:12px; }
 .message-column { position:relative; }
 .message-row .grouped-message-time { position:absolute; top:0; left:0; transform:translateY(-100%); padding:0 4px; pointer-events:none; }
@@ -1095,6 +1096,7 @@ h1,h2,h3 { font-family:var(--font-mermaid),Georgia,serif; font-weight:400; lette
 .profile-nameplate small,.profile-row small { font-size:11px; }
 .conversation-header .surface-tabs a,.conversation-header .surface-tabs button,.room-context-trigger,.active-copy h2 { font-size:14px; }
 .active-copy span,.header-presence { font-size:12px; }
+.active-copy .header-context { display:block; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .composer textarea { font-size:15px; line-height:1.5; color:var(--text-primary); background:transparent; }
 .reply-context strong,.reply-context span,.message-bubble blockquote { font-size:13px; line-height:1.5; }
 .message-action-list button,.room-context-menu button,.room-context-menu a,.context-menu button,.context-menu a { font-size:14px; min-height:40px; }
@@ -1109,6 +1111,7 @@ h1,h2,h3 { font-family:var(--font-mermaid),Georgia,serif; font-weight:400; lette
 .room-management-note,.room-details-panel small { font-size:12px; }
 .notice-card p,.hall-object > div > p,.hall-comment-body { font-size:14px; line-height:1.55; }
 .notice-card small,.notice-card footer { font-size:12px; }
+.hall-object footer { overflow-wrap:anywhere; }
 .hall-view-switch button,.hall-comment-composer textarea { font-size:14px; }
 @media(max-width:640px) {
   .message-row { max-width:100%; }
@@ -1132,8 +1135,8 @@ h1,h2,h3 { font-family:var(--font-mermaid),Georgia,serif; font-weight:400; lette
 /* Core communication management — one restrained, keyboard-accessible vocabulary. */
 .core-header-controls { display:flex; align-items:center; gap:2px; margin-left:auto; grid-column:3; }
 .communication-options p { max-width:250px; padding:0 10px; white-space:normal; color:var(--text-secondary); font-size:12px; line-height:1.5; }
-.room-structure { display:grid; gap:8px; margin-bottom:12px; }
-.room-structure a { padding:10px; border-radius:8px; color:var(--text-primary); background:var(--surface); }
+.room-structure { display:grid; grid-template-columns:minmax(0,1fr); gap:8px; margin-bottom:12px; }
+.room-structure a { min-width:0; overflow-wrap:anywhere; padding:10px; border-radius:8px; color:var(--text-primary); background:var(--surface); }
 .room-structure a:hover { background:var(--surface-hover); }
 .conversation-search { width:min(580px,calc(100vw - 24px)); max-height:calc(100dvh - 32px); overflow:auto; }
 .conversation-search h2 { padding-right:32px; }

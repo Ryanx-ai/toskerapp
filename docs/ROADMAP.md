@@ -1,88 +1,81 @@
-# Tosker Roadmap
+# Tosker roadmap — canonical founder direction
 
-## Milestone 2.3 + 2.4 — complete
+Updated 2026-09-09 by the founder's roadmap-memory/state-alignment brief. This is the single current milestone-order reference; it supersedes early roadmap numbering and old attachment-blocker scheduling. Git and [CODEX-HANDOFF.md](../CODEX-HANDOFF.md) remain authoritative for implemented state and recovery. Historical milestone evidence stays in the handoff and individual milestone records.
 
-- Communication interaction lock: shared topbar utilities, dismissible menus, reply context, reactions, message actions, and persistent desktop ordering.
-- Hall interaction lock: contextual Sandbox/personal/Room copy, compact notice cards, prototype note actions, and restrained empty states.
-- Art integration remains structurally separate through surface-level layers; final artwork is intentionally deferred.
+## Current state / authorization
 
-## Milestone 2.5 — final shell pass
+- MS6 is COMPLETE AND LOCKED.
+- MS7.1 — Chat + Rooms Productization / Beta Hardening — is IN PROGRESS and unlocked. Preserve all local checkpoints, including `428b8aa`, `eda4451`, `b3bd7a1`, `bfb444d`, `449caf8` and `8b6d29c`; re-inspect Git on resume.
+- Canonical product remains the locked MS6B build. This roadmap update changes no production state.
+- The documentation-only alignment pass is complete. The founder's 2026-09-09 MS7.1 development-continuation directive now authorizes resumption through the engineering gate and canonical founder review. No later milestone or automatic lock is authorized. Historical alignment evidence remains documentation-only.
 
-- Notifications and recent activity share one prototype workspace entered through the profile bell.
-- Notifications, Settings, and Help & Feedback live together in the profile nameplate.
-- Desktop rail collapse is restored and persisted locally; mobile retains independent navigation.
-- Product destinations share one responsive banner architecture with contextual intensity.
-- Lucide provides production-grade functional icons. Authored atmosphere art remains deferred pending founder approval.
+## Provisioning classification during MS7.1–7.5
 
-> Every milestone must earn the next one. Do not build Tosker according to the size of the dream; build according to what users demonstrate they need.
+Assess each discovered dependency and record its reason, not just its provider name:
 
-Every numbered milestone ends with founder review before the next begins.
+| Class | Meaning | Action |
+|---|---|---|
+| A — Current-wave blocker | The service is genuinely required to validate core behavior of the active milestone | Flag the exact dependency and founder action; do not pretend the core behavior is validated |
+| B — Provisioning backlog | Useful/important capability whose provisioning would unnecessarily interrupt the current wave | Record for MS7.6; continue independent authorized work |
+| C — Post-beta / later infrastructure | Not required for the current beta/product scope | Record separately with the relevant later scope |
 
-## Milestone 1 — Product shell (locked)
+Do not defer every backend defect to MS7.6 and do not provision every discovered service immediately. Existing authorization, persistence and core failure-recovery defects remain the active wave's responsibility when they affect its core contract. Classification is not permission to provision.
 
-Canonical brand foundation, messaging-first shell, My Room, personal conversations, Rooms, functional local chat UX, Hall, translation UX prototype, collapsible desktop navigation, top-level product IA, mobile baseline, product vision, and Vibeguide.
+**Private attachments are explicitly Class B — MS7.6 provisioning backlog**, not a current MS7.1 blocker. The founder may promote them earlier by later explicit instruction. Do not provision now, request a token as a prerequisite to resuming MS7.1, or restore fake uploads. Track them in [the MS7.6 backlog](MS7-6-PROVISIONING-BACKLOG.md).
 
-**Goal:** Tosker immediately feels like communication software with room to grow.
+## Next MS7.1 phase — authorized by the separate continuation directive
 
-## Milestone 2 — First-time user experience (FINAL-LOCKED)
+1. Recover the current validated MS7.1 state from handoff, milestone evidence and Git.
+2. Continue testing Chat / Rooms / Hall.
+3. Optimize existing behavior.
+4. Finish remaining core interaction grammar.
+5. Identify likely future infrastructure/service needs.
+6. Classify each as current-wave blocker, MS7.6 backlog, or post-beta/later.
+7. Document the decisions.
+8. Run the full engineering/stress gate.
+9. Deploy a canonical founder-review build after the authorized release gate.
+10. Then the founder manually walks through the deployed build.
 
-The current founder-review build covers first launch, genuine empty states, self-messaging, locally persisted Room creation and messages, invitation and Add-to-Room prototypes, Hall discovery, and high-fidelity previews of Explore, Marketplace, Studio, Settings, and Help. These are UX-validation surfaces, not platform architecture.
+Wave cycle: IMPLEMENT → TEST → OPTIMIZE → IDENTIFY PROVISIONING DEBT → VALIDATE → DEPLOY CANONICAL FOUNDER REVIEW → FOUNDER WALKTHROUGH → FOUNDER PATCH IF REQUIRED → LOCK.
 
-**Goal:** A completely new person understands Tosker without founder explanation.
+MS7.1 is not locked until engineering is complete, relevant stress scenarios pass, core behavior is coherent, provisioning dependencies are labeled, the canonical founder-review build is live, the founder has walked through it, and the founder explicitly approves lock. Automated QA alone cannot lock it. No automatic advance to the next milestone.
 
-### Milestone 3 handoff
+## MS7 sequence
 
-- MVP productisation stays focused on Friends/People, Chat/Rooms, and Explore/Plugins/Gizmos.
-- Marketplace and Studio remain preserved future-facing prototype surfaces; they are post-MVP and must not become backend dependencies.
-- Explore is the discovery/use layer. Marketplace is a future distribution and commercial layer. Studio is future creator infrastructure.
-- Approved art direction: low-poly 3D, tactile, dark Tosker world, soft glow, geometric construction, and cartoonised characters. Ratatoskr uses rust/orange fur, expressive eyes, an angular tail, teal traveller cloak, and gold detail.
-- Sequence: formal art lock → production art generation → Milestone 3 development and integration.
-- Milestone 3 may populate the prepared banner, Explore, Room-cover, profile/namecard, chat-wall, empty-state, Ratatoskr, and mobile-crop surfaces. Milestone 2 does not mass-integrate that library.
+| Milestone | Scope / inheritance | Completion sequence |
+|---|---|---|
+| MS7.1 | Chat + Rooms | Abuse/validate → canonical founder review → founder walkthrough → lock |
+| MS7.2 | Profile + Settings; TethrLink identity/namecards; Luna/LunaVault governance/customization learnings | Stress → canonical founder review → walkthrough → lock |
+| MS7.3 | Friends + Search; people discovery, relationships, profile/shared-context integration | Stress → canonical founder review → walkthrough → lock |
+| MS7.4 | Explore; truthful discovery and real capability presentation | Stress → canonical founder review → walkthrough → lock |
+| MS7.5 | Gizmo Readiness / Product Completeness; product/backend/navigation/permission substrate for real Gizmos | Stress → canonical founder review → walkthrough → lock |
+| MS7.6 | Provisioning Backlog + Development / Backend Polish | Resolve accumulated required services → backend/dev sweep → environment/secrets/integration cleanup → validate → walkthrough/lock as appropriate |
 
-## Milestone 3 — First-time experience + desktop workspace evolution (FINAL-LOCKED)
+MS7.6 covers deliberate Development/beta infrastructure provisioning, appropriate Development/Preview/Production separation, secret handling/rotation/server-only configuration, server boundaries/authorization/persistence/query/migration/realtime/storage consistency, failure recovery and temporary development debt. Include logging, error visibility, health and operational documentation where warranted. It makes the Development/beta backend coherent; **MS15 still owns full production/launch priming**. MS7.6 does not waive current-wave correctness or provision resources automatically.
 
-- Fresh, demonstration, and returning prototype states make learnability testable without introducing production identity or backend systems.
-- Desktop keeps the established persistent navigation rail, with the Tosker mark as the explicit expanded/compact control and one clear primary working surface.
-- The experimental top workspace bar, local Back/Forward history, two-pane conversation model, and edge-hover reveal were evaluated and reverted after founder review because they added complexity without improving the core communication task.
-- Contextual nested flows use a quiet inline Back affordance; browser and workspace navigation remain outside the product shell.
-- Mobile remains a single-pane communication experience with exactly five primary destinations.
+## After MS7
 
-**Goal:** A new person can orient themselves quickly while the desktop shell stays focused, calm, and communication-first.
+| Milestone | Direction |
+|---|---|
+| MS8 | Hardcore whole-product UI/UX polish |
+| MS9 | Gizmos + ToskerBot prototype |
+| MS10 | Full Tosker Art integration |
+| MS11 | Desktop packaging |
+| MS12 | Native iOS / Android |
+| MS13 | Full ToskerWeb creation |
+| MS14 | Hardcore cross-platform destruction testing |
+| MS15 | Production / launch priming |
+| MS16 | Full Beta launch |
+| MS17+ | Scale / adapt / grow, increasingly guided by real-user evidence |
 
-## Milestone 4 — Real chat
+MS9 Gizmos: real capability runtime, first-party launch set, multiplayer state and HUDL inheritance where useful. ToskerBot: native/default multiplayer AI concept, Room-aware; a user asks for help configuring a Room → Tosker proposes Gizmos/structure/actions → an authorized user approves → Tosker executes deterministic application actions. If this delays beta, keep ToskerBot prototype/demo-only and move its full production version post-beta. No AI implementation is authorized by this roadmap.
 
-Introduce production messaging architecture: persistence, authentication, realtime communication, message model, identity, and reliability.
+## Cross-project inheritance
 
-**Goal:** Two real people can reliably talk inside a Tosker.
+Read [CROSS-PROJECT-INHERITANCE.md](CROSS-PROJECT-INHERITANCE.md) before relevant work. Verify source paths before use; treat them as read-only R&D inputs, never blind merges or permission to mutate source projects.
 
-## Milestone 5 — Translation
+- TethrLink → MS7.2 identity/namecards.
+- Luna/LunaVault → MS7.1/7.2 Room/settings/governance architecture, then later customization/skins.
+- HUDL → MS9 collaborative Gizmos.
 
-Implement real text translation while preserving access to original messages.
-
-**Goal:** Two people who do not share a language can comfortably communicate inside Tosker.
-
-## Milestone 6 — Hall
-
-Turn Hall into a genuinely useful shared-information surface by testing notes, pinned information, announcements, simple board behavior, and permissions.
-
-**Goal:** Important information stays understandable outside chat history.
-
-## Milestone 7 — First Room app
-
-Choose one collaborative capability based on prior testing. Candidates include Poll, Map, Kanban, Image Board, or Schedule; do not select one until evidence exists.
-
-**Goal:** Prove that Tosker can expand a Room beyond messaging.
-
-## Future platform — not numbered commitments
-
-Explore, Marketplace, Studio, apps, plugins, first-party capabilities, customisation, skins, templates, games, creator economy, mobile apps, cross-border finance, and voice translation remain long-term directions. They are deliberately unscheduled.
-
-Mobile navigation optimisation is also a later UX milestone; Milestone 1 preserves the usable list-to-conversation baseline.
-
-## Milestone 2.1 — Communication refinement
-
-Founder review refines the messaging shell before production architecture: denser navigation, dynamic Dashboard identity, functional search, resilient chat scrolling, representative message types, contextual actions, composer affordances, Subroom placement, responsive behavior, and quieter atmospheric empty states.
-
-## Milestone 2.2 — Persistent communication architecture
-
-The conversation rail becomes Tosker's stable product spine across Chat, Hall, Explore, Friends, Marketplace, Studio, Settings, and Help. Personal conversations and Rooms share one compact list, the permanent private space becomes Sandbox, and Room identity uses lightweight tags. Local prototypes cover pinning, Friends/TID discovery, Personal Chat creation, and a fast Room flow with optional tags, things, people, invite link, and QR. Mobile keeps messaging primary through a compact five-destination bottom navigation. These flows validate product structure; they are not backend or identity architecture.
+Existing website refinement remains parked until authorized; full ToskerWeb is MS13. `toskerArt/` stays untouched/untracked until separately authorized Art work. Roadmap placement does not authorize starting it.

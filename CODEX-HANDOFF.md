@@ -2,7 +2,27 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
-## Active session — MS7.1 Chat / Rooms hardening (2026-09-09)
+## MS7.1 local release gate complete — 2026-09-09
+
+The current founder development-continuation directive supersedes the historical waiting instructions below. Baseline `8b6d29c`; fresh `git fetch origin` confirmed main six commits ahead, zero behind. Current uncommitted product patch fixes long Room/Subroom/author/reply overflow and tablet header clipping, and adds existing canonical attention dots to authorized Room/Subroom switcher links. No schema/provider changes. Existing roadmap alignment and unrelated Design Hub / Art / Web work are preserved.
+
+Fresh PASS: all eight long-identity widths, populated Room/two-child/shared-Hall attention sequence, owner removal during real typing and open Hall editor with authorized rejoin/draft preservation,589-row bounded browser history, offline history/reply recovery, schema/invariants, management/mentions/Hall/Room/Ably/MS6A services, TypeScript/lint/build and secret scan. Delivery sample medians Personal5266ms / Room5749ms / child7283ms: slower than prior optimized samples, still several-second Development latency; do not imply instantaneous delivery. Details and harness failures: [results ledger](docs/MS7-1-STRESS-RESULTS.md).
+
+Final foreground keyboard/control and rebuilt switcher/Hall author responsive reruns PASS. Exact guarded cleanup completed: three QA Rooms,9 Room/Subroom conversations,693 contained messages,13 Hall items/1 comment, plus18 individually verified QA messages in preserved Personal/Sandbox conversations. No application undo. Post-cleanup invariants and Chat/shared-state authorization checks PASS:6 users/profiles/Sandboxes,5 Personal conversations,2 preserved Rooms,23 messages,7 Hall notes/1 pin; no duplicates/orphan pins. `scripts/cleanup-ms719-qa.ts` is a one-shot audit trail; its default dry run now correctly refuses missing fixtures. Do not recreate those heavy fixtures or rerun their old browser routes after cleanup.
+
+Next: coherent explicit staging/commit → refresh/push → canonical founder-review deployment and live isolated A/B smoke → exact cleanup of newly generated live QA → record review-ready status, then stop for founder walkthrough. No push/deploy yet. Preserve unrelated mixed Design Hub/Website documentation hunks and untracked Art/research/experiments. Browser B occasionally remains genuinely hidden after navigation: normal temporary-tab switch/close plus waiting for the actual visibility event restores foreground; do not override visibility or bypass product reading guards. Current local production server port3000 (owned session59487); retained sessions `ms71-a`/`ms71-b`. Canonical B's existing Clerk session was verified normally, without login bypass.
+
+Do not deploy before the gate. Attachments remain MS7.6 P-001; no provisioning. Owner destructive lifecycle stays absent; [recommendation](docs/MS7-1-OWNER-LIFECYCLE-REVIEW.md) and [walkthrough preparation](docs/MS7-1-FOUNDER-WALKTHROUGH.md) are written, not approved policy or founder-ready certification. No MS7.2 or inferred MS7.1 lock. `toskerArt/` remains untouched/untracked.
+
+## Founder roadmap alignment — documentation only (2026-09-09)
+
+Canonical milestone order: [docs/ROADMAP.md](docs/ROADMAP.md). Provisioning intake: [docs/MS7-6-PROVISIONING-BACKLOG.md](docs/MS7-6-PROVISIONING-BACKLOG.md). These supersede older scheduling/provisioning gates below, not historical engineering evidence. MS6 is COMPLETE AND LOCKED; MS7.1 is IN PROGRESS and unlocked. **NO DEVELOPMENT STARTED by this update. Wait for “continue MS7.1 dev directive”.** No code, migrations, provisioning, dependencies, commit, push or deployment in this alignment pass.
+
+Private attachments are founder-classified **MS7.6 provisioning backlog**, not a current MS7.1 blocker; no token/provisioning action is required now. No fake uploads. Future services must be assessed as current-wave core blockers, MS7.6 backlog, or post-beta/later infrastructure. MS7.6 owns Development/beta backend coherence; MS15 owns full production/launch priming.
+
+After the separate development directive: recover validated state → test Chat/Rooms/Hall → optimize → finish core grammar → identify/classify/document provisioning debt → full engineering/stress gate → canonical founder-review deployment → founder walkthrough → founder patch if needed → explicit founder lock. No automated QA-only lock or early later-milestone start.
+
+## Historical checkpoint — MS7.1 Chat / Rooms hardening (2026-09-09)
 
 MS7.1 remains IN PROGRESS, local only, not founder-ready or locked. Do not start MS7.2. Git is authoritative.
 
@@ -10,13 +30,13 @@ MS7.1 remains IN PROGRESS, local only, not founder-ready or locked. Do not start
 
 - Preserved local checkpoints: `428b8aa` .1 Chat/drafts, `eda4451` .2 Room lifecycle, `b3bd7a1` .3 Hall lifecycle, `bfb444d` .4 history/performance.
 - Latest backend checkpoint: `449caf8` — scoped communication/mention foundation. Exact staged snapshot passed TypeScript, lint and production webpack build with the previous client; full integration Turbopack build also passed.
-- Current client integration (.5/.6/.8) adds real conversation Search, viewer Mute/manual Chat/Hall unread, Room preferences, explicit authorized mentions, canonical reply/Search/Hall source navigation, shared temporary focus/highlight, deterministic identity avatars, readable functional type and contextual Subroom disclosure. Inspect Git for its subsequent integration commit; do not discard WIP.
+- Client integration checkpoint `8b6d29c` (.5/.6/.8) adds real conversation Search, viewer Mute/manual Chat/Hall unread, Room preferences, explicit authorized mentions, canonical reply/Search/Hall source navigation, shared temporary focus/highlight, deterministic identity avatars, readable functional type and contextual Subroom disclosure. Git inspection confirms HEAD `8b6d29c`, main six commits ahead of recorded origin/main; preserve all checkpoints and unrelated WIP.
 - Development migrations `0012_unusual_spot` and `0013_omniscient_hulk` applied additively: viewer preferences/manual markers; canonical message mention spans and existing-notification mention classification. Verified 14 migrations / 46 FKs. Neon remains authority; Clerk/Ably and connected60s/unavailable12s reconciliation unchanged.
 - Canonical deployment remains locked MS6B product `f005f6d`; origin baseline `c6286b9`. No MS7.1 push/deploy.
 
 ### Verified evidence
 
-Detailed status, limits and exact fixtures: [stress results](docs/MS7-1-STRESS-RESULTS.md). [Capabilities and media gate](docs/MS7-1-CORE-CAPABILITIES.md), [Chat grammar](docs/MS7-1-CHAT-GRAMMAR.md), [UX decisions](docs/MS7-1-UX-DECISIONS.md), [backend checkpoint](docs/MS7-1-COMMUNICATION-FOUNDATION.md).
+Detailed status, limits and exact fixtures: [stress results](docs/MS7-1-STRESS-RESULTS.md). [Capabilities and media assessment](docs/MS7-1-CORE-CAPABILITIES.md), [Chat grammar](docs/MS7-1-CHAT-GRAMMAR.md), [UX decisions](docs/MS7-1-UX-DECISIONS.md), [backend checkpoint](docs/MS7-1-COMMUNICATION-FOUNDATION.md). These are prior engineering results, not tests rerun by this documentation update.
 
 - Development management/mentions/attention, MS6A mutations, Room/Ably withdrawal and Hall lifecycle suites PASS; MS6B real token capability/forgery/revocation/provider-delivery regression PASS.
 - Real A/B Search/Mute/manual unread, canonical mentions/draft/reload/offline retry/single mention attention, muted-Room mention exception, reply edits/tombstones and repeated source highlighting PASS.
@@ -30,10 +50,10 @@ Detailed status, limits and exact fixtures: [stress results](docs/MS7-1-STRESS-R
 ### Recovery / remaining gate
 
 1. Inspect Git and active process state before resuming; do not duplicate browser mutations. Local production server is port3000, last owned session45375. Dedicated browser profiles persist under `/tmp/tosker-ms6b-browser.j01Vkq/a` and `/tmp/tosker-ms6b-browser.j01Vkq/b`; normal reload/navigation recovers occasional Clerk/blank-session automation state, no auth bypass.
-2. Next decision is media provisioning/explicit deferral below. Then finish the full-wave mixed busy-context/physical-device/clipboard/actual-zoom limitations review and release gate; current combined attention/background/new-control keyboard tests are complete, do not unnecessarily reconstruct them. Never turn partial evidence into PASS.
+2. Wait for the separate MS7.1 development directive. Then follow the canonical roadmap's recovery/testing/optimization/grammar/provisioning-classification sequence and finish the full engineering/stress gate. Current combined attention/background/new-control keyboard tests are complete; do not unnecessarily reconstruct them or turn partial evidence into PASS.
 3. Save only coherent validated owned files; preserve unrelated Website/Art/research/experiments. No blanket staging.
-4. **MS7.1.7 media is blocked:** private object storage/token absent. Founder provisioning or explicit beta deferral is required, question sent asynchronously. Exact secure setup/scope in capability ledger. Do not provision automatically or restore fake attachment controls. Owner leave/delete/transfer policy must not be invented.
-5. Retain exact QA Rooms/messages until remaining validation completes; no deletion of existing users/Sandboxes/Personal conversation or founder history. Final exact cleanup/invariant audit, complete engineering gate, approved deferrals → push/deploy/live A/B smoke. Do not deploy before those gates; do not lock without founder walkthrough.
+4. **Former MS7.1.7 media work moved to MS7.6 backlog P-001.** The founder's roadmap update resolves the old provisioning/deferral stop; only later explicit founder direction promotes attachments back to a current MS7.1 blocker. Do not provision now or restore fake uploads. Owner leave/delete/transfer policy must not be invented; the roadmap does not silently resolve unsafe lifecycle decisions.
+5. Retain exact QA Rooms/messages until remaining validation completes; no deletion of existing users/Sandboxes/Personal conversation or founder history. Once development is separately resumed: exact cleanup/invariant audit and complete engineering/stress gate with clearly classified dependencies → canonical founder-review deployment/live A/B smoke → founder walkthrough → required founder patch → explicit lock. No push/deploy in this documentation pass.
 
 Persistent founder inheritance directive: read `docs/CROSS-PROJECT-INHERITANCE.md` before future identity/Profile/Settings/Room customization/Gizmos/Art/skins/Developer work. Source projects are read-only R&D; archaeology is deferred. Candidate paths/hypotheses are unverified, not integration permission. `toskerArt/` must remain untouched/untracked. No Art/Web/source-project changes.
 

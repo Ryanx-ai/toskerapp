@@ -1,6 +1,14 @@
 # MS7.1-FP1 — founder walkthrough navigation and UX patch
 
-2026-09-11. Bounded follow-up to `e9ba349` (product baseline `fd76555`). **Not a milestone lock. No MS7.2/MS8 implementation.** This record covers the local commit gate; canonical deployment/live verification must follow it and be reported separately.
+2026-09-11. Bounded follow-up to `e9ba349` (product baseline `fd76555`). **DEPLOYED · LIVE SMOKE PASSED · STOP FOR FOUNDER REVIEW. Not a milestone lock. No MS7.2/MS8 implementation.**
+
+## Canonical release / cleanup
+
+Product commit `80f504fe50dc993d4fc036d1a89cf718c883082c` — `fix: refine MS7.1-FP1 founder navigation and UX` — pushed to canonical `main`. Vercel Git metadata matched that exact SHA; deployment `dpl_CqdSshonsvai2YFgBzkgRyh98fwn` READY, immutable `https://tosker-1p0o8i9z8-pangea6.vercel.app`, with `https://toskerapp.vercel.app` assigned and landing HTTP200. A documentation-only closeout may produce a newer HEAD/deployment with identical application source; inspect the alias rather than treating this historical product deployment ID as immutable alias state.
+
+Live normal isolated A/B send PASS (`FP1 send 1789133000604 A/B`): both directions, two unique messages, no reload. Live stale-request eligibility PASS; 390px + menu had two disabled entries,14px surface labels/16px composer, no page overflow. Visual capture inspected. All browser QA sessions closed.
+
+Exact guarded cleanup removed one QA Room, its two children/three conversations/four local+live messages/invite, and the non-login QA profile/request history. Post-cleanup owned Room/profile/conversation/request-notification counts are zero. Founder users, Rooms, Personal conversations, Sandboxes and pending founder request were preserved. These disposable records have no application undo. Do not rerun the cleanup or the now-removed fixture browser routes without an explicitly authorized new setup. Local server stopped at closeout.
 
 ## Implemented in FP1
 
@@ -29,7 +37,7 @@ UX Designer informed hierarchy/context/recovery once; frontend-design informed t
 
 Harness limits/corrections: the first Accept selector was ambiguous and did not act; the exact QA button was then used and verified, with the founder request still pending. A later repeat started from Requests and correctly auto-acknowledged the arrival before the test expected a dot; this is not a failed product state or a full repeat PASS. Fixture initially omitted the owner access row normally created by the real Subroom action; the exact QA access row was completed before the layout pass. No production authorization rewrite resulted.
 
-`scripts/fp1-fixtures.ts` owns only its fixed, guarded FP1 fixture identities: one non-login QA profile/request and one Room with two children. Do not mutate founder rows or rerun old giant fixtures. Retain this tiny Room only through live smoke, then run its guarded `cleanup` once; it removes its own messages/invite/children/request notifications. Browser commands are in `scripts/browser-fp1.mjs` (`AGENT_BROWSER_BIN` required; `FP1_ORIGIN` selects the canonical target). Cleanup is permanent test-data removal, not recoverable UI deletion.
+`scripts/fp1-fixtures.ts` owns only its fixed, guarded FP1 fixture identities: one non-login QA profile/request and one Room with two children, now removed. Do not mutate founder rows or rerun old giant fixtures. Browser commands are in `scripts/browser-fp1.mjs` (`AGENT_BROWSER_BIN` required; `FP1_ORIGIN` selects the canonical target). Cleanup is permanent test-data removal, not recoverable UI deletion.
 
 ## Deferred follow-up — not implemented
 

@@ -56,7 +56,7 @@ async function main() {
     await clearManualUnread(db, actor(a), chatId, "chat", pref.manualChatUnreadId);
     pref = (await listConversationPreferences(db, actor(a))).find((p) => p.conversationId === chatId)!;
     assert.equal(pref.manualChatUnreadId, null); assert(pref.manualHallUnreadId);
-    const activity = [{ type: "message", conversationId: chatId, readAt: null, destinationReadAt: null, muted: true }, { type: "connection_request", conversationId: null, readAt: null, destinationReadAt: null, muted: false }];
+    const activity = [{ type: "message", conversationId: chatId, readAt: null, destinationReadAt: null, muted: true }, { type: "connection_request", conversationId: null, readAt: null, destinationReadAt: null, muted: false, requestPending: true }];
     const attention = deriveAttention(activity, [pref]);
     assert.equal(attention.notifications, 1); assert.equal(attention.conversations[chatId], 2); assert.equal(attention.requests, 1);
     assert.equal((await db.select({ count: sql<number>`count(*)::int` }).from(notifications).where(eq(notifications.conversationId, chatId)))[0].count, 0);

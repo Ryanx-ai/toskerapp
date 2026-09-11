@@ -5,7 +5,8 @@ import { ACTIVITY_REFRESH, CONVERSATION_ACCESS_LOST } from "@/lib/realtime-contr
 import { notificationHref } from "@/lib/notification-href";
 import { deriveAttention } from "@/lib/attention";
 import { AttentionMark } from "./attention-mark";
-import { PersonAvatar, RoomAvatar } from "./identity-avatar";
+import { PersonAvatar, RoomAvatar, SandboxAvatar } from "./identity-avatar";
+import { activeRoomSlug, sandboxName } from "@/lib/workspace-navigation";
 import { RoomCategory } from "./room-category";
 import type { refreshWorkspaceNavigationAction } from "@/server/accounts/actions";
 import { acknowledgeFriendRequestsAction } from "@/server/connections/actions";
@@ -132,7 +133,7 @@ const collapseStore = {
 
 function nameOf(item: Conversation, displayName = prototypeUser.displayName) {
   return item.kind === "my-room"
-    ? `${displayName}'s Sandbox`
+    ? sandboxName(displayName)
     : item.name;
 }
 function hrefOf(item: Conversation) {
@@ -145,6 +146,7 @@ function Avatar({
   item: Conversation;
   large?: boolean;
 }) {
+  if (item.kind === "my-room") return <SandboxAvatar className={large ? "avatar-large" : ""} />;
   return item.kind === "room" ? <RoomAvatar name={item.name} seed={item.identitySeed ?? item.slug.split("--")[0]} subroom={item.tag === "SUBROOM"} className={large ? "avatar-large" : ""} /> : <PersonAvatar seed={item.identitySeed ?? item.slug} initials={item.initials} imageUrl={item.avatarUrl} className={large ? "avatar-large" : ""} />;
 }
 
@@ -279,7 +281,7 @@ function ConversationRow({
           <span className="conversation-name">
             <span>{nameOf(item, displayName)}</span>
           </span>
-          <span className="conversation-preview">{item.kind === "room" && item.tag !== "SUBROOM" ? <RoomCategory value={item.tag ?? "Room"} /> : item.preview}</span>
+          {item.kind !== "my-room" ? <span className="conversation-preview">{item.kind === "room" && item.tag !== "SUBROOM" ? <RoomCategory value={item.tag ?? "Room"} /> : item.preview}</span> : null}
         </span>
         <span className="conversation-trailing">
           <time>{item.time}</time>
@@ -375,7 +377,6 @@ function ProfileRegion({
 
 function AppSidebar({
   selected,
-  surface,
   workspace,
   onCreate,
   collapsed,
@@ -491,7 +492,8 @@ function AppSidebar({
       context: chat.tid,
       messages: chat.messages,
     }));
-  const visibleServerSubrooms = !workspace && surface === "chat" ? serverSubrooms : selected?.tag === "SUBROOM" ? serverSubrooms.filter((child) => child.slug.split("--")[0] === selected.slug.split("--")[0]) : [];
+  const currentRoomSlug = activeRoomSlug(selected, workspace);
+  const visibleServerSubrooms = serverSubrooms.filter((child) => child.slug.split("--")[0] === currentRoomSlug);
   const all = [...standard, ...serverChats, ...serverRooms, ...visibleServerSubrooms, ...(identity ? [] : localChats), ...(identity ? [] : localRooms)].filter(
     (item) => Boolean(identity) || !state.archived.includes(item.slug),
   );
@@ -765,7 +767,7 @@ function FriendsSurface({
             key={item}
           >
             {item}
-            {item === "Requests" ? <AttentionMark count={requestActivity.length} label="new friend requests" /> : null}
+            {item === "Requests" ? <AttentionMark count={requestIds ? requestIds.split(",").length : 0} label="new friend requests" /> : null}
           </button>
         ))}
       </nav>
@@ -1560,7 +1562,7 @@ export function MessagingApp({
         ) : selectedSlug && identity ? (
           <div className="desktop-welcome" role="status"><h2>Conversation unavailable</h2><p>Check your access or return to Chats.</p><Link className="quiet-action" href="/app">Return to Chats</Link></div>
         ) : workspace === "friends" ? (
-          <FriendsSurface onMessage={messageFriend} requestActivity={activity.filter((item) => item.type === "connection_request" && !item.destinationReadAt)} />
+          <FriendsSurface onMessage={messageFriend} requestActivity={activity.filter((item) => item.type === "connection_request" && item.requestPending && !item.destinationReadAt)} />
         ) : workspace && workspace !== "create" ? (
           <ProductSurface surface={workspace} mode={state.mode} activity={activity} />
         ) : (

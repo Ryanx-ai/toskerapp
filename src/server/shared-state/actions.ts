@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { AuthorizationDeniedError, requireRoomMember } from "@/server/auth/authorize";
 import { requireCurrentActor } from "@/server/auth/clerk";
 import { getDatabase } from "@/server/db/client";
-import { conversations, hallItems, messages, notifications, profiles, roomCapabilities, rooms } from "@/server/db/schema";
+import { connections, conversations, hallItems, messages, notifications, profiles, roomCapabilities, rooms } from "@/server/db/schema";
 import { addHallComment, editHallNote, hallScope, listHallComments, moveHallItem, setCommentReaction, setHallReaction } from "@/server/hall/service";
 import type { HallReaction } from "@/lib/hall-contract";
 import { publishConversationActivity, publishUserActivity } from "@/server/realtime/provider";
@@ -142,10 +142,16 @@ export async function listNotificationsAction() {
   const db = getDatabase();
   const rows = await db.select({ id: notifications.id, type: notifications.type, isMention: notifications.isMention, roomId: notifications.roomId, conversationId: notifications.conversationId, messageId: notifications.messageId, actorId: notifications.actorId, actorName: profiles.displayName, messageBody: messages.body, conversationKind: conversations.kind, subroomId: conversations.subroomId, roomSlug: rooms.slug, roomName: rooms.name, conversationTitle: conversations.title, createdAt: notifications.createdAt, readAt: notifications.readAt, destinationReadAt: notifications.destinationReadAt }).from(notifications).leftJoin(profiles, eq(profiles.userId, notifications.actorId)).leftJoin(messages, eq(messages.id, notifications.messageId)).leftJoin(conversations, eq(conversations.id, notifications.conversationId)).leftJoin(rooms, eq(rooms.id, conversations.roomId)).where(eq(notifications.userId, actor.userId)).orderBy(asc(notifications.createdAt));
   const scopes = [...new Set(rows.flatMap((item) => item.conversationId ? [item.conversationId] : []))];
+  // Notification history is not friendship state. Resolved/deleted requests must
+  // never keep Friends lit; an older notification also cannot stand for a re-request.
+  const pendingRequests = rows.some((item) => item.type === "connection_request")
+    ? await db.select({ requesterId: connections.requesterId, createdAt: connections.createdAt }).from(connections)
+      .where(and(eq(connections.addresseeId, actor.userId), eq(connections.status, "pending")))
+    : [];
   const allowed = new Set(await Promise.all(scopes.map(async (id) => {
     try { await hallScope(db, actor, id); return id; } catch (error) { if (error instanceof AuthorizationDeniedError) return null; throw error; }
   })));
-  return rows.filter((item) => !item.conversationId || allowed.has(item.conversationId)).reverse().map((item) => ({ ...item, muted: false, createdAt: item.createdAt.toISOString(), readAt: item.readAt?.toISOString() ?? null, destinationReadAt: item.destinationReadAt?.toISOString() ?? null }));
+  return rows.filter((item) => !item.conversationId || allowed.has(item.conversationId)).reverse().map((item) => ({ ...item, requestPending: item.type === "connection_request" && pendingRequests.some((request) => request.requesterId === item.actorId && request.createdAt <= item.createdAt), muted: false, createdAt: item.createdAt.toISOString(), readAt: item.readAt?.toISOString() ?? null, destinationReadAt: item.destinationReadAt?.toISOString() ?? null }));
 }
 
 export async function markNotificationsReadAction(ids: string[]) {

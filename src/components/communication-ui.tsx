@@ -36,7 +36,8 @@ import { ACTIVITY_REFRESH, CHAT_REFRESH, HALL_REFRESH } from "@/lib/realtime-con
 import { acknowledgeDraft, chatDraftKey, chatDrafts, type DraftReply } from "@/lib/chat-drafts";
 import { groupMessages, messageDay, messageDayLabel } from "@/lib/message-presentation";
 import { communicationTiming } from "@/lib/communication-performance";
-import { PersonAvatar, RoomAvatar } from "./identity-avatar";
+import { PersonAvatar, RoomAvatar, SandboxAvatar } from "./identity-avatar";
+import { sandboxName } from "@/lib/workspace-navigation";
 import { EmojiPicker } from "./emoji-picker";
 import { listHallSnapshotAction } from "@/server/shared-state/actions";
 import { AttentionMark } from "./attention-mark";
@@ -59,7 +60,7 @@ import {
 
 const titleOf = (conversation: Conversation, displayName = prototypeUser.displayName) =>
   conversation.kind === "my-room"
-    ? `${displayName}'s Sandbox`
+    ? sandboxName(displayName)
     : conversation.name;
 const baseHref = (conversation: Conversation) =>
   conversation.href ?? (conversation.kind === "room"
@@ -134,6 +135,7 @@ export function SurfaceHeader({
   const [contextAnchor, setContextAnchor] = useState<HTMLElement | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [controlsAnchor, setControlsAnchor] = useState<HTMLElement | null>(null);
+  const [addAnchor, setAddAnchor] = useState<HTMLElement | null>(null);
   const [controlBusy, setControlBusy] = useState(false);
   const [controlFeedback, setControlFeedback] = useState("");
   const router = useRouter();
@@ -156,17 +158,17 @@ export function SurfaceHeader({
         <Link href="/app" className="mobile-back" aria-label="Back">
           <ArrowLeft size={18} />
         </Link>
-        {conversation.kind === "room" ? <RoomAvatar name={conversation.name} seed={conversation.identitySeed ?? conversation.slug.split("--")[0]} subroom={conversation.tag === "SUBROOM"} className="avatar-large" /> : <PersonAvatar seed={conversation.identitySeed ?? conversation.slug} initials={conversation.initials} imageUrl={conversation.avatarUrl} className="avatar-large" />}
+        {conversation.kind === "my-room" ? <SandboxAvatar className="avatar-large" /> : conversation.kind === "room" ? <RoomAvatar name={conversation.name} seed={conversation.identitySeed ?? conversation.slug.split("--")[0]} subroom={conversation.tag === "SUBROOM"} className="avatar-large" /> : <PersonAvatar seed={conversation.identitySeed ?? conversation.slug} initials={conversation.initials} imageUrl={conversation.avatarUrl} className="avatar-large" />}
         <div className="active-copy">
           {parentRoom ? <button className="room-context-trigger" aria-label={`Switch Room context: ${parentRoom.name}${conversation.tag === "SUBROOM" ? ` / ${conversation.name}` : ""}`} aria-haspopup="dialog" aria-expanded={Boolean(contextAnchor)} onClick={(event) => setContextAnchor(event.currentTarget)}><span>{parentRoom.name}</span><ChevronDown size={15} /></button> : <h2>{titleOf(conversation, user.displayName)}</h2>}
           {conversation.kind === "personal" && conversation.presenceStatus ? <span className="header-presence"><i className={`presence-mark ${conversation.presenceStatus}`} aria-label={{ online: "Online", idle: "Idle", away: "Away", meeting: "In a meeting" }[conversation.presenceStatus]} />{{ online: "Online", idle: "Idle", away: "Away", meeting: "In a meeting" }[conversation.presenceStatus]}</span> : null}
           {conversation.kind === "room" && conversation.context ? <span className="header-context" title={parentRoom ? conversation.name : conversation.context}>{parentRoom ? conversation.name : conversation.context}</span> : null}
         </div>
-        {conversation.kind === "room" && onInvite ? (
-          <button className="invite-button primary-action" onClick={onInvite}>
-            Invite
-          </button>
-        ) : null}
+      </div>
+      <div className="core-header-controls">
+        {conversation.databaseId ? <button className="action-icon" aria-label="Search conversation" title="Search conversation" onClick={() => setSearchOpen(true)}><Search size={17} /></button> : null}
+        {pref.muted || pref.inheritedMute ? <span title={pref.inheritedMute ? "Muted by Room" : "Muted"} aria-label={pref.inheritedMute ? "Muted by Room" : "Muted"}><BellOff size={14} /></span> : null}
+        {conversation.databaseId || onManage ? <button className="action-icon" aria-label="Conversation options" title="Conversation options" aria-expanded={Boolean(controlsAnchor)} onClick={(event) => { setControlFeedback(""); setControlsAnchor(event.currentTarget); }}><MoreHorizontal size={17} /></button> : null}
       </div>
       <nav className="surface-tabs" aria-label="Space surfaces">
         <Link
@@ -183,14 +185,15 @@ export function SurfaceHeader({
         >
           Hall<AttentionMark count={hallUnread} label="new Hall activities" />
         </Link>
+        <button className="surface-add" aria-label="Add a surface" aria-haspopup="dialog" aria-expanded={Boolean(addAnchor)} onClick={(event) => setAddAnchor(event.currentTarget)}><Plus size={17} aria-hidden="true" /></button>
       </nav>
-      <div className="core-header-controls">
-        {conversation.databaseId ? <button className="action-icon" aria-label="Search conversation" title="Search conversation" onClick={() => setSearchOpen(true)}><Search size={17} /></button> : null}
-        {pref.muted || pref.inheritedMute ? <span title={pref.inheritedMute ? "Muted by Room" : "Muted"} aria-label={pref.inheritedMute ? "Muted by Room" : "Muted"}><BellOff size={14} /></span> : null}
-        {conversation.databaseId || onManage ? <button className="action-icon" aria-label="Conversation options" title="Conversation options" aria-expanded={Boolean(controlsAnchor)} onClick={(event) => { setControlFeedback(""); setControlsAnchor(event.currentTarget); }}><MoreHorizontal size={17} /></button> : null}
-      </div>
       {searchOpen && conversation.databaseId ? <ConversationSearch key={conversation.databaseId} conversationId={conversation.databaseId} name={titleOf(conversation, user.displayName)} href={baseHref(conversation)} onClose={() => setSearchOpen(false)} /> : null}
+      {addAnchor ? <InteractionPopover anchor={addAnchor} label="Add a surface" onClose={() => setAddAnchor(null)}><div className="surface-add-menu">
+        <button disabled>Gizmos <small>Planned</small></button>
+        <button disabled>Pages <small>Planned</small></button>
+      </div></InteractionPopover> : null}
       {controlsAnchor ? <InteractionPopover anchor={controlsAnchor} label="Conversation options" onClose={() => { if (!controlBusy) setControlsAnchor(null); }}><div className="room-context-menu communication-options">
+        {conversation.kind === "room" && onInvite ? <button disabled={controlBusy} onClick={() => { setControlsAnchor(null); onInvite(); }}><Plus size={15} />Invite</button> : null}
         {onManage ? <button disabled={controlBusy} onClick={() => { setControlsAnchor(null); onManage(); }}><UsersRound size={15} />Room details</button> : null}
         {conversation.databaseId ? <>
           <button disabled={controlBusy || pref.inheritedMute} onClick={() => void changePreference("mute")}>{pref.inheritedMute ? "Muted by Room" : pref.muted ? "Unmute" : "Mute"}</button>

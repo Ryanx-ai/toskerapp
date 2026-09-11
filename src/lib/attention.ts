@@ -1,5 +1,5 @@
 import type { ConversationPreference } from "./conversation-preferences";
-type Activity = { type: string; conversationId: string | null; readAt: string | null; destinationReadAt: string | null; muted?: boolean };
+type Activity = { type: string; conversationId: string | null; readAt: string | null; destinationReadAt: string | null; muted?: boolean; requestPending?: boolean };
 
 export function deriveAttention(activity: Activity[], preferences: ConversationPreference[] = []) {
   const conversations: Record<string, number> = {};
@@ -7,7 +7,7 @@ export function deriveAttention(activity: Activity[], preferences: ConversationP
   for (const item of activity) {
     if (!item.readAt && !item.muted) notifications++;
     if (item.destinationReadAt) continue;
-    if (item.type === "connection_request") requests++;
+    if (item.type === "connection_request" && item.requestPending) requests++;
     if (item.conversationId && ["message", "hall_note", "hall_pin"].includes(item.type)) conversations[item.conversationId] = (conversations[item.conversationId] ?? 0) + 1;
   }
   for (const pref of preferences) {

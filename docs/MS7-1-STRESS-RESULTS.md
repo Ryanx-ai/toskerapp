@@ -1,5 +1,9 @@
 # MS7.1 — shared stress results
 
+## MS7.1-FP1 — bounded founder follow-up, 2026-09-11
+
+[FP1 implementation/evidence/deferred debt](MS7-1-FP1-FOUNDER-PATCH.md) is the current bounded patch record. TypeScript/lint/build, focused attention/navigation assertions, real pending/accepted/removed-request browser states, Room/Subroom/Personal/Sandbox navigation, Invite overflow, five-width header/composer checks and native keyboard/popover checks PASS. One real isolated A/B bidirectional send passed without reload or duplicates. The old giant stress/security/history suites were deliberately not rerun: transport/schema/history were not changed. Exact screenshot reproduction unavailable; written brief and new captures used. Local commit gate precedes canonical deployment/live smoke. **Not locked; stop for founder review.**
+
 Use [the unchanged numbered scenario script](MS7-1-STRESS-SCENARIOS.md) for engineering and founder walkthrough. This ledger is evidence, not a substitute for the script. **Not run ≠ pass.** Partial checks do not certify an entire scenario. Repeat affected scenarios after each internal patch and the complete applicable suite before canonical deployment. Founder approval is required for lock.
 
 ## Active final-candidate continuation — 2026-09-09

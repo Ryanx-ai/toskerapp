@@ -1,5 +1,7 @@
 # MS7.1 founder walkthrough — candidate preparation
 
+**2026-09-11 FP1 update:** review [the bounded founder patch](MS7-1-FP1-FOUNDER-PATCH.md) first: Requests ghost attention, Sandbox, selected-parent disclosure, identity-above-surfaces, disabled future `+`, Invite overflow and composer/rail consistency. Prior baseline evidence below is historical; inspect canonical deployment for the FP1 commit. The next Room-management/notification work and MS7.5/MS7.6/MS8 boundaries are recorded there, not implemented here. **STOP FOR FOUNDER REVIEW; not locked.**
+
 Status: **READY FOR FOUNDER WALKTHROUGH — NOT LOCKED**. Product checkpoint `fd76555f27d9e32e46dae444e5d0dc444ee7f03b` is pushed and live at [Tosker](https://toskerapp.vercel.app/). Verified product deployment`dpl_WU2K6AuQXPLeKTKRraGiQL34wFAp` is READY; live isolated A/B Room/Subroom/Hall/Personal/typing/reply/reload smoke passed. Exact QA fixtures were cleaned with post-cleanup invariants passing. A documentation/QA-harness-only follow-up does not change application behavior. Founder scenarios39–40 and explicit approval remain required.
 
 Use the same [numbered stress scenarios](MS7-1-STRESS-SCENARIOS.md) as engineering. Evidence and known gaps are in [the results ledger](MS7-1-STRESS-RESULTS.md). Keep two genuinely separate authenticated users. Do not use real private information for testing; record defects with context, actor, device, expected/actual behavior and reproduction steps.

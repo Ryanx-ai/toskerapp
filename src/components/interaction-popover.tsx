@@ -28,10 +28,10 @@ export function InteractionPopover({ anchor, onClose, label, children }: { ancho
     document.addEventListener("pointerdown", outside);
     document.addEventListener("keydown", escape, true);
     window.addEventListener("resize", dismiss);
-    panel.querySelector<HTMLElement>("input,button,a")?.focus();
+    (panel.querySelector<HTMLElement>("input:not(:disabled),button:not(:disabled),a[href]") ?? panel).focus();
     return () => { observer.disconnect(); document.removeEventListener("pointerdown", outside); document.removeEventListener("keydown", escape, true); window.removeEventListener("resize", dismiss); if (previous?.isConnected) previous.focus({ preventScroll: true }); };
   }, [anchor]);
-  return <div ref={ref} popover="manual" className="interaction-popover" role="dialog" aria-label={label}
+  return <div ref={ref} popover="manual" className="interaction-popover" role="dialog" aria-label={label} tabIndex={-1}
     onToggle={(event) => { if (event.newState === "closed") closeRef.current(); }}
     onKeyDown={(event) => {
       if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement || event.target instanceof HTMLSelectElement) return;

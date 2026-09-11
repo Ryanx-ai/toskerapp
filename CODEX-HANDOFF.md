@@ -2,6 +2,12 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## MS7.1-FP1 — bounded founder patch, 2026-09-11
+
+The founder's FP1 directive supersedes the previous pause for this bounded patch only. Based on `e9ba349`, product `fd76555`. See [FP1 implementation, targeted evidence and deferred founder debt](docs/MS7-1-FP1-FOUNDER-PATCH.md). Requests eligibility, selected-parent disclosure, separate surface strip/disabled future + menu, Invite overflow, Sandbox identity and scoped sidebar/composer geometry are implemented; no schema, transport, history, provider, Art or future milestone work.
+
+Local TypeScript/lint/build, focused logic checks, five-width navigation/menu/composer checks and one real A/B send passed. Exact live deployment verification follows the local checkpoint; inspect Git and canonical alias rather than assuming the older deployment below remains current. Tiny guarded FP1 QA Room/profile may exist until live smoke cleanup; `scripts/fp1-fixtures.ts cleanup` removes only those owned fixtures. Do not rerun old giant suites. Preserve unrelated mixed handoff/Design Hub/Web/Art/research/experiments changes. **MS7.1 remains unlocked; STOP FOR FOUNDER REVIEW after canonical smoke. No MS7.2.**
+
 ## MS7.1 founder-review build live — 2026-09-09
 
 **DEVELOPMENT COMPLETE FOR FOUNDER REVIEW · CANONICAL BUILD LIVE · FOUNDER REVIEW REQUIRED.** MS7.1 is NOT LOCKED. Stop development for the [founder walkthrough](docs/MS7-1-FOUNDER-WALKTHROUGH.md), including scenarios39–40. Do not begin MS7.2. Any founder correction requires a bounded follow-up and relevant regression before explicit founder lock.

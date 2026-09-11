@@ -1,0 +1,25 @@
+import assert from "node:assert/strict";
+import { deriveAttention } from "../src/lib/attention";
+import { activeRoomSlug, sandboxName } from "../src/lib/workspace-navigation";
+
+const request = { type: "connection_request", conversationId: null, readAt: null, destinationReadAt: null };
+assert.equal(deriveAttention([request]).requests, 0, "Unknown request state must not invent attention");
+assert.equal(deriveAttention([{ ...request, requestPending: false }]).requests, 0, "Resolved/deleted request history is not pending");
+assert.equal(deriveAttention([{ ...request, requestPending: true }]).requests, 1);
+assert.equal(deriveAttention([{ ...request, requestPending: true, readAt: "seen-list" }]).requests, 1, "Bell acknowledgement does not read Requests");
+assert.equal(deriveAttention([{ ...request, requestPending: true, destinationReadAt: "seen-requests" }]).requests, 0);
+const unchanged = deriveAttention([{ ...request, requestPending: false }, { type: "message", conversationId: "room", readAt: null, destinationReadAt: null }]);
+assert.equal(unchanged.notifications, 2, "Historical notifications remain in the bell");
+assert.equal(unchanged.conversations.room, 1);
+assert.equal(sandboxName("  Ryan  Chin "), "Ryan's Sandbox");
+assert.equal(sandboxName("王 明"), "王's Sandbox");
+assert.equal(sandboxName(""), "Your Sandbox");
+assert.equal(sandboxName("\t\n"), "Your Sandbox");
+assert.equal(activeRoomSlug({ kind: "room", slug: "room-a" }), "room-a");
+assert.equal(activeRoomSlug({ kind: "room", slug: "room-a--child" }), "room-a");
+assert.equal(activeRoomSlug({ kind: "room", slug: "room-b" }), "room-b");
+assert.equal(activeRoomSlug({ kind: "personal", slug: "person" }), null);
+assert.equal(activeRoomSlug({ kind: "my-room", slug: "my-room" }), null);
+assert.equal(activeRoomSlug({ kind: "room", slug: "room-a" }, "friends"), null);
+assert.equal(activeRoomSlug(), null);
+console.log("PASS: pending-request attention, bell/destination independence, Sandbox naming, selected Room-family disclosure.");

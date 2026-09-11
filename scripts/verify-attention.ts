@@ -40,7 +40,7 @@ async function main() {
     let snapshot = await rows();
     assert(snapshot.every((r) => r.destinationReadAt === null), "Notifications must not clear destinations");
     assert.equal(snapshot.find((r) => r.id === n[5])!.readAt, null, "Unrendered arrivals remain new");
-    const derived = deriveAttention(snapshot.map((r) => ({ ...r, readAt: r.readAt?.toISOString() ?? null, destinationReadAt: null })));
+    const derived = deriveAttention(snapshot.map((r) => ({ ...r, requestPending: r.type === "connection_request", readAt: r.readAt?.toISOString() ?? null, destinationReadAt: null })));
     assert.equal(derived.notifications, 1); assert.equal(derived.requests, 1); assert.equal(derived.conversations[parent], 4);
     await acknowledgeDestination(db, b, [n[0], n[2], n[3], n[4]], parent);
     snapshot = await rows();

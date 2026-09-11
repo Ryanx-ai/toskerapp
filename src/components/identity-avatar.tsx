@@ -2,6 +2,11 @@
 import Image from "next/image";
 import { useState, type ReactNode } from "react";
 import { approvedAvatarUrl, identityHash, identityPalette, roomShorthand } from "@/lib/identity-visual";
+import { Box } from "lucide-react";
+
+export function SandboxAvatar({ className = "" }: { className?: string }) {
+  return <span className={`avatar avatar-room sandbox-avatar ${className}`} aria-hidden="true"><Box size={20} strokeWidth={1.8} /></span>;
+}
 
 export function PersonAvatar({ seed, initials, imageUrl, className = "", children }: { seed?: string; initials: string; imageUrl?: string | null; className?: string; children?: ReactNode }) {
   const [failedUrl, setFailedUrl] = useState<string | null>(null);

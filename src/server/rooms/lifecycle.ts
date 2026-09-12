@@ -3,7 +3,7 @@ import { and, eq, inArray, isNull, or } from "drizzle-orm";
 import { createHash } from "node:crypto";
 import type { AuthenticatedActor } from "@/server/auth/actor";
 import { AuthorizationDeniedError, requireRoomMember, requireRoomOwner } from "@/server/auth/authorize";
-import type { ToskerDatabase } from "@/server/db/client";
+import type { ToskerDatabase, ToskerTransaction } from "@/server/db/client";
 import { conversationParticipants, conversations, invites, roomMemberships, rooms, roomTags, subroomAccess, subrooms } from "@/server/db/schema";
 import { normalizeRoomTags } from "@/lib/room-tags";
 import { lockActorTokens } from "@/server/realtime/access-lock";
@@ -63,15 +63,22 @@ export async function joinRoomInvite(db: ToskerDatabase, actor: AuthenticatedAct
   return db.transaction(async (tx) => {
     const [room] = await tx.select().from(rooms).where(eq(rooms.id, found.roomId)).for("update");
     const [invite] = await tx.select().from(invites).where(eq(invites.tokenHash, tokenHash));
-    if (!room || !invite || !["pending", "accepted"].includes(invite.status) || (invite.expiresAt && invite.expiresAt <= new Date())) throw new Error("This invitation is invalid or expired.");
+    if (!room || !invite || invite.kind === "direct" || !["pending", "accepted"].includes(invite.status) || (invite.expiresAt && invite.expiresAt <= new Date())) throw new Error("This invitation is invalid or expired.");
+    await requireRoomMember(tx, { ...actor, userId: invite.inviterId }, room.id);
     if (invite.status === "accepted" && invite.recipientUserId !== actor.userId) throw new Error("This invitation has already been accepted.");
-    if (invite.status === "pending") await tx.update(invites).set({ status: "accepted", recipientUserId: actor.userId, acceptedAt: new Date(), updatedAt: new Date() }).where(eq(invites.id, invite.id));
+    if (invite.kind === "legacy" && invite.recipientUserId && invite.recipientUserId !== actor.userId) throw new AuthorizationDeniedError("Invitation unavailable.");
+    if (invite.kind === "legacy" && invite.status === "pending") await tx.update(invites).set({ status: "accepted", recipientUserId: actor.userId, acceptedAt: new Date(), updatedAt: new Date() }).where(eq(invites.id, invite.id));
+    await grantRoomMembership(tx, actor, room);
+    return { roomSlug: room.slug };
+  });
+}
+
+/** Caller must hold the Room lock and authorize a valid invitation first. */
+export async function grantRoomMembership(tx: ToskerTransaction, actor: AuthenticatedActor, room: typeof rooms.$inferSelect) {
     await tx.insert(roomMemberships).values({ roomId: room.id, userId: actor.userId, role: "member" }).onConflictDoNothing();
     const children = await tx.select({ id: subrooms.id }).from(subrooms).leftJoin(subroomAccess, and(eq(subroomAccess.subroomId, subrooms.id), eq(subroomAccess.userId, actor.userId)))
       .where(and(eq(subrooms.roomId, room.id), or(eq(subrooms.visibility, "everyone"), eq(subroomAccess.userId, actor.userId), room.ownerId === actor.userId ? eq(subrooms.visibility, "owners") : undefined)));
     if (children.length) await tx.insert(subroomAccess).values(children.map(({ id }) => ({ subroomId: id, userId: actor.userId }))).onConflictDoNothing();
     const chats = await tx.select({ id: conversations.id }).from(conversations).where(and(eq(conversations.roomId, room.id), children.length ? or(isNull(conversations.subroomId), inArray(conversations.subroomId, children.map(({ id }) => id))) : isNull(conversations.subroomId)));
     if (chats.length) await tx.insert(conversationParticipants).values(chats.map(({ id }) => ({ conversationId: id, userId: actor.userId }))).onConflictDoNothing();
-    return { roomSlug: room.slug };
-  });
 }

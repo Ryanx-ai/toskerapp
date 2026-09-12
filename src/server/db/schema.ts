@@ -31,7 +31,9 @@ export const inviteStatus = pgEnum("invite_status", [
   "accepted",
   "revoked",
   "expired",
+  "declined",
 ]);
+export const inviteKind = pgEnum("invite_kind", ["legacy", "direct", "share"]);
 export const conversationKind = pgEnum("conversation_kind", [
   "sandbox",
   "personal",
@@ -189,6 +191,8 @@ export const invites = pgTable(
   {
     id: uuid("id").defaultRandom().primaryKey(),
     tokenHash: text("token_hash").notNull(),
+    kind: inviteKind("kind").default("legacy").notNull(),
+    encryptedToken: text("encrypted_token"),
     roomId: uuid("room_id")
       .notNull()
       .references(() => rooms.id, { onDelete: "cascade" }),
@@ -208,8 +212,20 @@ export const invites = pgTable(
     uniqueIndex("invites_token_hash_unique").on(table.tokenHash),
     index("invites_room_idx").on(table.roomId),
     index("invites_recipient_idx").on(table.recipientUserId),
+    uniqueIndex("invites_active_share_unique").on(table.roomId)
+      .where(sql`${table.kind} = 'share' and ${table.status} = 'pending'`),
+    uniqueIndex("invites_pending_direct_unique").on(table.roomId, table.recipientUserId)
+      .where(sql`${table.kind} = 'direct' and ${table.status} = 'pending'`),
   ],
 );
+
+// Narrow FP2 limits: one counter per actor/operation; no growing request log.
+export const inviteRateLimits = pgTable("invite_rate_limits", {
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  operation: text("operation").notNull(),
+  windowStart: timestamp("window_start", { withTimezone: true }).notNull(),
+  attempts: integer("attempts").notNull(),
+}, (table) => [primaryKey({ columns: [table.userId, table.operation] })]);
 
 export const conversations = pgTable(
   "conversations",
@@ -408,6 +424,7 @@ export const notifications = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     type: text("type").notNull(),
+    invitationId: uuid("invitation_id").references(() => invites.id, { onDelete: "cascade" }),
     isMention: boolean("is_mention").default(false).notNull(),
     actorId: uuid("actor_id").references(() => users.id, {
       onDelete: "set null",

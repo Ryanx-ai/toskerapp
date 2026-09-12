@@ -14,24 +14,31 @@ if(mode==="live-create"){
   console.log("LIVE FIXTURE",await ev(a,"location.pathname"));
 } else {
   assert(room?.startsWith("/room/fp2-live-review-"),"Use exact live fixture path, never an existing founder Room");
-  if(mode==="live-invite"){
+  if(mode==="live-invite"||mode==="live-accept"){
+    if(mode==="live-invite"){
     await open(a,room);await button(a,"Conversation options");await button(a,"Invite");await until(a,"!!document.querySelector('.fp2-person')","Friends");
     assert(await ev(a,"(()=>{const e=[...document.querySelectorAll('.fp2-person')].find(e=>e.textContent.includes('tosker-user-b-clerk-test'))?.querySelector('input');if(!e)return false;e.dataset.fp2Friend='b';return true})()"));
     await run(a,"click",'input[data-fp2-friend="b"]');await button(a,"Invite person");
-    await until(a,"document.querySelector('.fp2-person')?.textContent.includes('Invited')","sent");
+    await until(a,"[...document.querySelectorAll('.fp2-person')].some(e=>e.textContent.includes('tosker-user-b-clerk-test')&&e.textContent.includes('Invited'))","sent");
+    }
     await run(b,"open",origin+"/notifications");await until(b,"document.querySelector('.notification-list')?.textContent.includes('FP2 Live Review')","B invitation",60000);
-    await button(b,"Accept invite");await until(b,`location.pathname===${JSON.stringify(room)}&&!!document.querySelector('.composer textarea')`,"consented membership");
+    assert(await ev(b,"(()=>{const row=[...document.querySelectorAll('.notification-list article')].find(e=>e.textContent.includes('FP2 Live Review'));const accept=[...row.querySelectorAll('button')].find(e=>e.textContent==='Accept invite');if(!accept)return false;accept.dataset.fp2Accept='live';return true})()"));
+    await run(b,"click",'[data-fp2-accept="live"]');await until(b,`location.pathname===${JSON.stringify(room)}&&!!document.querySelector('.composer textarea')`,"consented membership");
     await send(b,"FP2 live accepted message");await run(a,"press","Escape");await until(a,"document.body.textContent.includes('FP2 live accepted message')","cross-user delivery",60000);
     console.log("PASS live: Friend invite -> recipient acceptance -> Room membership -> B message visible to A.");
   }
   if(mode==="live-share"){
-    await open(a,room);await details();await until(a,"!!document.querySelector('.fp2-share select')","owner share");await button(a,"Generate invite");
+    await open(a,room);await details();await until(a,"!!document.querySelector('.fp2-share select')","owner share");if(!await ev(a,"!!document.querySelector('.invite-layout input')?.value"))await button(a,"Generate invite");
     await until(a,"!!document.querySelector('.invite-layout input')?.value","share token");const link=await ev(a,"document.querySelector('.invite-layout input').value");
     assert(await ev(a,"!!document.querySelector('.fake-qr svg')"));
     await open(b,room);await button(b,"Conversation options");await button(b,"Room details");await until(b,"!!document.querySelector('.room-details-panel')","member details");
     assert(await ev(b,"!document.querySelector('.fp2-share')"));await button(b,"Leave Room");await button(b,"Leave Room");await until(b,"location.pathname==='/app'","left");
-    await run(b,"open",link);await until(b,"!!document.querySelector('.join-invite-card button')","valid share");await button(b,"Join Room");await until(b,`location.pathname===${JSON.stringify(room)}&&!!document.querySelector('.composer textarea')`,"share joined");
+    await run(b,"open",link);await until(b,"!!document.querySelector('.join-card button')","valid share");await button(b,"Join Room");await until(b,`location.pathname===${JSON.stringify(room)}&&!!document.querySelector('.composer textarea')`,"share joined");
     console.log("PASS live: owner QR/recoverable share; member cannot manage; leave -> bearer join.");
+  }
+  if(mode==="live-join"){
+    await button(b,"Join Room");await until(b,`location.pathname===${JSON.stringify(room)}&&!!document.querySelector('.composer textarea')`,"share joined");
+    console.log("PASS live: owner QR/recoverable share; member cannot manage; leave -> bearer join. Resumed after correcting stale join-card test selector.");
   }
   if(mode==="live-order"){
     for(const name of ["Live Alpha","Live Beta"]){await open(a,room);await details();await button(a,"Add Subroom");await run(a,"fill",".wizard-field input",name);await button(a,"Create Subroom");await until(a,"location.pathname.includes('/subroom/')&&!document.querySelector('dialog[open]')","created child");}
@@ -42,10 +49,10 @@ if(mode==="live-create"){
   }
   if(mode==="live-attention"){
     await run(b,"open",origin+"/friends");await open(a,room);await send(a,"FP2 live burst one");await send(a,"FP2 live burst two");
-    await run(b,"open",origin+"/notifications");await until(b,"!!document.querySelector('.notification-list article[data-event-count=\"2\"]')","two-message group",60000);
+    await run(b,"open",origin+"/notifications");await until(b,"[...document.querySelectorAll('.notification-list article[data-event-count=\"2\"]')].some(e=>e.textContent.includes('FP2 Live Review'))","two-message group",60000);
     await run(a,"fill",".composer textarea","@tosker-user-b");await until(a,"!!document.querySelector('.mention-suggestions [role=option]')","mention");await run(a,"press","Enter");await button(a,"Send message");
-    await until(b,"document.querySelector('.notification-list')?.textContent.includes('Mentioned you')","separate mention",60000);
-    assert(await ev(b,"!!document.querySelector('.notification-list article[data-event-count=\"2\"]')"));
+    await until(b,"[...document.querySelectorAll('.notification-list article')].some(e=>e.textContent.includes('FP2 Live Review')&&e.textContent.includes('Mentioned you'))","separate mention",60000);
+    assert(await ev(b,"[...document.querySelectorAll('.notification-list article[data-event-count=\"2\"]')].some(e=>e.textContent.includes('FP2 Live Review'))"));
     console.log("PASS live: ordinary messages grouped; selected direct mention remains separate.");
   }
 }

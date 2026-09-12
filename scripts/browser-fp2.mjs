@@ -55,6 +55,7 @@ export async function until(session,js,label,timeout=30000) {
   throw new Error(`Timed out: ${label}`);
 }
 export async function button(session,name) {
+  await until(session,`(()=>{const modal=document.querySelector('dialog[open]');return [...document.querySelectorAll('button')].some(e=>e.checkVisibility()&&(!modal||modal.contains(e))&&(e.getAttribute('aria-label')||e.textContent).trim()===${JSON.stringify(name)})})()`,`visible ${name}`,10000);
   // Only a test locator: avoid fragile body nth-child paths when toast/scripts change.
   const marker=`fp2-${Date.now()}`;
   const selector=await ev(session,`(()=>{const modal=document.querySelector('dialog[open]');const button=Array.from(document.querySelectorAll('button')).find(e=>e.checkVisibility()&&(!modal||modal.contains(e))&&(e.getAttribute('aria-label')||e.textContent).trim()===${JSON.stringify(name)});if(!button)return null;button.dataset.fp2Target=${JSON.stringify(marker)};return '[data-fp2-target="'+button.dataset.fp2Target+'"]'})()`);

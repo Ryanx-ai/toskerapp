@@ -2,6 +2,16 @@
 
 2026-09-13. Gate 2 execution authorized from `77cb301`; MS7.1 remains founder review, not locked. No MS7.2. Preserve unrelated Art/Design Hub/Web/research/experiments WIP.
 
+## Canonical release / founder review
+
+Product checkpoint `25c2b1431cb449592ed2e434f0a242c7faf608e3` pushed to main, preserving A`256b6f1`, B`28dcaae`, C`a666154`, D`ba9637b` and E`25c2b14`. Git-backed Vercel deployment `dpl_5QS82bLCKH4AX3YV5PVvHQQbPAEz`, immutable `https://tosker-esao2n3sm-pangea6.vercel.app`, READY with exact product SHA and canonical `https://toskerapp.vercel.app` alias/HTTP200 verified.
+
+Small live smoke PASS using the existing isolated normal Clerk A/B profiles: fresh Room; accepted-Friend direct invitation; recipient acceptance; B message delivered to A; owner share/actual QR/recovery; member has no share management; leave→share rejoin; two appended children→owner Move earlier→B same relative order/no reorder control; two ordinary messages→one exact-Room group plus separate selected direct mention. No auth bypass/reset, provider change or transport rewrite. Both browser error lists empty; sampled deployment error logs0. Harness-only corrections scoped the Friend/notification assertions, awaited mounted controls, and fixed the join-card selector; resumed at completed state without duplicate sends.
+
+Live QA fixture was Room`4223b6ab-dd63-4451-b862-876713b452b9` / `fp2-live-review-4c225a`, owned by existing A. `cleanup-fp2-live.ts` guards exact ID/slug/owner, only A/B membership, named two children, four expected contained messages and zero Hall items. Dry-run confirmed1 Room/2 children/3 conversations/4 messages/5 notifications; cleanup result and invariants recorded in handoff. No user/Personal/Sandbox deletion. Documentation/test-harness closeout may deploy a newer SHA with identical `src`, dependencies and migrations; verify current Git/alias rather than assuming this product ID is the latest documentation deployment.
+
+**FP2 IMPLEMENTED / LIVE-VERIFIED. STOP FOR FOUNDER REVIEW. MS7.1 NOT LOCKED; NO MS7.2.** Debt remains: MS7.6 private attachments P-001, invitation key separation/rotation and narrow quota operations, notification-history scaling; future calls/video/translation infrastructure; MS8 visual evolution. None was silently implemented or provisioned.
+
 ## Slice E / assembled acceptance — 2026-09-13
 
 Implemented explicit Development-stage Call/Video header or mobile-menu disclosures (not Sandbox), Files & images in composer/Hall editor, and Translate in message menus. Exact founder debt strings are centralized in `DeferredControl`; native buttons expose the same information on hover, focus and touch. No picker, permission, service call, success simulation or mutation. Escape dismisses the nested explanation first and returns focus; leaving/refocusing allows it to reappear. Real actions precede mobile deferred entries to avoid autofocus obscuring the menu. Before Beta, revisit visibility and remove engineering milestone language. Design skills kept this within existing Tosker surfaces/focus patterns, not MS8 redesign.

@@ -1212,3 +1212,36 @@ h1,h2,h3 { font-family:var(--font-mermaid),Georgia,serif; font-weight:400; lette
   .conversation-header { padding:0 10px; grid-template-rows:58px 44px; min-height:102px; gap:0 6px; }
   .composer textarea { font-size:16px; }
 }
+/* FP2 management additions reuse the existing Night/Montserrat surfaces. */
+.fp2-invite-panel { width: min(620px, calc(100vw - 24px)); }
+.fp2-room-name { overflow-wrap: anywhere; }
+.fp2-invite-panel > label { display: grid; gap: 8px; }
+.fp2-invite-panel > label input, .fp2-share :is(input,select) { min-height: 44px; padding: 10px 12px; width: 100%; }
+.fp2-invitation-management h3 { font-family: var(--font-montserrat),sans-serif; font-size: 14px; }
+.fp2-tabs button, .fp2-action-row button, .fp2-invitation-management button { padding: 8px 12px; border-radius: 8px; }
+.fp2-tabs button:hover, .fp2-action-row button:hover, .fp2-invitation-management button:hover { background: var(--surface-hover); }
+.fp2-tabs, .fp2-action-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.fp2-tabs { margin-block: 16px; }
+.fp2-tabs button, .fp2-action-row button, .fp2-invitation-management button { min-height: 44px; }
+.fp2-tabs button[aria-pressed="true"] { background: var(--surface-raised, #20282c); color: var(--ivory, #f4efe6); }
+.fp2-people { min-height: 92px; max-height: 290px; overflow: auto; margin-block: 12px; }
+.fp2-people .fp2-person { display: flex; flex-direction: row; align-items: center; gap: 10px; padding: 10px 8px; border-radius: 12px; cursor: pointer; }
+.fp2-people .fp2-person input { width: 18px; height: 18px; flex: 0 0 18px; margin: 0; }
+.fp2-person > span:not(.avatar) { min-width: 0; flex: 1; }
+.fp2-person strong, .fp2-person small { display: block; overflow-wrap: anywhere; }
+.fp2-person.eligible:hover, .fp2-person.eligible:focus-within { background: rgba(255,255,255,.06); }
+.fp2-person.member, .fp2-person.invited { cursor: default; opacity: .7; }
+.fp2-invitation-management { margin-top: 24px; }
+.fp2-invitation-management h3 { margin-top: 20px; }
+.fp2-share label { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.fp2-share .invite-layout { margin-block: 12px; align-items: center; }
+.fp2-share input, .fp2-share select { width: 100%; min-width: 0; }
+.fp2-share > button { margin-top: 12px; }
+.fp2-invite-response { scroll-margin-top: 80px; }
+@media (max-width: 600px) {
+  .fp2-share .invite-layout { display: flex; flex-direction: column; align-items: stretch; }
+  .fp2-share .fake-qr { align-self: center; }
+  .fp2-person { flex-wrap: wrap; }
+  .fp2-person > small { flex-basis: 100%; padding-left: 28px; }
+  .fp2-invite-panel input, .fp2-share select { font-size: 16px; }
+}

@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { RoomInvitationResponse } from "./room-invitation-response";
 import { notificationHref } from "@/lib/notification-href";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -386,15 +387,18 @@ function Notifications({ empty = false, persistent }: { empty?: boolean; persist
   }, [identity, persistent]);
   const realItems = persistent.map((item) => ({
     id: item.id,
+    invitationId: item.invitationId,
+    invitationStatus: item.invitationStatus,
+    roomSlug: item.roomSlug,
     type: item.type === "message" ? item.isMention ? "Mentions" : "Messages" : item.type.startsWith("connection") ? "Activity" : "Rooms",
     icon: item.type.startsWith("connection") ? UserPlus : Pin,
-    title: item.type === "message" ? item.isMention ? "Mentioned you" : "New message" : item.type === "connection_request" ? "New friend request" : item.type === "connection_accepted" ? "Friend request accepted" : "New Hall note",
-    context: item.type === "message" ? `${item.actorName ?? "Someone"} sent you a message${item.messageBody ? `: ${item.messageBody}` : ""}` : item.type === "connection_request" ? `${item.actorName ?? "Someone"} sent you a friend request` : item.type === "connection_accepted" ? `${item.actorName ?? "Someone"} accepted your friend request` : `${item.actorName ?? "Someone"} added something to Hall`,
+    title: item.type === "room_invitation" ? "Room invitation" : item.type === "message" ? item.isMention ? "Mentioned you" : "New message" : item.type === "connection_request" ? "New friend request" : item.type === "connection_accepted" ? "Friend request accepted" : "New Hall note",
+    context: item.type === "room_invitation" ? `${item.actorName ?? "Someone"} invited you to ${item.roomName ?? "a Room"}` : item.type === "message" ? `${item.actorName ?? "Someone"} sent you a message${item.messageBody ? `: ${item.messageBody}` : ""}` : item.type === "connection_request" ? `${item.actorName ?? "Someone"} sent you a friend request` : item.type === "connection_accepted" ? `${item.actorName ?? "Someone"} accepted your friend request` : `${item.actorName ?? "Someone"} added something to Hall`,
     time: new Date(item.createdAt).toLocaleDateString(),
-    destination: item.roomName ? `${item.roomName}${item.subroomId && item.conversationTitle ? ` / ${item.conversationTitle}` : ""} · ${item.type === "message" ? "Chat" : "Hall"}` : "",
+    destination: item.roomName && item.type !== "room_invitation" ? `${item.roomName}${item.subroomId && item.conversationTitle ? ` / ${item.conversationTitle}` : ""} · ${item.type === "message" ? "Chat" : "Hall"}` : "",
     href: notificationHref(item),
   }));
-  const source = identity ? realItems : notificationItems;
+  const source = identity ? realItems : notificationItems.map((item) => ({ ...item, invitationId: null, invitationStatus: null, roomSlug: null }));
   const shown = empty && !identity
     ? []
     : filter === "All"
@@ -433,7 +437,7 @@ function Notifications({ empty = false, persistent }: { empty?: boolean; persist
                   {"destination" in item && typeof item.destination === "string" ? <small>{item.destination}</small> : null}
                 </div>
                 <time>{item.time}</time>
-                <Link href={item.href}>Open</Link>
+                {item.invitationId ? <RoomInvitationResponse id={item.invitationId} status={item.invitationStatus} roomSlug={item.roomSlug} /> : <Link href={item.href}>Open</Link>}
               </article>
             );
           })}

@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { AuthorizationDeniedError, requireRoomMember } from "@/server/auth/authorize";
 import { requireCurrentActor } from "@/server/auth/clerk";
 import { getDatabase } from "@/server/db/client";
-import { connections, conversations, hallItems, messages, notifications, profiles, roomCapabilities, rooms } from "@/server/db/schema";
+import { connections, conversations, hallItems, invites, messages, notifications, profiles, roomCapabilities, rooms } from "@/server/db/schema";
 import { addHallComment, editHallNote, hallScope, listHallComments, moveHallItem, setCommentReaction, setHallReaction } from "@/server/hall/service";
 import type { HallReaction } from "@/lib/hall-contract";
 import { publishConversationActivity, publishUserActivity } from "@/server/realtime/provider";
@@ -140,7 +140,7 @@ export async function installRoomCapabilityAction(input: { conversationId: strin
 export async function listNotificationsAction() {
   const actor = await requireCurrentActor();
   const db = getDatabase();
-  const rows = await db.select({ id: notifications.id, type: notifications.type, isMention: notifications.isMention, roomId: notifications.roomId, conversationId: notifications.conversationId, messageId: notifications.messageId, actorId: notifications.actorId, actorName: profiles.displayName, messageBody: messages.body, conversationKind: conversations.kind, subroomId: conversations.subroomId, roomSlug: rooms.slug, roomName: rooms.name, conversationTitle: conversations.title, createdAt: notifications.createdAt, readAt: notifications.readAt, destinationReadAt: notifications.destinationReadAt }).from(notifications).leftJoin(profiles, eq(profiles.userId, notifications.actorId)).leftJoin(messages, eq(messages.id, notifications.messageId)).leftJoin(conversations, eq(conversations.id, notifications.conversationId)).leftJoin(rooms, eq(rooms.id, conversations.roomId)).where(eq(notifications.userId, actor.userId)).orderBy(asc(notifications.createdAt));
+  const rows = await db.select({ id: notifications.id, invitationId: notifications.invitationId, invitationStatus: invites.status, invitationExpiresAt: invites.expiresAt, type: notifications.type, isMention: notifications.isMention, roomId: notifications.roomId, conversationId: notifications.conversationId, messageId: notifications.messageId, actorId: notifications.actorId, actorName: profiles.displayName, messageBody: messages.body, conversationKind: conversations.kind, subroomId: conversations.subroomId, roomSlug: rooms.slug, roomName: rooms.name, conversationTitle: conversations.title, createdAt: notifications.createdAt, readAt: notifications.readAt, destinationReadAt: notifications.destinationReadAt }).from(notifications).leftJoin(profiles, eq(profiles.userId, notifications.actorId)).leftJoin(messages, eq(messages.id, notifications.messageId)).leftJoin(conversations, eq(conversations.id, notifications.conversationId)).leftJoin(rooms, sql`${rooms.id} = coalesce(${conversations.roomId}, ${notifications.roomId})`).leftJoin(invites, and(eq(invites.id, notifications.invitationId), eq(invites.recipientUserId, actor.userId), eq(invites.kind, "direct"))).where(eq(notifications.userId, actor.userId)).orderBy(asc(notifications.createdAt));
   const scopes = [...new Set(rows.flatMap((item) => item.conversationId ? [item.conversationId] : []))];
   // Notification history is not friendship state. Resolved/deleted requests must
   // never keep Friends lit; an older notification also cannot stand for a re-request.
@@ -151,7 +151,7 @@ export async function listNotificationsAction() {
   const allowed = new Set(await Promise.all(scopes.map(async (id) => {
     try { await hallScope(db, actor, id); return id; } catch (error) { if (error instanceof AuthorizationDeniedError) return null; throw error; }
   })));
-  return rows.filter((item) => !item.conversationId || allowed.has(item.conversationId)).reverse().map((item) => ({ ...item, requestPending: item.type === "connection_request" && pendingRequests.some((request) => request.requesterId === item.actorId && request.createdAt <= item.createdAt), muted: false, createdAt: item.createdAt.toISOString(), readAt: item.readAt?.toISOString() ?? null, destinationReadAt: item.destinationReadAt?.toISOString() ?? null }));
+  return rows.filter((item) => !item.conversationId || allowed.has(item.conversationId)).reverse().map((item) => ({ ...item, invitationExpiresAt: item.invitationExpiresAt?.toISOString() ?? null, invitationStatus: item.invitationStatus === "pending" && item.invitationExpiresAt && item.invitationExpiresAt <= new Date() ? "expired" as const : item.invitationStatus, requestPending: item.type === "connection_request" && pendingRequests.some((request) => request.requesterId === item.actorId && request.createdAt <= item.createdAt), muted: false, createdAt: item.createdAt.toISOString(), readAt: item.readAt?.toISOString() ?? null, destinationReadAt: item.destinationReadAt?.toISOString() ?? null }));
 }
 
 export async function markNotificationsReadAction(ids: string[]) {

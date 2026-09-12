@@ -28,3 +28,8 @@ Exact service fixture: Room `e44ceb92-b1d5-4375-bd13-28a836af5d3c`, conversation
 - Exact owned QA cleanup/invariants, push/deploy exact SHA and small live A/B smoke. No release yet.
 
 Notification-history scaling and broad abuse operations remain MS7.6/backend debt. Attachments P-001, calls/translation, roles/lifecycle, MS8 redesign, Pages/Gizmos and Art stay outside FP2.
+# Slice B — local two-user invitation gate (2026-09-13)
+
+PASS with isolated normal Clerk A/B sessions: fresh Room creation without automatic bearer link; accepted Friend selection, pending recipient Room route404, decline, exact normalized username/one result, duplicate disabled state, owner cancellation and recipient Cancelled, accept→membership→B message delivered to A, member state on reopen. Owner share defaults24h, selects1h/7d, renders actual QR, copies/reopens identical link, replaces/denies old link, member sees no share controls, B leaves/rejoins with valid replacement, revoke removes active UI/denies bearer while membership stays.
+
+Retained browser fixture: Room `9d2a70a7-9983-434a-b572-842706a740df`, slug `fp2-invitation-review-039009`, primary conversation `bf6069cb-fc35-45bd-9736-0724ad3e43e9`, message `c8e48353-6dc2-44dc-9c1c-cd872b3afd5a`. Existing real A/B users preserved. Use `scripts/browser-fp2.mjs`; resume modes record interrupted harness steps, not extra feature requirements. Local Next explicit127 binding failed; default binding resolved, normal Reload workspace recovered A's existing Clerk session. Harness corrected label syntax, asynchronous management wait and scroll-before-click. Actual copy confirmed. Fresh TypeScript/full ESLint/diff-check passed; final assembled production build/responsive/keyboard/live gate still outstanding. No push/deploy.

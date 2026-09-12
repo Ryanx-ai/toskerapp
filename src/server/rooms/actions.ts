@@ -38,9 +38,6 @@ function hashInviteToken(token: string) {
   return createHash("sha256").update(token).digest("hex");
 }
 
-function createInviteToken() {
-  return randomBytes(32).toString("base64url");
-}
 
 export type CreateRoomInput = {
   name: string;
@@ -55,9 +52,6 @@ export async function createRoomAction(input: CreateRoomInput) {
   if (!name || name.length > 80) throw new Error("Enter a Room name up to 80 characters.");
   const tags = normalizeRoomTags(input.tags);
   const capabilities = [...new Set(input.capabilities)].filter((item) => allowedCapabilities.has(item));
-  const token = createInviteToken();
-  const tokenHash = hashInviteToken(token);
-  const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 14);
   const db = getDatabase();
 
   const created = await db.transaction(async (tx) => {
@@ -90,30 +84,11 @@ export async function createRoomAction(input: CreateRoomInput) {
       conversationId: conversation.id,
       userId: actor.userId,
     });
-    await tx.insert(invites).values({
-      roomId: room.id,
-      inviterId: actor.userId,
-      tokenHash,
-      recipientHint: input.recipientHint?.trim().slice(0, 120) || null,
-      expiresAt,
-    });
     return room;
   });
 
   revalidatePath("/app");
-  return { ...created, tags: tags.length ? tags : ["ROOM"], inviteToken: token };
-}
-
-export async function createRoomInviteAction(roomSlug: string) {
-  const actor = await requireCurrentActor();
-  const db = getDatabase(), token = createInviteToken();
-  await db.transaction(async (tx) => {
-    const [room] = await tx.select({ id: rooms.id }).from(rooms).where(eq(rooms.slug, roomSlug)).for("update");
-    if (!room) throw new Error("Room not found.");
-    await requireRoomMember(tx, actor, room.id);
-    await tx.insert(invites).values({ roomId: room.id, inviterId: actor.userId, tokenHash: hashInviteToken(token), expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 14) });
-  });
-  return { inviteToken: token };
+  return { ...created, tags: tags.length ? tags : ["ROOM"] };
 }
 
 export async function getInviteDetails(token: string) {
@@ -123,6 +98,7 @@ export async function getInviteDetails(token: string) {
     .select({
       id: invites.id,
       status: invites.status,
+      kind: invites.kind,
       expiresAt: invites.expiresAt,
       roomId: rooms.id,
       roomSlug: rooms.slug,
@@ -134,7 +110,7 @@ export async function getInviteDetails(token: string) {
     .innerJoin(profiles, eq(profiles.userId, rooms.ownerId))
     .where(eq(invites.tokenHash, hashInviteToken(token)))
     .limit(1);
-  if (!invite || invite.status === "revoked" || invite.status === "expired") return null;
+  if (!invite || invite.kind === "direct" || !["pending", "accepted"].includes(invite.status)) return null;
   if (invite.expiresAt && invite.expiresAt <= new Date()) return null;
   const [tag] = await db
     .select({ value: roomTags.value })
@@ -215,10 +191,7 @@ export async function roomDetailsAction(roomSlug: string) {
   const members = await db.select({ userId: roomMemberships.userId, role: roomMemberships.role, name: profiles.displayName })
     .from(roomMemberships).innerJoin(profiles, eq(profiles.userId, roomMemberships.userId)).where(eq(roomMemberships.roomId, room.id));
   const tags = await db.select({ value: roomTags.value }).from(roomTags).where(eq(roomTags.roomId, room.id));
-  const invitationRows = membership.role === "owner" ? await db.select({ id: invites.id, status: invites.status, expiresAt: invites.expiresAt, createdAt: invites.createdAt })
-    .from(invites).where(eq(invites.roomId, room.id)).orderBy(invites.createdAt).limit(100) : [];
-  return { id: room.id, name: room.name, slug: room.slug, role: membership.role, members, tags: tags.map(({ value }) => value),
-    invites: invitationRows.map((invite) => ({ ...invite, status: invite.expiresAt && invite.expiresAt <= new Date() && invite.status === "pending" ? "expired" : invite.status, createdAt: invite.createdAt.toISOString(), expiresAt: invite.expiresAt?.toISOString() ?? null })) };
+  return { id: room.id, name: room.name, slug: room.slug, role: membership.role, members, tags: tags.map(({ value }) => value) };
 }
 
 async function refreshRoom(roomId: string, extra: string[] = []) {

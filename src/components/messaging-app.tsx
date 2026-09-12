@@ -29,11 +29,11 @@ import {
   type ProductWorkspace,
 } from "@/components/product-surface";
 import { WorkspaceBanner } from "@/components/workspace-banner";
-import { FakeQr } from "@/components/fake-qr";
+import { InvitePeople } from "./room-invitations";
 import { IdentityCard } from "@/components/identity-card";
 import { useMobileViewport } from "@/components/use-mobile-viewport";
 import { ToskerIdentityProvider, useCurrentToskerUser, useToskerIdentity } from "@/components/tosker-identity";
-import { createRoomAction, createRoomInviteAction, createSubroomAction, findRoomMembersAction } from "@/server/rooms/actions";
+import { createRoomAction, createSubroomAction, findRoomMembersAction } from "@/server/rooms/actions";
 import { findPeopleAction, startPersonalConversationAction } from "@/server/conversations/actions";
 import { acceptConnectionAction, listConnectionsAction, requestConnectionAction, removeConnectionNicknameAction, setConnectionNicknameAction } from "@/server/connections/actions";
 import type { listNotificationsAction } from "@/server/shared-state/actions";
@@ -838,66 +838,6 @@ function FriendNamecard({ profile, onClose, onMessage }: { profile: (typeof frie
   );
 }
 
-function InviteOverlay({
-  room,
-  onClose,
-}: {
-  room: Conversation;
-  onClose: () => void;
-}) {
-  const [copied, setCopied] = useState(false);
-  const [token, setToken] = useState<string | null>(null);
-  const [error, setError] = useState("");
-  const panelRef = useRef<HTMLElement>(null);
-  useDismissLayer(true, onClose, panelRef);
-  useEffect(() => {
-    createRoomInviteAction(room.slug)
-      .then((result) => setToken(result.inviteToken))
-      .catch(() => setError("Could not create an invitation."));
-  }, [room.slug]);
-  const invitePath = token ? `/join/${token}` : "";
-  const inviteUrl = token && typeof window !== "undefined" ? `${window.location.origin}${invitePath}` : "";
-  return (
-    <ModalLayer onClose={onClose}>
-      <section
-        ref={panelRef}
-        className="creation-panel invite-panel"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="invite-title"
-      >
-        <button className="overlay-close" onClick={onClose} aria-label="Close">
-          <X size={17} />
-        </button>
-        <p className="eyebrow">Invite to this Room</p>
-        <h2 id="invite-title">{nameOf(room)}</h2>
-        <p>One person can join with this link.</p>
-        <div className="invite-layout">
-          <FakeQr value={inviteUrl} />
-          <div>
-            <label className="invite-link">
-              Invitation link
-              <input readOnly value={inviteUrl || "Creating secure link…"} />
-            </label>
-            <button
-              className="primary-action"
-              disabled={!inviteUrl}
-              onClick={async () => {
-                try { await navigator.clipboard.writeText(inviteUrl); setCopied(true); }
-                catch { setError("Copy unavailable. Select the invitation link to copy it."); }
-              }}
-            >
-              {copied ? "Copied" : "Copy link"}
-            </button>
-            {invitePath ? <Link href={invitePath}>Preview invitation</Link> : null}
-          </div>
-        </div>
-        <small className="prototype-note">{error || "Secure invitation · Expires in 14 days"}</small>
-      </section>
-    </ModalLayer>
-  );
-}
-
 function SubroomOverlay({ room, onClose }: { room: Conversation; onClose: () => void }) {
   const router = useRouter();
   const identity = useToskerIdentity();
@@ -989,14 +929,12 @@ function CreationOverlay({
   const [tags, setTags] = useState<string[]>(["Just Chilling"]);
   const [customTag, setCustomTag] = useState("");
   const [acceptedFriends, setAcceptedFriends] = useState<Awaited<ReturnType<typeof listConnectionsAction>>>([]);
-  const user = useCurrentToskerUser() ?? prototypeUser;
-  const [room, setRoom] = useState<{ slug: string; name: string; tags: string[]; inviteToken: string } | null>(null);
+  const [room, setRoom] = useState<{ slug: string; name: string; tags: string[] } | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [friendQuery, setFriendQuery] = useState("");
   const [peopleResults, setPeopleResults] = useState<Array<{ userId: string; displayName: string; username: string; tid: string }>>([]);
   const [peopleSearching, setPeopleSearching] = useState(false);
-  const [copied, setCopied] = useState(false);
   const panelRef = useRef<HTMLElement>(null);
   const close = useCallback(() => onClose(), [onClose]);
   useDismissLayer(true, close, panelRef, false);
@@ -1225,36 +1163,9 @@ function CreationOverlay({
             ) : null}
             {step === 5 && room ? (
               <div className="room-ready">
-                <FakeQr value={`${typeof window !== "undefined" ? window.location.origin : ""}/join/${room.inviteToken}`} />
-                <h2>Room's ready</h2>
-                <p>{room.name} · Created by {user.displayName}</p>
-                <div>
-                  <button
-                    onClick={() => {
-                      navigator.clipboard?.writeText(
-                        `${window.location.origin}/join/${room.inviteToken}`,
-                      );
-                      setCopied(true);
-                    }}
-                  >
-                    {copied ? "Copied" : "Copy invite"}
-                  </button>
-                  <Link
-                    className="room-ready-preview"
-                    href={`/join/${room.inviteToken}`}
-                  >
-                    Preview
-                  </Link>
-                  <button
-                    onClick={() => {
-                      router.push(`/room/${room.slug}`);
-                      onClose();
-                    }}
-                  >
-                    Open Room
-                  </button>
-                </div>
-                <small>Secure invitation · Expires in 14 days</small>
+                <h2>Room's ready</h2><p>{room.name}</p>
+                <button className="primary-action" onClick={() => { router.push(`/room/${room.slug}`); onClose(); }}>Open Room</button>
+                <small>Invite people from the Room menu.</small>
               </div>
             ) : null}
             {step < 5 ? (
@@ -1596,7 +1507,7 @@ export function MessagingApp({
         <CreationOverlay initial={overlay} onClose={() => setOverlay(null)} />
       ) : null}
       {overlay === "invite" && selected?.kind === "room" ? (
-        <InviteOverlay room={parentConversation ?? selected} onClose={() => setOverlay(null)} />
+        contextRoom ? <InvitePeople roomId={contextRoom.id} name={contextRoom.name} onClose={() => setOverlay(null)} /> : null
       ) : null}
       {overlay === "subroom" && selected?.kind === "room" && identity ? (
         <SubroomOverlay room={parentConversation ?? selected} onClose={() => setOverlay(null)} />

@@ -1214,6 +1214,12 @@ h1,h2,h3 { font-family:var(--font-mermaid),Georgia,serif; font-weight:400; lette
 }
 /* FP2 management additions reuse the existing Night/Montserrat surfaces. */
 .fp2-invite-panel { width: min(620px, calc(100vw - 24px)); }
+.fp2-order-row { display:flex; flex-wrap:wrap; align-items:center; min-width:0; border-radius:10px; }
+.fp2-order-row > :is(.conversation-row-shell,a) { flex:1; min-width:0; }
+.fp2-order-handle { display:grid; place-items:center; flex:none; width:28px; min-height:36px; padding:0; color:var(--text-secondary); border-radius:8px; cursor:grab; }
+.fp2-order-handle:hover,.fp2-order-row.drag-target { background:var(--surface-hover); }
+.fp2-order-handle:active { cursor:grabbing; }
+.fp2-order-error { flex-basis:100%; padding:4px 8px; color:var(--text-secondary); font-size:12px; overflow-wrap:anywhere; }
 .fp2-room-name { overflow-wrap: anywhere; }
 .fp2-invite-panel > label { display: grid; gap: 8px; }
 .fp2-invite-panel > label input, .fp2-share :is(input,select) { min-height: 44px; padding: 10px 12px; width: 100%; }

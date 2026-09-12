@@ -23,6 +23,7 @@ import {
 import { normalizeRoomTags } from "@/lib/room-tags";
 import { joinRoomInvite, revokeRoomInvite, updateRoom, withdrawRoomMember } from "./lifecycle";
 import { publishUserActivity } from "@/server/realtime/provider";
+import { normalizeSubroomOrder, reorderSubrooms } from "./subroom-order";
 const allowedCapabilities = new Set(["Poll", "Schedule", "Map", "Board"]);
 
 function roomSlug(name: string) {
@@ -141,7 +142,7 @@ export async function listSubroomsAction(roomSlug: string) {
   return db.select({ id: subrooms.id, name: subrooms.name, position: subrooms.position, visibility: subrooms.visibility })
     .from(subrooms).leftJoin(subroomAccess, and(eq(subroomAccess.subroomId, subrooms.id), eq(subroomAccess.userId, actor.userId)))
     .where(and(eq(subrooms.roomId, room.id), visibility))
-    .orderBy(subrooms.position, subrooms.createdAt);
+    .orderBy(subrooms.position, subrooms.createdAt, subrooms.id);
 }
 
 export async function createSubroomAction(input: { roomSlug: string; name: string; visibility: "everyone" | "selected" | "owners"; userIds?: string[] }) {
@@ -159,7 +160,8 @@ export async function createSubroomAction(input: { roomSlug: string; name: strin
   const allowed = new Set(memberIds.map((item) => item.userId));
   if (input.visibility === "selected" && (input.userIds ?? []).some((id) => !allowed.has(id))) throw new Error("Choose current Room members.");
   const selected = [...new Set((input.userIds ?? []).filter((id) => allowed.has(id)))];
-    const [subroom] = await tx.insert(subrooms).values({ roomId: room.id, name, createdBy: actor.userId, visibility: input.visibility, position: 0 }).returning({ id: subrooms.id, name: subrooms.name, visibility: subrooms.visibility });
+    const currentOrder = await normalizeSubroomOrder(tx, room.id);
+    const [subroom] = await tx.insert(subrooms).values({ roomId: room.id, name, createdBy: actor.userId, visibility: input.visibility, position: currentOrder.length }).returning({ id: subrooms.id, name: subrooms.name, visibility: subrooms.visibility });
     const access = input.visibility === "everyone" ? memberIds.map((item) => item.userId) : input.visibility === "owners" ? [actor.userId] : [...new Set([actor.userId, ...selected])];
     if (access.length) await tx.insert(subroomAccess).values(access.map((userId) => ({ subroomId: subroom.id, userId }))).onConflictDoNothing();
     const [conversation] = await tx.insert(conversations).values({ kind: "room", roomId: room.id, subroomId: subroom.id, title: name }).returning({ id: conversations.id });
@@ -203,6 +205,12 @@ async function refreshRoom(roomId: string, extra: string[] = []) {
 export async function updateRoomAction(input: { roomId: string; name: string; tags: string[] }) {
   await updateRoom(getDatabase(), await requireCurrentActor(), input);
   await refreshRoom(input.roomId);
+}
+
+export async function reorderSubroomsAction(input: Parameters<typeof reorderSubrooms>[2]) {
+  const result = await reorderSubrooms(getDatabase(), await requireCurrentActor(), input);
+  await refreshRoom(input.roomId);
+  return result;
 }
 
 export async function revokeRoomInviteAction(roomId: string, inviteId: string) {

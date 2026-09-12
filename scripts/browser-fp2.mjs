@@ -99,3 +99,38 @@ if(process.argv[2]?.startsWith("consent")) {
   await until(a,"Array.from(document.querySelectorAll('.fp2-person')).some(e=>e.textContent.includes('tosker-user-b-clerk-test')&&e.textContent.includes('Already a member'))","canonical member result");
   console.log("PASS: recipient accept -> Room membership -> B message delivered to A; invited result becomes member on reopen.");
 }
+if(process.argv[2]==="order-create") {
+  for(const [name,visibility] of [["FP2 Alpha","everyone"],["FP2 Private","owners"],["FP2 Beta","everyone"]]) {
+    await run(a,"open",origin+room); await until(a,"!!document.querySelector('.composer textarea')","Room");
+    await button(a,"Conversation options"); await button(a,"Room details");
+    await until(a,"Array.from(document.querySelectorAll('button')).some(e=>e.textContent==='Add Subroom')","owner Structure");
+    await button(a,"Add Subroom");
+    await run(a,"fill",".wizard-field input",name); await run(a,"select",".wizard-field select",visibility);
+    await button(a,"Create Subroom");
+    await until(a,`location.pathname.includes('/subroom/') && document.querySelector('.conversation-header')?.textContent.includes(${JSON.stringify(name)}) && !document.querySelector('dialog[open]')`,"created child");
+  }
+  console.log("PASS: owner creates three children; every new child appends, private child retained for subset QA.");
+}
+if(process.argv[2]==="order" || process.argv[2]==="order-settings") {
+  const names="Array.from(document.querySelectorAll('.messenger-sidebar .subroom-row .conversation-name')).map(e=>e.textContent)";
+  if(process.argv[2]==="order") {
+  await run(a,"open",origin+room); await until(a,"document.querySelectorAll('.messenger-sidebar .fp2-order-handle').length===3","three handles");
+  const before=await ev(a,names); assert.deepEqual(before,["FP2 Alpha","FP2 Private","FP2 Beta"]);
+  await button(a,"Reorder FP2 Beta"); await button(a,"Move earlier");
+  await until(a,`${names}.join('|')==='FP2 Alpha|FP2 Beta|FP2 Private'`,"sidebar reorder");
+  await run(b,"open",origin+room); await until(b,`${names}.join('|')==='FP2 Alpha|FP2 Beta'`,"member subset");
+  assert.equal(await ev(b,"document.querySelectorAll('.fp2-order-handle').length"),0);
+  await run(a,"drag",'.messenger-sidebar button[aria-label="Reorder FP2 Beta"]','.messenger-sidebar .fp2-order-row:has(button[aria-label="Reorder FP2 Alpha"])');
+  await until(a,`${names}.join('|')==='FP2 Beta|FP2 Alpha|FP2 Private'`,"native drag durable");
+  await button(a,"Conversation options"); await button(a,"Room details");
+  await until(a,"document.querySelectorAll('.room-structure .fp2-order-handle').length===3","Structure controls");
+  }
+  await run(a,"scrollintoview",'.room-structure button[aria-label="Reorder FP2 Alpha"]');
+  await run(a,"click",'.room-structure button[aria-label="Reorder FP2 Alpha"]');
+  await button(a,"Move earlier");
+  await until(a,"Array.from(document.querySelectorAll('.room-structure a')).map(e=>e.textContent).join('|')==='Room Chat|FP2 Alpha|FP2 Beta|FP2 Private'","Structure shared canonical order");
+  await run(a,"press","Escape"); await run(a,"open",origin+room);
+  await until(a,`${names}.join('|')==='FP2 Alpha|FP2 Beta|FP2 Private'`,"persisted after reload");
+  await run(b,"open",origin+room); await until(b,`${names}.join('|')==='FP2 Alpha|FP2 Beta'`,"B durable relative subset");
+  console.log("PASS: sidebar Move/native drag; Settings Move; reload persistence; fixed Room Chat; owner-only controls; member private filtering and relative order.");
+}

@@ -28,6 +28,12 @@ Exact service fixture: Room `e44ceb92-b1d5-4375-bd13-28a836af5d3c`, conversation
 - Exact owned QA cleanup/invariants, push/deploy exact SHA and small live A/B smoke. No release yet.
 
 Notification-history scaling and broad abuse operations remain MS7.6/backend debt. Attachments P-001, calls/translation, roles/lifecycle, MS8 redesign, Pages/Gizmos and Art stay outside FP2.
+# Slice C — shared Subroom ordering (2026-09-13)
+
+Owner-only Room-locked service; exact expected/current IDs reject stale concurrent writes and cross-Room/duplicate targets. Safe lazy normalization runs before create/reorder under the same parent lock: position→createdAt→id becomes0..n−1; new children append. Readers use the identical deterministic fallback. No schema columns, visibility/access/parent changes. Non-optimistic UI shows pending then canonical refresh; failure/conflict refreshes authority/order rather than overwriting.
+
+PASS: dedicated service fixture normalization, member/cross-Room/duplicate negatives, concurrent winner/stale rejection, durable positions, unchanged metadata. Three retained service-only children `cf027101-4444-4444-8444-444444444441`, `cf027101-4444-4444-8444-444444444442`, `cf027101-4444-4444-8444-444444444443` in the existing FP2 service Room. Real A/B browser: Alpha/Private/Beta created through owner UI, append order; sidebar Move earlier/native drag; Settings Move earlier; reload persistence; B sees Alpha/Beta relative order without private child or reorder controls. Room Chat remains fixed. New UI uses existing top-layer popover and native keyboard buttons. Harness Settings click required explicit scroll into view; no product defect. Fresh TypeScript/scoped ESLint/diff-check required for checkpoint; final matrix remains outstanding.
+
 # Slice B — local two-user invitation gate (2026-09-13)
 
 PASS with isolated normal Clerk A/B sessions: fresh Room creation without automatic bearer link; accepted Friend selection, pending recipient Room route404, decline, exact normalized username/one result, duplicate disabled state, owner cancellation and recipient Cancelled, accept→membership→B message delivered to A, member state on reopen. Owner share defaults24h, selects1h/7d, renders actual QR, copies/reopens identical link, replaces/denies old link, member sees no share controls, B leaves/rejoins with valid replacement, revoke removes active UI/denies bearer while membership stays.

@@ -30,6 +30,7 @@ import {
 } from "@/components/product-surface";
 import { WorkspaceBanner } from "@/components/workspace-banner";
 import { InvitePeople } from "./room-invitations";
+import { SubroomOrderRow } from "./subroom-order-row";
 import { IdentityCard } from "@/components/identity-card";
 import { useMobileViewport } from "@/components/use-mobile-viewport";
 import { ToskerIdentityProvider, useCurrentToskerUser, useToskerIdentity } from "@/components/tosker-identity";
@@ -493,6 +494,7 @@ function AppSidebar({
       messages: chat.messages,
     }));
   const currentRoomSlug = activeRoomSlug(selected, workspace);
+  const orderingRoom = identity?.rooms.find((room) => room.slug === currentRoomSlug);
   const visibleServerSubrooms = serverSubrooms.filter((child) => child.slug.split("--")[0] === currentRoomSlug);
   const all = [...standard, ...serverChats, ...serverRooms, ...visibleServerSubrooms, ...(identity ? [] : localChats), ...(identity ? [] : localRooms)].filter(
     (item) => Boolean(identity) || !state.archived.includes(item.slug),
@@ -622,8 +624,8 @@ function AppSidebar({
         </div>
         <div className="conversation-list">
           {ordered.map((item) => (
+            <SubroomOrderRow key={item.slug} roomId={orderingRoom?.id ?? ""} ids={orderingRoom?.subrooms.map((child) => child.id) ?? []} id={item.slug.split("--")[1] ?? ""} name={item.name} owner={orderingRoom?.role === "owner" && item.tag === "SUBROOM"}>
             <ConversationRow
-              key={item.slug}
               item={item}
               active={selected?.slug === item.slug}
               pinned={false}
@@ -631,6 +633,7 @@ function AppSidebar({
               displayName={user.displayName}
               unread={(item.databaseId ? unreadByConversation[item.databaseId] ?? 0 : 0) + (item.kind === "room" && !item.slug.includes("--") ? serverSubrooms.filter((child) => child.slug.startsWith(`${item.slug}--`)).reduce((sum, child) => sum + (unreadByConversation[child.databaseId!] ?? 0), 0) : 0)}
             />
+            </SubroomOrderRow>
           ))}
           {query && ordered.length === 0 ? (
             <p className="search-empty">Nothing found</p>

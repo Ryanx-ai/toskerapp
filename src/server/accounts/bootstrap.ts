@@ -264,7 +264,8 @@ export async function getWorkspaceNavigation(userId: string): Promise<Pick<Canon
     : [];
   const subroomRows = memberships.length ? await db.select({ roomId: subrooms.roomId, id: subrooms.id, name: subrooms.name, visibility: subrooms.visibility, conversationId: conversations.id })
     .from(subrooms).innerJoin(conversations, eq(conversations.subroomId, subrooms.id)).leftJoin(subroomAccess, and(eq(subroomAccess.subroomId, subrooms.id), eq(subroomAccess.userId, account.userId)))
-    .where(or(eq(subrooms.visibility, "everyone"), eq(subroomAccess.userId, account.userId))) : [];
+    .where(and(inArray(subrooms.roomId, memberships.map((room) => room.id)), or(eq(subrooms.visibility, "everyone"), eq(subroomAccess.userId, account.userId))))
+    .orderBy(subrooms.position, subrooms.createdAt, subrooms.id) : [];
   const personalRows = await db
     .select({ conversationId: conversations.id })
     .from(conversationParticipants)

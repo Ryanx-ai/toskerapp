@@ -9,6 +9,7 @@ import { useToskerIdentity } from "./tosker-identity";
 import { ModalLayer } from "./modal-layer";
 import { ACTIVITY_REFRESH } from "@/lib/realtime-contract";
 import { RoomInvitations } from "./room-invitations";
+import { SubroomOrderRow } from "./subroom-order-row";
 import { RoomCategory } from "./room-category";
 import { PersonAvatar } from "./identity-avatar";
 import { workspaceSnapshot } from "./workspace-snapshot";
@@ -79,7 +80,7 @@ export function RoomDetails({ slug, onClose, onInvite, onAddSubroom }: { slug: s
       {onInvite ? <button className="quiet-action" disabled={busy} onClick={onInvite}>Add people</button> : null}
       <RoomInvitations roomId={data.id} />
       <h3>Structure</h3>
-      <nav className="room-structure" aria-label="Room structure"><Link href={`/room/${slug}`} onClick={onClose}>Room Chat</Link>{room?.subrooms.map((child) => <Link key={child.id} href={`/room/${slug}/subroom/${child.id}`} onClick={onClose}>{child.name}</Link>)}</nav>
+      <nav className="room-structure" aria-label="Room structure"><Link href={`/room/${slug}`} onClick={onClose}>Room Chat</Link>{room?.subrooms.map((child) => <SubroomOrderRow key={child.id} roomId={data.id} ids={room.subrooms.map((item) => item.id)} id={child.id} name={child.name} owner={Boolean(owner)}><Link href={`/room/${slug}/subroom/${child.id}`} onClick={onClose}>{child.name}</Link></SubroomOrderRow>)}</nav>
       {owner && onAddSubroom ? <button className="quiet-action" disabled={busy} onClick={onAddSubroom}>Add Subroom</button> : null}
       {room?.conversationId ? <><h3>My Room preferences</h3><button className="quiet-action" aria-pressed={muted} disabled={busy} onClick={() => void run(() => setConversationPreferenceAction(room.conversationId, { kind: "mute", muted: !muted }), muted ? "Room unmuted." : "Room muted.")}>{muted ? "Unmute Room" : "Mute Room"}</button><p className="room-management-note">Only for you. Quiets this Room and its Subrooms; messages and unread stay. Direct mentions still notify. Subrooms you muted separately stay muted when you unmute the Room.</p></> : null}
     </>}

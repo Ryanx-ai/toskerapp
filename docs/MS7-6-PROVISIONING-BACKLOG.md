@@ -4,6 +4,10 @@ Created 2026-09-09. Durable intake for infrastructure/backend needs discovered i
 
 ## Intake / decision contract
 
+FP2 infrastructure delta (2026-09-13, explicitly founder-authorized): dedicated server-only `ROOM_INVITE_ENCRYPTION_KEY` generated and installed in local `.env.local` and Vercel Development/Production-review only, never Preview or client bundle. AES-GCM recovery supplements authoritative token hashes. P-002 must address environment separation, secure backup/rotation/re-encryption or deliberate invalidation of existing recoverable links; no silent key replacement. No credential values are documented.
+
+FP2 adds only a narrow DB-backed invitation lookup/direct/share quota (P-004 remains broader beta abuse/operational policy). Notification history still reads the current authorized history and derives presentation groups; grouping is not pagination/scaling. Notification-history bounds, indexing/retention and observability belong to later backend polish, not a hidden FP2 transport rewrite. Files remain P-001; calls/video and translation retain separate unprovisioned communication/privacy foundations. No new media/provider services were provisioned.
+
 Assess each need as A — current-wave blocker (core behavior cannot genuinely be validated without it), B — MS7.6 backlog (useful/important but unnecessarily interrupts the wave), or C — post-beta/later infrastructure. Record why and the founder action required. Do not use this backlog to postpone defects in active core authorization/persistence/recovery. A/B/C here are provisioning classes, not the different capability classes in earlier decision ledgers.
 
 For each new item record: stable ID; service/capability; discovered milestone; reason required; classification and rationale; provider/options and evidence date; credential requirements (names only); Development/Preview/Production needs; estimated complexity; security/privacy; status; founder action; acceptance/cleanup criteria. Reclassifications require a dated reason and founder direction where applicable. Never record credential values.

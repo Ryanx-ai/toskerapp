@@ -36,6 +36,7 @@ import { ACTIVITY_REFRESH, CHAT_REFRESH, HALL_REFRESH } from "@/lib/realtime-con
 import { acknowledgeDraft, chatDraftKey, chatDrafts, type DraftReply } from "@/lib/chat-drafts";
 import { groupMessages, messageDay, messageDayLabel } from "@/lib/message-presentation";
 import { communicationTiming } from "@/lib/communication-performance";
+import { DeferredControl } from "./deferred-control";
 import { PersonAvatar, RoomAvatar, SandboxAvatar } from "./identity-avatar";
 import { sandboxName } from "@/lib/workspace-navigation";
 import { EmojiPicker } from "./emoji-picker";
@@ -166,6 +167,7 @@ export function SurfaceHeader({
         </div>
       </div>
       <div className="core-header-controls">
+        {conversation.kind !== "my-room" ? <span className="fp2-header-deferred"><DeferredControl kind="call" /><DeferredControl kind="video" /></span> : null}
         {conversation.databaseId ? <button className="action-icon" aria-label="Search conversation" title="Search conversation" onClick={() => setSearchOpen(true)}><Search size={17} /></button> : null}
         {pref.muted || pref.inheritedMute ? <span title={pref.inheritedMute ? "Muted by Room" : "Muted"} aria-label={pref.inheritedMute ? "Muted by Room" : "Muted"}><BellOff size={14} /></span> : null}
         {conversation.databaseId || onManage ? <button className="action-icon" aria-label="Conversation options" title="Conversation options" aria-expanded={Boolean(controlsAnchor)} onClick={(event) => { setControlFeedback(""); setControlsAnchor(event.currentTarget); }}><MoreHorizontal size={17} /></button> : null}
@@ -201,6 +203,7 @@ export function SurfaceHeader({
           <button disabled={controlBusy} onClick={() => void changePreference("unread")}>Mark {surface === "hall" ? "Hall" : "Chat"} unread</button>
         </> : null}
         {controlBusy ? <p role="status">Saving…</p> : null}{controlFeedback ? <p role="alert">{controlFeedback}</p> : null}
+        {conversation.kind !== "my-room" ? <div className="fp2-mobile-deferred"><DeferredControl kind="call" text /><DeferredControl kind="video" text /></div> : null}
       </div></InteractionPopover> : null}
       {contextAnchor && parentRoom ? <InteractionPopover anchor={contextAnchor} label="Room contexts" onClose={() => setContextAnchor(null)}><nav className="room-context-menu" aria-label="Room and Subrooms">
         <Link href={`/room/${parentRoom.slug}`} aria-current={conversation.slug === parentRoom.slug ? "page" : undefined} onClick={() => setContextAnchor(null)}>{parentRoom.name}<AttentionMark count={unreadByConversation?.[parentRoom.conversationId] ?? 0} label="unread activities" /></Link>
@@ -307,6 +310,7 @@ function Composer({
       ) : null}
       <div className="composer">
         <div className="composer-tools">
+          <DeferredControl kind="files" />
           <button aria-label="Add emoji" onClick={(event) => setEmojiAnchor(event.currentTarget)}>
             <Smile size={17} />
           </button>
@@ -1083,6 +1087,7 @@ export function HallSurface({
               <input autoFocus aria-label="Title" placeholder="Title" value={noteTitle} disabled={saving} onChange={(event) => { draftNoteId.current = null; setNoteTitle(event.target.value); }} maxLength={80} />
               <textarea aria-label="Note" placeholder="Note / description" maxLength={4000} disabled={saving} value={noteBody} onChange={(event) => { draftNoteId.current = null; setNoteBody(event.target.value); }} rows={5} />
             </div>
+            <DeferredControl kind="files" text />
             <div className="wizard-actions"><button className="button button-primary primary-action" disabled={!noteTitle.trim() || saving} onClick={async () => {
               if (saving) return;
               setSaving(true); setHallError("");

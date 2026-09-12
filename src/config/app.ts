@@ -1,5 +1,8 @@
 export const APP_VERSION = "MS7.1";
 export const BUILD_LABEL = "Development";
+// Explicit product-stage policy; canonical review is a production build of Dev.
+// Revisit visibility and remove engineering milestone copy before Beta.
+export const DEVELOPMENT_REVIEW = BUILD_LABEL === "Development";
 
 export const APP_VERSION_LABEL = `Version ${APP_VERSION} - ${BUILD_LABEL}`;
 

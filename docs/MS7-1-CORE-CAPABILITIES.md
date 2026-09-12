@@ -1,5 +1,13 @@
 # MS7.1 core capability decision ledger
 
+## FP2 Gate 2 update — 2026-09-13
+
+Direct invitations are recipient-bound consent, not silent member addition. Current members invite accepted Friends (private nickname respected) or one exact normalized username; owner/all or inviter/own pending cancellation. Owner alone manages one recoverable encrypted share link,24h default/1h/7d, replacement/revoke serialized with join. Pending grants no data/realtime access. People shows current membership and active invitations, no revoked history graveyard. Shared Subroom order is owner-only, normalized lazily under parent lock, deterministic for every authorized subset; drag and Move alternatives in sidebar/Structure.
+
+Notifications now derives rolling≤2m ordinary-message groups from untouched event rows. Mentions/Hall/Friends/direct invites remain separate. Exact rendered-event list acknowledgement is independent of destination/manual unread; bell remains event-counted.
+
+Development-review exception, explicitly authorized FP2 (not Beta readiness): Call/Video, Files & images, Translate are information disclosures only, visibly Deferred with founder-requested engineering debt. No media/storage/translation implementation or permission requests. Call/Video excluded from Sandbox. Revisit visibility and remove milestone copy before Beta. Search/Mute/Mark unread/pinning/lifecycle stay real and unduplicated. Calendar/camera-capture duplicate/unsafe owner lifecycle remain absent. Final FP2 status/evidence: [report](MS7-1-FP2-FOUNDER-PATCH.md); MS7.1 is not locked.
+
 Updated2026-09-09. Founder correction supersedes the earlier hidden-control inventory. Hidden is a presentation state, not acceptance. `.1–.4` preserved; `.5/.6` backend`449caf8`, client`8b6d29c`, final hardening`fd76555`. Canonical founder-review deployment and live isolated A/B smoke are verified in the [results ledger](MS7-1-STRESS-RESULTS.md). MS7.1 is not locked; proposed capabilities remain proposed.
 
 Latest founder roadmap alignment: client checkpoint `8b6d29c` is preserved. [ROADMAP.md](ROADMAP.md) supersedes the former attachment gate: private attachments are **MS7.6 provisioning backlog P-001**, not a current MS7.1 blocker. The separate September 9 continuation directive has now authorized development and the complete release gate; provisioning remains out of scope. The capability A/B/C/D classes below are not the roadmap's provisioning A/B/C classes.

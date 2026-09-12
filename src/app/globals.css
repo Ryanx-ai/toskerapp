@@ -1214,6 +1214,20 @@ h1,h2,h3 { font-family:var(--font-mermaid),Georgia,serif; font-weight:400; lette
 }
 /* FP2 management additions reuse the existing Night/Montserrat surfaces. */
 .fp2-invite-panel { width: min(620px, calc(100vw - 24px)); }
+.fp2-deferred { display:inline-flex; min-width:0; }
+.fp2-deferred-trigger { position:relative; display:flex; align-items:center; gap:8px; min-width:36px; min-height:36px; padding:8px; border:0; border-radius:8px; color:var(--text-secondary); background:transparent; cursor:help; }
+.fp2-deferred-trigger:hover { background:var(--surface-hover); }
+.fp2-deferred-trigger:focus-visible { outline:2px solid var(--brand-gold); outline-offset:2px; }
+.fp2-deferred-dot { position:absolute; right:1px; bottom:0; font-size:10px; font-style:normal; }
+.fp2-deferred.with-text { display:flex; }
+.fp2-deferred.with-text button { width:100%; justify-content:flex-start; text-align:left; }
+.fp2-deferred.with-text small { display:block; font-size:11px; color:var(--text-secondary); }
+.fp2-deferred-info { position:fixed; inset:auto; margin:0; width:min(310px,calc(100vw - 16px)); padding:14px; border:1px solid var(--border); border-radius:12px; background:var(--background-raised,#111a1f); color:var(--text-primary); box-shadow:0 12px 35px #0006; font:13px/1.5 var(--font-montserrat),sans-serif; overflow-wrap:anywhere; }
+.fp2-deferred-info small { display:block; margin-block:6px; color:var(--text-secondary); }
+.fp2-deferred-info p { margin:0; }
+.fp2-header-deferred { display:flex; gap:2px; }
+.fp2-mobile-deferred { display:none; }
+@media(max-width:640px) { .fp2-header-deferred { display:none; } .fp2-mobile-deferred { display:block; } }
 .fp2-order-row { display:flex; flex-wrap:wrap; align-items:center; min-width:0; border-radius:10px; }
 .fp2-order-row > :is(.conversation-row-shell,a) { flex:1; min-width:0; }
 .fp2-order-handle { display:grid; place-items:center; flex:none; width:28px; min-height:36px; padding:0; color:var(--text-secondary); border-radius:8px; cursor:grab; }

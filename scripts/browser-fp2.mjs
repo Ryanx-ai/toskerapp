@@ -48,15 +48,26 @@ if(process.argv[2]?.startsWith("share")) {
   await run(b,"open",origin+room); await until(b,"!!document.querySelector('.composer textarea')","member retained after revoke");
   console.log("PASS: default24h/1h/7d, actual QR, recover same link, replace/old denial, non-owner no share controls, leave/rejoin, revoke disappearance/denial, memberships preserved.");
 }
-function ev(session,js) { return run(session,"eval",js); }
-async function until(session,js,label,timeout=30000) {
+export function ev(session,js) { return run(session,"eval",js); }
+export async function until(session,js,label,timeout=30000) {
   const end=Date.now()+timeout;
   while(Date.now()<end) { if(await ev(session,js))return; await new Promise(r=>setTimeout(r,350)); }
   throw new Error(`Timed out: ${label}`);
 }
-async function button(session,name) {
-  await ev(session,`Array.from(document.querySelectorAll('button')).find(e=>(e.getAttribute('aria-label')||e.textContent).trim()===${JSON.stringify(name)})?.scrollIntoView({block:'center'})`);
-  return run(session,"find","role","button","click","--name",name,"--exact");
+export async function button(session,name) {
+  // Only a test locator: avoid fragile body nth-child paths when toast/scripts change.
+  const marker=`fp2-${Date.now()}`;
+  const selector=await ev(session,`(()=>{const modal=document.querySelector('dialog[open]');const button=Array.from(document.querySelectorAll('button')).find(e=>e.checkVisibility()&&(!modal||modal.contains(e))&&(e.getAttribute('aria-label')||e.textContent).trim()===${JSON.stringify(name)});if(!button)return null;button.dataset.fp2Target=${JSON.stringify(marker)};return '[data-fp2-target="'+button.dataset.fp2Target+'"]'})()`);
+  assert(selector,`Visible button: ${name}`);
+  await run(session,"scrollintoview",selector);
+  return run(session,"click",selector);
+}
+// This host's native automation evaluation can change focus after a key event.
+// Observe the real keyup boundary before the next automation read; log no text keys.
+async function keyState(session,key) {
+  await ev(session,`(()=>{window.__fp2KeyState=null;const observe=e=>{if(e.key!==${JSON.stringify(key.split("+").at(-1))})return;window.__fp2KeyState={tip:!!document.querySelector('.fp2-deferred-info:popover-open'),menu:!!document.querySelector('.interaction-popover:popover-open'),focus:document.activeElement?.getAttribute('aria-label')};window.removeEventListener('keyup',observe,true)};window.addEventListener('keyup',observe,true);return true})()`);
+  await run(session,"press",key);
+  return ev(session,"window.__fp2KeyState");
 }
 async function invite() {
   await run(a,"open",origin+room);
@@ -166,4 +177,75 @@ if(process.argv[2]==="notifications-final") {
   const result=await ev(b,"fetch('/api/workspace').then(r=>r.json()).then(d=>({events:d.activity.filter(e=>e.conversationId==='bf6069cb-fc35-45bd-9736-0724ad3e43e9'&&e.type==='message'),preference:d.preferences.find(p=>p.conversationId==='bf6069cb-fc35-45bd-9736-0724ad3e43e9')}))");
   assert(result.events.length>=27&&result.events.every(e=>e.destinationReadAt));assert(!result.preference?.manualChatUnreadId);
   console.log("PASS: canonical destination read and manual marker cleared after local delayed revalidation; no pipeline change. Initial30s browser gate timed out and was not counted as a pass.");
+}
+if(process.argv[2]?.startsWith("layout")) {
+  if(process.argv[2]==="layout") {
+  await run(a,"set","viewport","1440","900"); await invite();
+  await until(a,"!!document.querySelector('.fp2-share select')","share controls");
+  if(!await ev(a,"!!document.querySelector('.invite-layout input')")) {await button(a,"Generate invite");await until(a,"!!document.querySelector('.invite-layout input')","QR fixture");}
+  for(const width of (process.env.FP2_WIDTHS ?? "320,390,430,768,1440").split(",").filter(Boolean).map(Number)) {
+    await run(a,"set","viewport",String(width),"900");
+    await run(a,"scrollintoview",".fp2-invite-panel > label input");
+    assert(await ev(a,"(()=>{const p=document.querySelector('.fp2-invite-panel'),r=p.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth+1&&p.scrollWidth<=p.clientWidth+1})()"),`Invite width ${width}`);
+    await button(a,"Username"); await run(a,"fill",".fp2-invite-panel > label input","tosker-user-b-clerk-test");
+    await until(a,"document.querySelectorAll('.fp2-person').length===1","username row");
+    assert(await ev(a,"document.querySelector('.fp2-invite-panel').scrollWidth<=document.querySelector('.fp2-invite-panel').clientWidth+1"));
+    await run(a,"scrollintoview",".fp2-share select");
+    assert(await ev(a,"(()=>{const r=document.querySelector('.fp2-share select').getBoundingClientRect();return r.left>=0&&r.right<=innerWidth})()"));
+    await run(a,"screenshot",`/tmp/fp2-invite-${width}.png`);
+    await button(a,"Friends");
+    console.log(`PASS: Invite/Friends/Username/share/QR/expiry at ${width}px, no horizontal overflow.`);
+  }
+  await run(a,"press","Escape");
+  } else { await run(a,"open",origin+room);await until(a,"!!document.querySelector('.composer textarea')","built Room"); }
+  for(const width of (process.env.FP2_WIDTHS ?? "320,390,430,768,1440").split(",").filter(Boolean).map(Number)) {
+    await run(a,"set","viewport",String(width),"900");
+    await button(a,"Conversation options"); await button(a,"Room details");
+    await until(a,"document.querySelectorAll('.room-structure .fp2-order-handle').length===3","Structure");
+    await run(a,"scrollintoview",".room-structure");
+    assert(await ev(a,"(()=>{const p=document.querySelector('.room-details-panel');return p.scrollWidth<=p.clientWidth+1&&p.getBoundingClientRect().right<=innerWidth+1})()"));
+    await run(a,"screenshot",`/tmp/fp2-structure-${width}.png`);
+    await run(a,"press","Escape");
+    assert(await ev(a,"document.documentElement.scrollWidth<=innerWidth+1"));
+    if(width<=430) {await button(a,"Conversation options"); await button(a,"Call — deferred");}
+    else await button(a,"Call — deferred");
+    await until(a,"!!document.querySelector('.fp2-deferred-info:popover-open')","deferred explanation");
+    assert(await ev(a,"(()=>{const p=document.querySelector('.fp2-deferred-info:popover-open'),r=p.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth&&r.top>=0&&r.bottom<=innerHeight&&p.textContent.includes('authorized media sessions')})()"));
+    await run(a,"screenshot",`/tmp/fp2-deferred-${width}.png`);
+    const escaped=await keyState(a,"Escape");
+    assert(!escaped.tip&&escaped.focus==='Call — deferred',JSON.stringify(escaped));
+    if(width<=430) {assert(escaped.menu);await run(a,"press","Escape");}
+    console.log(`PASS: People/Structure/header/deferred info ${width}px; Escape/focus; no horizontal clipping.`);
+  }
+  await run(a,"set","viewport","1440","900");
+  await button(a,"Call — deferred"); await run(a,"press","Escape"); const tabbed=await keyState(a,"Tab");
+  assert(tabbed.focus==='Video — deferred'&&tabbed.tip,JSON.stringify(tabbed));
+  const returned=await keyState(a,"Shift+Tab");assert(returned.focus==='Call — deferred'&&returned.tip,JSON.stringify(returned));
+  await run(a,"press","Escape");
+  await button(a,"Files & images — deferred");await until(a,"document.querySelector('.fp2-deferred-info:popover-open')?.textContent.includes('MS7.6 P-001')","files explanation");
+  assert(await ev(a,"document.querySelectorAll('input[type=file]').length===0"));await run(a,"press","Escape");
+  await run(a,"scrollintoview",'.message-scroll article:last-of-type button[aria-label="More message actions"]');
+  await run(a,"click",'.message-scroll article:last-of-type button[aria-label="More message actions"]');
+  await button(a,"Translate — deferred");await until(a,"document.querySelector('.fp2-deferred-info:popover-open')?.textContent.includes('provider/on-device privacy')","Translate disclosure");
+  const translated=await keyState(a,"Escape");assert(translated.focus==='Translate — deferred'&&!translated.tip,JSON.stringify(translated));await run(a,"press","Escape");
+  await run(a,"open",origin+room+"/hall");await until(a,"!!document.querySelector('.new-hall-card')","Hall");
+  await run(a,"click",".new-hall-card");await button(a,"Files & images — deferred");
+  await until(a,"!!document.querySelector('.fp2-deferred-info:popover-open')","Hall files disclosure");await run(a,"press","Escape");await run(a,"press","Escape");
+  await run(a,"open",origin+"/personal/my-room");await until(a,"!!document.querySelector('.composer textarea')","Sandbox");
+  assert(await ev(a,"!document.querySelector('button[aria-label=\"Call — deferred\"]')&&!document.querySelector('button[aria-label=\"Video — deferred\"]')&&!!document.querySelector('button[aria-label=\"Files & images — deferred\"]')"));
+  console.log("PASS: keyboard focus explains Video; Escape restores; Files/Translate/Hall debt copy; no file input; Sandbox excludes Call/Video. Emulation, not physical-device certification.");
+}
+if(process.argv[2]==="contexts") {
+  await run(a,"open",origin+room);await until(a,"!!document.querySelector('.composer textarea')","Room");
+  const personal=await ev(a,"[...document.querySelectorAll('.messenger-sidebar a[href^=\"/personal/\"]')].find(e=>e.getAttribute('href')!=='/personal/my-room')?.getAttribute('href')");
+  const child=await ev(a,"document.querySelector('.messenger-sidebar a[href*=\"/subroom/\"]')?.getAttribute('href')");
+  assert(personal&&child,"Existing authorized Personal and Subroom paths");
+  for(const path of [personal,child]) {
+    await run(a,"open",origin+path);await until(a,"!!document.querySelector('.composer textarea')","context Chat");
+    for(const name of ["Call — deferred","Video — deferred","Files & images — deferred"]) {
+      await button(a,name);await until(a,"!!document.querySelector('.fp2-deferred-info:popover-open')","context info");await run(a,"press","Escape");
+    }
+    assert(await ev(a,"document.querySelectorAll('input[type=file]').length===0"));
+  }
+  console.log("PASS: existing authorized Personal/Subroom Call/Video/Files explanations; no picker or message mutation.");
 }

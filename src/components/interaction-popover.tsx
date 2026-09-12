@@ -24,7 +24,7 @@ export function InteractionPopover({ anchor, onClose, label, children }: { ancho
     // Native auto light-dismiss can close a context menu on the same right-button
     // release that opened it. Dismiss on the next outside press instead.
     const outside = (event: PointerEvent) => { if (!panel.contains(event.target as Node)) dismiss(); };
-    const escape = (event: KeyboardEvent) => { if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); dismiss(); } };
+    const escape = (event: KeyboardEvent) => { if (event.key === "Escape") { if (event.defaultPrevented || document.querySelector('.fp2-deferred-info:popover-open')) return; event.preventDefault(); event.stopPropagation(); dismiss(); } };
     document.addEventListener("pointerdown", outside);
     document.addEventListener("keydown", escape, true);
     window.addEventListener("resize", dismiss);

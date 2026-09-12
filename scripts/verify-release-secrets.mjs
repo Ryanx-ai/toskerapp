@@ -4,7 +4,7 @@ import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 // Run with the existing dotenv harness. Report only file paths, never values.
-const keys = ["DATABASE_URL", "CLERK_SECRET_KEY", "ABLY_API_KEY"];
+const keys = ["DATABASE_URL", "CLERK_SECRET_KEY", "ABLY_API_KEY", "ROOM_INVITE_ENCRYPTION_KEY"];
 const secrets = keys.map(key => {
   assert(process.env[key]?.length >= 12, `Required server configuration missing: ${key}`);
   return process.env[key];
@@ -25,5 +25,5 @@ const leaks = candidates.filter(path => {
   return secrets.some(value => [value, JSON.stringify(value).slice(1, -1), encodeURIComponent(value)].some(variant => content.includes(Buffer.from(variant))));
 });
 assert.deepEqual(leaks, [], "Server credential match in listed paths; do not print matched content");
-assert(!Object.keys(process.env).some(key => /^NEXT_PUBLIC_.*(?:SECRET|ABLY_API_KEY|DATABASE_URL)/.test(key)), "No public server-secret variable");
+assert(!Object.keys(process.env).some(key => /^NEXT_PUBLIC_.*(?:SECRET|ABLY_API_KEY|DATABASE_URL|ROOM_INVITE_ENCRYPTION_KEY)/.test(key)), "No public server-secret variable");
 console.log(JSON.stringify({ secretScan: "PASS", sourceAndOwnedFiles: candidates.length - bundles.length, clientBundles: bundles.length, localEnvironmentIgnored: true, credentialsPrinted: false }));

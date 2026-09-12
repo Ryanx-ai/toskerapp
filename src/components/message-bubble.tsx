@@ -7,6 +7,7 @@ import type { ReactionSummary } from "@/lib/reaction-contract";
 import { EmojiPicker, ReactionChips } from "./emoji-picker";
 import { InteractionPopover } from "./interaction-popover";
 import { ModalLayer } from "./modal-layer";
+import { DeferredControl } from "./deferred-control";
 import { PersonAvatar } from "./identity-avatar";
 import { validMentionSpans, type MentionSpan } from "@/lib/mentions";
 
@@ -77,6 +78,7 @@ export function MessageBubble({ message, grouped, onReply, onReaction, onChange,
         <button onClick={() => { onReply(message); setPanel(null); }}><Reply size={16} />Reply</button>
         <button onClick={() => void run(() => navigator.clipboard.writeText(message.body))}><Copy size={16} />Copy</button>
         {onPin ? <button disabled={busy} onClick={() => void run(() => onPin(message))}><Pin size={16} />Pin to Hall</button> : null}
+        <DeferredControl kind="translate" text />
         {message.mine ? <><hr /><button onClick={() => { setDraft(message.body); setEditing(true); setPanel(null); }}><Pencil size={16} />Edit</button><button className="danger" onClick={() => { setDeleting(true); setPanel(null); }}><Trash2 size={16} />Delete</button></> : null}
       </div>}
     </InteractionPopover> : null}

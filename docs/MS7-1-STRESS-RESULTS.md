@@ -1,5 +1,9 @@
 # MS7.1 — shared stress results
 
+## FP2 Gate 2 — 2026-09-13
+
+Bounded invitation/order/notification/deferred-control assembly, not a rerun of the historical stress campaign. [FP2 implementation, exact fixtures and acceptance evidence](MS7-1-FP2-FOUNDER-PATCH.md). Local A/B direct consent/decline/cancel/exact username/share/rejoin/Room message, owner shared order/private subset,25-message derived burst/later arrival/separate mention and independent destination attention pass. Five-width touched UI and keyboard pass. Fresh build/lint/TypeScript/schema/security/Room lifecycle/order/grouping/attention/secret checks are recorded there, with inherited evidence and harness/runtime limitations distinguished. Canonical release remains gated on exact cleanup and live smoke. MS7.1 remains founder review, not locked.
+
 ## MS7.1-FP1 — bounded founder follow-up, 2026-09-11
 
 [FP1 implementation/evidence/deferred debt](MS7-1-FP1-FOUNDER-PATCH.md) is the current bounded patch record. TypeScript/lint/build/secret scan, focused attention/navigation assertions, real pending/accepted/removed-request browser states, Room/Subroom/Personal/Sandbox navigation, Invite overflow, five-width header/composer checks and native keyboard/popover checks PASS. Product `80f504f` pushed/deployed READY as `dpl_CqdSshonsvai2YFgBzkgRyh98fwn` on the canonical alias. Small local and live isolated A/B bidirectional sends passed without reload/duplicates; live stale-request and mobile + checks passed. Exact owned fixture cleanup passed; no founder rows deleted. The old giant stress/security/history suites were deliberately not rerun: transport/schema/history were not changed. Exact screenshot reproduction unavailable; written brief and new captures used. **Not locked; STOP FOR FOUNDER REVIEW.**

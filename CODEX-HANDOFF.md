@@ -2,6 +2,14 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## MS7.1-FP2 — Gate 2 execution active (2026-09-13)
+
+Founder approved the amended Gate 1 plan. Slice A checkpoint `256b6f1` is local only: invitation kinds/constraints, dedicated encrypted recoverable share tokens, recipient consent, narrow quotas and Room-locked concurrency. Development migration0014 applied (15 migrations/48 FKs); service/race/TypeScript/scoped lint pass. Dedicated invitation-encryption secret installed locally and Vercel Development/Production-review; never print or overwrite it. [FP2 report and exact retained service fixtures](docs/MS7-1-FP2-FOUNDER-PATCH.md).
+
+Validated local checkpoints: A `256b6f1`, B people/share UI `28dcaae`, C owner ordering/legacy normalization `a666154`, D notification grouping `ba9637b`. E assembled gate complete and ready to checkpoint: Development-only deferred controls, exact debt copy, nested Escape/Tab/Shift+Tab and touch disclosure, Sandbox exclusions, invitation toast copy. Fresh production build/TypeScript/lint/schema/Room lifecycle/invite races/order/grouping/attention/secret scan pass. Real A/B consent/share/rejoin/message, owner order/private subset,25-event group/later arrival/mention/read semantics pass. All five widths320/390/430/768/1440 and Personal/Subroom/Hall/Sandbox disclosure checks pass. Native automation can disturb focus; keyup-boundary assertions and retained Clerk profile restoration resolved harness interruptions without changing auth. Physical-device/screen-reader coverage is not claimed. Details/limits in FP2 report.
+
+Exact local QA cleanup complete:2 Rooms/6 children/5 conversations/28 messages/35 notifications/4 non-login QA users removed; no application undo. Invariants pass with6 real users/Sandboxes,2 preserved Rooms,5 Personal conversations; unrelated content preserved. Fixture-specific scripts now refuse removed targets. Next: explicitly stage owned E changes (handoff has unrelated hunks) → checkpoint → push/canonical founder-review deploy → small live A/B smoke using `scripts/browser-fp2-live.mjs` → exact live cleanup → document/stop. No push/deploy yet at this checkpoint. Preserve Chat/history/retry/Ably; no MS7.2, Art, roles, media, translation or redesign. Founder alone locks MS7.1. Existing unrelated documentation/Art/Web/research/experiments WIP must remain unstaged.
+
 ## MS7.1-FP1 — bounded founder patch, 2026-09-11
 
 The founder's FP1 directive supersedes the previous pause for this bounded patch only. Based on `e9ba349`, product `fd76555`. See [FP1 implementation, targeted evidence and deferred founder debt](docs/MS7-1-FP1-FOUNDER-PATCH.md). Requests eligibility, selected-parent disclosure, separate surface strip/disabled future + menu, Invite overflow, Sandbox identity and scoped sidebar/composer geometry are implemented; no schema, transport, history, provider, Art or future milestone work.

@@ -1516,7 +1516,7 @@ export function MessagingApp({
         <SubroomOverlay room={parentConversation ?? selected} onClose={() => setOverlay(null)} />
       ) : null}
       {overlay === "manage" && contextRoom ? <RoomDetails slug={contextRoom.slug} onClose={() => setOverlay(null)} onInvite={() => setOverlay("invite")} onAddSubroom={contextRoom.role === "owner" ? () => setOverlay("subroom") : undefined} /> : null}
-      {toast ? <button className="activity-toast" onClick={() => { router.push(activityHref(toast)); setToast(null); }} aria-label="Open new activity"><strong>{toast.actorName ?? "Someone"}</strong><span>{toast.type === "message" ? (toast.messageBody || "New message") : toast.type === "connection_request" ? "sent you a friend request" : toast.type === "connection_accepted" ? "accepted your friend request" : "updated Hall"}</span></button> : null}
+      {toast ? <button className="activity-toast" onClick={() => { router.push(activityHref(toast)); setToast(null); }} aria-label="Open new activity"><strong>{toast.actorName ?? "Someone"}</strong><span>{toast.type === "message" ? (toast.messageBody || "New message") : toast.type === "connection_request" ? "sent you a friend request" : toast.type === "connection_accepted" ? "accepted your friend request" : toast.type === "room_invitation" ? "invited you to a Room" : "updated Hall"}</span></button> : null}
     </main></ToskerIdentityProvider>
   );
 }

@@ -1,8 +1,9 @@
 import Image from "next/image";
 import { RoomInvitationResponse } from "./room-invitation-response";
 import { notificationHref } from "@/lib/notification-href";
+import { notificationBursts } from "@/lib/notification-bursts";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { WorkspaceBanner } from "@/components/workspace-banner";
 import { IdentityCard } from "@/components/identity-card";
 import { SignOutButton } from "@clerk/nextjs";
@@ -382,28 +383,53 @@ const notificationItems = [
 function Notifications({ empty = false, persistent }: { empty?: boolean; persistent: Awaited<ReturnType<typeof listNotificationsAction>> }) {
   const [filter, setFilter] = useState("All");
   const identity = useToskerIdentity();
-  useEffect(() => {
-    if (identity && !document.hidden && persistent.some((item) => !item.readAt)) void markNotificationsReadAction(persistent.filter((item) => !item.readAt).slice(0, 500).map((item) => item.id)).catch(() => undefined);
-  }, [identity, persistent]);
-  const realItems = persistent.map((item) => ({
-    id: item.id,
+  const acknowledgedView = useRef<string | null>(null);
+  const realItems = notificationBursts(persistent, identity?.userId ?? "").map((group) => {
+    const item = group.latest;
+    return ({
+    id: group.id,
+    eventIds: group.events.map((event) => event.id),
     invitationId: item.invitationId,
     invitationStatus: item.invitationStatus,
     roomSlug: item.roomSlug,
     type: item.type === "message" ? item.isMention ? "Mentions" : "Messages" : item.type.startsWith("connection") ? "Activity" : "Rooms",
     icon: item.type.startsWith("connection") ? UserPlus : Pin,
     title: item.type === "room_invitation" ? "Room invitation" : item.type === "message" ? item.isMention ? "Mentioned you" : "New message" : item.type === "connection_request" ? "New friend request" : item.type === "connection_accepted" ? "Friend request accepted" : "New Hall note",
-    context: item.type === "room_invitation" ? `${item.actorName ?? "Someone"} invited you to ${item.roomName ?? "a Room"}` : item.type === "message" ? `${item.actorName ?? "Someone"} sent you a message${item.messageBody ? `: ${item.messageBody}` : ""}` : item.type === "connection_request" ? `${item.actorName ?? "Someone"} sent you a friend request` : item.type === "connection_accepted" ? `${item.actorName ?? "Someone"} accepted your friend request` : `${item.actorName ?? "Someone"} added something to Hall`,
+    context: item.type === "room_invitation" ? `${item.actorName ?? "Someone"} invited you to ${item.roomName ?? "a Room"}` : item.type === "message" ? group.events.length > 1 ? `${item.actorName ?? "Someone"} sent you ${group.events.length} messages` : `${item.actorName ?? "Someone"} sent you a message${item.messageBody ? `: ${item.messageBody}` : ""}` : item.type === "connection_request" ? `${item.actorName ?? "Someone"} sent you a friend request` : item.type === "connection_accepted" ? `${item.actorName ?? "Someone"} accepted your friend request` : `${item.actorName ?? "Someone"} added something to Hall`,
     time: new Date(item.createdAt).toLocaleDateString(),
     destination: item.roomName && item.type !== "room_invitation" ? `${item.roomName}${item.subroomId && item.conversationTitle ? ` / ${item.conversationTitle}` : ""} · ${item.type === "message" ? "Chat" : "Hall"}` : "",
     href: notificationHref(item),
-  }));
-  const source = identity ? realItems : notificationItems.map((item) => ({ ...item, invitationId: null, invitationStatus: null, roomSlug: null }));
+  }); });
+  const source = identity ? realItems : notificationItems.map((item) => ({ ...item, eventIds: [] as string[], invitationId: null, invitationStatus: null, roomSlug: null }));
   const shown = empty && !identity
     ? []
     : filter === "All"
       ? source
       : source.filter((item) => item.type === filter);
+  const renderedIds = shown.flatMap((item) => item.eventIds);
+  const renderedKey = JSON.stringify(renderedIds);
+  const unreadKey = JSON.stringify(persistent.filter((item) => !item.readAt).map((item) => item.id));
+  useEffect(() => {
+    if (!identity) return;
+    const key = `${identity.userId}:${filter}`;
+    const acknowledge = () => {
+      if (document.hidden || acknowledgedView.current === key) return;
+      const rendered = JSON.parse(renderedKey) as string[];
+      if (!rendered.length) return;
+      acknowledgedView.current = key;
+      const unseen = new Set<string>(JSON.parse(unreadKey));
+      const observedIds = rendered.filter((id) => unseen.has(id));
+      // Snapshot exact rendered events once per view/filter. Arrivals while this
+      // acknowledgement is in flight (or after it) are not consumed implicitly.
+      void (async () => {
+        for (let i = 0; i < observedIds.length; i += 500) await markNotificationsReadAction(observedIds.slice(i, i + 500));
+      })().catch(() => { acknowledgedView.current = null; });
+    };
+    acknowledge();
+    const foreground = () => { if (!document.hidden) { acknowledgedView.current = null; acknowledge(); } };
+    document.addEventListener("visibilitychange", foreground);
+    return () => document.removeEventListener("visibilitychange", foreground);
+  }, [identity, filter, renderedKey, unreadKey]);
   return (
     <ProductChrome current="notifications">
       <WorkspaceBanner
@@ -427,7 +453,7 @@ function Notifications({ empty = false, persistent }: { empty?: boolean; persist
           {shown.map((item) => {
             const Icon = item.icon;
             return (
-                <article key={item.id}>
+                <article key={item.id} data-event-count={item.eventIds.length}>
                 <span className="notification-symbol">
                   <Icon size={18} />
                 </span>

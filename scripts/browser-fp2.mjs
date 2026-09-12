@@ -49,8 +49,8 @@ if(process.argv[2]?.startsWith("share")) {
   console.log("PASS: default24h/1h/7d, actual QR, recover same link, replace/old denial, non-owner no share controls, leave/rejoin, revoke disappearance/denial, memberships preserved.");
 }
 function ev(session,js) { return run(session,"eval",js); }
-async function until(session,js,label) {
-  const end=Date.now()+30000;
+async function until(session,js,label,timeout=30000) {
+  const end=Date.now()+timeout;
   while(Date.now()<end) { if(await ev(session,js))return; await new Promise(r=>setTimeout(r,350)); }
   throw new Error(`Timed out: ${label}`);
 }
@@ -133,4 +133,37 @@ if(process.argv[2]==="order" || process.argv[2]==="order-settings") {
   await until(a,`${names}.join('|')==='FP2 Alpha|FP2 Beta|FP2 Private'`,"persisted after reload");
   await run(b,"open",origin+room); await until(b,`${names}.join('|')==='FP2 Alpha|FP2 Beta'`,"B durable relative subset");
   console.log("PASS: sidebar Move/native drag; Settings Move; reload persistence; fixed Room Chat; owner-only controls; member private filtering and relative order.");
+}
+if(process.argv[2]==="notifications") {
+  await run(b,"open",origin+room); await until(b,"!!document.querySelector('.composer textarea')","B Room");
+  await button(b,"Conversation options"); await button(b,"Mark Chat unread");
+  await run(b,"open",origin+"/friends");
+  await run(a,"open",origin+room); await until(a,"!!document.querySelector('.composer textarea')","A Room");
+  const send=async text=>{await run(a,"fill",".composer textarea",text);await button(a,"Send message");await until(a,"document.querySelector('.composer textarea')?.value===''","persisted send");};
+  for(let i=1;i<=25;i++) {await send(`FP2 notification burst ${i}`);if(i%5===0)console.log(`Sent ${i}/25 through normal Chat UI`);}
+  await run(b,"open",origin+"/notifications");
+  await until(b,"document.querySelector('.notification-list')?.textContent.includes('sent you 25 messages')","consolidated burst");
+  const state=()=>ev(b,"fetch('/api/workspace').then(r=>r.json())");
+  let data=await state();
+  const cid=data.navigation.rooms.find(r=>r.slug===room.split('/').at(-1)).conversationId;
+  await until(b,`fetch('/api/workspace').then(r=>r.json()).then(d=>d.activity.filter(e=>e.conversationId===${JSON.stringify(cid)}&&e.messageBody?.startsWith('FP2 notification burst')).every(e=>e.readAt&&!e.destinationReadAt))`,"list acknowledged, destination retained");
+  data=await state();assert(data.preferences.find(p=>p.conversationId===cid)?.manualChatUnreadId,"Notifications preserves manual unread");
+  await send("FP2 notification later arrival");
+  await until(b,"document.querySelector('.notification-list')?.textContent.includes('sent you 26 messages')","arrival appends stable group");
+  data=await state();assert.equal(data.activity.find(e=>e.messageBody==='FP2 notification later arrival').readAt,null,"later arrival not consumed by previous acknowledgement");
+  await run(a,"fill",".composer textarea","@tosker-user-b");
+  await until(a,"!!document.querySelector('.mention-suggestions [role=option]')","real mention target");
+  await run(a,"press","Enter"); await button(a,"Send message");
+  await until(a,"document.querySelector('.composer textarea')?.value===''","mention persisted");
+  await until(b,"document.querySelector('.notification-list')?.textContent.includes('Mentioned you')","mention separate");
+  assert(await ev(b,"!!document.querySelector('.notification-list article[data-event-count=\"26\"]')"));
+  data=await state();assert(data.activity.some(e=>e.conversationId===cid&&e.isMention&&!e.readAt&&!e.destinationReadAt));
+  await run(b,"open",origin+room);await until(b,"!!document.querySelector('.composer textarea')","open destination");
+  await until(b,`fetch('/api/workspace').then(r=>r.json()).then(d=>d.activity.filter(e=>e.conversationId===${JSON.stringify(cid)}&&e.type==='message').every(e=>e.destinationReadAt)&&!d.preferences.find(p=>p.conversationId===${JSON.stringify(cid)})?.manualChatUnreadId)`,"destination catches up",75000);
+  console.log("PASS: normal A25-message burst -> B one group; exact list ack preserves destination/manual unread; later arrival26 stays list-unread; real mention separate; opening Chat catches up canonically.");
+}
+if(process.argv[2]==="notifications-final") {
+  const result=await ev(b,"fetch('/api/workspace').then(r=>r.json()).then(d=>({events:d.activity.filter(e=>e.conversationId==='bf6069cb-fc35-45bd-9736-0724ad3e43e9'&&e.type==='message'),preference:d.preferences.find(p=>p.conversationId==='bf6069cb-fc35-45bd-9736-0724ad3e43e9')}))");
+  assert(result.events.length>=27&&result.events.every(e=>e.destinationReadAt));assert(!result.preference?.manualChatUnreadId);
+  console.log("PASS: canonical destination read and manual marker cleared after local delayed revalidation; no pipeline change. Initial30s browser gate timed out and was not counted as a pass.");
 }

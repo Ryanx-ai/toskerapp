@@ -28,6 +28,12 @@ Exact service fixture: Room `e44ceb92-b1d5-4375-bd13-28a836af5d3c`, conversation
 - Exact owned QA cleanup/invariants, push/deploy exact SHA and small live A/B smoke. No release yet.
 
 Notification-history scaling and broad abuse operations remain MS7.6/backend debt. Attachments P-001, calls/translation, roles/lifecycle, MS8 redesign, Pages/Gizmos and Art stay outside FP2.
+# Slice D — notification burst presentation (2026-09-13)
+
+Consecutive ordinary message events group per recipient/sender/conversation/context with rolling≤2m gaps. Individual rows, exactIDs, event-count bell, realtime toast IDs and destination attention remain authoritative. Stable group identity uses earliest eventID, not count/read state. Mentions, differing senders/contexts, Hall/Friend/invite events split groups. Notifications acknowledges exact rendered/filter IDs once per view; arrivals during/after that snapshot stay unread. Foreground/reopening is a new explicit view. No transport, persistence or message pipeline rewrite.
+
+PASS: pure25-row grouping/stable identity/rolling boundary/all separator cases/immutable input; existing database attention acceptance verifies recipient-only exact ack and Chat/Hall/manual separation. Real A sent25 messages through normal Chat; B saw one25-event group, list acknowledgement preserved destination/manual unread. Later26th event joined group but stayed list-unread; real selected mention remained separate/unread. Opening Chat eventually cleared destination/manual marker, independently confirmed in Neon and workspace response. Initial30s local browser check timed out before that convergence; recorded as harness/local settling limitation, not a passed timing SLA. No pipeline fix. TypeScript/scoped lint/diff-check pass; final fresh assembled gate remains.
+
 # Slice C — shared Subroom ordering (2026-09-13)
 
 Owner-only Room-locked service; exact expected/current IDs reject stale concurrent writes and cross-Room/duplicate targets. Safe lazy normalization runs before create/reorder under the same parent lock: position→createdAt→id becomes0..n−1; new children append. Readers use the identical deterministic fallback. No schema columns, visibility/access/parent changes. Non-optimistic UI shows pending then canonical refresh; failure/conflict refreshes authority/order rather than overwriting.

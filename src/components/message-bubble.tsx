@@ -34,6 +34,12 @@ export function MessageBubble({ message, grouped, onReply, onReaction, onChange,
   const [error, setError] = useState("");
   const press = useRef<ReturnType<typeof setTimeout> | null>(null);
   const start = useRef({ x: 0, y: 0 });
+  const cancelNuke = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (!deleting) return;
+    const frame = requestAnimationFrame(() => cancelNuke.current?.focus());
+    return () => cancelAnimationFrame(frame);
+  }, [deleting]);
   const cancelPress = () => { if (press.current) clearTimeout(press.current); press.current = null; };
   useEffect(() => () => { if (press.current) clearTimeout(press.current); }, []);
   const show = (next: typeof panel, element: HTMLElement) => { cancelPress(); setAnchor(element); setPanel(next); };
@@ -45,7 +51,8 @@ export function MessageBubble({ message, grouped, onReply, onReaction, onChange,
     finally { setBusy(false); }
   };
   const values: ReactionSummary[] = message.reactionSummary ?? [...new Set(message.reactions ?? [])].map((emoji) => ({ emoji, count: message.reactions!.filter((item) => item === emoji).length, mine: false, participants: [] }));
-  return <article id={`message-${message.id}`} tabIndex={-1} aria-label={`Message from ${message.author}`} className={`message-row ${message.mine ? "mine" : ""} ${grouped ? "is-grouped" : ""} ${message.deletedAt ? "message-deleted" : ""}`}
+  if (message.deletedAt) return null;
+  return <article id={`message-${message.id}`} tabIndex={-1} aria-label={`Message from ${message.author}`} className={`message-row ${message.mine ? "mine" : ""} ${grouped ? "is-grouped" : ""}`}
     onContextMenu={(event) => { if (message.deletedAt) return; event.preventDefault(); show("menu", event.currentTarget); }}
     onKeyDown={(event) => { if (!message.deletedAt && (event.key === "ContextMenu" || (event.shiftKey && event.key === "F10"))) { event.preventDefault(); show("menu", event.currentTarget); } }}>
     {grouped ? <span className="message-avatar-spacer" aria-hidden="true" /> : <PersonAvatar seed={message.authorId ?? message.author} initials={message.initials} imageUrl={message.avatarUrl} />}
@@ -79,13 +86,13 @@ export function MessageBubble({ message, grouped, onReply, onReaction, onChange,
         <button onClick={() => void run(() => navigator.clipboard.writeText(message.body))}><Copy size={16} />Copy</button>
         {onPin ? <button disabled={busy} onClick={() => void run(() => onPin(message))}><Pin size={16} />Pin to Hall</button> : null}
         <DeferredControl kind="translate" text />
-        {message.mine ? <><hr /><button onClick={() => { setDraft(message.body); setEditing(true); setPanel(null); }}><Pencil size={16} />Edit</button><button className="danger" onClick={() => { setDeleting(true); setPanel(null); }}><Trash2 size={16} />Delete</button></> : null}
+        {message.mine ? <><hr /><button onClick={() => { setDraft(message.body); setEditing(true); setPanel(null); }}><Pencil size={16} />Edit</button><button className="danger" onClick={() => { setDeleting(true); setPanel(null); }}><Trash2 size={16} />Nuke message</button></> : null}
       </div>}
     </InteractionPopover> : null}
-    {editing || deleting ? <ModalLayer onClose={() => { if (!busy) { setEditing(false); setDeleting(false); } }}><section className="creation-panel message-edit-panel" role="dialog" aria-modal="true" aria-label={editing ? "Edit message" : "Delete message"}>
-      <h2>{editing ? "Edit message" : "Delete message?"}</h2>
-      {editing ? <textarea autoFocus aria-label="Edit message text" maxLength={8000} rows={4} value={draft} disabled={busy} onChange={(event) => setDraft(event.target.value)} /> : <p>The text will be removed for everyone. This cannot be undone.</p>}
-      <div className="overlay-actions"><button disabled={busy} onClick={() => { setEditing(false); setDeleting(false); }}>Cancel</button><button className={editing ? "primary-action" : "danger"} disabled={busy || (editing && !draft.trim())} onClick={() => void run(() => onChange(message.id, editing ? draft : undefined, deleting))}>{busy ? "Saving…" : editing ? "Save" : "Delete"}</button></div>
+    {editing || deleting ? <ModalLayer onClose={() => { if (!busy) { setEditing(false); setDeleting(false); } }}><section className="creation-panel message-edit-panel" role="dialog" aria-modal="true" aria-label={editing ? "Edit message" : "Nuke message"}>
+      <h2>{editing ? "Edit message" : "Nuke message?"}</h2>
+      {editing ? <textarea autoFocus aria-label="Edit message text" maxLength={8000} rows={4} value={draft} disabled={busy} onChange={(event) => setDraft(event.target.value)} /> : <p>This permanently removes the message from Tosker and cannot be undone. Any Hall reference is removed too.</p>}
+      <div className="overlay-actions"><button ref={cancelNuke} disabled={busy} onClick={() => { setEditing(false); setDeleting(false); }}>Cancel</button><button className={editing ? "primary-action" : "danger"} disabled={busy || (editing && !draft.trim())} onClick={() => void run(() => onChange(message.id, editing ? draft : undefined, deleting))}>{busy ? "Saving…" : editing ? "Save" : "Nuke message"}</button></div>
       {error ? <p role="alert">{error}</p> : null}
     </section></ModalLayer> : null}
   </article>;

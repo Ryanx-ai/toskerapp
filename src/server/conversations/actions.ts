@@ -7,7 +7,7 @@ import { requireCurrentActor } from "@/server/auth/clerk";
 import { getDatabase } from "@/server/db/client";
 import { conversationParticipants, conversationReads, conversations, messages, messageMentions, notifications, profiles, users } from "@/server/db/schema";
 import { hallScope, lockHallScope } from "@/server/hall/service";
-import { changeOwnMessage, setMessageReaction } from "./service";
+import { acceptedSendReceipt, changeOwnMessage, requireLiveReply, setMessageReaction } from "./service";
 import type { ReactionSummary } from "@/lib/reaction-contract";
 import { publishMessageChanged, publishConversationActivity, publishUserActivity } from "@/server/realtime/provider";
 import { acknowledgeChat, acknowledgeDestination } from "@/server/attention/service";
@@ -45,17 +45,17 @@ export async function listMessagesAction(
   const rows = await db
     .select({ id: messages.id, author: profiles.displayName, authorId: messages.authorId, body: messages.body, createdAt: messages.createdAt,
       editedAt: messages.editedAt, deletedAt: messages.deletedAt, replyToId: messages.replyToId,
-      replyTo: sql<string | null>`(select case when m.deleted_at is not null then 'Message deleted' else left(m.body, 240) end from messages m where m.id = ${messages.replyToId} and m.conversation_id = ${conversationId})`,
+      replyTo: sql<string | null>`(select left(m.body, 240) from messages m where m.id = ${messages.replyToId} and m.conversation_id = ${conversationId} and m.deleted_at is null)`,
       reactionSummary: sql<ReactionSummary[]>`coalesce((select json_agg(r order by r.emoji) from (select emoji, count(*)::int as count, bool_or(mr.user_id = ${actor.userId}) as mine, array_agg(p.display_name order by p.display_name) as participants from message_reactions mr join profiles p on p.user_id = mr.user_id where message_id = ${messages.id} group by emoji) r), '[]'::json)`,
     })
     .from(messages)
     .innerJoin(profiles, eq(profiles.userId, messages.authorId))
-    .where(boundary ? and(eq(messages.conversationId, conversationId), boundary) : eq(messages.conversationId, conversationId))
+    .where(and(eq(messages.conversationId, conversationId), isNull(messages.deletedAt), boundary))
     .orderBy(desc(messages.createdAt), desc(messages.id))
     .limit(51);
   const page = rows.slice(0, 50).reverse();
   return {
-    messages: page.map((message) => ({ ...message, body: message.deletedAt ? "Message deleted" : message.body, editedAt: message.editedAt?.toISOString() ?? null, deletedAt: message.deletedAt?.toISOString() ?? null, createdAt: message.createdAt.toISOString(), mine: message.authorId === actor.userId })) satisfies PersistentMessage[],
+    messages: page.map((message) => ({ ...message, replyToId: message.replyTo ? message.replyToId : null, editedAt: message.editedAt?.toISOString() ?? null, deletedAt: null, createdAt: message.createdAt.toISOString(), mine: message.authorId === actor.userId })) satisfies PersistentMessage[],
     nextCursor: rows.length > 50 && page[0] ? { createdAt: page[0].createdAt.toISOString(), id: page[0].id } : null,
   };
 }
@@ -74,21 +74,18 @@ export async function sendMessageAction(input: { id: string; conversationId: str
   await lockHallScope(tx, actor, input.conversationId);
   authorized = performance.now();
   // A lost acknowledgement stays idempotent even if its source was later deleted.
-  const [accepted] = await tx.select({ authorId: messages.authorId, conversationId: messages.conversationId, createdAt: messages.createdAt }).from(messages).where(eq(messages.id, input.id));
+  const accepted = await acceptedSendReceipt(tx, actor, input.conversationId, input.id);
   if (accepted) {
     if (accepted.authorId !== actor.userId || accepted.conversationId !== input.conversationId) throw new Error("Message id unavailable.");
     return accepted;
   }
   const mentions = await validateMentionTargets(tx, input.conversationId, body, adjustMentions(input.body, body, input.mentions ?? []));
-  if (input.replyToId) {
-    const [reply] = await tx.select({ id: messages.id }).from(messages).where(and(eq(messages.id, input.replyToId), eq(messages.conversationId, input.conversationId), isNull(messages.deletedAt))).for("share");
-    if (!reply) throw new Error("Reply target unavailable in this conversation.");
-  }
+  if (input.replyToId) await requireLiveReply(tx, input.conversationId, input.replyToId);
   const [created] = await tx
     .insert(messages)
     .values({ id: input.id, conversationId: input.conversationId, authorId: actor.userId, body, replyToId: input.replyToId })
     .onConflictDoNothing()
-    .returning({ createdAt: messages.createdAt });
+    .returning({ createdAt: messages.createdAt, removed: sql<boolean>`false` });
   if (created) {
     if (mentions.length) await tx.insert(messageMentions).values(mentions.map((mention) => ({ ...mention, messageId: input.id })));
     const recipients = await tx
@@ -106,8 +103,7 @@ export async function sendMessageAction(input: { id: string; conversationId: str
       })));
     }
   } else {
-    const [existing] = await tx.select({ authorId: messages.authorId, conversationId: messages.conversationId, createdAt: messages.createdAt })
-      .from(messages).where(eq(messages.id, input.id)).limit(1);
+    const existing = await acceptedSendReceipt(tx, actor, input.conversationId, input.id);
     if (!existing || existing.authorId !== actor.userId || existing.conversationId !== input.conversationId) throw new Error("Message id unavailable.");
     return existing;
   }
@@ -118,7 +114,7 @@ export async function sendMessageAction(input: { id: string; conversationId: str
   const publishing = performance.now();
   const trace = input.traceId && /^[0-9a-f-]{36}$/i.test(input.traceId) ? { id: input.traceId, committedAt, publishedAt: Date.now() } : undefined;
   await Promise.all([publishMessageChanged(input.conversationId, trace), publishConversationActivity(input.conversationId, "chat")]);
-  return { id: input.id, createdAt: created?.createdAt.toISOString() ?? null, timing: {
+  return { id: input.id, removed: created.removed, createdAt: created.createdAt.toISOString(), timing: {
     authMs: authenticated - started, authorizationMs: authorized - transactionStarted,
     transactionMs: committed - transactionStarted, publishMs: performance.now() - publishing,
     totalMs: performance.now() - started,
@@ -153,7 +149,7 @@ export async function setMessageReactionAction(input: { conversationId: string; 
 
 export async function changeOwnMessageAction(input: { conversationId: string; messageId: string; body?: string; remove?: boolean }) {
   await changeOwnMessage(getDatabase(), await requireCurrentActor(), input);
-  await publishMessageChanged(input.conversationId);
+  await Promise.all([publishMessageChanged(input.conversationId), publishConversationActivity(input.conversationId, "chat"), ...(input.remove ? [publishConversationActivity(input.conversationId, "hall")] : [])]);
 }
 
 export async function findPeopleAction(query: string, includeSelf = false) {

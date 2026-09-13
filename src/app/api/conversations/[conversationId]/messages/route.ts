@@ -11,10 +11,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ conv
   if (request.headers.get("origin") && request.headers.get("origin") !== url.origin) return Response.json({ error: "Access denied" }, { status: 403, headers });
   try {
     const actor = await requireCurrentActor();
-    if ([...url.searchParams.keys()].some((key) => !["before", "after", "target", "ids"].includes(key))) throw new InvalidHistoryRequest();
+    if ([...url.searchParams.keys()].some((key) => !["before", "after", "target", "ids", "checkIds"].includes(key))) throw new InvalidHistoryRequest();
     const page = await readMessageHistory(getDatabase(), actor, (await params).conversationId, {
       before: url.searchParams.get("before") ?? undefined, after: url.searchParams.get("after") ?? undefined,
       target: url.searchParams.get("target") ?? undefined, ids: url.searchParams.has("ids") ? url.searchParams.get("ids")!.split(",") : undefined,
+      checkIds: url.searchParams.has("checkIds") ? url.searchParams.get("checkIds")!.split(",") : undefined,
     });
     return Response.json(page, { headers });
   } catch (error) {

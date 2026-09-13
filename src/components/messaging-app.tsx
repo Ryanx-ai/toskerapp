@@ -2,6 +2,7 @@
 import { useConversationRealtime } from "./use-conversation-realtime";
 import { RoomDetails } from "./room-details";
 import { ACTIVITY_REFRESH, CONVERSATION_ACCESS_LOST } from "@/lib/realtime-contract";
+import { removedMessageIds } from "@/lib/message-removal";
 import { notificationHref } from "@/lib/notification-href";
 import { deriveAttention } from "@/lib/attention";
 import { AttentionMark } from "./attention-mark";
@@ -1284,7 +1285,7 @@ export function MessagingApp({
       const snapshot = await fetch("/api/workspace", { credentials: "same-origin", cache: "no-store", signal: AbortSignal.timeout(15000) })
         .then(async (response) => response.ok ? await response.json() as { activity: Awaited<ReturnType<typeof listNotificationsAction>>; navigation: Awaited<ReturnType<typeof refreshWorkspaceNavigationAction>>; preferences: ConversationPreference[] } : null)
         .catch(() => null);
-      const next = snapshot?.activity, nextNavigation = snapshot?.navigation;
+      const next = snapshot?.activity.filter((item) => !item.messageId || !item.conversationId || !removedMessageIds(item.conversationId).has(item.messageId)), nextNavigation = snapshot?.navigation;
       inFlight = false;
       if (pending && active) pendingTimer = window.setTimeout(refresh, 100);
       if (!next) return;
@@ -1292,6 +1293,7 @@ export function MessagingApp({
       const previous = seenActivity.current;
       workspaceSnapshot.publish({ userId: identity.userId, activity: next, navigation: nextNavigation ?? workspaceSnapshot.get(identity.userId).navigation, preferences: snapshot?.preferences ?? [], navigationBasis: identity });
       seenActivity.current = new Set(next.map((item) => item.id));
+      setToast((current) => current && next.some((item) => item.id === current.id) ? current : null);
       if (previous) {
         const incoming = next.find((item) => !previous.has(item.id) && !item.readAt && !item.muted && item.actorId !== identity.userId && !(item.type === "message" && item.conversationId === activeConversationRef.current));
         if (incoming) {
@@ -1516,7 +1518,7 @@ export function MessagingApp({
         <SubroomOverlay room={parentConversation ?? selected} onClose={() => setOverlay(null)} />
       ) : null}
       {overlay === "manage" && contextRoom ? <RoomDetails slug={contextRoom.slug} onClose={() => setOverlay(null)} onInvite={() => setOverlay("invite")} onAddSubroom={contextRoom.role === "owner" ? () => setOverlay("subroom") : undefined} /> : null}
-      {toast ? <button className="activity-toast" onClick={() => { router.push(activityHref(toast)); setToast(null); }} aria-label="Open new activity"><strong>{toast.actorName ?? "Someone"}</strong><span>{toast.type === "message" ? (toast.messageBody || "New message") : toast.type === "connection_request" ? "sent you a friend request" : toast.type === "connection_accepted" ? "accepted your friend request" : toast.type === "room_invitation" ? "invited you to a Room" : "updated Hall"}</span></button> : null}
+      {toast ? <button className="activity-toast" onClick={() => { router.push(activityHref(toast)); setToast(null); }} aria-label="Open new activity"><strong>{toast.actorName ?? "Someone"}</strong><span>{toast.type === "message" ? (toast.isMention ? "mentioned you" : "sent you a message") : toast.type === "connection_request" ? "sent you a friend request" : toast.type === "connection_accepted" ? "accepted your friend request" : toast.type === "room_invitation" ? "invited you to a Room" : "updated Hall"}</span>{toast.conversationId ? <small>{toast.roomName ? `${toast.roomName}${toast.subroomId && toast.conversationTitle ? ` / ${toast.conversationTitle}` : ""}` : "Personal Chat"} · {toast.type === "message" ? "Chat" : "Hall"}</small> : null}</button> : null}
     </main></ToskerIdentityProvider>
   );
 }

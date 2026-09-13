@@ -29,6 +29,17 @@ export function acknowledgeDraft(draft: ChatDraft, id: string): ChatDraft {
   return { ...draft, ...(same ? { body: "", reply: null, ...(draft.mentions ? { mentions: [] } : {}) } : {}), pending: null };
 }
 
+/** Clear only source metadata. Never send or discard independently typed text. */
+export function removeDraftSources(draft: ChatDraft, removed: ReadonlySet<string>): ChatDraft {
+  let next = draft;
+  if (draft.pending && removed.has(draft.pending.id)) next = acknowledgeDraft(next, draft.pending.id);
+  if (next.reply && removed.has(next.reply.id)) next = { ...next, reply: null };
+  if (next.pending?.replyToId && removed.has(next.pending.replyToId)) next = { ...next, pending: { ...next.pending, replyToId: undefined } };
+  // Keep the stable pending receipt ID. Nothing is automatically sent: an explicit
+  // retry either acknowledges the already accepted message or sends the user's text.
+  return next;
+}
+
 export function createChatDraftStore(storage: () => Pick<Storage, "getItem" | "setItem" | "removeItem"> | undefined) {
   const cache = new Map<string, ChatDraft>();
   const listeners = new Set<() => void>();

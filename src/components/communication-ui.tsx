@@ -33,7 +33,8 @@ import { HallNoteInteractions } from "@/components/hall-note-interactions";
 import { MessageBubble } from "./message-bubble";
 import type { useConversationRealtime } from "./use-conversation-realtime";
 import { ACTIVITY_REFRESH, CHAT_REFRESH, HALL_REFRESH } from "@/lib/realtime-contract";
-import { acknowledgeDraft, chatDraftKey, chatDrafts, type DraftReply } from "@/lib/chat-drafts";
+import { acknowledgeDraft, removeDraftSources, chatDraftKey, chatDrafts, type DraftReply } from "@/lib/chat-drafts";
+import { MESSAGES_REMOVED, recordMessageRemovals, removedMessageIds, withoutRemovedMessages } from "@/lib/message-removal";
 import { groupMessages, messageDay, messageDayLabel } from "@/lib/message-presentation";
 import { communicationTiming } from "@/lib/communication-performance";
 import { DeferredControl } from "./deferred-control";
@@ -380,6 +381,7 @@ function displayMessages(persisted: HistoryPage["messages"]): Message[] {
 
 export function ChatSurface({ conversation, realtime, manualUnreadId, readingPaused = false }: { conversation: Conversation; realtime: ReturnType<typeof useConversationRealtime>; manualUnreadId?: string | null; readingPaused?: boolean }) {
   const router = useRouter();
+  const conversationHref = baseHref(conversation);
   const targetMessage = useSearchParams().get("message");
   const [targetError, setTargetError] = useState(false);
   const [targetRetry, setTargetRetry] = useState(0);
@@ -388,7 +390,8 @@ export function ChatSurface({ conversation, realtime, manualUnreadId, readingPau
   const identity = useToskerIdentity();
   const draftKey = chatDraftKey(identity?.userId, conversation.databaseId ?? conversation.slug);
   const draft = useSyncExternalStore(chatDrafts.subscribe, () => chatDrafts.get(draftKey), chatDrafts.server);
-  const reply = draft.reply;
+  const [draftChecked, setDraftChecked] = useState(!conversation.databaseId);
+  const reply = draftChecked ? draft.reply : null;
   const setReply = (reply: DraftReply | null) => chatDrafts.update(draftKey, (current) => ({ ...current, reply: reply ? { id: reply.id, body: reply.body, author: reply.author } : null }));
   const state = useSyncExternalStore(
     prototypeStore.subscribe,
@@ -406,10 +409,21 @@ export function ChatSurface({ conversation, realtime, manualUnreadId, readingPau
   const [messages, setMessageState] = useState(initial);
   const currentMessages = useRef<Message[]>(initial);
   const setMessages = useCallback((update: (current: Message[]) => Message[]) => {
-    const next = update(currentMessages.current);
+    const updated = update(currentMessages.current);
+    const next = withoutRemovedMessages(updated, removedMessageIds(conversation.databaseId ?? conversation.slug));
     currentMessages.current = next;
     setMessageState(next);
-  }, []);
+  }, [conversation.databaseId, conversation.slug]);
+  useEffect(() => {
+    const remove = (event: Event) => {
+      const detail = (event as CustomEvent<{ conversationId: string; ids: string[] }>).detail;
+      if (detail.conversationId !== (conversation.databaseId ?? conversation.slug)) return;
+      setMessages((current) => current);
+      chatDrafts.update(draftKey, (current) => removeDraftSources(current, removedMessageIds(detail.conversationId)));
+    };
+    window.addEventListener(MESSAGES_REMOVED, remove);
+    return () => window.removeEventListener(MESSAGES_REMOVED, remove);
+  }, [conversation.databaseId, conversation.slug, draftKey, setMessages]);
   const [olderCursor, setOlderCursor] = useState<string | null>(null);
   const [historyView, setHistoryView] = useState(false);
   const [newerAvailable, setNewerAvailable] = useState(false);
@@ -467,7 +481,9 @@ export function ChatSurface({ conversation, realtime, manualUnreadId, readingPau
     communicationTiming("read-start");
     const retainedIds = currentMessages.current.map((message) => message.id).filter((id) => id !== chatDrafts.get(draftKey).pending?.id).slice(0, 200);
     const retainingHistory = historyMode.current && retainedIds.length > 0;
-    let page = await fetchMessageHistory(conversation.databaseId, retainingHistory ? { ids: retainedIds } : {});
+    const currentDraft = chatDrafts.get(draftKey);
+    const checkIds = [...new Set([...currentMessages.current.map((message) => message.id), ...(currentDraft.reply ? [currentDraft.reply.id] : []), ...(currentDraft.pending ? [currentDraft.pending.id] : [])])].slice(0, 202);
+    let page = await fetchMessageHistory(conversation.databaseId, { ...(retainingHistory ? { ids: retainedIds } : {}), ...(checkIds.length ? { checkIds } : {}) });
     const persisted = [...page.messages];
     // Recover a multi-page offline gap without an indefinitely growing DOM.
     let pages = 1;
@@ -481,6 +497,8 @@ export function ChatSurface({ conversation, realtime, manualUnreadId, readingPau
     const mapped = displayMessages(persisted);
     if (!retainingHistory) lastCanonicalId.current = persisted.at(-1)?.id ?? null;
     setLoaded(true);
+    setDraftChecked(true);
+    chatDrafts.update(draftKey, (current) => removeDraftSources(current, removedMessageIds(conversation.databaseId!)));
     setFetchError(false);
     const pendingId = chatDrafts.get(draftKey).pending?.id;
     if (pendingId && mapped.some((message) => message.id === pendingId && message.mine)) {
@@ -542,7 +560,7 @@ export function ChatSurface({ conversation, realtime, manualUnreadId, readingPau
     if (!conversation.databaseId) return;
     alive.current = true;
     let active = true;
-    const onVisible = () => void loadPersisted().catch(() => active && setFetchError(true));
+    const onVisible = () => { if (document.hidden) setDraftChecked(false); void loadPersisted().catch(() => active && setFetchError(true)); };
     queueMicrotask(onVisible);
     const timer = window.setInterval(onVisible, connected ? 60000 : 12000);
     document.addEventListener("visibilitychange", onVisible);
@@ -561,7 +579,13 @@ export function ChatSurface({ conversation, realtime, manualUnreadId, readingPau
     queueMicrotask(() => { if (active) { setHistoryView(true); setPageLoading(true); setTargetError(false); setTargetNotice("Locating message…"); } });
     void fetchMessageHistory(conversation.databaseId, { target: targetMessage }).then((page) => {
       if (!active || epoch !== historyEpoch.current) return;
-      if (!page.messages.some((message) => message.id === targetMessage)) throw new Error("Source unavailable");
+      if (!page.messages.some((message) => message.id === targetMessage)) {
+        if (removedMessageIds(conversation.databaseId!).has(targetMessage)) {
+          setMessages(() => displayMessages(page.messages)); setLoaded(true); setTargetNotice("");
+          setOlderCursor(page.nextCursor?.id ?? null); router.replace(conversationHref, { scroll: false }); return;
+        }
+        throw new Error("Source unavailable");
+      }
       historyMode.current = true; nearBottom.current = false;
       setHistoryView(true); setOlderCursor(page.nextCursor?.id ?? null);
       setNewerAvailable(Boolean(page.latest && page.latest.id !== targetMessage));
@@ -577,7 +601,7 @@ export function ChatSurface({ conversation, realtime, manualUnreadId, readingPau
       });
     }).catch(() => { if (active) { setTargetError(true); setTargetNotice(""); } }).finally(() => { if (active) { paging.current = false; setPageLoading(false); window.dispatchEvent(new Event(CHAT_REFRESH)); } });
     return () => { active = false; paging.current = false; clearTimeout(highlightTimer); document.getElementById(`message-${targetMessage}`)?.classList.remove("message-source-highlight"); };
-  }, [conversation.databaseId, targetMessage, targetRetry, setMessages]);
+  }, [conversation.databaseId, conversationHref, router, targetMessage, targetRetry, setMessages]);
   useEffect(() => {
     const locateAgain = (event: Event) => {
       const detail = (event as CustomEvent<MessageLocationRequest>).detail;
@@ -611,6 +635,7 @@ export function ChatSurface({ conversation, realtime, manualUnreadId, readingPau
       prototypeStore.addRoomMessage(conversation.slug, message);
   };
   const send = async (body: string) => {
+    if (draft.reply && !draftChecked) { setMessageError("Checking your draft. Try again in a moment."); return false; }
     if (historyMode.current && !await navigateHistory("latest")) {
       setMessageError("Latest messages couldn't be loaded. Your draft is still here.");
       return false;
@@ -648,6 +673,7 @@ export function ChatSurface({ conversation, realtime, manualUnreadId, readingPau
       communicationTiming("send-start", { traceId });
       const saved = await sendMessageAction({ id: message.id, conversationId: conversation.databaseId, body, replyToId: reply?.id, traceId, mentions });
       communicationTiming("send-returned", { traceId, durationMs: performance.now() - started, ...saved.timing });
+      if (saved.removed) recordMessageRemovals(conversation.databaseId, [id]);
       chatDrafts.update(draftKey, (current) => acknowledgeDraft(current, id));
       if (saved.createdAt) setMessages((current) => mergePersisted(current, current.filter((item) => item.id === message.id).map((item) => ({ ...item, createdAt: saved.createdAt! }))));
       return true;
@@ -674,8 +700,11 @@ export function ChatSurface({ conversation, realtime, manualUnreadId, readingPau
   const change = async (id: string, body?: string, remove?: boolean) => {
     if (conversation.databaseId) {
       await changeOwnMessageAction({ conversationId: conversation.databaseId, messageId: id, body, remove });
-      await loadPersisted();
-    } else setMessages((current) => current.map((message) => message.id === id ? { ...message, body: remove ? "Message deleted" : body!, deletedAt: remove ? new Date().toISOString() : null, editedAt: new Date().toISOString() } : message));
+      if (remove) recordMessageRemovals(conversation.databaseId, [id]);
+      window.dispatchEvent(new Event(HALL_REFRESH)); window.dispatchEvent(new Event(ACTIVITY_REFRESH));
+      await loadPersisted().catch(() => setFetchError(true));
+    } else if (remove) { recordMessageRemovals(conversation.slug, [id]); setMessages((current) => current); }
+    else setMessages((current) => current.map((message) => message.id === id ? { ...message, body: body!, editedAt: new Date().toISOString() } : message));
   };
   return (
     <section className="conversation-surface art-layer-ready" data-realtime={conversation.databaseId ? connected ? "connected" : "reconnecting" : undefined}>

@@ -72,7 +72,7 @@ export async function pinChatMessage(db: ToskerDatabase, actor: AuthenticatedAct
     const [created] = await tx.insert(hallItems).values({ roomId: conversation.roomId, conversationId: input.conversationId, kind: "pinned_message", authorId: actor.userId, title: "Pinned from Chat", sourceMessageId: source.id }).onConflictDoNothing().returning({ id: hallItems.id });
     if (created && conversation.roomId) {
       const recipients = await hallNotificationRecipients(tx, input.conversationId, actor.userId);
-      if (recipients.length) await tx.insert(notifications).values(recipients.map(({ userId }) => ({ userId, actorId: actor.userId, roomId: conversation.roomId, conversationId: input.conversationId, type: "hall_pin" })));
+      if (recipients.length) await tx.insert(notifications).values(recipients.map(({ userId }) => ({ userId, actorId: actor.userId, roomId: conversation.roomId, conversationId: input.conversationId, messageId: source.id, type: "hall_pin" })));
     }
   });
 }

@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Search, X } from "lucide-react";
 import { ModalLayer } from "./modal-layer";
 import type { ConversationSearchPage } from "@/server/conversations/search";
 import { MESSAGE_LOCATION_REQUEST } from "@/lib/message-location";
+import { CHAT_REFRESH } from "@/lib/realtime-contract";
+import { MESSAGES_REMOVED, removedMessageIds } from "@/lib/message-removal";
 
 function Highlight({ text, query }: { text: string; query: string }) {
   const start = text.toLocaleLowerCase().indexOf(query.toLocaleLowerCase());
@@ -26,7 +28,7 @@ export function ConversationSearch({ conversationId, name, href, onClose }: { co
     const frame = requestAnimationFrame(() => input.current?.focus());
     return () => cancelAnimationFrame(frame);
   }, []);
-  const search = async (before?: string) => {
+  const search = useCallback(async (before?: string) => {
     request.current?.abort();
     const controller = new AbortController(); request.current = controller;
     const term = query.trim();
@@ -37,10 +39,19 @@ export function ConversationSearch({ conversationId, name, href, onClose }: { co
       const response = await fetch(`/api/conversations/${encodeURIComponent(conversationId)}/search?${params}`, { cache: "no-store", credentials: "same-origin", signal: AbortSignal.any([controller.signal, AbortSignal.timeout(15000)]) });
       if (!response.ok) throw new Error();
       const result = await response.json() as ConversationSearchPage;
-      if (!controller.signal.aborted) setPage(result);
+      if (!controller.signal.aborted) setPage({ ...result, results: result.results.filter((row) => !removedMessageIds(conversationId).has(row.id)) });
     } catch { if (!controller.signal.aborted) setError("Search couldn't be loaded. Try again."); }
     finally { if (!controller.signal.aborted) setPending(false); }
-  };
+  }, [conversationId, query]);
+  useEffect(() => {
+    const refresh = () => { if (submitted && !document.hidden) void search(); };
+    const remove = () => setPage((current) => current ? { ...current, results: current.results.filter((row) => !removedMessageIds(conversationId).has(row.id)) } : current);
+    window.addEventListener(CHAT_REFRESH, refresh);
+    window.addEventListener(MESSAGES_REMOVED, remove);
+    document.addEventListener("visibilitychange", refresh);
+    const timer = window.setInterval(refresh, 12000);
+    return () => { window.removeEventListener(CHAT_REFRESH, refresh); window.removeEventListener(MESSAGES_REMOVED, remove); document.removeEventListener("visibilitychange", refresh); window.clearInterval(timer); };
+  }, [conversationId, submitted, search]);
   return <ModalLayer onClose={onClose}><section className="creation-panel conversation-search" aria-labelledby="conversation-search-title">
     <button className="overlay-close" aria-label="Close search" onClick={onClose}><X size={18} /></button>
     <h2 id="conversation-search-title">Search Chat</h2><p className="search-context">{name}</p>

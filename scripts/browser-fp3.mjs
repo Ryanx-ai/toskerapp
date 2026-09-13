@@ -3,12 +3,21 @@ import assert from "node:assert/strict";
 import { run, ev, until, button } from "./browser-fp2.mjs";
 const a = "fp3-a", b = "fp3-b", origin = process.env.FP3_ORIGIN ?? "http://localhost:3000";
 const room = "/room/fp3-founder-review";
-async function open(s, path = room) { await run(s, "open", origin + path); await until(s, "!!document.querySelector('.composer textarea')", "authenticated composer"); }
-async function send(s, body) {
-  await run(s, "fill", ".composer textarea", body); await button(s, "Send message");
+async function open(s, path = room) { await run(s, "open", origin + path); await run(s, "tab", "t1"); await until(s, "!!document.querySelector('.composer textarea')", "authenticated composer"); }
+async function fill(s, selector, value) {
+  // Native empty fill can change the DOM without React's input event on this host.
+  await run(s, "fill", selector, value || " ");
+  if (!value) await run(s, "press", "Backspace");
+}
+async function send(s, body, waitForAcknowledgement = true) {
+  await run(s, "fill", ".composer textarea", body);
+  await until(s, "!document.querySelector('button[aria-label=\"Send message\"]')?.disabled", "send available");
+  await button(s, "Send message");
   const expression = `Array.from(document.querySelectorAll('.message-row')).filter(e=>e.querySelector('.message-bubble > p')?.textContent===${JSON.stringify(body)}).at(-1)?.id`;
   await until(s, expression, "sent row");
-  return (await ev(s, expression)).slice(8);
+  const id = (await ev(s, expression)).slice(8);
+  if (waitForAcknowledgement) await until(s, "document.querySelector('.composer textarea').value===''", "send acknowledgement", 45000);
+  return id;
 }
 async function action(s, id, label) {
   const row = `#message-${id}`;
@@ -41,7 +50,7 @@ if (process.argv[2] === "nuke") {
   await run(b, "reload"); await until(b, "!!document.querySelector('.composer textarea')", "reload");
   await until(b, `!document.querySelector('#message-${reply} blockquote') && !document.querySelector('button[aria-label="Cancel reply"]')`, "recovered draft no quote");
   assert.equal(await ev(b, "document.querySelector('.composer textarea').value"), "FP3 preserve independent typing");
-  await run(b, "fill", ".composer textarea", "");
+  await fill(b, ".composer textarea", "");
   await run(b, "open", origin + room + "/hall");
   await until(b, "!!document.querySelector('.new-hall-card')", "Hall board");
   assert(!(await ev(b, "document.body.innerText")).includes(marker));
@@ -67,7 +76,7 @@ if (process.argv[2] === "retry") {
   const marker = `FP3 lost acknowledgement ${Date.now()}`;
   const tabs = await run(a, "tab", "list"); console.log("Retry tabs", tabs);
   await ev(a, `(()=>{window.__fp3Fetch=window.fetch;window.__fp3Drop=true;window.__fp3Block=true;window.fetch=async function(resource,options){if(window.__fp3Block&&String(resource).includes('/api/conversations/'))throw new TypeError('QA offline history');const response=await window.__fp3Fetch.apply(this,arguments);if(window.__fp3Drop&&options?.method==='POST'&&String(options.body).includes(${JSON.stringify(marker)})){window.__fp3Drop=false;await response.clone().text();throw new TypeError('QA lost acknowledgement')}return response};return true})()`);
-  await send(a, marker);
+  await send(a, marker, false);
   await until(a, "document.body.innerText.includes('Delivery couldn’t be confirmed') || document.body.innerText.includes(\"Delivery couldn't be confirmed\")", "lost acknowledgement", 45000);
   const source = await ev(a, "JSON.parse(sessionStorage.getItem('tosker.chat-draft.v1:0ee1e5a5-6d7a-4541-a6ca-ca69788997ef:f7300000-2026-4000-8000-000000000003')).pending.id");
   console.log("Owned lost-ack source", source);
@@ -113,9 +122,9 @@ if (process.argv[2] === "settings") {
   const nickname = await ev(a, "document.querySelector('.scoped-settings-form input').value");
   await ev(a, `sessionStorage.setItem('fp3.qa.nicknameBaseline',${JSON.stringify(nickname)})`);
   await run(a, "fill", ".scoped-settings-form input", "FP3 private nickname"); await button(a, "Save nickname");
-  await until(a, "document.querySelector('.scoped-settings-form button')?.disabled && document.querySelector('.scoped-settings-header')?.textContent.includes('FP3 private nickname')", "private nickname saved");
-  await run(a, "fill", ".scoped-settings-form input", nickname); await button(a, "Save nickname");
-  await until(a, "document.querySelector('.scoped-settings-form button')?.disabled", "nickname restored");
+  await until(a, "document.querySelector('.scoped-settings-form button')?.disabled && document.querySelector('.scoped-settings-form button')?.textContent==='Save nickname' && document.querySelector('.scoped-settings-header')?.textContent.includes('FP3 private nickname')", "private nickname saved");
+  await fill(a, ".scoped-settings-form input", nickname); await button(a, "Save nickname");
+  await until(a, `document.querySelector('.scoped-settings-form button')?.disabled && document.querySelector('.scoped-settings-form button')?.textContent==='Save nickname' && document.querySelector('.scoped-settings-form input')?.value===${JSON.stringify(nickname)}`, "nickname restored");
   await button(a, "Communication");
   const personalMuted = await ev(a, "document.querySelector('.settings-toggle').getAttribute('aria-pressed')==='true'");
   await button(a, personalMuted ? "Unmute Chat" : "Mute Chat");
@@ -129,8 +138,8 @@ if (process.argv[2] === "restore-nickname") {
   await open(a, "/personal/chat-be192eac-38c6-4d46-a6d2-bea19fa324fa"); await settings(a, "Chat");
   await until(a, "!!document.querySelector('.scoped-settings-form input')", "nickname");
   assert.equal(await ev(a, "document.querySelector('.scoped-settings-form input').value"), "FP3 private nickname");
-  await run(a, "fill", ".scoped-settings-form input", ""); await button(a, "Save nickname");
-  await until(a, "document.querySelector('.scoped-settings-form input')?.value==='' && document.querySelector('.scoped-settings-form button')?.disabled", "restored canonical display");
+  await fill(a, ".scoped-settings-form input", ""); await button(a, "Save nickname");
+  await until(a, "document.querySelector('.scoped-settings-form input')?.value==='' && document.querySelector('.scoped-settings-form button')?.disabled && document.querySelector('.scoped-settings-form button')?.textContent==='Save nickname' && !document.querySelector('.scoped-settings-header')?.textContent.includes('FP3 private nickname')", "restored canonical display", 45000);
   await button(a, "Close Chat Settings"); console.log("QA-only nickname removed; canonical display restored");
 }
 if (process.argv[2] === "widths") {
@@ -165,4 +174,63 @@ if (process.argv[2] === "settings-failure") {
   await until(a, `document.querySelector('.scoped-settings-header')?.textContent.includes(${JSON.stringify(old)})`, "Room name restored", 45000);
   await run(a, "press", "Escape"); await until(a, "!document.querySelector('dialog[open]')", "Escape closes Settings");
   console.log("PASS failed save retains input/error; explicit retry succeeds; original Room name restored; Escape closes native modal");
+}
+if (process.argv[2] === "prime") {
+  await open(a, "/personal/chat-be192eac-38c6-4d46-a6d2-bea19fa324fa");
+  for (const [width, height] of [[320,844],[390,844],[430,932],[768,1024],[1440,900],[1728,1117]]) {
+    await run(a, "set", "viewport", String(width), String(height));
+    await open(a, "/personal/chat-be192eac-38c6-4d46-a6d2-bea19fa324fa");
+    await button(a, "Schedule message — deferred");
+    await until(a, "!!document.querySelector('.fp2-deferred-info:popover-open')", "scheduler disclosure");
+    assert(await ev(a, "(()=>{const e=document.querySelector('.fp2-deferred-info:popover-open'),r=e.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth+1&&r.top>=0&&r.bottom<=innerHeight+1&&e.textContent.includes('execution-time authorization')&&!e.querySelector('input')})()"));
+    await run(a, "press", "Escape");
+    await settings(a, "Chat");
+    for (const section of ["Overview", "Communication"]) {
+      await button(a, section);
+      assert(await ev(a, "(()=>{const e=document.querySelector('.scoped-settings-shell'),r=e.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth+1&&e.scrollWidth<=e.clientWidth+1})()"));
+    }
+    await run(a, "press", "Escape");
+    assert(await ev(a, "!document.querySelector('dialog[open]')"));
+    console.log(`PASS requested width ${width}: Personal Settings + scheduler disclosure fit/Escape/no scheduling inputs`, await ev(a, "({width:innerWidth,height:innerHeight})"));
+  }
+  await run(a, "open", origin + "/settings");
+  await until(a, "!!document.querySelector('.scoped-settings-preview')", "Personal Brand preview");
+  assert(await ev(a, "document.querySelectorAll('.scoped-settings-preview').length===1&&!document.querySelector('.scoped-settings-preview button,.scoped-settings-preview input,.scoped-settings-preview select')"));
+  await run(a, "set", "viewport", "390", "844"); console.log(await run(a, "screenshot"));
+  console.log("PASS exactly one static account Personal Brand preview; no upload/apply/persistence affordance");
+}
+if (["keyboard-privacy", "keyboard"].includes(process.argv[2])) {
+  await open(a); await run(a, "set", "viewport", "1440", "900");
+  await run(a, "tab", "t1");
+  await until(a, "!!document.querySelector('.message-row.mine')", "canonical message rows");
+  const row = await ev(a, "document.querySelector('.message-row.mine:last-of-type')?.id ?? [...document.querySelectorAll('.message-row.mine')].at(-1)?.id");
+  assert(row); await action(a, row.slice(8), "Nuke message");
+  assert(await ev(a, "document.activeElement?.textContent==='Cancel'"), "Nuke defaults to safe Cancel focus");
+  await run(a, "press", "Escape"); await until(a, "!document.querySelector('dialog[open]')", "Nuke Escape");
+  await settings(a);
+  await until(a, "!!document.querySelector('.scoped-settings-form input')", "loaded Settings controls");
+  await ev(a, "(()=>{window.__fp3Keys=[];window.__fp3Observe=e=>{if(['Tab','Enter',' '].includes(e.key))window.__fp3Keys.push({key:e.key,tag:document.activeElement?.tagName,outline:getComputedStyle(document.activeElement).outlineStyle,inside:!!document.activeElement?.closest('dialog[open]')})};document.addEventListener('keyup',window.__fp3Observe,true);return true})()");
+  await run(a, "press", "Tab"); await run(a, "press", "Tab"); await run(a, "press", "Space");
+  const keys = await ev(a, "window.__fp3Keys"); assert(keys.length >= 2 && keys.every((key) => key.inside));
+  assert(keys.some((key) => key.outline !== "none"));
+  await ev(a, "document.removeEventListener('keyup',window.__fp3Observe,true)");
+  await run(a, "press", "Escape");
+  console.log("PASS safe Nuke Cancel focus/Escape; loaded Settings native Tab/Space and visible focus remain inside modal");
+}
+if (["keyboard-privacy", "privacy"].includes(process.argv[2])) {
+  await run(b, "open", origin + room + "/hall"); await until(b, "!!document.querySelector('.new-hall-card')", "B Hall");
+  await open(a);
+  await until(a, "!!document.querySelector('.message-row')", "canonical rows before privacy send");
+  const marker = `FP3notify${Date.now()}`;
+  const first = await send(a, marker + " first");
+  console.log("Owned first privacy message", first);
+  const second = await send(a, marker + " second");
+  console.log("Owned privacy messages", first, second);
+  await run(b, "open", origin + "/notifications");
+  await until(b, "document.body.innerText.includes('FP3 Founder Review')", "notification context");
+  assert(!(await ev(b, "document.body.innerText")).includes(marker));
+  assert(await ev(b, "(async()=>{const r=await fetch('/api/workspace',{cache:'no-store'});const v=await r.json();return r.ok&&v.activity.every(n=>!Object.hasOwn(n,'messageBody')&&!Object.hasOwn(n,'body'))})()"));
+  await nuke(a, first);
+  await until(b, `(async()=>{const r=await fetch('/api/workspace',{cache:'no-store'});const v=await r.json();return !v.activity.some(n=>n.messageId==='${first}')&&v.activity.some(n=>n.messageId==='${second}')})()`, "exact source event removed / other preserved");
+  console.log("PASS WHO/context notification without bodies; exact Nuke event cleanup preserves unrelated event");
 }

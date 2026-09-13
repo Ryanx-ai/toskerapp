@@ -2,6 +2,12 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## MS7.1-FP3 Gate 2 — active implementation (2026-09-13)
+
+Founder-approved Gate 2 supersedes the older review stops below for this bounded patch. Slice A `389a7a6` (validated Nuke/retraction/attention), B/C `8b97bd9` (validated contextual Room/Personal Settings) preserve `15a1dc4` / `6da3c75`. [FP3 evidence, exact QA fixtures and remaining gate](docs/MS7-1-FP3-FOUNDER-PATCH.md). Slice D version/Development scheduler/static Personal Brand preview and integrated local gate are complete: six-width/keyboard/privacy/attention, TypeScript/lint/build/credential scan, all15 migration/current catalog/invariants pass. Canonical release/live smoke/cleanup remain. No provider/schema/migration/font changes; `toskerArt/` untouched/untracked, unrelated Design Hub/Web/Art WIP preserved.
+
+Owned `fp3-a` / `fp3-b` browser sessions; dev server port3000 (session60407). Recurring local A Clerk session-refresh/blank state recovered with normal email-code sign-in in `/tmp/tosker-fp3-final-browser.xUnbII`; no auth bypass/config change or proven root cause. B remains `/tmp/tosker-ms6b-lock.2C0l22/b`. Never run concurrent commands on one QA tab. Do not duplicate one-shot `verify-fp3-nuke.ts` setup: QA Room `fp3-founder-review` and exact private fixture rows remain for live smoke, then guarded `cleanup-fp3-qa.ts --confirm` (dry run passes). Never delete users/Sandboxes/Personal conversations. Next: commit D, push via existing Git deployment, verify exact canonical SHA/READY, small live A/B smoke, exact cleanup, update evidence and stop. **MS7.1 NOT LOCKED; MS7.2 NOT STARTED.**
+
 ## Room history — independent regression verified (2026-09-13)
 
 [Contract, coverage and limits](docs/ROOM-HISTORY-CONTRACT.md). Current authorization—not membership time—governs retained Chat/Hall/Subroom history. 21 service groups and live A/B history/Search/source/Hall/restricted URL/notification checks pass. No product-code fix required. One scoped QA Room/three children and contents cleaned up; preserved baseline counts/invariants, Hall positions and all 15 migration hashes/current catalog rechecked. Regression script and documentation only; no push/deploy. **STOP FOR FOUNDER REVIEW; MS7.1 remains unlocked.** Preserve unrelated Design Hub/Web/Art WIP.

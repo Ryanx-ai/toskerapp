@@ -319,6 +319,7 @@ function Composer({
           <button aria-label="Add emoji" onClick={(event) => setEmojiAnchor(event.currentTarget)}>
             <Smile size={17} />
           </button>
+          <DeferredControl kind="schedule" />
         </div>
         <textarea
           ref={inputRef}
@@ -486,7 +487,9 @@ export function ChatSurface({ conversation, realtime, manualUnreadId, readingPau
     const retainedIds = currentMessages.current.map((message) => message.id).filter((id) => id !== chatDrafts.get(draftKey).pending?.id).slice(0, 200);
     const retainingHistory = historyMode.current && retainedIds.length > 0;
     const currentDraft = chatDrafts.get(draftKey);
-    const checkIds = [...new Set([...currentMessages.current.map((message) => message.id), ...(currentDraft.reply ? [currentDraft.reply.id] : []), ...(currentDraft.pending ? [currentDraft.pending.id] : [])])].slice(0, 202);
+    // ids mode already checks its retained window server-side. Do not double the
+    // URL with the same 200 IDs; only extra draft/receipt checks are needed there.
+    const checkIds = [...new Set([...currentMessages.current.map((message) => message.id), ...(currentDraft.reply ? [currentDraft.reply.id] : []), ...(currentDraft.pending ? [currentDraft.pending.id] : [])])].filter((id) => !retainingHistory || !retainedIds.includes(id)).slice(0, 202);
     let page = await fetchMessageHistory(conversation.databaseId, { ...(retainingHistory ? { ids: retainedIds } : {}), ...(checkIds.length ? { checkIds } : {}) });
     const persisted = [...page.messages];
     // Recover a multi-page offline gap without an indefinitely growing DOM.

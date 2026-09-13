@@ -14,6 +14,16 @@ For each new item record: stable ID; service/capability; discovered milestone; r
 
 ## B — MS7.6 provisioning backlog
 
+### P-005 — One-time scheduled text messages (FP3 direction only)
+
+Discovered/approved for **Development preview only** in MS7.1-FP3, 2026-09-13. Class B, not provisioned or implemented. The timer beside emoji is an explicitly Deferred explanation, not a scheduler.
+
+Future contract: one-time text only; durable server storage of UTC execution time plus the user's timezone; author-owned queue with edit/cancel; atomic claim; execution-time authentication/Room/Subroom authorization checks; stable idempotent send ID; bounded retries and failed/cancelled/sent outcomes. No recurrence, client timer authority or silent sending after access loss. Integrate with canonical message creation and unread only when execution succeeds. Complexity medium–high, dependent on P-006. No provider or credential assumed; verify actual Vercel/account capabilities and Development/Preview/Production separation before selecting. Founder approval of scope/provider/cost and secure environment provisioning required in MS7.6, not FP3. Acceptance must cover duplicate workers, cancellation/execution race, revoked access, retries/outages/timezones and exact queue-fixture cleanup.
+
+### P-006 — Small durable background-job foundation
+
+Class B / research and provisioning backlog, discovered in FP3. Potential consumers: scheduled messages (P-005), private-object purge/retention, expired-invite housekeeping and media cleanup. **Not a generic workflow engine.** Inspect existing Vercel/account facilities first; no vendor choice, new account, token or infrastructure change now. Credential names follow that later approved choice; never record values. Environment-isolated work, atomic claims, authorization at execution, idempotency, bounded retries, content-free observability and retention/cleanup are required. Medium–high complexity; evaluate costs and privacy/data residency before founder approval. Acceptance includes crash/retry/duplicate execution without double effects, removal of exact fixtures and an operational recovery procedure.
+
 ### P-001 — Private attachments / object-media storage
 
 | Field | Current record |

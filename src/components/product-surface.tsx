@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { SettingsPreview } from "./settings-shell";
 import { RoomInvitationResponse } from "./room-invitation-response";
 import { notificationHref } from "@/lib/notification-href";
 import { notificationBursts } from "@/lib/notification-bursts";
@@ -265,6 +266,7 @@ function Settings() {
           </button>
         ))}
       </div>
+      <SettingsPreview title="Personal Brand">Your identity image, accent, banner, mark and expressive typography — planned for a future Settings release. Functional controls keep Tosker’s readable type.</SettingsPreview>
       <SignOutButton>
         <button className="settings-logout button" type="button">Log out</button>
       </SignOutButton>

@@ -1,9 +1,10 @@
 "use client";
 import { useEffect, useId, useRef, useState } from "react";
-import { Languages, Paperclip, Phone, Video } from "lucide-react";
+import { Languages, Paperclip, Phone, Timer, Video } from "lucide-react";
 import { DEVELOPMENT_REVIEW } from "@/config/app";
 
 const capabilities = {
+  schedule: { title: "Schedule message", Icon: Timer, debt: "Deferred · MS7.6", detail: "Requires durable server scheduling, execution-time authorization and idempotent retries." },
   files: { title: "Files & images", Icon: Paperclip, debt: "Deferred · MS7.6 P-001", detail: "Requires private storage, authorized metadata and signed delivery." },
   call: { title: "Call", Icon: Phone, debt: "Deferred · future communication foundation", detail: "Requires authorized media sessions, signaling and microphone permissions." },
   video: { title: "Video", Icon: Video, debt: "Deferred · future communication foundation", detail: "Requires media sessions, camera permissions and recovery." },

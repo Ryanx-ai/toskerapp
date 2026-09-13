@@ -1,5 +1,15 @@
 # MS7.1 core capability decision ledger
 
+## FP3 Gate 2 — 2026-09-13 (supersedes earlier affected-control entries)
+
+- IMPLEMENTED: author-only **Nuke message**, content-free retry/cursor receipt, exact dependent retraction and independent replies. No individual-message Archive/Restore/Delete/tombstones.
+- IMPLEMENTED: **Room Settings** Overview/People/Structure/My preferences using existing Room authority; member Leave remains distinct. **Chat Settings** identity/private nickname/own mute; Mark unread remains contextual.
+- IMPLEMENTED: notification WHO + context only; no body-preview projection in single/burst/mention/toast.
+- DEFERRED / Development-only disclosure: **Schedule message**, alongside unchanged Call/Video/Files/Translate family. No scheduler, media, storage, translation or provider work. P-005/P-006 record durable scheduling/job needs for MS7.6. Hide or truthfully revisit these before Beta; a development disclosure is not a shipped capability.
+- STATIC PREVIEW: one Personal Brand account Settings section, no picker/Apply/state mutation. No DK Longreach/Super Bouncer/font changes. Broader Settings/identity remains MS7.2; [MS8 design debt](MS8-SETTINGS-DESIGN-DEBT.md) is planning only.
+
+Checkpoints/evidence and pending release gate: [FP3 report](MS7-1-FP3-FOUNDER-PATCH.md). MS7.1 remains unlocked.
+
 ## FP2 Gate 2 update — 2026-09-13
 
 Direct invitations are recipient-bound consent, not silent member addition. Current members invite accepted Friends (private nickname respected) or one exact normalized username; owner/all or inviter/own pending cancellation. Owner alone manages one recoverable encrypted share link,24h default/1h/7d, replacement/revoke serialized with join. Pending grants no data/realtime access. People shows current membership and active invitations, no revoked history graveyard. Shared Subroom order is owner-only, normalized lazily under parent lock, deterministic for every authorized subset; drag and Move alternatives in sidebar/Structure.

@@ -8,7 +8,7 @@
 - DEFERRED / Development-only disclosure: **Schedule message**, alongside unchanged Call/Video/Files/Translate family. No scheduler, media, storage, translation or provider work. P-005/P-006 record durable scheduling/job needs for MS7.6. Hide or truthfully revisit these before Beta; a development disclosure is not a shipped capability.
 - STATIC PREVIEW: one Personal Brand account Settings section, no picker/Apply/state mutation. No DK Longreach/Super Bouncer/font changes. Broader Settings/identity remains MS7.2; [MS8 design debt](MS8-SETTINGS-DESIGN-DEBT.md) is planning only.
 
-Checkpoints/evidence and pending release gate: [FP3 report](MS7-1-FP3-FOUNDER-PATCH.md). MS7.1 remains unlocked.
+Checkpoints, canonical live acceptance and exact QA cleanup: [FP3 report](MS7-1-FP3-FOUNDER-PATCH.md). Product`049c823` is live; MS7.1 remains unlocked and requires founder review.
 
 ## FP2 Gate 2 update — 2026-09-13
 

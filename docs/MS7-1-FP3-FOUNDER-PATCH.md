@@ -22,9 +22,9 @@ Notifications no longer project message bodies at the server boundary; single/bu
 
 Harness limitations: two initial assertions targeted the wrong Reply control/duplicate test label; narrowed menu selector and unique reply labels, then reran successfully. Older recorded test passwords were rejected; normal Clerk email-code sign-in was used per [Clerk test-email documentation](https://clerk.com/docs/guides/development/testing/test-emails-and-phones), without account resets. No physical-device or screen-reader claim.
 
-### Owned retained QA fixtures
+### Owned QA fixtures (now cleaned; do not recreate)
 
-Room `f7300000-2026-4000-8000-000000000001` / `fp3-founder-review`; child `...0002`; parent/child conversations `...0003` / `...0004` (same full prefix). `verify-fp3-nuke.ts` records exact deterministic message/note/comment IDs, including sparse race IDs. Browser records are confined to this QA Room so far. Existing A/B Personal conversation and A Sandbox are **preserved**; only exact fixture messages/notes there may be cleaned, never whole conversations/users. Final cleanup awaits integrated acceptance.
+Room `f7300000-2026-4000-8000-000000000001` / `fp3-founder-review`; child `...0002`; parent/child conversations `...0003` / `...0004` (same full prefix). `verify-fp3-nuke.ts` records exact deterministic message/note/comment IDs, including sparse race IDs. Browser-created messages were confined to this QA Room. Existing A/B Personal conversation and A Sandbox are **preserved**; only exact fixture messages/notes there were cleaned, never whole conversations/users. Final cleanup is recorded below; one-shot scripts must not be rerun/recreated casually.
 
 ## Slice B/C — contextual Settings
 
@@ -46,6 +46,12 @@ Additional harness limits: empty native `fill("")` did not emit React input stat
 
 Inherited (not rerun wholesale): unchanged FP2 invitation/share/order/provider transport acceptance and historical full stress campaign. Fresh FP3 Nuke, authorization/history, Settings, privacy and responsive coverage above are distinct. No physical-device, screen-reader, OS-eviction or production-SLA claim.
 
-## Remaining release gate
+## Canonical release and live acceptance — complete
 
-Local implementation gate complete. Commit/push through the canonical Git deployment, verify exact SHA/READY/alias HTTP200, small live A/B message/Nuke/privacy/Room and Personal Settings/mute/retained-history smoke, then exact fixture cleanup and post-cleanup invariants. No live or founder-ready claim yet. **MS7.1 NOT LOCKED; MS7.2 NOT STARTED.**
+Product commit `049c8234c5043930b8d279fdc9d4bdcdedd72023` — `feat: prime FP3 development settings and complete local acceptance` — pushed to main with A `389a7a6`, B/C `8b97bd9`, migration integrity `6da3c75` and Room-history `15a1dc4` intact. Existing Git-triggered Vercel deployment `dpl_7YC7TH2FP8AcGDZopsFkjhQPSohe` verified READY for that exact SHA, canonical `https://toskerapp.vercel.app/` HTTP200. Immutable product URL: `https://tosker-8j19o2nbl-pangea6.vercel.app`. No direct upload of the dirty working tree or provider/env changes. Canonical remains founder Development-service review, not isolated true Production/Preview infrastructure. Documentation-only closeout can create a newer Git deployment of identical application source; verify final Git/alias SHA when resuming.
+
+Fresh normal isolated Clerk A/B live PASS: A message → B receipt/pin/sent reply/unsent draft → A Nuke → source/Hall pin/quotes disappear, standalone reply and independently typed draft survive reload; removed locator clears quietly. Two ordinary source events show WHO/context without body previews (UI and workspace API); Nuke removes precisely one event and preserves the other. Room Settings owner/member Overview/People/Structure and private mute toggle/restore; Leave confirmation/Cancel; Personal Chat Settings private nickname save/restore and mute toggle/restore. DB confirms zero temporary QA aliases. Current member loads earliest retained QA history through Older messages, version shows FP3. Anonymous message endpoint401, both owned browser error lists empty, bounded deployment error samples0. No full new transport/load/physical-device campaign was claimed.
+
+Guarded exact cleanup PASS: one Room, one Subroom/two Room conversations and contained content;83 Room messages +6 exact Personal/Sandbox fixture messages;2 private notes/2 comments;16 related notifications. All users and canonical Personal/Sandbox conversations preserved, external reply/pin guards pass, unrelated Hall IDs/positions exactly unchanged. No application undo for deleted QA data. Post-cleanup:6 users/profiles/Sandboxes,2 preserved Rooms,5 Personal conversations,29 preserved messages,8 Hall notes/1 pin; all duplicate/orphan checks0. All15 migration hashes and current catalog reverified read-only, no0006 backfill or schema/data repair. Owned QA browsers and local server closed, profiles and unrelated WIP preserved.
+
+**MS7.1-FP3 LIVE · FOUNDER REVIEW REQUIRED · MS7.1 NOT LOCKED · MS7.2 NOT STARTED.** Stop here; founder walkthrough is the next action. Development-session reliability, real environment isolation, scheduling/media provisioning (MS7.6), full Settings identity work and licensed visual polish (MS8) remain explicit debt, not features silently begun.

@@ -1,5 +1,6 @@
 "use client";
 import { useConversationRealtime } from "./use-conversation-realtime";
+import { NicknameDialog } from "./nickname-editor";
 import { RoomDetails } from "./room-details";
 import { ACTIVITY_REFRESH, CONVERSATION_ACCESS_LOST } from "@/lib/realtime-contract";
 import { removedMessageIds } from "@/lib/message-removal";
@@ -37,7 +38,7 @@ import { useMobileViewport } from "@/components/use-mobile-viewport";
 import { ToskerIdentityProvider, useCurrentToskerUser, useToskerIdentity } from "@/components/tosker-identity";
 import { createRoomAction, createSubroomAction, findRoomMembersAction } from "@/server/rooms/actions";
 import { findPeopleAction, startPersonalConversationAction } from "@/server/conversations/actions";
-import { acceptConnectionAction, listConnectionsAction, requestConnectionAction, removeConnectionNicknameAction, setConnectionNicknameAction } from "@/server/connections/actions";
+import { acceptConnectionAction, listConnectionsAction, requestConnectionAction, removeConnectionNicknameAction } from "@/server/connections/actions";
 import type { listNotificationsAction } from "@/server/shared-state/actions";
 import {
   ChatSurface,
@@ -817,16 +818,6 @@ function FriendsSurface({
     {nicknameTarget ? <NicknameDialog target={nicknameTarget} onClose={() => setNicknameTarget(null)} onSaved={refreshConnections} /> : null}
     </>
   );
-}
-
-function NicknameDialog({ target, onClose, onSaved }: { target: { id: string; name: string; nickname: string | null }; onClose: () => void; onSaved: () => Promise<unknown> }) {
-  const [value, setValue] = useState(target.nickname ?? "");
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const ref = useRef<HTMLElement>(null);
-  useDismissLayer(true, onClose, ref);
-  const save = async () => { setSaving(true); setError(null); try { if (value.trim()) await setConnectionNicknameAction({ connectionId: target.id, nickname: value }); else await removeConnectionNicknameAction(target.id); await onSaved(); onClose(); } catch { setError("Could not save that nickname."); } finally { setSaving(false); } };
-  return <ModalLayer onClose={onClose}><section ref={ref} className="identity-dialog nickname-dialog" role="dialog" aria-modal="true" aria-labelledby="nickname-title"><button className="overlay-close" onClick={onClose} aria-label="Close"><X size={17} /></button><p className="eyebrow">Private nickname</p><h2 id="nickname-title">{target.name}</h2><p>Only you will see this name.</p><label className="invite-link">Nickname<input value={value} maxLength={60} onChange={(event) => setValue(event.target.value)} placeholder="e.g. Army Jon" /></label><div className="overlay-actions"><button className="primary-action" disabled={saving} onClick={save}>{saving ? "Saving…" : "Save nickname"}</button><button className="quiet-action" onClick={onClose}>Cancel</button></div>{error ? <p className="composer-error" role="alert">{error}</p> : null}</section></ModalLayer>;
 }
 
 function FriendNamecard({ profile, onClose, onMessage }: { profile: (typeof friends)[number]; onClose: () => void; onMessage: () => void }) {

@@ -1,4 +1,5 @@
 "use client";
+import { PersonalChatSettings } from "./personal-chat-settings";
 import { MESSAGE_LOCATION_REQUEST, type MessageLocationRequest } from "@/lib/message-location";
 
 import Image from "next/image";
@@ -136,6 +137,7 @@ export function SurfaceHeader({
   const parentRoom = conversation.kind === "room" ? identity?.rooms.find((room) => room.slug === conversation.slug.split("--")[0]) : undefined;
   const [contextAnchor, setContextAnchor] = useState<HTMLElement | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [controlsAnchor, setControlsAnchor] = useState<HTMLElement | null>(null);
   const [addAnchor, setAddAnchor] = useState<HTMLElement | null>(null);
   const [controlBusy, setControlBusy] = useState(false);
@@ -197,7 +199,8 @@ export function SurfaceHeader({
       </div></InteractionPopover> : null}
       {controlsAnchor ? <InteractionPopover anchor={controlsAnchor} label="Conversation options" onClose={() => { if (!controlBusy) setControlsAnchor(null); }}><div className="room-context-menu communication-options">
         {conversation.kind === "room" && onInvite ? <button disabled={controlBusy} onClick={() => { setControlsAnchor(null); onInvite(); }}><Plus size={15} />Invite</button> : null}
-        {onManage ? <button disabled={controlBusy} onClick={() => { setControlsAnchor(null); onManage(); }}><UsersRound size={15} />Room details</button> : null}
+        {onManage ? <button disabled={controlBusy} onClick={() => { setControlsAnchor(null); onManage(); }}><UsersRound size={15} />Room Settings</button> : null}
+        {conversation.kind === "personal" && conversation.databaseId ? <button onClick={() => { setControlsAnchor(null); setSettingsOpen(true); }}>Chat Settings</button> : null}
         {conversation.databaseId ? <>
           <button disabled={controlBusy || pref.inheritedMute} onClick={() => void changePreference("mute")}>{pref.inheritedMute ? "Muted by Room" : pref.muted ? "Unmute" : "Mute"}</button>
           <p>{conversation.kind === "room" && conversation.tag !== "SUBROOM" ? "Mute quiets this Room and its Subrooms. " : "Mute quiets notifications. "}Messages and unread indicators stay. Direct mentions still notify.</p>
@@ -211,6 +214,7 @@ export function SurfaceHeader({
         {parentRoom.subrooms.map((child) => <Link key={child.id} className="context-child" href={`/room/${parentRoom.slug}/subroom/${child.id}`} aria-current={conversation.slug.endsWith(`--${child.id}`) ? "page" : undefined} onClick={() => setContextAnchor(null)}>{child.name}<AttentionMark count={unreadByConversation?.[child.conversationId] ?? 0} label="unread activities" /></Link>)}
         {parentRoom.role === "owner" && onAddSubroom ? <><hr /><button onClick={() => { setContextAnchor(null); onAddSubroom(); }}><Plus size={15} />Add Subroom</button></> : null}
       </nav></InteractionPopover> : null}
+      {settingsOpen ? <PersonalChatSettings key={conversation.databaseId} conversation={conversation} preference={preference} onClose={() => setSettingsOpen(false)} /> : null}
     </header>
   );
 }

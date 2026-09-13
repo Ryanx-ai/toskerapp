@@ -26,6 +26,14 @@ Harness limitations: two initial assertions targeted the wrong Reply control/dup
 
 Room `f7300000-2026-4000-8000-000000000001` / `fp3-founder-review`; child `...0002`; parent/child conversations `...0003` / `...0004` (same full prefix). `verify-fp3-nuke.ts` records exact deterministic message/note/comment IDs, including sparse race IDs. Browser records are confined to this QA Room so far. Existing A/B Personal conversation and A Sandbox are **preserved**; only exact fixture messages/notes there may be cleaned, never whole conversations/users. Final cleanup awaits integrated acceptance.
 
+## Slice B/C — contextual Settings
+
+Room Settings now groups real controls into Overview, People, Structure and My preferences. Owner/member controls retain existing server actions and permissions. Leave remains a distinct, explicit personal withdrawal confirmation. Personal Chat Settings exposes resolved identity, accepted-connection private nickname and own mute. Mark unread stays in contextual overflow. Shared `SettingsShell`/`SettingsSection`/danger/preview and nickname form are UI primitives, not a settings framework. No shared customization/appearance/media state was added.
+
+Fresh local: owner/member information and management visibility; Room mute toggle/restore; Leave/Cancel; private nickname save/restore; Personal mute toggle/restore; deliberately failed Room save retains input and offers successful explicit retry; original Room name restored. Native Escape dismissal passes. All four Room sections fit 320×844, 390×844, 430×932, 768×1024, 1440×900, 1728×1117 without horizontal overflow. Desktop screenshot visually inspected. TypeScript/lint/diff checks pass. The design skills informed scope grouping, visible focus, familiar tokens and compact mobile navigation; no visual redesign or font changes.
+
+Harness: a premature second run navigated the shared test tab during nickname restoration. Tests are now serialized; the QA-only nickname was removed to restore the previously visible canonical name, and the full nickname test passed again with its baseline explicitly retained. Save revalidation can replace transient feedback; assertions verify persisted/current values rather than requiring that short-lived text. All recorded QA mute/name changes are restored.
+
 ## Remaining Gate 2
 
-Room Settings (Overview/People/Structure/My preferences), Personal Chat Settings (Overview/Communication), shared small scoped primitives, non-operational Personal Brand preview, Development-only scheduler disclosure, central `MS7.1 · FP3` version. Then width/keyboard/authority/failure regression, full validation, exact fixture cleanup, canonical commit/push/deploy/live A/B smoke. No release or founder-ready claim yet.
+Non-operational Personal Brand preview, Development-only scheduler disclosure, central `MS7.1 · FP3` version. Then remaining Personal/prime width/keyboard regression, integrated validation, exact fixture cleanup, canonical commit/push/deploy/live A/B smoke. No release or founder-ready claim yet.

@@ -2,6 +2,10 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## Migration 0006 — repository history reconciled (2026-09-13)
+
+Founder-approved exact historical byte restoration from `1b14c56`; [evidence and validation](docs/MIGRATION-0006-RECONCILIATION.md). SHA-256 `41d5ed1602ac800592de8b441b54ca6a1708f662ee88e34ebd08a35bed1224af` matches Development. All 15 migration hashes/timestamps and latest 23-table catalog pass; invariants, snapshot check, TypeScript/lint/diff checks pass. **No migration/backfill executed; no DB metadata/schema/user data or later migrations changed.** Preserve missing final newline. Next: independent Room-history regression addendum, current authorization rather than membership time; no product edits unless a test fails. No push/deploy in the repository repair; preserve unrelated Design Hub/Web/Art WIP.
+
 ## MS7.1-FP2 — live-verified / founder review (2026-09-13)
 
 FP2 IMPLEMENTED, PUSHED AND LIVE-VERIFIED. Product`25c2b1431cb449592ed2e434f0a242c7faf608e3`; canonical Vercel`dpl_5QS82bLCKH4AX3YV5PVvHQQbPAEz` READY at`https://toskerapp.vercel.app`/HTTP200, exact Git SHA verified. A`256b6f1`, B`28dcaae`, C`a666154`, D`ba9637b`, E`25c2b14` preserved. [FP2 implementation/security/acceptance/limits](docs/MS7-1-FP2-FOUNDER-PATCH.md). Documentation/harness-only closeout may create newer HEAD/deployment with identical application source; inspect Git/alias. **STOP FOR FOUNDER REVIEW; MS7.1 NOT LOCKED. No MS7.2.**

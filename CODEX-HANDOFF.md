@@ -2,9 +2,13 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## Room history — independent regression verified (2026-09-13)
+
+[Contract, coverage and limits](docs/ROOM-HISTORY-CONTRACT.md). Current authorization—not membership time—governs retained Chat/Hall/Subroom history. 21 service groups and live A/B history/Search/source/Hall/restricted URL/notification checks pass. No product-code fix required. One scoped QA Room/three children and contents cleaned up; preserved baseline counts/invariants, Hall positions and all 15 migration hashes/current catalog rechecked. Regression script and documentation only; no push/deploy. **STOP FOR FOUNDER REVIEW; MS7.1 remains unlocked.** Preserve unrelated Design Hub/Web/Art WIP.
+
 ## Migration 0006 — repository history reconciled (2026-09-13)
 
-Founder-approved exact historical byte restoration from `1b14c56`; [evidence and validation](docs/MIGRATION-0006-RECONCILIATION.md). SHA-256 `41d5ed1602ac800592de8b441b54ca6a1708f662ee88e34ebd08a35bed1224af` matches Development. All 15 migration hashes/timestamps and latest 23-table catalog pass; invariants, snapshot check, TypeScript/lint/diff checks pass. **No migration/backfill executed; no DB metadata/schema/user data or later migrations changed.** Preserve missing final newline. Next: independent Room-history regression addendum, current authorization rather than membership time; no product edits unless a test fails. No push/deploy in the repository repair; preserve unrelated Design Hub/Web/Art WIP.
+Founder-approved exact historical byte restoration from `1b14c56`, committed as `6da3c75`; [evidence and validation](docs/MIGRATION-0006-RECONCILIATION.md). SHA-256 `41d5ed1602ac800592de8b441b54ca6a1708f662ee88e34ebd08a35bed1224af` matches Development. All 15 migration hashes/timestamps and latest 23-table catalog pass; invariants, snapshot check, TypeScript/lint/diff checks pass. **No migration/backfill executed; no DB metadata/schema/user data or later migrations changed.** Preserve missing final newline. Independent Room-history verification is recorded above. No push/deploy in the repository repair; preserve unrelated Design Hub/Web/Art WIP.
 
 ## MS7.1-FP2 — live-verified / founder review (2026-09-13)
 

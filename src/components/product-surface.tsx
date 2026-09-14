@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { SettingsPreview } from "./settings-shell";
+import { OwnProfileEditor } from "./own-profile-editor";
 import { RoomInvitationResponse } from "./room-invitation-response";
 import { notificationHref } from "@/lib/notification-href";
 import { notificationBursts } from "@/lib/notification-bursts";
@@ -15,10 +16,7 @@ import { listNotificationsAction, markNotificationsReadAction } from "@/server/s
 import {
   Bell,
   CircleUserRound,
-  Languages,
-  LockKeyhole,
   MessageCircleReply,
-  Palette,
   Pin,
   Sparkles,
   UserPlus,
@@ -217,6 +215,7 @@ function Settings() {
   const user = useCurrentToskerUser() ?? prototypeUser;
   const identity = useToskerIdentity();
   const [status, setStatus] = useState<PresenceStatus>(("presenceStatus" in user ? user.presenceStatus as PresenceStatus : undefined) ?? "online");
+  const [statusBusy, setStatusBusy] = useState(false), [statusError, setStatusError] = useState("");
   return (
     <ProductChrome current="settings">
       <WorkspaceBanner
@@ -231,47 +230,34 @@ function Settings() {
         />
       </div>
       {identity ? <label className="presence-control">Your status
-        <select value={status} aria-label="Your status" onChange={async (event) => { const next = event.target.value as PresenceStatus; setStatus(next); await setPresenceStatusAction(next); }}>
+        <select value={status} aria-label="Your status" disabled={statusBusy} onChange={async (event) => { const next = event.target.value as PresenceStatus; setStatusBusy(true); setStatusError(""); try { await setPresenceStatusAction(next); setStatus(next); } catch { setStatusError("Status wasn't saved. Try again."); } finally { setStatusBusy(false); } }}>
           <option value="online">Online</option>
           <option value="idle">Idle</option>
           <option value="away">Away</option>
           <option value="meeting">In a meeting</option>
         </select>
       </label> : null}
-      <div className="settings-list">
+      {statusError ? <p role="alert">{statusError}</p> : null}
+      <nav className="owner-settings-links" aria-label="Account Settings">
+        <Link href="/profile"><CircleUserRound size={20} /><span><strong>Profile</strong><small>Global name, identity and status</small></span></Link>
+        <Link href="/help"><MessageCircleReply size={20} /><span><strong>Support</strong><small>Help and feedback</small></span></Link>
+      </nav>
+      <section className="owner-settings-boundaries" aria-labelledby="account-boundaries"><h2 id="account-boundaries">More settings</h2><p>These account preferences are not available in this Development slice. Mute and unread remain in each Chat or Room.</p><dl>
         {[
-          ["Account", "Name, profile, and the basics."],
-          ["Appearance", "Roomy, compact, dark — eventually."],
-          ["Language", "Preferred language: English"],
-          ["Notifications", "Decide what earns your attention."],
-          ["Privacy", "Clear choices, without a law degree."],
-        ].map(([title, body], i) => (
-          <button key={title} disabled>
-            <span>
-              {
-                [
-                  <CircleUserRound key="account" />,
-                  <Palette key="appearance" />,
-                  <Languages key="language" />,
-                  <Bell key="notifications" />,
-                  <LockKeyhole key="privacy" />,
-                ][i]
-              }
-            </span>
-            <div>
-              <strong>{title}</strong>
-              <small>{body}</small>
-            </div>
-            <i>→</i>
-          </button>
+          ["Appearance", "No saved account theme yet."],
+          ["Language", "The interface currently uses English."],
+          ["Notifications", "Global preferences are not connected yet."],
+          ["Privacy", "Audience and blocking policy need a separate review."],
+        ].map(([title, body]) => (
+          <div key={title}><dt>{title}</dt><dd>{body}</dd></div>
         ))}
-      </div>
+      </dl></section>
       <SettingsPreview title="Personal Brand">Your identity image, accent, banner, mark and expressive typography — planned for a future Settings release. Functional controls keep Tosker’s readable type.</SettingsPreview>
       <SignOutButton>
         <button className="settings-logout button" type="button">Log out</button>
       </SignOutButton>
       <p className="prototype-strip">
-        Preferences will save here as Tosker grows.
+        Profile and status save to your account. Other categories remain as labelled.
       </p>
     </ProductChrome>
   );
@@ -485,16 +471,18 @@ function Notifications({ empty = false, persistent }: { empty?: boolean; persist
 function Profile() {
   const user = useCurrentToskerUser() ?? prototypeUser;
   const identity = useToskerIdentity();
+  const [editing, setEditing] = useState(false);
   return (
     <ProductChrome current="profile">
       <section className="profile-surface">
         <IdentityCard
           label="Your Namecard"
           profile={{ userId: identity?.userId, avatarUrl: identity?.avatarUrl, name: user.displayName, username: user.username, tid: user.tid, initials: user.initials, color: "gold", status: user.role }}
-          action={<button disabled>Edit profile</button>}
+          action={identity ? <button onClick={() => setEditing(true)}>Edit Profile</button> : undefined}
         />
         <Link href="/" className="landing-footer-link profile-landing-link">View landing page</Link>
       </section>
+      {editing && identity ? <OwnProfileEditor identity={identity} onClose={() => setEditing(false)} /> : null}
     </ProductChrome>
   );
 }

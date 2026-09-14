@@ -7,6 +7,9 @@ Updated 2026-09-09 by the founder's roadmap-memory/state-alignment brief. This i
 Current override (2026-09-14): founder completed FP3 walkthrough and explicitly pre-authorized lock after FP4 acceptance/live smoke. **MS7.1 is now LOCKED** at live-tested application `f3ab7d017ce92bee34a473fbb22230b26cffdaa4`, READY deployment `dpl_HXkQgqRzL7h7zDk4Bn9F4yRc6qpX`, canonical HTTPS200. [FP4 acceptance/lock record](MS7-1-FP4-FOUNDER-PATCH.md). MS7.2 Profile + Settings is the next authorized bounded development slice; MS7.3+ and new infrastructure are not authorized. Historical September9 state/protocol below is superseded by this lock, not erased.
 
 - MS6 is COMPLETE AND LOCKED.
+Current continuation: **MS7.2 IN PROGRESS**, bounded local-only MS7.2.1 own Profile/Settings foundation from recovery checkpoint `5ae54fb`; [scope, acceptance and founder policy gates](MS7-2-PROFILE-SETTINGS.md). Canonical remains locked FP4. No later milestone or partial-MS7.2 deployment is authorized by this checkpoint.
+
+The following bullets retain the historical pre-FP4 state:
 - MS7.1 — Chat + Rooms Productization / Beta Hardening — is IN PROGRESS and unlocked. Preserve all local checkpoints, including `428b8aa`, `eda4451`, `b3bd7a1`, `bfb444d`, `449caf8` and `8b6d29c`; re-inspect Git on resume.
 - Canonical founder-review product is now MS7.1 checkpoint`fd76555`, deployed READY with live isolated A/B smoke and guarded QA cleanup verified. Engineering development is complete for review; MS7.1 itself remains unlocked pending founder walkthrough39–40, any required patch and explicit approval. The earlier roadmap-alignment pass itself changed no production state.
 - The documentation-only alignment pass is complete. The founder's 2026-09-09 MS7.1 development-continuation directive now authorizes resumption through the engineering gate and canonical founder review. No later milestone or automatic lock is authorized. Historical alignment evidence remains documentation-only.

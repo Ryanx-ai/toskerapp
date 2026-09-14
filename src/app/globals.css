@@ -1,5 +1,22 @@
 @import "tailwindcss";
 
+/* MS7.2.1 owner-only Profile foundation; reuse scoped Settings geometry. */
+.owner-profile-field { display:grid; gap:8px; font-size:12px; color:var(--text-primary); }
+.owner-profile-field input,.owner-profile-field select { width:100%; min-width:0; min-height:44px; padding:10px 12px; border:1px solid var(--border); border-radius:10px; background:var(--surface); color:var(--text-primary); }
+.owner-profile-field :is(input,select):focus-visible { outline:2px solid var(--brand-gold); outline-offset:3px; }
+.owner-profile-identifiers { display:grid; gap:12px; margin:24px 0; font-size:12px; }
+.owner-profile-identifiers dt { color:var(--text-secondary); margin-bottom:4px; }
+.owner-profile-identifiers dd { margin:0; overflow-wrap:anywhere; }
+.owner-profile-save [role=alert] { color:#ff9cae; font-size:12px; }
+.owner-settings-links { display:grid; gap:8px; margin:20px 0; }
+.owner-settings-links a { display:flex; align-items:center; gap:14px; min-height:64px; padding:16px; background:var(--surface); border-radius:14px; }
+.owner-settings-links a:hover { background:var(--surface-hover); }
+.owner-settings-links span { display:grid; gap:5px; }
+.owner-settings-links strong { font-size:13px; }.owner-settings-links small { font-size:12px; color:var(--text-secondary); }
+.owner-settings-boundaries { margin:28px 0; }.owner-settings-boundaries h2 { font:600 15px/1.5 var(--font-montserrat),sans-serif; }
+.owner-settings-boundaries p,.owner-settings-boundaries dl { font-size:12px; line-height:1.6; color:var(--text-secondary); }
+.owner-settings-boundaries dl { display:grid; gap:12px; }.owner-settings-boundaries dt { color:var(--text-primary); }.owner-settings-boundaries dd { margin:0; }
+
 /* FP4 contextual identity: native controls, unchanged Tosker type and palette. */
 .sidebar-pin-row { position:relative; min-width:0; border-radius:12px; }
 .sidebar-pin-row .conversation-row { padding-right:32px; }
@@ -527,7 +544,7 @@ h1,h2,h3 { font-family:var(--font-mermaid),Georgia,serif; font-weight:400; lette
 /* Final MS3 visual-rhythm and interaction-affordance patch. */
 .product-canvas,.friends-surface { --workspace-content-max:1180px; --workspace-content-gutter:clamp(24px,4vw,56px); }
 .product-canvas > .workspace-banner,.friends-surface > .workspace-banner,
-.product-canvas > :not(.workspace-banner),.friends-surface > :not(.workspace-banner) { width:min(var(--workspace-content-max),calc(100% - 2 * var(--workspace-content-gutter))); margin-left:auto; margin-right:auto; }
+.product-canvas > :not(.workspace-banner,.modal-layer),.friends-surface > :not(.workspace-banner,.modal-layer) { width:min(var(--workspace-content-max),calc(100% - 2 * var(--workspace-content-gutter))); margin-left:auto; margin-right:auto; }
 .product-canvas > .filter-pills { padding:22px 0; }
 .product-canvas > .surface-section { padding:38px 0; }
 .product-canvas > .surface-section.compact-section { padding-top:20px; }
@@ -565,7 +582,7 @@ h1,h2,h3 { font-family:var(--font-mermaid),Georgia,serif; font-weight:400; lette
 @media (max-width:640px) {
   .product-canvas,.friends-surface { --workspace-content-gutter:14px; }
   .product-canvas > .workspace-banner,.friends-surface > .workspace-banner,
-  .product-canvas > :not(.workspace-banner),.friends-surface > :not(.workspace-banner) { width:calc(100% - 2 * var(--workspace-content-gutter)); }
+  .product-canvas > :not(.workspace-banner,.modal-layer),.friends-surface > :not(.workspace-banner,.modal-layer) { width:calc(100% - 2 * var(--workspace-content-gutter)); }
   .workspace-banner,.banner-hero,.banner-quiet { min-height:170px; padding:24px 20px; grid-template-columns:minmax(0,1fr) 58px; }
   .workspace-banner h1 { font-size:clamp(31px,9.5vw,40px); line-height:1.02; }
   .workspace-banner-copy > button { margin-top:20px; position:static; }

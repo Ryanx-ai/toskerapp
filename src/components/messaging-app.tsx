@@ -1,6 +1,9 @@
 "use client";
 import { useConversationRealtime } from "./use-conversation-realtime";
 import { NicknameDialog } from "./nickname-editor";
+import { NamecardProvider } from "./namecard-dialog";
+import { NamecardButton } from "./namecard-context";
+import { SidebarPinRow } from "./sidebar-pin-row";
 import { RoomDetails } from "./room-details";
 import { ACTIVITY_REFRESH, CONVERSATION_ACCESS_LOST } from "@/lib/realtime-contract";
 import { removedMessageIds } from "@/lib/message-removal";
@@ -288,9 +291,8 @@ function ConversationRow({
         </span>
         <span className="conversation-trailing">
           <time>{item.time}</time>
-          {pinned ? (
-            <i aria-label="Pinned">⌖</i>
-          ) : unread || item.unread ? (
+          {pinned ? <i aria-label="Pinned">⌖</i> : null}
+          {unread || item.unread ? (
             <AttentionMark count={unread || item.unread || 0} label="unread activities" />
           ) : null}
         </span>
@@ -409,6 +411,9 @@ function AppSidebar({
   );
   const [query, setQuery] = useState("");
   const [expandedForSearch, setExpandedForSearch] = useState(false);
+  const [pinOverride, setPinOverride] = useState<{ basis: string; ids: string[] } | null>(null);
+  const pinBasis = JSON.stringify(identity?.sidebarPinnedIds ?? []);
+  const pinnedIds = pinOverride?.basis === pinBasis ? pinOverride.ids : identity?.sidebarPinnedIds ?? [];
   const sidebarRouter = useRouter();
   const searchInputRef = useRef<HTMLInputElement>(null);
   const openCollapsedSearch = () => {
@@ -517,8 +522,8 @@ function AppSidebar({
       ? -1
       : b.kind === "my-room"
         ? 1
-        : (!identity ? Number(state.pinned.includes(b.slug)) -
-            Number(state.pinned.includes(a.slug)) : 0) ||
+        : (identity ? Number(pinnedIds.includes(b.databaseId ?? "")) - Number(pinnedIds.includes(a.databaseId ?? "")) || (pinnedIds.includes(a.databaseId ?? "") && pinnedIds.includes(b.databaseId ?? "") ? pinnedIds.indexOf(a.databaseId!) - pinnedIds.indexOf(b.databaseId!) : 0) : Number(state.pinned.includes(b.slug)) -
+            Number(state.pinned.includes(a.slug))) ||
           (latestActivityByConversation[b.databaseId ?? ""] ?? "").localeCompare(latestActivityByConversation[a.databaseId ?? ""] ?? "") ||
           rank(a) - rank(b),
   );
@@ -627,14 +632,16 @@ function AppSidebar({
         <div className="conversation-list">
           {ordered.map((item) => (
             <SubroomOrderRow key={item.slug} roomId={orderingRoom?.id ?? ""} ids={orderingRoom?.subrooms.map((child) => child.id) ?? []} id={item.slug.split("--")[1] ?? ""} name={item.name} owner={orderingRoom?.role === "owner" && item.tag === "SUBROOM"}>
+            <SidebarPinRow id={item.databaseId} name={item.name} ids={pinnedIds} enabled={Boolean(identity) && item.kind !== "my-room" && item.tag !== "SUBROOM"} onSaved={(ids) => setPinOverride({ basis: pinBasis, ids })}>
             <ConversationRow
               item={item}
               active={selected?.slug === item.slug}
-              pinned={false}
+              pinned={pinnedIds.includes(item.databaseId ?? "")}
               onDropItem={identity ? () => undefined : prototypeStore.reorder}
               displayName={user.displayName}
               unread={(item.databaseId ? unreadByConversation[item.databaseId] ?? 0 : 0) + (item.kind === "room" && !item.slug.includes("--") ? serverSubrooms.filter((child) => child.slug.startsWith(`${item.slug}--`)).reduce((sum, child) => sum + (unreadByConversation[child.databaseId!] ?? 0), 0) : 0)}
             />
+            </SidebarPinRow>
             </SubroomOrderRow>
           ))}
           {query && ordered.length === 0 ? (
@@ -785,7 +792,7 @@ function FriendsSurface({
       ) : (
           <div className="friend-list">
           {identity ? serverConnections.filter((item) => item.status === "accepted" && item.person && (tab !== "Online" || item.person.presenceStatus === "online") && `${item.person.nickname ?? ""} ${item.person.displayName} ${item.person.username} ${item.person.tid}`.toLowerCase().includes(query.toLowerCase())).map((item) => item.person ? (
-            <article key={item.id}><PersonAvatar seed={item.person.userId} imageUrl={item.person.avatarUrl} initials={item.person.displayName.slice(0, 1).toUpperCase()}><PresenceMark status={item.person.presenceStatus} /></PersonAvatar><div className="friend-nameplate"><strong>{item.person.nickname || item.person.displayName}</strong><small>@{item.person.username} · {item.person.tid}</small></div><i>Friend</i><div className="friend-actions"><button aria-label={`Message ${item.person.nickname || item.person.displayName}`} onClick={async () => { const chat = await startPersonalConversationAction(item.person!.userId); router.push(`/personal/${chat.slug}`); router.refresh(); }}><MessageCircle size={15} /></button><button aria-label={`More actions for ${item.person.nickname || item.person.displayName}`} aria-expanded={friendMenuId === item.id} onClick={() => setFriendMenuId(friendMenuId === item.id ? null : item.id)}><MoreHorizontal size={16} /></button>{friendMenuId === item.id ? <div className="context-menu friend-context-menu"><button onClick={() => { setFriendMenuId(null); setNicknameTarget({ id: item.id, name: item.person!.displayName, nickname: item.person!.nickname }); }}>{item.person.nickname ? "Edit nickname" : "Set nickname"}</button>{item.person.nickname ? <button onClick={async () => { await removeConnectionNicknameAction(item.id); await refreshConnections(); setFriendMenuId(null); }}>Remove nickname</button> : null}</div> : null}</div></article>
+            <article key={item.id}><NamecardButton userId={item.person.userId} name={item.person.nickname || item.person.displayName}><PersonAvatar seed={item.person.userId} imageUrl={item.person.avatarUrl} initials={item.person.displayName.slice(0, 1).toUpperCase()}><PresenceMark status={item.person.presenceStatus} /></PersonAvatar></NamecardButton><div className="friend-nameplate"><NamecardButton userId={item.person.userId} name={item.person.nickname || item.person.displayName}><strong>{item.person.nickname || item.person.displayName}</strong></NamecardButton><small>@{item.person.username} · {item.person.tid}</small></div><i>Friend</i><div className="friend-actions"><button aria-label={`Message ${item.person.nickname || item.person.displayName}`} onClick={async () => { const chat = await startPersonalConversationAction(item.person!.userId); router.push(`/personal/${chat.slug}`); router.refresh(); }}><MessageCircle size={15} /></button><button aria-label={`More actions for ${item.person.nickname || item.person.displayName}`} aria-expanded={friendMenuId === item.id} onClick={() => setFriendMenuId(friendMenuId === item.id ? null : item.id)}><MoreHorizontal size={16} /></button>{friendMenuId === item.id ? <div className="context-menu friend-context-menu"><button onClick={() => { setFriendMenuId(null); setNicknameTarget({ id: item.id, name: item.person!.displayName, nickname: item.person!.nickname }); }}>{item.person.nickname ? "Edit nickname" : "Set nickname"}</button>{item.person.nickname ? <button onClick={async () => { await removeConnectionNicknameAction(item.id); await refreshConnections(); setFriendMenuId(null); }}>Remove nickname</button> : null}</div> : null}</div></article>
           ) : null) : shown
             .filter((friend) => tab !== "Online" || friend.status === "Online")
             .map((friend) => (
@@ -1423,7 +1430,7 @@ export function MessagingApp({
     router.push(`/personal/${chat.slug}`);
   };
   return (
-    <ToskerIdentityProvider identity={identity}><main
+    <ToskerIdentityProvider identity={identity}><NamecardProvider key={identity?.userId ?? "demo"} enabled={Boolean(identity)}><main
       className={`messaging-app ${selected ? "has-selection" : "list-only"} ${collapsed ? "sidebar-collapsed" : ""}`}
     >
       <AppSidebar
@@ -1510,6 +1517,6 @@ export function MessagingApp({
       ) : null}
       {overlay === "manage" && contextRoom ? <RoomDetails slug={contextRoom.slug} onClose={() => setOverlay(null)} onInvite={() => setOverlay("invite")} onAddSubroom={contextRoom.role === "owner" ? () => setOverlay("subroom") : undefined} /> : null}
       {toast ? <button className="activity-toast" onClick={() => { router.push(activityHref(toast)); setToast(null); }} aria-label="Open new activity"><strong>{toast.actorName ?? "Someone"}</strong><span>{toast.type === "message" ? (toast.isMention ? "mentioned you" : "sent you a message") : toast.type === "connection_request" ? "sent you a friend request" : toast.type === "connection_accepted" ? "accepted your friend request" : toast.type === "room_invitation" ? "invited you to a Room" : "updated Hall"}</span>{toast.conversationId ? <small>{toast.roomName ? `${toast.roomName}${toast.subroomId && toast.conversationTitle ? ` / ${toast.conversationTitle}` : ""}` : "Personal Chat"} · {toast.type === "message" ? "Chat" : "Hall"}</small> : null}</button> : null}
-    </main></ToskerIdentityProvider>
+    </main></NamecardProvider></ToskerIdentityProvider>
   );
 }

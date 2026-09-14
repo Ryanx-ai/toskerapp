@@ -278,6 +278,13 @@ export const conversationParticipants = pgTable(
   ],
 );
 
+/** Account-private top-level navigation only; unrelated to shared Subroom order. */
+export const sidebarPins = pgTable("sidebar_pins", {
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  conversationId: uuid("conversation_id").notNull().references(() => conversations.id, { onDelete: "cascade" }),
+  position: integer("position").notNull(),
+}, (table) => [primaryKey({ columns: [table.userId, table.conversationId] }), index("sidebar_pins_user_order_idx").on(table.userId, table.position)]);
+
 export const conversationReads = pgTable(
   "conversation_reads",
   {

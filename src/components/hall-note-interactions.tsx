@@ -6,13 +6,14 @@ import { ArrowUp, MessageCircle, SmilePlus } from "lucide-react";
 import { addHallCommentAction, listHallCommentsAction, setCommentReactionAction, setHallReactionAction } from "@/server/shared-state/actions";
 import { EmojiPicker, ReactionChips } from "./emoji-picker";
 import { InteractionPopover } from "./interaction-popover";
+import { NamecardButton } from "./namecard-context";
 import { HALL_REACTIONS, safeHallImagePath, type HallReaction } from "@/lib/hall-contract";
 
 type CommentPage = Awaited<ReturnType<typeof listHallCommentsAction>>;
 
 export function HallNoteInteractions({ conversationId, item, onChanged }: {
   conversationId: string;
-  item: { id: string; title: string | null; commentCount?: number; imagePath?: string | null; imageAlt?: string | null; reactions?: Array<{ reaction: HallReaction; count: number; mine: boolean }> };
+  item: { id: string; kind?: string; title: string | null; commentCount?: number; imagePath?: string | null; imageAlt?: string | null; reactions?: Array<{ reaction: HallReaction; count: number; mine: boolean }> };
   onChanged: () => Promise<void>;
 }) {
   const [expanded, setExpanded] = useState(false);
@@ -62,8 +63,8 @@ export function HallNoteInteractions({ conversationId, item, onChanged }: {
     <div className="hall-note-context">
       {imagePath ? <Image className="hall-note-image" src={imagePath} alt={item.imageAlt || item.title || "Note photo"} width={640} height={480} sizes="(max-width: 640px) 90vw, 320px" /> : null}
       <div className="hall-object-actions">
-        <div className="hall-reactions" aria-label="Note reactions">
-          <button aria-label="React to note" disabled={busy} onClick={(event) => setPicker({ anchor: event.currentTarget })}><SmilePlus size={16} /></button>
+        <div className="hall-reactions" aria-label="Hall reactions">
+          <button aria-label={item.kind === "pinned_message" ? "React to Hall reference" : "React to note"} disabled={busy} onClick={(event) => setPicker({ anchor: event.currentTarget })}><SmilePlus size={16} /></button>
           {HALL_REACTIONS.filter(({ key }) => item.reactions?.some((entry) => entry.reaction === key && entry.count > 0)).map(({ key, emoji, label }) => {
             const value = item.reactions?.find((entry) => entry.reaction === key);
             return <button key={key} disabled={busy} aria-label={`${label}, ${value?.count ?? 0} reactions`} aria-pressed={value?.mine ?? false} onClick={() => void react(key, !value?.mine)}><span aria-hidden="true">{emoji}</span><span>{value?.count ?? 0}</span></button>;
@@ -79,7 +80,7 @@ export function HallNoteInteractions({ conversationId, item, onChanged }: {
           catch { setError("Earlier comments couldn't be loaded."); }
           finally { setBusy(false); }
         }}>Earlier comments</button> : null}
-        <div className="hall-comment-list">{page.comments.map((comment) => <article key={comment.id} className="hall-comment"><span className="avatar avatar-pink" aria-hidden="true">{comment.author.split(/\s+/).map((part) => part[0]).join("").slice(0, 2)}</span><div><strong>{comment.author}</strong><time dateTime={comment.createdAt} title={new Date(comment.createdAt).toLocaleString()}>{new Date(comment.createdAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</time><p>{comment.body}</p><div className="comment-reactions"><ReactionChips values={comment.reactions} disabled={busy} onToggle={(emoji, active) => void reactToComment(comment.id, emoji, active)} /><button className="comment-react-control" aria-label={`React to comment by ${comment.author}`} disabled={busy} onClick={(event) => setPicker({ anchor: event.currentTarget, commentId: comment.id })}><SmilePlus size={15} /></button></div></div></article>)}</div>
+        <div className="hall-comment-list">{page.comments.map((comment) => <article key={comment.id} className="hall-comment"><NamecardButton userId={comment.authorId} name={comment.author}><span className="avatar avatar-pink" aria-hidden="true">{comment.author.split(/\s+/).map((part) => part[0]).join("").slice(0, 2)}</span></NamecardButton><div><NamecardButton userId={comment.authorId} name={comment.author}><strong>{comment.author}</strong></NamecardButton><time dateTime={comment.createdAt} title={new Date(comment.createdAt).toLocaleString()}>{new Date(comment.createdAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</time><p>{comment.body}</p><div className="comment-reactions"><ReactionChips values={comment.reactions} disabled={busy} onToggle={(emoji, active) => void reactToComment(comment.id, emoji, active)} /><button className="comment-react-control" aria-label={`React to comment by ${comment.author}`} disabled={busy} onClick={(event) => setPicker({ anchor: event.currentTarget, commentId: comment.id })}><SmilePlus size={15} /></button></div></div></article>)}</div>
         <form className="hall-comment-form" onSubmit={async (event) => {
           event.preventDefault();
           if (!body.trim() || busy) return;

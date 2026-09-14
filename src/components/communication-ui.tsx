@@ -1,5 +1,7 @@
 "use client";
 import { PersonalChatSettings } from "./personal-chat-settings";
+import { NamecardButton } from "./namecard-context";
+import { EditMessageDialog } from "./edit-message-dialog";
 import { MESSAGE_LOCATION_REQUEST, type MessageLocationRequest } from "@/lib/message-location";
 
 import Image from "next/image";
@@ -162,9 +164,9 @@ export function SurfaceHeader({
         <Link href="/app" className="mobile-back" aria-label="Back">
           <ArrowLeft size={18} />
         </Link>
-        {conversation.kind === "my-room" ? <SandboxAvatar className="avatar-large" /> : conversation.kind === "room" ? <RoomAvatar name={conversation.name} seed={conversation.identitySeed ?? conversation.slug.split("--")[0]} subroom={conversation.tag === "SUBROOM"} className="avatar-large" /> : <PersonAvatar seed={conversation.identitySeed ?? conversation.slug} initials={conversation.initials} imageUrl={conversation.avatarUrl} className="avatar-large" />}
+        {conversation.kind === "my-room" ? <SandboxAvatar className="avatar-large" /> : conversation.kind === "room" ? <RoomAvatar name={conversation.name} seed={conversation.identitySeed ?? conversation.slug.split("--")[0]} subroom={conversation.tag === "SUBROOM"} className="avatar-large" /> : <NamecardButton userId={conversation.databaseId ? conversation.identitySeed : undefined} name={conversation.name}><PersonAvatar seed={conversation.identitySeed ?? conversation.slug} initials={conversation.initials} imageUrl={conversation.avatarUrl} className="avatar-large" /></NamecardButton>}
         <div className="active-copy">
-          {parentRoom ? <button className="room-context-trigger" aria-label={`Switch Room context: ${parentRoom.name}${conversation.tag === "SUBROOM" ? ` / ${conversation.name}` : ""}`} aria-haspopup="dialog" aria-expanded={Boolean(contextAnchor)} onClick={(event) => setContextAnchor(event.currentTarget)}><span>{parentRoom.name}</span><ChevronDown size={15} /></button> : <h2>{titleOf(conversation, user.displayName)}</h2>}
+          {parentRoom ? <button className="room-context-trigger" aria-label={`Switch Room context: ${parentRoom.name}${conversation.tag === "SUBROOM" ? ` / ${conversation.name}` : ""}`} aria-haspopup="dialog" aria-expanded={Boolean(contextAnchor)} onClick={(event) => setContextAnchor(event.currentTarget)}><span>{parentRoom.name}</span><ChevronDown size={15} /></button> : <h2><NamecardButton userId={conversation.kind === "personal" && conversation.databaseId ? conversation.identitySeed : undefined} name={conversation.name}>{titleOf(conversation, user.displayName)}</NamecardButton></h2>}
           {conversation.kind === "personal" && conversation.presenceStatus ? <span className="header-presence"><i className={`presence-mark ${conversation.presenceStatus}`} aria-label={{ online: "Online", idle: "Idle", away: "Away", meeting: "In a meeting" }[conversation.presenceStatus]} />{{ online: "Online", idle: "Idle", away: "Away", meeting: "In a meeting" }[conversation.presenceStatus]}</span> : null}
           {conversation.kind === "room" && conversation.context ? <span className="header-context" title={parentRoom ? conversation.name : conversation.context}>{parentRoom ? conversation.name : conversation.context}</span> : null}
         </div>
@@ -437,6 +439,22 @@ export function ChatSurface({ conversation, realtime, manualUnreadId, readingPau
   const historyMode = useRef(Boolean(targetMessage));
   const paging = useRef(false);
   const historyEpoch = useRef(0);
+  const pendingLocation = useRef<{ id: string; epoch: number } | null>(null);
+  const locationHighlightTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useLayoutEffect(() => {
+    const location = pendingLocation.current;
+    if (!location) return;
+    const node = document.getElementById(`message-${location.id}`);
+    if (!node) return;
+    pendingLocation.current = null;
+    // The target must be in the committed DOM, not merely queued in React state.
+    requestAnimationFrame(() => {
+      if (!node.isConnected || historyEpoch.current !== location.epoch) return;
+      node.classList.add("message-source-highlight"); node.focus({ preventScroll: true }); setTargetNotice("Message located.");
+      if (locationHighlightTimer.current) clearTimeout(locationHighlightTimer.current);
+      locationHighlightTimer.current = setTimeout(() => { node.classList.remove("message-source-highlight"); setTargetNotice(""); }, 4000);
+    });
+  }, [messages]);
   const scrollAnchor = useRef<{ id?: string; top?: number; latest?: boolean } | null>(null);
   const [loaded, setLoaded] = useState(!conversation.databaseId);
   const [fetchError, setFetchError] = useState(false);
@@ -577,7 +595,6 @@ export function ChatSurface({ conversation, realtime, manualUnreadId, readingPau
   useEffect(() => {
     if (!targetMessage || !conversation.databaseId) return;
     let active = true;
-    let highlightTimer: ReturnType<typeof setTimeout> | undefined;
     const epoch = ++historyEpoch.current;
     // Target navigation must not consume latest unread while lookup is pending
     // or denied. Only explicit Latest/normal Chat consumption exits this hold.
@@ -597,17 +614,11 @@ export function ChatSurface({ conversation, realtime, manualUnreadId, readingPau
       setHistoryView(true); setOlderCursor(page.nextCursor?.id ?? null);
       setNewerAvailable(Boolean(page.latest && page.latest.id !== targetMessage));
       scrollAnchor.current = { id: `message-${targetMessage}`, top: (scrollRef.current?.getBoundingClientRect().top ?? 0) + 80 };
+      pendingLocation.current = { id: targetMessage, epoch };
       setMessages(() => displayMessages(page.messages));
       setLoaded(true); setFetchError(false);
-      requestAnimationFrame(() => {
-        if (!active) return;
-        const node = document.getElementById(`message-${targetMessage}`);
-        node?.classList.remove("message-source-highlight");
-        // One quiet, non-flashing highlight; no permanent attention mutation.
-        requestAnimationFrame(() => { if (active) { node?.classList.add("message-source-highlight"); node?.focus({ preventScroll: true }); setTargetNotice("Message located."); highlightTimer = setTimeout(() => { node?.classList.remove("message-source-highlight"); if (active) setTargetNotice(""); }, 4000); } });
-      });
     }).catch(() => { if (active) { setTargetError(true); setTargetNotice(""); } }).finally(() => { if (active) { paging.current = false; setPageLoading(false); window.dispatchEvent(new Event(CHAT_REFRESH)); } });
-    return () => { active = false; paging.current = false; clearTimeout(highlightTimer); document.getElementById(`message-${targetMessage}`)?.classList.remove("message-source-highlight"); };
+    return () => { active = false; paging.current = false; pendingLocation.current = null; if (locationHighlightTimer.current) clearTimeout(locationHighlightTimer.current); document.getElementById(`message-${targetMessage}`)?.classList.remove("message-source-highlight"); };
   }, [conversation.databaseId, conversationHref, router, targetMessage, targetRetry, setMessages]);
   useEffect(() => {
     const locateAgain = (event: Event) => {
@@ -851,6 +862,8 @@ type HallSurfaceItem = {
   position?: number;
   archivedAt?: string | null;
   sourceMessageId?: string | null;
+  sourceAuthorId?: string | null;
+  sourceAuthor?: string | null;
   imagePath?: string | null;
   imageAlt?: string | null;
   commentCount?: number;
@@ -904,6 +917,8 @@ function PersistentHallCard({
 }) {
   const [open, setOpen] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  const [editingSource, setEditingSource] = useState(false);
+  const viewer = useToskerIdentity();
   const [colorsOpen, setColorsOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   useDismissLayer(open, () => { setOpen(false); setColorsOpen(false); }, ref);
@@ -914,14 +929,14 @@ function PersistentHallCard({
       <span className="notice-icon">{pinned ? "⌖" : "✎"}</span>
       <div>
         {pinned ? <small>Pinned from Chat</small> : null}
-        <h3>{item.title ?? "Pinned from Chat"}</h3>
+        {!pinned ? <h3>{item.title}</h3> : null}
         <p>{item.body}</p>
-        <footer>{item.author}</footer>
+        <footer><NamecardButton userId={pinned ? item.sourceAuthorId ?? undefined : item.authorId} name={pinned ? item.sourceAuthor ?? item.author : item.author}>{pinned ? item.sourceAuthor ?? item.author : item.author}</NamecardButton></footer>
       </div>
       {!archived ? <button className="hall-drag-handle" disabled={busy || (!canEarlier && !canLater)} draggable={!busy} onDragStart={onDragStart} onDragEnd={onDragEnd} aria-label={`Reorder ${item.title ?? "pinned message"}; use arrow keys to move`} title="Drag to reorder · Arrow keys to move" onKeyDown={(event) => {
         if (["ArrowLeft", "ArrowUp", "ArrowRight", "ArrowDown"].includes(event.key)) { event.preventDefault(); const earlier = event.key === "ArrowLeft" || event.key === "ArrowUp"; if (earlier ? canEarlier : canLater) onReorder(earlier ? "left" : "right"); }
       }}><GripVertical size={16} /></button> : null}
-      {!archived && !pinned && conversation.databaseId ? <HallNoteInteractions conversationId={conversation.databaseId} item={item} onChanged={onChanged} /> : null}
+      {!archived && conversation.databaseId ? <HallNoteInteractions conversationId={conversation.databaseId} item={item} onChanged={onChanged} /> : null}
       {!archived || onRestore || onNuke ? <button className="hall-card-more" disabled={busy} onClick={() => { openLayer(); setOpen((value) => !value); }} aria-label={`Actions for ${item.title ?? "Pinned message"}`} aria-expanded={open}>
         <MoreHorizontal size={15} />
       </button> : null}
@@ -938,10 +953,11 @@ function PersistentHallCard({
           </>}
           {!archived ? <><button disabled={busy || !canEarlier} onClick={() => { onReorder("left"); setOpen(false); }}>Move earlier</button>
           <button disabled={busy || !canLater} onClick={() => { onReorder("right"); setOpen(false); }}>Move later</button></> : null}
-          {pinned && item.sourceMessageId && conversation.databaseId ? <Link href={`${baseHref(conversation)}?message=${item.sourceMessageId}`} onClick={() => setOpen(false)}>Open in Chat</Link> : null}
+          {pinned && item.sourceMessageId && conversation.databaseId ? <><Link href={`${baseHref(conversation)}?message=${item.sourceMessageId}`} onClick={() => setOpen(false)}>Go to message</Link>{item.sourceAuthorId === viewer?.userId ? <button disabled={busy} onClick={() => { setOpen(false); setEditingSource(true); }}>Edit message</button> : null}</> : null}
         </div>
       ) : null}
       {confirming && onNuke ? <ModalLayer onClose={() => { if (!busy) setConfirming(false); }}><section className="creation-panel hall-nuke-panel" role="alertdialog" aria-label="Nuke note confirmation"><h2>Nuke this note?</h2><p>The note, comments and reactions will be permanently deleted. This cannot be undone.</p><div className="overlay-actions"><button disabled={busy} onClick={() => setConfirming(false)}>Cancel</button><button className="danger" disabled={busy} onClick={async () => { if (await onNuke()) setConfirming(false); }}>{busy ? "Deleting…" : "Nuke"}</button></div>{mutationError ? <p role="alert">{mutationError}</p> : null}</section></ModalLayer> : null}
+      {editingSource && item.sourceMessageId && conversation.databaseId ? <EditMessageDialog body={item.body} onClose={() => setEditingSource(false)} onSave={async (body) => { await changeOwnMessageAction({ conversationId: conversation.databaseId!, messageId: item.sourceMessageId!, body }); await onChanged(); }} /> : null}
     </article>
   );
 }

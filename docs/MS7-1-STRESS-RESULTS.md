@@ -1,5 +1,9 @@
 # MS7.1 — shared stress results
 
+## FP4 — 2026-09-14, local candidate
+
+[FP4 acceptance/control/fixture ledger](MS7-1-FP4-FOUNDER-PATCH.md) records fresh Namecard authorization/privacy, Hall source-reference lifecycle, account-private pins/order, six-width identity/Settings checks and small real A/B delivery. Old-source highlight DOM timing was fixed and rerun. Nine Namecard and21 retained-history service groups pass; synthetic history fixtures cleaned exactly. Fresh application build/type/lint/migration/catalog/invariant/secret checks pass. Canonical deployment/live smoke and lock are still pending; do not read this as a completed release. Existing FP2/FP3 evidence below stays historical, not silently rerun.
+
 ## FP3 Gate 2 — 2026-09-13
 
 **FP3 LIVE / FOUNDER REVIEW REQUIRED, NOT LOCKED.** Product`049c8234c5043930b8d279fdc9d4bdcdedd72023`, exact Git deployment`dpl_7YC7TH2FP8AcGDZopsFkjhQPSohe` READY/canonicalHTTP200. Live normal A/B send/pin/reply/draft/Nuke/reload, WHO/context notification/API privacy/exact event cleanup, owner/member Room Settings and Personal nickname/mute restoration, retained older history PASS. Anonymous messages401; browser error lists empty, sampled deployment errors0. Exact QA cleanup and post-cleanup all15 hashes/catalog/invariants PASS;29 preserved messages,8 notes/1 pin, real users/Personal/Sandboxes/Hall ordering preserved. Owned browsers/server closed. [Full evidence, limits and debt](MS7-1-FP3-FOUNDER-PATCH.md). Documentation-only closeout may yield newer HEAD/deployment without application changes. MS7.2 not started.

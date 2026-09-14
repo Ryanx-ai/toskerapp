@@ -36,14 +36,19 @@ export async function lockHallScope(tx: ToskerReader, actor: AuthenticatedActor,
 export async function requireHallNote(db: ToskerDatabase, actor: AuthenticatedActor, conversationId: string, itemId: string) {
   const scope = await hallScope(db, actor, conversationId);
   const [item] = await db.select({ id: hallItems.id }).from(hallItems)
-    .where(and(scope, eq(hallItems.id, itemId), eq(hallItems.kind, "note"), isNull(hallItems.archivedAt))).limit(1);
+    .where(and(scope, eq(hallItems.id, itemId), interactiveHallItem(conversationId), isNull(hallItems.archivedAt))).limit(1);
   if (!item) throw new AuthorizationDeniedError("Note not found in this Hall.");
   return item;
 }
 
+/** Reactions/comments belong to this Hall object, including a live source reference. */
+function interactiveHallItem(conversationId: string) {
+  return sql`(${hallItems.kind} = 'note' or (${hallItems.kind} = 'pinned_message' and exists (select 1 from messages source where source.id = ${hallItems.sourceMessageId} and source.conversation_id = ${conversationId} and source.deleted_at is null)))`;
+}
+
 async function lockHallNote(tx: ToskerReader, actor: AuthenticatedActor, conversationId: string, itemId: string) {
   const scope = await lockHallScope(tx, actor, conversationId);
-  const [item] = await tx.select({ id: hallItems.id }).from(hallItems).where(and(scope, eq(hallItems.id, itemId), eq(hallItems.kind, "note"), isNull(hallItems.archivedAt))).for("update");
+  const [item] = await tx.select({ id: hallItems.id }).from(hallItems).where(and(scope, eq(hallItems.id, itemId), interactiveHallItem(conversationId), isNull(hallItems.archivedAt))).for("update");
   if (!item) throw new AuthorizationDeniedError("Note unavailable in this Hall.");
 }
 

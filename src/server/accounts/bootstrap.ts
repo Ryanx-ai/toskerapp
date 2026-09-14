@@ -4,6 +4,7 @@ import { randomBytes } from "node:crypto";
 import { and, eq, inArray, or, sql } from "drizzle-orm";
 
 import { getDatabase } from "@/server/db/client";
+import { readSidebarPins } from "@/server/conversations/sidebar-pins";
 import {
   conversationParticipants,
   connectionNicknames,
@@ -51,6 +52,7 @@ export type BootstrapIdentity = {
 
 export type CanonicalIdentity = {
   userId: string;
+  sidebarPinnedIds: string[];
   displayName: string;
   username: string;
   tid: string;
@@ -235,7 +237,7 @@ export async function ensureToskerAccount(
 }
 
 /** Read-only navigation snapshot, reused after private activity invalidations. */
-export async function getWorkspaceNavigation(userId: string): Promise<Pick<CanonicalIdentity, "rooms" | "personalConversations">> {
+export async function getWorkspaceNavigation(userId: string): Promise<Pick<CanonicalIdentity, "rooms" | "personalConversations" | "sidebarPinnedIds">> {
   const db = getDatabase();
   const account = { userId };
   const memberships = await db
@@ -289,6 +291,7 @@ export async function getWorkspaceNavigation(userId: string): Promise<Pick<Canon
   }));
 
   return {
+    sidebarPinnedIds: await readSidebarPins(db, userId),
     rooms: memberships.map((room) => ({
       ...room,
       tag: tags.find((tag) => tag.roomId === room.id)?.value ?? "ROOM",

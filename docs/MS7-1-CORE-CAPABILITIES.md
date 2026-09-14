@@ -1,5 +1,11 @@
 # MS7.1 core capability decision ledger
 
+## FP4 — current implementation, release gate pending (2026-09-14)
+
+IMPLEMENTED: one authorized stable-ID Namecard across Personal/Friends/Room People/message/Hall identities; viewer-private alias; bounded current Common Rooms; six-section Personal Chat Settings with real mute and truthful media/privacy boundaries. Hall references now use source body/author and existing Hall reactions/comments/comment reactions, shared author-only source editor and committed-DOM source highlight. Account-private top-level pins/order persist in Neon; Sandbox is fixed, unpinned items remain activity-ordered, shared Subroom order is unchanged. This supersedes the old private-pin/reorder deferral below, **not** archive or broad Room lifecycle policy.
+
+The [FP4 control matrix and evidence](MS7-1-FP4-FOUNDER-PATCH.md) distinguish implementation from fresh/inherited acceptance. [Identity contract](IDENTITY-NAMECARD-CONTRACT.md) is the MS7.2 bridge. Existing Development debt disclosures remain explicitly deferred, not shipped media/translation/scheduling. Font rights are not established; no supplied font is shipped. MS7.1 lock remains conditional on canonical release/live smoke.
+
 ## FP3 Gate 2 — 2026-09-13 (supersedes earlier affected-control entries)
 
 - IMPLEMENTED: author-only **Nuke message**, content-free retry/cursor receipt, exact dependent retraction and independent replies. No individual-message Archive/Restore/Delete/tombstones.

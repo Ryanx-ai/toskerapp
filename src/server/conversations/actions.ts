@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 
 import { requireCurrentActor } from "@/server/auth/clerk";
 import { getDatabase } from "@/server/db/client";
-import { conversationParticipants, conversationReads, conversations, messages, messageMentions, notifications, profiles, users } from "@/server/db/schema";
+import { conversationParticipants, conversationReads, conversations, hallItems, messages, messageMentions, notifications, profiles, users } from "@/server/db/schema";
 import { hallScope, lockHallScope } from "@/server/hall/service";
 import { acceptedSendReceipt, changeOwnMessage, requireLiveReply, setMessageReaction } from "./service";
 import type { ReactionSummary } from "@/lib/reaction-contract";
@@ -149,7 +149,9 @@ export async function setMessageReactionAction(input: { conversationId: string; 
 
 export async function changeOwnMessageAction(input: { conversationId: string; messageId: string; body?: string; remove?: boolean }) {
   await changeOwnMessage(getDatabase(), await requireCurrentActor(), input);
-  await Promise.all([publishMessageChanged(input.conversationId), publishConversationActivity(input.conversationId, "chat"), ...(input.remove ? [publishConversationActivity(input.conversationId, "hall")] : [])]);
+  const pinned = input.remove ? true : (await getDatabase().select({ id: hallItems.id }).from(hallItems).where(and(eq(hallItems.sourceMessageId, input.messageId), eq(hallItems.conversationId, input.conversationId))).limit(1)).length > 0;
+  // Refresh a retained reference after source edits too; this creates no unread/event row.
+  await Promise.all([publishMessageChanged(input.conversationId), publishConversationActivity(input.conversationId, "chat"), ...(pinned ? [publishConversationActivity(input.conversationId, "hall")] : [])]);
 }
 
 export async function findPeopleAction(query: string, includeSelf = false) {

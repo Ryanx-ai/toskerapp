@@ -11,6 +11,7 @@ import { RoomInvitations } from "./room-invitations";
 import { SubroomOrderRow } from "./subroom-order-row";
 import { RoomCategory } from "./room-category";
 import { PersonAvatar, RoomAvatar } from "./identity-avatar";
+import { NamecardButton } from "./namecard-context";
 import { workspaceSnapshot } from "./workspace-snapshot";
 import { setConversationPreferenceAction } from "@/server/conversations/preference-actions";
 
@@ -68,7 +69,7 @@ export function RoomDetails({ slug, onClose, onInvite, onAddSubroom }: { slug: s
       </form> : <><p className="settings-value">{data.name}</p><div className="room-detail-tags">{data.tags.map((tag) => <RoomCategory key={tag} value={tag} />)}</div></>}
     </SettingsSection> },
     { id: "people", label: "People", content: <SettingsSection title={`People · ${data.members.length}`} description="People with access to this Room.">
-      <ul className="room-member-list">{data.members.map((member) => <li key={member.userId}><PersonAvatar seed={member.userId} initials={member.name.slice(0, 2)} /><span><strong>{member.name}</strong><small>{member.role === "owner" ? "Owner" : "Member"}{member.userId === identity?.userId ? " · You" : ""}</small></span>{owner && member.role !== "owner" ? <button className="danger" disabled={busy} onClick={() => setConfirm({ userId: member.userId, name: member.name })} aria-label={`Remove ${member.name}`}>Remove</button> : null}</li>)}</ul>
+      <ul className="room-member-list">{data.members.map((member) => <li key={member.userId}><NamecardButton userId={member.userId} name={member.name}><PersonAvatar seed={member.userId} initials={member.name.slice(0, 2)} /></NamecardButton><span><NamecardButton userId={member.userId} name={member.name}><strong>{member.name}</strong></NamecardButton><small>{member.role === "owner" ? "Owner" : "Member"}{member.userId === identity?.userId ? " · You" : ""}</small></span>{owner && member.role !== "owner" ? <button className="danger" disabled={busy} onClick={() => setConfirm({ userId: member.userId, name: member.name })} aria-label={`Remove ${member.name}`}>Remove</button> : null}</li>)}</ul>
       {onInvite ? <button className="quiet-action" disabled={busy} onClick={onInvite}>Add people</button> : null}
       <RoomInvitations roomId={data.id} />
     </SettingsSection> },

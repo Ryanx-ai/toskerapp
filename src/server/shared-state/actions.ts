@@ -44,6 +44,8 @@ export async function listHallItemsAction(conversationId: string, archived = fal
     .select({ id: hallItems.id, kind: hallItems.kind, title: hallItems.title, body: hallItems.body, sourceBody: messages.body, sourceMessageId: hallItems.sourceMessageId, author: profiles.displayName, createdAt: hallItems.createdAt, color: hallItems.color, position: hallItems.position, archivedAt: hallItems.archivedAt,
       imagePath: hallItems.imagePath, imageAlt: hallItems.imageAlt, authorId: hallItems.authorId,
       sourceDeletedAt: messages.deletedAt,
+      sourceAuthorId: messages.authorId,
+      sourceAuthor: sql<string | null>`(select display_name from profiles source_author where source_author.user_id = ${messages.authorId})`,
       commentCount: sql<number>`(select count(*)::int from hall_comments where item_id = ${hallItems.id})`,
       reactions: sql<Array<{ reaction: HallReaction; count: number; mine: boolean }>>`coalesce((select json_agg(r) from (select reaction, count(*)::int as count, bool_or(user_id = ${actor.userId}) as mine from hall_reactions where item_id = ${hallItems.id} group by reaction) r), '[]'::json)`,
     })

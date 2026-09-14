@@ -1,8 +1,8 @@
 # MS7.1 — shared stress results
 
-## FP4 — 2026-09-14, local candidate
+## FP4 — 2026-09-14, MS7.1 LOCKED
 
-[FP4 acceptance/control/fixture ledger](MS7-1-FP4-FOUNDER-PATCH.md) records fresh Namecard authorization/privacy, Hall source-reference lifecycle, account-private pins/order, six-width identity/Settings checks and small real A/B delivery. Old-source highlight DOM timing was fixed and rerun. Nine Namecard and21 retained-history service groups pass; synthetic history fixtures cleaned exactly. Fresh application build/type/lint/migration/catalog/invariant/secret checks pass. Canonical deployment/live smoke and lock are still pending; do not read this as a completed release. Existing FP2/FP3 evidence below stays historical, not silently rerun.
+[FP4 acceptance/control/fixture ledger](MS7-1-FP4-FOUNDER-PATCH.md) records fresh Namecard authorization/privacy, Hall source-reference lifecycle, account-private pins/order, six-width identity/Settings checks and small real A/B delivery. Old-source highlight DOM timing was fixed and rerun. Nine Namecard and21 retained-history service groups pass; synthetic history fixtures cleaned exactly. Fresh application build/type/lint/migration/catalog/invariant/secret checks pass. Application`f3ab7d0` is Git-deployed READY at`dpl_HXkQgqRzL7h7zDk4Bn9F4yRc6qpX`, canonical200; live A/B identity/alias/Settings/source lifecycle/private order/three-context real signals/privacy/removal and exact cleanup PASS. Founder conditional lock criteria met. Existing FP2/FP3 evidence below stays historical, not silently rerun.
 
 ## FP3 Gate 2 — 2026-09-13
 

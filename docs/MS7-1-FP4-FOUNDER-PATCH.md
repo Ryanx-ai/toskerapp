@@ -1,6 +1,14 @@
 # MS7.1 FP4 — execution ledger
 
-Status: IN PROGRESS. Baseline `16c5e4d05ebcd638a6565cec59d99e575a297d74`, equal to origin/main on 2026-09-14. MS7.1 is not locked; MS7.2 has not begun.
+Status: **MS7.1 LOCKED — 2026-09-14**, under the founder's explicit conditional FP4 lock authorization. Live-tested application `f3ab7d017ce92bee34a473fbb22230b26cffdaa4`; Git-backed deployment `dpl_HXkQgqRzL7h7zDk4Bn9F4yRc6qpX` READY, [canonical](https://toskerapp.vercel.app/) HTTPS200, immutable `https://tosker-3hqur9o1o-pangea6.vercel.app`. Baseline `16c5e4d` preserved. A later documentation/harness-only checkpoint may have a newer SHA without changing application source. MS7.2 is authorized to begin from this lock; it is not part of FP4.
+
+## Canonical live acceptance / lock
+
+Normal isolated Clerk A/B PASS: Namecard/private alias isolation and exact restoration, actual Common Room, all six Chat Settings sections, focus return; Room source send→B pin→A canonical edit→B Hall refresh→Go to message/highlight→Nuke/peer disappearance. Private sidebar pin/order/reload/other-viewer isolation PASS, original empty pins restored. Tiny Room/Subroom/Personal sends each required actual Ably signal marks and peer delivery; WHO/context-only activity projection and peer Nuke removal pass. Visible version is MS7.1 · FP4 — Development. The exact Development fixtures appear canonically, confirming the intended review data environment; this is not separated Production infrastructure.
+
+Anonymous workspace/messages401; A/B browser error lists empty; post-smoke deployment error sample0. No unknown dead core control or unresolved P0/P1 Chat/Room correctness defect identified. Deferred controls and policy/infrastructure debt remain as classified below. No physical-device/screen-reader or production-SLO certification.
+
+Live dry-run then exact cleanup PASS: two live QA Rooms/one selected child/three Room-or-child receipts and one explicitly enumerated already-Nuked Personal receipt removed. No Hall objects remained after source Nuke. Users, canonical Personal/Sandbox and unrelated Hall ordering preserved. Post-cleanup counts/invariants returned to the local-cleanup baseline; all16 historical hashes/current catalog and type/lint rerun pass. No test users or founder content were removed. Do not rerun the deleted QA routes or one-shot cleanup/seed suites.
 
 ## Scope and slices
 
@@ -39,7 +47,7 @@ Tiny Room/Subroom/Personal A→B browser delivery PASS, requiring actual `tosker
 
 Final narrow Hall discussion/sidebar menu and collapsed rail bounds/visual inspection PASS; expanded sidebar preference restored. Guarded dry-run then exact local cleanup PASS: two Rooms/one child/65 messages/four Hall objects/two notifications removed. Post-cleanup invariants PASS:6 users/profiles/Sandboxes,2 preserved Rooms/3 memberships,5 Personal conversations,29 messages,9 notes/2 pins,6 accepted connections,32 notifications; duplicate/orphan checks0. Unrelated Hall positions and canonical users/Personal/Sandboxes preserved. Browser-added Personal receipt is explicitly enumerated, not matched by prefix/time. Deleted QA routes must not be rerun. New live fixture utility is separately exact-scoped and dry-run-first.
 
-Still required: canonical deployment/live smoke and conditional lock. Local Clerk stale-session refresh loops required fresh normal profiles; no auth bypass or key changes. This is not a proven product root cause. An inherited browser-harness mode-name collision attempted an old missing FP2 route; renamed the FP4 mode and reran successfully, with no old fixture mutations. Native navigation sometimes exceeded the harness deadline but settled; these interruptions are not counted as passes.
+Chronological caveats: local Clerk stale-session refresh loops required fresh normal profiles; no auth bypass or key changes. This is not a proven product root cause. An inherited browser-harness mode-name collision attempted an old missing FP2 route; renamed the FP4 mode and reran successfully, with no old fixture mutations. Native navigation sometimes exceeded the harness deadline but settled; these interruptions are not counted as passes. Canonical smoke subsequently passed as recorded above.
 
 Reduced-motion browser emulation PASS: Namecard transition/animation reduced to0.01ms by the existing contract; native Escape closes. Final owned A/B browser error lists empty. No physical-device, assistive-technology or full production-infrastructure certification is claimed.
 

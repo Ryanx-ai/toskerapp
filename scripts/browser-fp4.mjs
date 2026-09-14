@@ -194,4 +194,27 @@ if(process.argv[2]==="fp4-narrow") {
   await run(a,"screenshot","/tmp/tosker-fp4-font-review.jZ9m3A/sidebar-collapsed.png"); await run(a,"press","Escape"); await button(a,"Expand sidebar");
   console.log("PASS mobile Hall discussion and sidebar menu; desktop collapsed rail menu; restored expanded preference");
 }
+if(process.argv[2]==="fp4-live-controls") {
+  const room="/room/fp4-live-review", sourceBody="FP4 live retained source", pin=".hall-local-pinned-message";
+  for(const s of [a,b]) { await run(s,"open",origin+room); await until(s,"!!document.querySelector('.composer textarea')","live Room"); }
+  await fill(a,".composer textarea",sourceBody); await button(a,"Send message"); await until(a,"document.querySelector('.composer textarea').value===''","live acknowledgement",45000);
+  const row=`[...document.querySelectorAll('.message-row')].find(e=>e.querySelector('.message-bubble > p')?.textContent===${JSON.stringify(sourceBody)})`;
+  const source=(await ev(a,`${row}.id`)).slice(8); await until(b,`!!document.getElementById('message-${source}')`,"live peer source",45000);
+  await run(b,"click",`#message-${source} [aria-label='More message actions']`); await button(b,"Pin to Hall"); await until(b,"!document.querySelector('.message-action-list')","live pin accepted");
+  for(const s of [a,b]) { await run(s,"open",origin+room+"/hall"); await until(s,`!!document.querySelector('${pin}')`,"live retained source"); }
+  assert.equal(await ev(a,`!!document.querySelector('${pin} h3')`),false);
+  await run(a,"click",pin+" .hall-card-more"); await button(a,"Edit message"); await fill(a,".message-edit-panel textarea","FP4 live canonical edit"); await button(a,"Save"); await until(a,"!document.querySelector('.message-edit-panel')","live edit accepted");
+  await until(b,`document.querySelector('${pin}')?.textContent.includes('FP4 live canonical edit')`,"live peer Hall source refresh",45000);
+  await run(a,"click",pin+" .hall-card-more"); await run(a,"find","text","Go to message","click"); await until(a,`!!document.querySelector('#message-${source}.message-source-highlight')`,"live source highlight",45000);
+  await run(a,"click",`#message-${source} [aria-label='More message actions']`); await button(a,"Nuke message"); await button(a,"Nuke message"); await until(b,`!document.querySelector('${pin}')`,"live peer reference removed",45000);
+  console.log("PASS live source send/pin/edit/Go to message/highlight/Nuke; peer Hall invalidation");
+  const order="[...document.querySelectorAll('.sidebar-pin-row.is-pinned')].map(e=>e.dataset.pinId)";
+  for(const name of ["FP4 Live Review","FP4 Live Order"]) { await button(a,`Organize ${name}`); await button(a,"Pin to top"); }
+  await until(a,`${order}.length===2`,"live pins"); await button(a,"Organize FP4 Live Order"); await button(a,"Move earlier");
+  const expected=["f7410000-2026-4000-8000-000000000006","f7410000-2026-4000-8000-000000000003"];
+  await until(a,`${order}.join('|')===${JSON.stringify(expected.join('|'))}`,"live private order");
+  await run(a,"open",origin+room); await until(a,`${order}.join('|')===${JSON.stringify(expected.join('|'))}`,"live order persisted"); assert.deepEqual(await ev(b,order),[]);
+  for(const name of ["FP4 Live Review","FP4 Live Order"]) { await button(a,`Organize ${name}`); await button(a,"Unpin"); }
+  await until(a,`${order}.length===0`,"live pins restored"); console.log("PASS live pin/order/reload/other-viewer isolation; original empty preference restored");
+}
 if(process.argv[2]==="restore-alias") { await run(a,"open",origin+personal); await until(a,"!!document.querySelector('.header-identity-zone > .namecard-trigger')","Personal identity"); await run(a,"click",".header-identity-zone > .namecard-trigger"); await button(a,"Private nickname"); await fill(a,".scoped-settings-form input",""); await button(a,"Save nickname"); await until(a,"document.querySelector('.scoped-settings-form [role=status]')?.textContent==='Nickname saved.'","original no-alias restored"); await run(a,"press","Escape"); console.log("PASS original empty A→B nickname restored"); }

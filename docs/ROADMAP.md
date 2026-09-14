@@ -4,7 +4,7 @@ Updated 2026-09-09 by the founder's roadmap-memory/state-alignment brief. This i
 
 ## Current state / authorization
 
-Current override (2026-09-14): founder completed FP3 walkthrough and authorizes direct FP4 → targeted acceptance → Git-backed canonical deploy/live smoke → **MS7.1 lock only if every FP4 gate passes**, then immediate bounded MS7.2 Profile + Settings continuation. [FP4 ledger](MS7-1-FP4-FOUNDER-PATCH.md) is active; no lock or MS7.2 start is claimed yet. This conditional authority supersedes the older stop/approval instructions below; it does not authorize MS7.3 or new infrastructure.
+Current override (2026-09-14): founder completed FP3 walkthrough and explicitly pre-authorized lock after FP4 acceptance/live smoke. **MS7.1 is now LOCKED** at live-tested application `f3ab7d017ce92bee34a473fbb22230b26cffdaa4`, READY deployment `dpl_HXkQgqRzL7h7zDk4Bn9F4yRc6qpX`, canonical HTTPS200. [FP4 acceptance/lock record](MS7-1-FP4-FOUNDER-PATCH.md). MS7.2 Profile + Settings is the next authorized bounded development slice; MS7.3+ and new infrastructure are not authorized. Historical September9 state/protocol below is superseded by this lock, not erased.
 
 - MS6 is COMPLETE AND LOCKED.
 - MS7.1 — Chat + Rooms Productization / Beta Hardening — is IN PROGRESS and unlocked. Preserve all local checkpoints, including `428b8aa`, `eda4451`, `b3bd7a1`, `bfb444d`, `449caf8` and `8b6d29c`; re-inspect Git on resume.
@@ -25,7 +25,7 @@ Do not defer every backend defect to MS7.6 and do not provision every discovered
 
 **Private attachments are explicitly Class B — MS7.6 provisioning backlog**, not a current MS7.1 blocker. The founder may promote them earlier by later explicit instruction. Do not provision now, request a token as a prerequisite to resuming MS7.1, or restore fake uploads. Track them in [the MS7.6 backlog](MS7-6-PROVISIONING-BACKLOG.md).
 
-## Next MS7.1 phase — authorized by the separate continuation directive
+## Historical MS7.1 phase / review protocol
 
 1. Recover the current validated MS7.1 state from handoff, milestone evidence and Git.
 2. Continue testing Chat / Rooms / Hall.

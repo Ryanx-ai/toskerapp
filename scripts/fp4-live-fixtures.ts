@@ -1,12 +1,13 @@
 /** Two exact, small FP4 live-review Rooms. Never touches canonical Personal/Sandbox. */
 import assert from "node:assert/strict";
-import { and, inArray, notInArray } from "drizzle-orm";
+import { and, eq, inArray, notInArray } from "drizzle-orm";
 import { getDatabase } from "../src/server/db/client";
 import { rooms, roomMemberships, subrooms, subroomAccess, conversations, conversationParticipants, users, messages, hallItems, hallComments } from "../src/server/db/schema";
 const db=getDatabase();
 db.$client.options.connectionTimeoutMillis=15_000; db.$client.options.query_timeout=20_000;
 const id=(n:number)=>`f7410000-2026-4000-8000-${n.toString(16).padStart(12,"0")}`;
 const a="0ee1e5a5-6d7a-4541-a6ca-ca69788997ef",b="d7a58753-9877-45b2-9fc7-cca188559fed";
+const privateReceipt="e9f55ebb-4747-489a-9e06-dfc664f64830";
 async function main() {
   await db.transaction(async tx=>{
     const beforeUsers=await tx.select({id:users.id}).from(users).orderBy(users.id);
@@ -35,8 +36,12 @@ async function main() {
     assert(hall.every(h=>[a,b].includes(h.authorId)&&(h.kind==="pinned_message"?ids.includes(h.sourceMessageId!):h.title?.startsWith("FP4"))));
     if(hall.length)assert((await tx.select().from(hallComments).where(inArray(hallComments.itemId,hall.map(h=>h.id)))).every(c=>[a,b].includes(c.authorId)&&c.body.startsWith("FP4")));
     const preservedHall=await tx.select({id:hallItems.id,position:hallItems.position}).from(hallItems).where(hall.length?notInArray(hallItems.id,hall.map(h=>h.id)):undefined).orderBy(hallItems.id);
-    console.log(process.argv.includes("--clean")?"EXACT LIVE CLEANUP":"DRY RUN",{rooms:2,children:1,messages:rows.length,hall:hall.length});
+    const [receipt]=await tx.select().from(messages).where(eq(messages.id,privateReceipt));
+    assert(receipt&&receipt.authorId===a&&receipt.conversationId==="be192eac-38c6-4d46-a6d2-bea19fa324fa"&&receipt.deletedAt&&!receipt.body,"Exact already-Nuked Personal QA receipt required");
+    assert.equal((await tx.select().from(messages).where(eq(messages.replyToId,privateReceipt))).length,0);
+    console.log(process.argv.includes("--clean")?"EXACT LIVE CLEANUP":"DRY RUN",{rooms:2,children:1,messages:rows.length,privateReceipts:1,hall:hall.length});
     if(!process.argv.includes("--clean"))return;
+    await tx.delete(messages).where(eq(messages.id,privateReceipt));
     await tx.delete(rooms).where(inArray(rooms.id,[id(1),id(5)]));
     assert.deepEqual(await tx.select({id:users.id}).from(users).orderBy(users.id),beforeUsers);
     assert.deepEqual(await tx.select({id:conversations.id}).from(conversations).where(inArray(conversations.kind,["personal","sandbox"])).orderBy(conversations.id),beforePrivate);

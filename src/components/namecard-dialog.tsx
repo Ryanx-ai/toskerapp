@@ -61,7 +61,8 @@ function NamecardDialog({ userId, onClose }: { userId: string; onClose: () => vo
       <h2 id={`${id}-title`}>{name}</h2>
       {person.nickname ? <p className="namecard-canonical">{person.displayName}</p> : null}
       <p className="namecard-handle">@{person.username} · {person.tid}</p>
-      <p className="namecard-status"><i className={`presence-mark ${person.presenceStatus}`} aria-hidden="true" />{statusNames[person.presenceStatus]}</p>
+      {person.presenceStatus ? <p className="namecard-status"><i className={`presence-mark ${person.presenceStatus}`} aria-hidden="true" />{statusNames[person.presenceStatus]}</p> : null}
+      {person.namecardBio ? <p className="namecard-bio">{person.namecardBio}</p> : null}
         {!person.self ? <div className="namecard-actions"><button className="primary-action" disabled={busy} onClick={async () => {
           setBusy(true); setError("");
           try { await refresh(); const chat = await startPersonalConversationAction(userId); onClose(); router.push(`/personal/${chat.slug}`); router.refresh(); }

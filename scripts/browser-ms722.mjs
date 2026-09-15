@@ -34,7 +34,7 @@ for (const [width, height] of [[320,740],[390,844],[430,932],[768,1024],[1440,90
 await run(session,"set","viewport","390","844");
 await button(session,"Edit Profile");
 const original = await ev(session,"document.querySelector('.owner-profile-field input').value");
-await run(session,"fill",".owner-profile-field input","Unsaved MS7.2 frame QA");
+await run(session,"fill",".owner-profile-field input[autocomplete=nickname]","Unsaved MS7.2 frame QA");
 const ready = await measure();
 await button(session,"Cancel");
 assert(await ev(session,"!!document.querySelector('.settings-discard')"));
@@ -46,7 +46,7 @@ await button(session,"Discard");
 await section("Identity");
 assert.equal(await ev(session,"document.querySelector('.owner-profile-field input').value"),original);
 // Fail the real browser save request; do not call a server action through evaluation.
-await run(session,"fill",".owner-profile-field input","Unsent MS7.2 failure QA");
+await run(session,"fill",".owner-profile-field input[autocomplete=nickname]","Unsent MS7.2 failure QA");
 await run(session,"network","route",`${origin}/profile*`,"--abort");
 try {
   await button(session,"Save Profile");

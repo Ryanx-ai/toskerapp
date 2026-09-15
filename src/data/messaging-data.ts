@@ -40,7 +40,7 @@ export type Conversation = {
   context: string;
   messages: Message[];
   tag?: string;
-  presenceStatus?: "online" | "idle" | "away" | "meeting";
+  presenceStatus?: "online" | "idle" | "away" | "meeting" | null;
   href?: string;
 };
 

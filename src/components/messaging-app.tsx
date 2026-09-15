@@ -5,7 +5,7 @@ import { NamecardProvider } from "./namecard-dialog";
 import { NamecardButton } from "./namecard-context";
 import { SidebarConversationRow } from "./sidebar-conversation-row";
 import { RoomDetails } from "./room-details";
-import { ACTIVITY_REFRESH, CONVERSATION_ACCESS_LOST } from "@/lib/realtime-contract";
+import { ACTIVITY_REFRESH, CONVERSATION_ACCESS_LOST, PROFILE_REFRESH } from "@/lib/realtime-contract";
 import { removedMessageIds } from "@/lib/message-removal";
 import { notificationHref } from "@/lib/notification-href";
 import { deriveAttention } from "@/lib/attention";
@@ -71,7 +71,7 @@ const nav = [
   { label: "Explore", icon: Compass, href: "/explore" },
   { label: "Friends", icon: UsersRound, href: "/friends" },
 ];
-function PresenceMark({ status, label = true }: { status?: "online" | "idle" | "away" | "meeting"; label?: boolean }) {
+function PresenceMark({ status, label = true }: { status?: "online" | "idle" | "away" | "meeting" | null; label?: boolean }) {
   if (!status) return null;
   const names = { online: "Online", idle: "Idle", away: "Away", meeting: "In a meeting" };
   return <span className={`presence-mark ${status}`} title={names[status]} aria-label={label ? names[status] : undefined} />;
@@ -1254,6 +1254,12 @@ export function MessagingApp({
   );
   const activity = snapshot.activity;
   const [readingPaused, setReadingPaused] = useState(false);
+  useEffect(() => {
+    let pending: ReturnType<typeof setTimeout> | undefined;
+    const refresh = () => { clearTimeout(pending); pending = setTimeout(() => { if (!document.hidden) router.refresh(); }, 250); };
+    window.addEventListener(PROFILE_REFRESH, refresh);
+    return () => { clearTimeout(pending); window.removeEventListener(PROFILE_REFRESH, refresh); };
+  }, [router]);
   useEffect(() => { queueMicrotask(() => setReadingPaused(false)); }, [selectedSlug, surface]);
   const [toast, setToast] = useState<NotificationActivity | null>(null);
   const seenActivity = useRef<Set<string> | null>(null);

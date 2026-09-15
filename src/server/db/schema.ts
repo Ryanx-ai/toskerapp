@@ -51,6 +51,8 @@ export const presenceStatus = pgEnum("presence_status", [
 ]);
 export const subroomVisibility = pgEnum("subroom_visibility", ["everyone", "selected", "owners"]);
 export const hallReactionKind = pgEnum("hall_reaction_kind", ["heart", "like", "celebrate"]);
+export const profileAudience = pgEnum("profile_audience", ["self", "friends", "shared_context"]);
+export const identityAccent = pgEnum("identity_accent", ["neutral", "gold", "rose", "sage", "sky"]);
 
 export const users = pgTable(
   "users",
@@ -80,6 +82,10 @@ export const profiles = pgTable("profiles", {
   status: text("status"),
   presenceStatus: presenceStatus("presence_status").default("online").notNull(),
   namecardBio: text("namecard_bio"),
+  detailsAudience: profileAudience("details_audience").default("self").notNull(),
+  statusAudience: profileAudience("status_audience").default("shared_context").notNull(),
+  identityAccent: identityAccent("identity_accent").default("neutral").notNull(),
+  revision: integer("revision").default(0).notNull(),
   ...timestamps,
 }, (table) => [uniqueIndex("profiles_username_unique").on(table.username)]);
 

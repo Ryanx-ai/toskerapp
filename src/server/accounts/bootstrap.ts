@@ -1,14 +1,14 @@
 import "server-only";
 
 import { randomBytes } from "node:crypto";
-import { and, eq, inArray, or, sql } from "drizzle-orm";
+import { and, eq, inArray, or } from "drizzle-orm";
 
 import { getDatabase } from "@/server/db/client";
 import { readSidebarPins } from "@/server/conversations/sidebar-pins";
+import { readOwnProfile, type OwnProfile } from "@/server/profiles/own-read";
+import { readPersonalNavigation } from "./personal-navigation";
 import {
   conversationParticipants,
-  connectionNicknames,
-  connections,
   conversations,
   profiles,
   roomMemberships,
@@ -52,6 +52,7 @@ export type BootstrapIdentity = {
 
 export type CanonicalIdentity = {
   userId: string;
+  ownProfile: OwnProfile;
   sidebarPinnedIds: string[];
   displayName: string;
   username: string;
@@ -78,7 +79,7 @@ export type CanonicalIdentity = {
     username: string;
     tid: string;
     nickname: string | null;
-    presenceStatus: "online" | "idle" | "away" | "meeting";
+    presenceStatus: "online" | "idle" | "away" | "meeting" | null;
   }>;
 };
 
@@ -233,7 +234,8 @@ export async function ensureToskerAccount(
     };
   });
 
-  return { ...account, ...await getWorkspaceNavigation(account.userId) };
+  const ownProfile = await readOwnProfile(db, account.userId);
+  return { ...account, displayName: ownProfile.displayName, presenceStatus: ownProfile.presenceStatus, ownProfile, ...await getWorkspaceNavigation(account.userId) };
 }
 
 /** Read-only navigation snapshot, reused after private activity invalidations. */
@@ -268,27 +270,7 @@ export async function getWorkspaceNavigation(userId: string): Promise<Pick<Canon
     .from(subrooms).innerJoin(conversations, eq(conversations.subroomId, subrooms.id)).leftJoin(subroomAccess, and(eq(subroomAccess.subroomId, subrooms.id), eq(subroomAccess.userId, account.userId)))
     .where(and(inArray(subrooms.roomId, memberships.map((room) => room.id)), or(eq(subrooms.visibility, "everyone"), eq(subroomAccess.userId, account.userId))))
     .orderBy(subrooms.position, subrooms.createdAt, subrooms.id) : [];
-  const personalRows = await db
-    .select({ conversationId: conversations.id })
-    .from(conversationParticipants)
-    .innerJoin(conversations, eq(conversations.id, conversationParticipants.conversationId))
-    .where(and(eq(conversationParticipants.userId, account.userId), eq(conversations.kind, "personal")));
-  const personalConversations = await Promise.all(personalRows.map(async ({ conversationId }) => {
-    const [other] = await db
-      .select({ displayName: profiles.displayName, username: profiles.username, tid: users.tid, presenceStatus: profiles.presenceStatus, userId: users.id, avatarUrl: profiles.avatarUrl })
-      .from(conversationParticipants)
-      .innerJoin(users, eq(users.id, conversationParticipants.userId))
-      .innerJoin(profiles, eq(profiles.userId, users.id))
-      .where(and(eq(conversationParticipants.conversationId, conversationId), sql`${conversationParticipants.userId} <> ${account.userId}`))
-      .limit(1);
-    if (!other) return null;
-    const [relationship] = await db.select({ nickname: connectionNicknames.nickname })
-      .from(connections)
-      .leftJoin(connectionNicknames, and(eq(connectionNicknames.connectionId, connections.id), eq(connectionNicknames.userId, account.userId)))
-      .where(and(eq(connections.status, "accepted"), or(and(eq(connections.requesterId, account.userId), eq(connections.addresseeId, other.userId)), and(eq(connections.addresseeId, account.userId), eq(connections.requesterId, other.userId)))))
-      .limit(1);
-    return { conversationId, slug: `chat-${conversationId}`, displayName: other.displayName, username: other.username, tid: other.tid, nickname: relationship?.nickname ?? null, presenceStatus: other.presenceStatus, userId: other.userId, avatarUrl: other.avatarUrl };
-  }));
+  const personalConversations = await readPersonalNavigation(db, account.userId);
 
   return {
     sidebarPinnedIds: await readSidebarPins(db, userId),

@@ -2,6 +2,10 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## MS7.2.3 — local profile/audience slice (2026-09-15)
+
+Preserved frame checkpoint `a2c2e9e`; find newer profile checkpoint in Git. Development forward migration `0016_ms72_profile_audiences` APPLIED, SHA256 `381021a146c279abf5df4ca04d31e10d6ddea552101718f85d58852b6586c91e`: profile audience/accent enums, four additive columns and revision trigger covering old deployed writers. All17 migration checksums/latest catalog PASS (24tables/153columns/74constraints/11enums). Historical migrations/backfills untouched. Do not edit applied0016 or rerun it manually. Owner bio/Privacy editor, centralized audience SQL, batched Friends/Personal projections, stale-save conflict and content-free post-commit metadata refresh implemented. Privacy/service rollback tests and real A/B sharing/revocation/header/reload/two-tab conflict pass; A's original profile fields restored. See [execution ledger](docs/MS7-2-IMPLEMENTATION.md) for exact harness/session caveats, validation and remaining Room identity/Account/Brand/preferences/TID/release work. Canonical code remains locked MS7.1; no push/deploy or MS7.3. Retain existing QA fixtures and unrelated WIP; `toskerArt/` untouched/untracked.
+
 ## MS7.2 Gate 2 — frame/sidebar slice (2026-09-15)
 
 Gate 2 FULL DEVELOPMENT authorized by founder; MS7.2 IN PROGRESS, local only, not founder-ready/locked. MS7.1 remains locked; MS7.3+ not started. Baseline `324e2f4`; newer local checkpoint should be identified in Git. Canonical remains Git `5ae54fb…` / deployment `dpl_8HeaZ9UFjhwJ615VzZSc1iEL6xwp`. No push/deploy, new migration, provider, credential, font or identity-data change in this slice.

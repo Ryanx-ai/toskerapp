@@ -3,6 +3,8 @@ export const conversationChannel = (id: string) => `tosker:conversation:${id}`;
 export const typingChannel = (id: string) => `tosker:typing:${id}`;
 export const userChannel = (id: string) => `tosker:user:${id}`;
 export const USER_ACTIVITY = "activity.changed";
+export const PROFILE_CHANGED = "profile.changed";
+export const PROFILE_REFRESH = "tosker:profile-refresh";
 export const CHAT_REFRESH = "tosker:chat-refresh";
 export const HALL_REFRESH = "tosker:hall-refresh";
 export const ACTIVITY_REFRESH = "tosker:activity-refresh";

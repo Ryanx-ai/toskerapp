@@ -1120,6 +1120,7 @@ h1,h2,h3 { font-family:var(--font-mermaid),Georgia,serif; font-weight:400; lette
 .scoped-settings-footer { flex:none; max-height:45%; overflow-y:auto; padding:16px 24px max(20px,env(safe-area-inset-bottom)); border-top:1px solid var(--border); }
 .scoped-settings-footer:empty { display:none; }
 .scoped-settings-footer > p { font-size:13px; margin:0 0 12px; }
+.namecard-bio { margin:16px 0; font:400 13px/1.6 var(--font-montserrat),sans-serif; color:var(--text-secondary); overflow-wrap:anywhere; }
 .scoped-settings-danger { display:flex; align-items:center; justify-content:space-between; gap:16px; padding-top:16px; border-top:1px solid var(--border); }
 .scoped-settings-danger p { margin:0; color:var(--text-secondary); font-size:12px; }
 .scoped-settings-shell .danger { color:var(--danger,#f28b9c); background:transparent; }

@@ -1,8 +1,20 @@
 # MS7.2 — TID foundation and existing-user transition gate
 
-2026-09-15. New-account code foundation implemented locally. **Existing-user transition NOT applied. No TID migration created, no canonical lookup/copy release claim.**
+2026-09-16. **Founder-approved Development reset APPLIED; lookup/copy implemented and locally validated. Not pushed/deployed.** The historical pre-decision audit below is retained as evidence, not the current directive.
 
-## Verified dependencies
+## Approved transition / actual result
+
+Founder explicitly accepts breaking test-era legacy references even if shared; **no alias/compatibility system**. All six existing users were inventoried against all27 foreign-key columns referencing users. They reference UUID `id`, never TID. The only public TID column is `users.tid`; current app routes/invitations/auth remain UUID/slug-based. All four non-A/B identities have authored messages and Personal/shared dependencies; one also owns a Room/Hall content. No account is safely disposable. All six database/Clerk identities retained; credentials untouched.
+
+`scripts/ms72-tid-transition.ts inspect` is read-only. Explicit `apply-development-reset` uses a repeatable-read transaction, exclusive users lock, exact six-user allowlist, existing cryptographic generator, occupied-value collision retry and authoritative unique index. It fingerprints all25 public tables before/after, excluding ONLY `users.tid`; mismatch rolls back. Every non-TID value/relationship remained identical. Six legacy-format values → six unique canonical `[A-Z0-9]{7}` values; zero collisions, zero remaining legacy TIDs. Per-user old-format→new-value mapping was emitted in the scoped recovery tool output; not duplicated into public repository documentation. No historical SQL migration, schema/metadata modification, alias or identifier-derived authorization.
+
+New accounts use the same crypto generator and five-attempt DB-unique bootstrap boundary. Existing IDs remain immutable under normal Profile/status/Brand/Room/private nickname actions. Discovery retains current name/username behavior but its TID branch is now **exact**, trimmed ASCII lowercase-normalized; partial/legacy TID matching removed. Profile/Namecard copy emits precisely the seven stored characters, with accessible success/failure status and manual fallback; no cosmetic ID shortening.
+
+Fresh tests pass generation/forced collision/exhaustion/idempotence and no identifier changes during actor-owned Profile/privacy/Room/Brand service tests. A/B browser tests pass canonical display/copy and exact lowercase/whitespace lookup, rejecting partial/legacy-style lookup. Browser registration through normal Create account reached a human-verification challenge; no temporary Clerk/database user created. **Registration→Profile→Namecard→lookup still needs normal-browser acceptance.** No CAPTCHA/auth bypass was attempted.
+
+Rollout: old canonical code still generates legacy IDs against shared Development infrastructure. No strict format DB constraint was imposed while old writers remain. Before deployment, re-inventory; new unreviewed users cause the explicit reset tool to stop. Recheck after the Git-backed new generator is live. Canonical rollback to old code requires this check again. Do not regenerate already-canonical identifiers or provision compatibility infrastructure. All19 SQL migration hashes/catalog remain aligned.
+
+## Historical pre-decision dependencies (superseded)
 
 - Six current users; zero canonical seven-character TIDs and six legacy TIDs. Fresh post-test counts remain six; no real ID was changed.
 - No foreign keys target TID, no other persisted TID columns and no stored Chat message references found in the bounded database audit. User UUID remains relationship/authorization authority.
@@ -18,7 +30,7 @@
 
 Fresh service tests PASS1000 generated shapes, letters/digits/mixed cases, exact lowercase normalization, whitespace/punctuation/Unicode/length rejection, actual DB collision retry, five-attempt exhaustion and existing actor reuse. Synthetic transaction rolled back. Updated generic bootstrap integration PASS one stable user/profile/Sandbox, new canonical TID and unchanged owner-managed display name when provider name differs; its exact random non-login test identity/Sandbox was cleaned up. No application undo for the disposable fixture; all six real accounts remain untouched.
 
-## Recommended compatibility transition if shared or uncertain
+## Historical conditional proposal (REJECTED by founder; do not implement)
 
 Requires founder resolution, not implemented here:
 

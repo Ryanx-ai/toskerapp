@@ -13,6 +13,7 @@ import { ModalLayer } from "./modal-layer";
 import { PersonAvatar } from "./identity-avatar";
 import { NicknameDialog } from "./nickname-editor";
 import { PersonalChatSettings } from "./personal-chat-settings";
+import { CopyTid } from "./copy-tid";
 
 const statusNames = { online: "Online", idle: "Idle", away: "Away", meeting: "In a meeting" };
 
@@ -62,6 +63,7 @@ function NamecardDialog({ userId, roomId, onClose }: { userId: string; roomId?: 
       {name !== person.displayName ? <p className="namecard-canonical">{person.displayName}</p> : null}
       {person.roomContext ? <p className="settings-scope">In {person.roomContext.name}{person.nickname ? <> · You call them {person.nickname}</> : null}</p> : null}
       <p className="namecard-handle">@{person.username} · {person.tid}</p>
+      <CopyTid tid={person.tid} />
       {person.presenceStatus ? <p className="namecard-status"><i className={`presence-mark ${person.presenceStatus}`} aria-hidden="true" />{statusNames[person.presenceStatus]}</p> : null}
       {person.namecardBio ? <p className="namecard-bio">{person.namecardBio}</p> : null}
         {!person.self ? <div className="namecard-actions"><button className="primary-action" disabled={busy} onClick={async () => {

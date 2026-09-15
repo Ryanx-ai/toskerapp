@@ -15,6 +15,7 @@ import { clearManualUnread } from "./preferences";
 import { validateMentionTargets } from "./mentions";
 import { adjustMentions, type MentionSpan } from "@/lib/mentions";
 import { contextualName, conversationRoomId } from "@/server/profiles/context-name";
+import { normalizeTidLookup } from "@/lib/tid-contract";
 
 export type PersistentMessage = {
   id: string;
@@ -160,13 +161,14 @@ export async function changeOwnMessageAction(input: { conversationId: string; me
 export async function findPeopleAction(query: string, includeSelf = false) {
   const actor = await requireCurrentActor();
   const term = query.trim().replace(/^@/, "").slice(0, 80);
+  const tid = normalizeTidLookup(query);
   if (term.length < 2) return [];
   const db = getDatabase();
   return db
     .select({ userId: users.id, displayName: profiles.displayName, username: profiles.username, tid: users.tid })
     .from(users)
     .innerJoin(profiles, eq(profiles.userId, users.id))
-    .where(and(includeSelf ? undefined : ne(users.id, actor.userId), or(ilike(profiles.displayName, `%${term}%`), ilike(profiles.username, `%${term}%`), ilike(users.tid, `%${term}%`))))
+    .where(and(includeSelf ? undefined : ne(users.id, actor.userId), or(ilike(profiles.displayName, `%${term}%`), ilike(profiles.username, `%${term}%`), tid ? eq(users.tid, tid) : undefined)))
     .limit(8);
 }
 

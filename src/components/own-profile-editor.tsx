@@ -11,6 +11,7 @@ import { ACTIVITY_REFRESH } from "@/lib/realtime-contract";
 import { SettingsSection, SettingsShell } from "./settings-shell";
 import { AccountSecurity } from "./account-security";
 import { IdentityCard } from "./identity-card";
+import { CopyTid } from "./copy-tid";
 
 const editable = ["displayName", "presenceStatus", "namecardBio", "detailsAudience", "statusAudience", "identityAccent", "bannerPreference"] as const;
 export function OwnProfileEditor({ identity, onClose, accountMode = false, selectedSection, onSectionChange }: { identity: CanonicalIdentity; onClose: () => void; accountMode?: boolean; selectedSection?: string; onSectionChange?: (id: string) => void }) {
@@ -45,7 +46,7 @@ export function OwnProfileEditor({ identity, onClose, accountMode = false, selec
     { id:accountMode ? "profile" : "identity",label:accountMode ? "Profile" : "Identity",content:section("Profile","Your global name. Other people's private nicknames for you stay theirs.",<>
       <label className="owner-profile-field">Global display name<input name="displayName" value={draft.displayName} maxLength={80} required disabled={busy} onChange={event => setDraft({...draft,displayName:event.target.value})} autoComplete="nickname" /></label>
       <label className="owner-profile-field">Bio <span className="settings-scope">Optional · {audienceLabels[draft.detailsAudience]}</span><input name="namecardBio" value={draft.namecardBio ?? ""} maxLength={160} disabled={busy} onChange={event => setDraft({...draft,namecardBio:event.target.value})} /></label>
-      <dl className="owner-profile-identifiers"><div><dt>Username</dt><dd>@{identity.username}</dd></div><div><dt>TID</dt><dd>{identity.tid}</dd></div></dl>
+      <dl className="owner-profile-identifiers"><div><dt>Username</dt><dd>@{identity.username}</dd></div><div><dt>TID</dt><dd>{identity.tid} <CopyTid tid={identity.tid} /></dd></div></dl>
       <p className="settings-scope">Username and TID stay fixed. Avatar uploads aren’t connected.</p>
     </>) },
     { id:"status",label:"Status",content:section("Availability","A manual status, not live activity tracking.",<><label className="owner-profile-field">Your status<select value={draft.presenceStatus} disabled={busy} onChange={event => setDraft({...draft,presenceStatus:event.target.value as CanonicalIdentity["presenceStatus"]})}><option value="online">Online</option><option value="idle">Idle</option><option value="away">Away</option><option value="meeting">In a meeting</option></select></label><p className="settings-scope">Visible to: {audienceLabels[draft.statusAudience]}.</p></>) },
@@ -68,7 +69,7 @@ export function OwnProfileEditor({ identity, onClose, accountMode = false, selec
         <IdentityCard compact label="Accent preview" profile={{userId:identity.userId,avatarUrl:identity.avatarUrl,name:draft.displayName,username:identity.username,tid:identity.tid,initials:draft.displayName.slice(0,2),color:"gold",status:"",identityAccent:draft.identityAccent}} />
         <button type="button" className="quiet-action" disabled={busy || draft.identityAccent==="neutral"} onClick={()=>setDraft({...draft,identityAccent:"neutral"})}>Reset to neutral</button>
       </>) },
-      { id:"support", label:"Support", content:<SettingsSection title="Help and feedback" description="Find your way around Tosker."><Link className="quiet-action" href="/help">Open Help</Link><p className="settings-scope">A monitored support destination hasn’t been configured for this Development build. No feedback is sent from this page.</p><p className="settings-scope">For a founder walkthrough, note the page, what you expected and what happened. Don’t include passwords or verification codes.</p></SettingsSection> },
+      { id:"support", label:"Support", content:<SettingsSection title="Help and feedback" description="Find your way around Tosker."><Link className="quiet-action" href="/help">Open Help</Link><a className="quiet-action" href="mailto:ryanchinqf2@gmail.com">Contact support</a><p className="settings-scope">Opens your email app. Include the page, what you expected and what happened. Don’t include passwords or verification codes.</p></SettingsSection> },
     ] : []),
   ]} footer={requestClose => <div className="owner-profile-save">{error ? <p role="alert">{error}</p> : null}{feedback && !changed ? <p role="status">{feedback}</p> : null}
     {accountMode && ["account","appearance","language","support"].includes(selectedSection ?? "") ? <form id={formId} onSubmit={save} /> : null}

@@ -1,5 +1,6 @@
 import { PersonAvatar } from "@/components/identity-avatar";
 import type { IdentityAccent } from "@/lib/profile-contract";
+import { CopyTid } from "./copy-tid";
 
 export type IdentityCardProfile = {
   userId?: string;
@@ -30,6 +31,7 @@ export function IdentityCard({
       <div className="namecard-body">
         <h2>{profile.name}</h2>
         <strong>{profile.username} · {profile.tid}</strong>
+        {!compact ? <CopyTid tid={profile.tid} /> : null}
         {profile.status ? <span className="presence">{profile.status}</span> : null}
         {action}
       </div>

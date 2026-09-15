@@ -4,6 +4,8 @@ Updated 2026-09-09 by the founder's roadmap-memory/state-alignment brief. This i
 
 ## Current state / authorization
 
+2026-09-16 MS7.2 founder decisions implemented locally: gated full Clerk panel; truthful Support; six retained Development TIDs transitioned without aliases. All six users preserved due A/B policy or retained authorship/dependencies. Normal fresh browser registration awaits Clerk human verification; no partial push/deploy. [Closing checkpoint and remaining gate](MS7-2-IMPLEMENTATION.md). Account deletion/full coordinated lifecycle belongs to **MS15 — Production / launch priming**. MS7.1 stays locked; MS7.2 is not locked; MS7.3 not started. This supersedes pending founder-decision requests below, not the historical sequence.
+
 Current override (2026-09-14): founder completed FP3 walkthrough and explicitly pre-authorized lock after FP4 acceptance/live smoke. **MS7.1 is now LOCKED** at live-tested application `f3ab7d017ce92bee34a473fbb22230b26cffdaa4`, READY deployment `dpl_HXkQgqRzL7h7zDk4Bn9F4yRc6qpX`, canonical HTTPS200. [FP4 acceptance/lock record](MS7-1-FP4-FOUNDER-PATCH.md). MS7.2 Profile + Settings is the next authorized bounded development slice; MS7.3+ and new infrastructure are not authorized. Historical September9 state/protocol below is superseded by this lock, not erased.
 
 - MS6 is COMPLETE AND LOCKED.

@@ -10,7 +10,8 @@ export function generateTid() {
 }
 /** Same bootstrap identity boundary. DB unique indexes—not randomness—arbitrate
  * both TID collisions and concurrent creation of the same provider identity.
- * Existing IDs are returned untouched pending the separate migration decision.
+ * Existing IDs are immutable here; the authorized Development reset is a
+ * separate guarded application migration, never part of normal sign-in.
  * Candidate injection is server/test-only; never a Server Action parameter.
  */
 export async function establishToskerUser(db: Pick<ToskerTransaction,"select"|"insert">, identity: {provider:string;subject:string}, candidate=generateTid) {

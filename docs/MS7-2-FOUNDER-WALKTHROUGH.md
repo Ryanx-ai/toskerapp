@@ -2,11 +2,13 @@
 
 **NOT YET FOUNDER-READY / NOT LIVE / NOT LOCKED.** This checklist is a preparation artifact, not a release certificate. Canonical remains locked MS7.1; [local evidence and gaps](MS7-2-IMPLEMENTATION.md). MS7.3 has not started.
 
-## Decisions before the final release gate
+## Decisions RESOLVED / remaining release gate (2026-09-16)
 
-1. Provider Account: Clerk permits self-service account deletion. Keep the full panel gated, or disable that capability deliberately before safe provider-panel integration. No custom credential backend or unreviewed deletion workflow.
-2. Support: supply the monitored destination (URL/email) that Help/Support may actually use. Nothing is silently sent today.
-3. Existing TIDs: six legacy identifiers have been displayed publicly, but DB relationships/routes/invitations use UUIDs. Confirm whether those strings were shared externally. If shared/uncertain, approve preserving exact old lookups as aliases during a forward transition to seven-character canonical IDs. No existing ID has been regenerated.
+1. Full Clerk panel remains gated; no provider setting change. Coordinated account lifecycle revisited MS15.
+2. Contact support uses the founder-approved monitored email destination. Opens the email app; nothing silently sent.
+3. Six retained Development users transitioned to canonical TIDs without aliases; founder explicitly accepts breaking old test-era references. Non-TID data unchanged; four non-A/B users preserved because they have retained shared/authored history.
+
+Normal fresh-user registration is waiting for human verification in Clerk. No test account created. Finish registration→Profile→Namecard→lookup, safe cleanup and remaining integrated release gate before push/deploy. No need to ask the three resolved decisions again.
 
 ## Founder desktop walkthrough after deployment
 
@@ -20,8 +22,8 @@
 
 ## Engineering release checklist still required
 
-- Resolve the three decisions above and implement their approved bounded paths.
-- Complete existing-ID migration/compatibility and new-user/collision/lookup/copy acceptance; all current user relationships preserved.
+- Resolved decisions implemented locally; no legacy aliases authorized.
+- Existing-ID transition/collision/lookup/copy pass. Finish normal-browser new-user acceptance (human challenge), retaining all current relationships.
 - Run integrated current migrations/catalog/invariants, authorization/history/Room/Subroom/Hall/attention regressions, full failure/reconnect and desktop/mobile/keyboard/reduced-motion checks. Existing slice passes are not a substitute for the combined gate.
 - Remove only exact disposable MS7.2 fixtures after their last use; leave real users/Sandboxes/Personal/history intact. Recheck counts and orphan/duplicate constraints.
 - Review staged source/secrets and document exact Git/deployment SHA. Normal push only after the full local gate; canonical Git-backed deploy; bounded live A/B plus post-cleanup integrity verification.

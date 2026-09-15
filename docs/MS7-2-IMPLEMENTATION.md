@@ -2,6 +2,24 @@
 
 2026-09-15. **IN PROGRESS — local only, not founder-ready or locked. MS7.3 has not started.**
 
+## 2026-09-16 — release-unblock closing checkpoint
+
+Supersedes the decision requests and TID status in earlier slice records below. Founder chose: full Clerk panel remains gated without changing provider settings; account deletion/full lifecycle revisited **MS15**; Contact support opens the approved monitored mail destination; canonical URL unchanged; A/B retained; other accounts deleted only if proven safely disposable; shared test-era TIDs deliberately broken without aliases.
+
+Implemented Contact support (real `mailto`, no sent-ticket simulation), shared accessible Copy TID on Profile/editor/Namecard, exact normalized TID discovery. Controlled Development application migration converted exactly six inventoried users; six valid/unique canonical IDs, zero collisions. All other public data fingerprints unchanged. [Dependency/transition record](MS7-2-TID-TRANSITION.md). Preserved A/B and four other users: every non-A/B user has authored Chat history and Personal/shared dependencies; one owns a Room and Hall items. Zero accounts deleted, no auth/credential changes. Legacy TID references intentionally break; canonical values remain immutable thereafter.
+
+Fresh validation PASS:
+
+- Six scoped service scripts: owner partial updates; audience/alias/privacy/old-writer revision; Room identity/owner reset/stale/ABA/history/metadata; Settings/Brand/banner matrix and private projections; crypto TID collision/exhaustion; actual bootstrap idempotence. Synthetic transactional fixtures rolled back; exact synthetic bootstrap user/Profile/Sandbox removed.
+- All19 migration checksums and full catalog comparison (25tables/161columns/78constraints/12enums); DB connection/FK/index smoke; duplicate/orphan/history invariant audit. Current6users/profiles/Sandboxes,29messages,9notes/2pins preserved.
+- Combined Settings browser suite: nine categories × six widths, stable frame, dirty Keep/Discard, Account safety boundary, peer accent share/revoke, Quiet reload/B isolation. Originals restored. First run's final B check was invalidated by another test navigating that shared browser; complete isolated rerun passed. No product defect inferred.
+- `browser-ms72-release.mjs`: both real users' canonical TID, successful Clipboard action, lowercase/trim exact discovery with negative partial/legacy tests, peer Namecard/copy, Support mailto and no deletion/provider panel. Profile with copy fits390/430/1440/1728 and844×390; desktop/mobile screenshots visually inspected.
+- Latest TypeScript, ESLint, production build and diff checks pass. Only pre-existing unused `eq` warning in `cleanup-fp4-qa.ts`. React review kept browser API in a client event handler, explicit actor guard on discovery and minimal public DTO. UI/UX guidance informed meaningful clipboard status without moving focus, not a redesign.
+
+**Release still gated, not deployed:** normal fresh signup reached Clerk's Cloudflare human-verification challenge. No bypass/configuration change. Exact attempted test address has0Clerk users; database still6canonical users. Synthetic bootstrap acceptance is not browser-registration acceptance. Human assistance required to complete normal registration, then Profile/Namecard/lookup and safe exact cleanup. No temporary password was logged or retained. A/B credentials unchanged.
+
+Remaining after that external gate: combined Room/Subroom/history/attention/failure/keyboard/reduced-motion regression (prior slice evidence remains valid but not labeled a new full pass); final exact two MS7.2 QA Room cleanup; current TID/schema/invariant recheck; staged secret/source gate; normal push/Git-backed canonical founder-review deploy and live A/B. Two existing QA Rooms/four conversations stay available, with0messages/Hall, for those unfinished tests. Never recreate removed FP4 fixtures. Existing dev server/A/B profiles retained. No partial release or automatic lock. **MS7.1 locked / MS7.2 not locked / MS7.3 not started.**
+
 ## Authority and recovered baseline
 
 Founder Gate 2 plus documentation, canonical-font, seven-character TID and desktop-primary platform addenda supersede the Gate 1 waiting instruction. Preserve [the Gate 1 proposal](MS7-2-GATE1-PLAN.md) as historical decision evidence, not current execution status. Baseline `324e2f43b9508309a878c8de8f0bbfdc85140b87` already contains MS7.2.1. Fresh remote main was `5ae54fb0ff7d0dc6ab5d026ada8a69f25e34e70a`; canonical Vercel `dpl_8HeaZ9UFjhwJ615VzZSc1iEL6xwp` READY with that Git SHA, alias `toskerapp.vercel.app`. No MS7.2 push/deploy yet. Canonical review still uses Development Clerk/Neon/Ably, not separately provisioned Production infrastructure.

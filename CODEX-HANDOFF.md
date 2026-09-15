@@ -2,6 +2,14 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## MS7.2 Gate 2 — frame/sidebar slice (2026-09-15)
+
+Gate 2 FULL DEVELOPMENT authorized by founder; MS7.2 IN PROGRESS, local only, not founder-ready/locked. MS7.1 remains locked; MS7.3+ not started. Baseline `324e2f4`; newer local checkpoint should be identified in Git. Canonical remains Git `5ae54fb…` / deployment `dpl_8HeaZ9UFjhwJ615VzZSc1iEL6xwp`. No push/deploy, new migration, provider, credential, font or identity-data change in this slice.
+
+[Execution ledger and exact remaining work](docs/MS7-2-IMPLEMENTATION.md). Stable Settings frame, dirty/failure recovery, nested nickname editor and object-specific sidebar menus implemented. Six-width Profile/Room checks, Personal/nested short-viewport/focus, real A/B private pins/shared child order/mute/unread/settings/invite/Leave-cancel, owner service regression, TypeScript/lint/build/diff pass. Existing unrelated lint warning remains; physical-device/screen-reader acceptance not claimed. QA Rooms `ms722-frame-qa` / `ms722-second-qa` and children remain isolated; no messages/notes added, test preferences restored. Exact seed/inspect/guarded cleanup: `scripts/ms722-fixtures.ts`; never rerun old removed FP4 fixtures. Local browser sessions `ms72-a` / `ms72-b`; existing dev server must not be killed as if owned by this slice.
+
+Next: approved global profile/audience persistence and centralized server projections, then parent-Room identity, account/Brand/preferences, safe TID transition, integrated gate/deploy/live smoke. See ledger for rollout risk: canonical old code still writes legacy TIDs to the shared Development DB. No font rights inferred; monitored support destination still required. Preserve unrelated handoff/inheritance/Design Hub/Web/Art/research/experiments WIP and untouched/untracked `toskerArt/`. Commit only validated coherent slices; no partial push/deploy.
+
 ## MS7.2.1 — local Profile foundation (2026-09-14)
 
 MS7.2 IN PROGRESS; first bounded slice is local only, not pushed/deployed. Recovery baseline/origin `5ae54fb0ff7d0dc6ab5d026ada8a69f25e34e70a` is the FP4 lock checkpoint. Its docs-only Git deployment `dpl_8HeaZ9UFjhwJ615VzZSc1iEL6xwp` is READY with canonical alias and identical application source to live-tested `f3ab7d0`. Find the newer local checkpoint by `feat: begin MS7.2 owner profile foundation`; Git wins over this self-referential record.

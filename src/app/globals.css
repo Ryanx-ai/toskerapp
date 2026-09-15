@@ -22,6 +22,12 @@
 .sidebar-pin-row .conversation-row { padding-right:32px; }
 .sidebar-pin-control { position:absolute; right:3px; top:12px; display:grid; place-items:center; width:28px; height:28px; border:0; border-radius:8px; background:transparent; color:var(--text-secondary); cursor:pointer; }
 .sidebar-pin-control:hover,.sidebar-pin-control:focus-visible { background:var(--surface-hover); color:var(--text-primary); }
+.messenger-sidebar .sidebar-pin-row .conversation-row,.messenger-sidebar .fp2-order-row .conversation-row { padding-right:48px; }
+.messenger-sidebar .sidebar-pin-control,.messenger-sidebar .fp2-order-handle { width:44px; height:44px; right:0; top:50%; transform:translateY(-50%); }
+.message-action-list > a { display:block; min-height:44px; padding:12px; border-radius:8px; color:var(--text-primary); font-size:13px; }
+.message-action-list > a:hover { background:var(--surface-hover); }
+.message-action-list > a:focus-visible { outline:2px solid var(--brand-gold); outline-offset:-2px; }
+@media(min-width:641px) { .sidebar-collapsed .messenger-sidebar .sidebar-pin-row .conversation-row,.sidebar-collapsed .messenger-sidebar .fp2-order-row .conversation-row { padding-right:0; } .sidebar-collapsed .messenger-sidebar .sidebar-pin-control,.sidebar-collapsed .messenger-sidebar .fp2-order-handle { width:24px; height:24px; top:0; transform:none; } }
 .sidebar-pin-row.drag-target { outline:2px solid var(--brand-gold); outline-offset:-2px; }
 .sidebar-pin-error { margin:4px 8px 12px; font-size:11px; color:#ff9cae; }
 .sidebar-collapsed .sidebar-pin-control { top:0; right:0; width:24px; height:24px; background:var(--surface); }
@@ -1082,19 +1088,25 @@ h1,h2,h3 { font-family:var(--font-mermaid),Georgia,serif; font-weight:400; lette
 .room-details-panel { width:min(560px,calc(100vw - 24px)); max-height:calc(100dvh - 32px); overflow-y:auto; }
 
 /* FP3: contextual Settings, using the existing shell palette and type stack. */
-.modal-layer .scoped-settings-shell { width:min(840px,calc(100vw - 32px)); max-width:none; max-height:calc(100dvh - 32px); padding:0; overflow-y:auto; border-radius:20px; background:var(--surface); }
-.scoped-settings-header { position:relative; padding:24px 60px 22px 24px; border-bottom:1px solid var(--border); }
+.modal-layer:has(> .scoped-settings-shell) { top:var(--settings-viewport-top,0); bottom:auto; height:var(--settings-viewport-height,100dvh); padding:24px; overflow:hidden; }
+.modal-layer .scoped-settings-shell { display:flex; flex-direction:column; width:min(840px,calc(100vw - 48px)); height:min(720px,calc(var(--settings-viewport-height,100dvh) - 48px)); max-width:none; max-height:none; padding:0; overflow:hidden; border-radius:20px; background:var(--surface); }
+.scoped-settings-header { position:relative; flex:none; padding:24px 60px 22px 24px; border-bottom:1px solid var(--border); }
+.scoped-settings-header .overlay-close { width:44px; height:44px; top:12px; right:12px; }
+.scoped-settings-footer .overlay-actions { justify-content:flex-end; }
 .scoped-settings-identity { display:flex; align-items:center; gap:12px; min-width:0; }
 .scoped-settings-identity > div { min-width:0; }
 .scoped-settings-header h2 { margin:0 0 4px; font:600 18px/1.35 var(--font-montserrat),sans-serif; overflow-wrap:anywhere; }
 .scoped-settings-header p { margin:0; color:var(--text-secondary); font-size:12px; overflow-wrap:anywhere; }
-.scoped-settings-layout { display:grid; grid-template-columns:174px minmax(0,1fr); min-height:350px; }
-.scoped-settings-nav { padding:18px 12px; display:flex; flex-direction:column; align-items:stretch; gap:5px; border-right:1px solid var(--border); }
+.scoped-settings-layout { position:relative; display:grid; flex:1; grid-template-columns:174px minmax(0,1fr); min-height:0; overflow:hidden; }
+.scoped-settings-nav { min-height:0; overflow-y:auto; overscroll-behavior:contain; padding:18px 12px; display:flex; flex-direction:column; align-items:stretch; gap:5px; border-right:1px solid var(--border); }
+.settings-category-trigger { display:none; }
 .scoped-settings-shell button:not(.overlay-close) { min-height:44px; padding:10px 12px; font:inherit; font-size:13px; cursor:pointer; }
 .scoped-settings-nav button { text-align:left; color:var(--text-secondary); border:0; background:transparent; border-radius:10px; transition:background .15s,color .15s; }
 .scoped-settings-nav button:hover,.scoped-settings-nav button[aria-current] { background:rgba(255,255,255,.065); color:var(--text-primary); }
 .scoped-settings-nav button[aria-current] { box-shadow:inset 2px 0 var(--brand-gold); }
-.scoped-settings-body { padding:24px; min-width:0; overflow-wrap:anywhere; }
+.scoped-settings-body { padding:24px; min-width:0; min-height:0; overflow-y:auto; overscroll-behavior:contain; scroll-padding:24px; overflow-wrap:anywhere; }
+.settings-discard h3 { margin:0 0 8px; font:600 16px/1.5 var(--font-montserrat),sans-serif; }
+.settings-discard p { color:var(--text-secondary); font-size:13px; }
 .scoped-settings-section > h3,.room-confirmation h3 { margin:0 0 8px; font:600 16px/1.5 var(--font-montserrat),sans-serif; }
 .settings-scope,.scoped-settings-form small { color:var(--text-secondary); font-size:12px; line-height:1.6; }
 .settings-scope { margin:0 0 20px; }
@@ -1103,16 +1115,16 @@ h1,h2,h3 { font-family:var(--font-mermaid),Georgia,serif; font-weight:400; lette
 .scoped-settings-form label { display:grid; gap:7px; font-size:13px; }
 .scoped-settings-form :is(input,textarea) { width:100%; min-width:0; min-height:44px; padding:10px 12px; }
 .scoped-settings-form button { justify-self:start; }
-.scoped-settings-form .primary-action { background:var(--action-fill); color:var(--on-action); border-radius:10px; border:0; }
-.scoped-settings-form .primary-action:hover:not(:disabled) { filter:brightness(1.12); }
-.scoped-settings-footer { padding:0 24px 20px; }
+.scoped-settings-shell .primary-action { background:var(--action-fill); color:var(--on-action); border-radius:10px; border:0; }
+.scoped-settings-shell .primary-action:hover:not(:disabled) { filter:brightness(1.12); }
+.scoped-settings-footer { flex:none; max-height:45%; overflow-y:auto; padding:16px 24px max(20px,env(safe-area-inset-bottom)); border-top:1px solid var(--border); }
 .scoped-settings-footer:empty { display:none; }
 .scoped-settings-footer > p { font-size:13px; margin:0 0 12px; }
 .scoped-settings-danger { display:flex; align-items:center; justify-content:space-between; gap:16px; padding-top:16px; border-top:1px solid var(--border); }
 .scoped-settings-danger p { margin:0; color:var(--text-secondary); font-size:12px; }
 .scoped-settings-shell .danger { color:var(--danger,#f28b9c); background:transparent; }
 .scoped-settings-shell .danger:hover { background:rgba(242,139,156,.08); }
-.scoped-settings-shell :is(button,a,input,textarea):focus-visible { outline:2px solid var(--brand-gold); outline-offset:3px; }
+.scoped-settings-shell :is(button,a,input,textarea,select):focus-visible { outline:2px solid var(--brand-gold); outline-offset:3px; }
 .scoped-settings-shell button:disabled { opacity:.55; cursor:default; }
 .scoped-settings-shell .room-member-list { margin:12px 0 18px; }
 .scoped-settings-shell .room-member-list strong { overflow-wrap:anywhere; }
@@ -1123,16 +1135,30 @@ h1,h2,h3 { font-family:var(--font-mermaid),Georgia,serif; font-weight:400; lette
 .scoped-settings-preview h3 { margin:0; font:600 14px/1.5 var(--font-montserrat),sans-serif; }
 .scoped-settings-preview :is(span,p) { color:var(--text-secondary); font-size:12px; line-height:1.6; }
 .scoped-settings-preview p { margin:8px 0 0; }
+@media(min-width:641px) and (max-width:1023px) {
+  .modal-layer:has(> .scoped-settings-shell) { padding:16px; }
+  .modal-layer .scoped-settings-shell { width:calc(100vw - 32px); height:min(800px,calc(var(--settings-viewport-height,100dvh) - 32px)); }
+  .scoped-settings-layout { grid-template-columns:160px minmax(0,1fr); }
+}
 @media(max-width:640px) {
-  .modal-layer .scoped-settings-shell { width:calc(100vw - 16px); max-height:calc(100dvh - 16px); padding:0; border-radius:16px; }
+  .modal-layer:has(> .scoped-settings-shell) { padding:8px; }
+  .modal-layer .scoped-settings-shell { width:calc(100vw - 16px); height:calc(var(--settings-viewport-height,100dvh) - 16px); max-height:none; padding:0; border-radius:16px; }
   .scoped-settings-header { padding:20px 52px 18px 18px; }
-  .scoped-settings-layout { grid-template-columns:minmax(0,1fr); min-height:0; }
-  .scoped-settings-nav { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); padding:12px; border-right:0; border-bottom:1px solid var(--border); }
+  .scoped-settings-layout { grid-template-columns:minmax(0,1fr); grid-template-rows:56px minmax(0,1fr); min-height:0; }
+  .scoped-settings-shell .settings-category-trigger { display:flex; align-items:center; justify-content:space-between; width:100%; padding:12px 18px; border:0; border-bottom:1px solid var(--border); background:transparent; color:var(--text-primary); }
+  .settings-category-trigger:hover { background:var(--surface-hover); }
+  .scoped-settings-nav { display:none; grid-row:2; padding:12px; border:0; }
+  .categories-open .scoped-settings-nav { display:flex; }
+  .categories-open .scoped-settings-body { display:none; }
+  .scoped-settings-body { grid-row:2; }
   .scoped-settings-body { padding:20px 18px; }
   .scoped-settings-form :is(input,textarea) { font-size:16px; }
-  .scoped-settings-footer { padding:0 18px 18px; }
+  .scoped-settings-footer { padding:12px 18px max(16px,env(safe-area-inset-bottom)); }
   .scoped-settings-danger { flex-wrap:wrap; gap:8px; }
 }
+@media(max-height:500px) { .scoped-settings-header { padding-top:12px; padding-bottom:12px; } .scoped-settings-footer { padding-top:8px; padding-bottom:max(8px,env(safe-area-inset-bottom)); } }
+.modal-layer[data-settings-short] .scoped-settings-header { padding-top:12px; padding-bottom:12px; }
+.modal-layer[data-settings-short] .scoped-settings-footer { padding-top:8px; padding-bottom:max(8px,env(safe-area-inset-bottom)); }
 @media(prefers-reduced-motion:reduce) { .scoped-settings-nav button { transition:none; } }
 .room-details-panel h2,.room-details-panel h3,.room-confirmation h3 { overflow-wrap:anywhere; }
 .room-details-panel h3 { margin:24px 0 10px; font-size:14px; }

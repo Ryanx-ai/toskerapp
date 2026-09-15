@@ -17,6 +17,7 @@ export function PersonalChatSettings({ conversation, preference, onClose }: { co
   const [loading, setLoading] = useState(true), [attempt, setAttempt] = useState(0), [busy, setBusy] = useState(false);
   const [error, setError] = useState(""), [feedback, setFeedback] = useState("");
   const [muted, setMuted] = useState(Boolean(preference?.muted));
+  const [dirty, setDirty] = useState(false), [draftKey, setDraftKey] = useState(0);
   useEffect(() => {
     let active = true;
     const read = async () => {
@@ -29,9 +30,9 @@ export function PersonalChatSettings({ conversation, preference, onClose }: { co
     void read();
     return () => { active = false; };
   }, [conversation.identitySeed, conversation.databaseId, preference, attempt]);
-  return <SettingsShell title="Chat Settings" context={conversation.name} identity={<PersonAvatar seed={conversation.identitySeed ?? conversation.slug} initials={conversation.initials} imageUrl={conversation.avatarUrl} />} onClose={onClose} busy={busy} sections={[
+  return <SettingsShell title="Chat Settings" context={conversation.name} identity={<PersonAvatar seed={conversation.identitySeed ?? conversation.slug} initials={conversation.initials} imageUrl={conversation.avatarUrl} />} onClose={onClose} busy={busy} dirty={dirty} onDiscard={() => { setDirty(false); setDraftKey((value) => value + 1); }} sections={[
     { id: "overview", label: "Overview", content: <SettingsSection title={conversation.name} description={conversation.context}>
-      {person ? <><p className="settings-scope">{person.displayName} · @{person.username}</p><NamecardButton userId={person.userId} name={person.displayName} className="quiet-action" onOpen={onClose}>Open Namecard</NamecardButton>{person.connectionId ? <PrivateNicknameForm target={{ id: person.connectionId, name: person.displayName, nickname: person.nickname }} onBusy={setBusy} /> : null}</> : loading ? <p role="status">Loading identity…</p> : error ? <p role="alert">{error} <button className="quiet-action" onClick={() => { setLoading(true); setAttempt((value) => value + 1); }}>Retry</button></p> : null}
+      {person ? <><p className="settings-scope">{person.displayName} · @{person.username}</p>{!dirty ? <NamecardButton userId={person.userId} name={person.displayName} className="quiet-action" onOpen={onClose}>Open Namecard</NamecardButton> : null}{person.connectionId ? <PrivateNicknameForm key={draftKey} target={{ id: person.connectionId, name: person.displayName, nickname: person.nickname }} onBusy={setBusy} onDirty={setDirty} /> : null}</> : loading ? <p role="status">Loading identity…</p> : error ? <p role="alert">{error} <button className="quiet-action" onClick={() => { setLoading(true); setAttempt((value) => value + 1); }}>Retry</button></p> : null}
     </SettingsSection> },
     { id: "communication", label: "Communication", content: <SettingsSection title="Notifications" description="Only for you. Mute quiets this Chat; messages and unread stay.">
       <button className="quiet-action settings-toggle" aria-pressed={muted} disabled={busy || loading || !person} onClick={async () => {

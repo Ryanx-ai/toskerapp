@@ -3,7 +3,7 @@ import { useConversationRealtime } from "./use-conversation-realtime";
 import { NicknameDialog } from "./nickname-editor";
 import { NamecardProvider } from "./namecard-dialog";
 import { NamecardButton } from "./namecard-context";
-import { SidebarPinRow } from "./sidebar-pin-row";
+import { SidebarConversationRow } from "./sidebar-conversation-row";
 import { RoomDetails } from "./room-details";
 import { ACTIVITY_REFRESH, CONVERSATION_ACCESS_LOST } from "@/lib/realtime-contract";
 import { removedMessageIds } from "@/lib/message-removal";
@@ -35,7 +35,6 @@ import {
 } from "@/components/product-surface";
 import { WorkspaceBanner } from "@/components/workspace-banner";
 import { InvitePeople } from "./room-invitations";
-import { SubroomOrderRow } from "./subroom-order-row";
 import { IdentityCard } from "@/components/identity-card";
 import { useMobileViewport } from "@/components/use-mobile-viewport";
 import { ToskerIdentityProvider, useCurrentToskerUser, useToskerIdentity } from "@/components/tosker-identity";
@@ -290,7 +289,6 @@ function ConversationRow({
           {item.kind !== "my-room" ? <span className="conversation-preview">{item.kind === "room" && item.tag !== "SUBROOM" ? <RoomCategory value={item.tag ?? "Room"} /> : item.preview}</span> : null}
         </span>
         <span className="conversation-trailing">
-          <time>{item.time}</time>
           {pinned ? <i aria-label="Pinned">⌖</i> : null}
           {unread || item.unread ? (
             <AttentionMark count={unread || item.unread || 0} label="unread activities" />
@@ -390,6 +388,7 @@ function AppSidebar({
   latestActivityByConversation,
   friendAttention,
   notificationCount,
+  onReadingPause,
 }: {
   selected?: Conversation;
   surface: "chat" | "hall";
@@ -401,6 +400,7 @@ function AppSidebar({
   latestActivityByConversation: Record<string, string>;
   friendAttention: number;
   notificationCount: number;
+  onReadingPause: (paused: boolean) => void;
 }) {
   const identity = useToskerIdentity();
   const user = useCurrentToskerUser() ?? prototypeUser;
@@ -501,7 +501,6 @@ function AppSidebar({
       messages: chat.messages,
     }));
   const currentRoomSlug = activeRoomSlug(selected, workspace);
-  const orderingRoom = identity?.rooms.find((room) => room.slug === currentRoomSlug);
   const visibleServerSubrooms = serverSubrooms.filter((child) => child.slug.split("--")[0] === currentRoomSlug);
   const all = [...standard, ...serverChats, ...serverRooms, ...visibleServerSubrooms, ...(identity ? [] : localChats), ...(identity ? [] : localRooms)].filter(
     (item) => Boolean(identity) || !state.archived.includes(item.slug),
@@ -631,8 +630,7 @@ function AppSidebar({
         </div>
         <div className="conversation-list">
           {ordered.map((item) => (
-            <SubroomOrderRow key={item.slug} roomId={orderingRoom?.id ?? ""} ids={orderingRoom?.subrooms.map((child) => child.id) ?? []} id={item.slug.split("--")[1] ?? ""} name={item.name} owner={orderingRoom?.role === "owner" && item.tag === "SUBROOM"}>
-            <SidebarPinRow id={item.databaseId} name={item.name} ids={pinnedIds} enabled={Boolean(identity) && item.kind !== "my-room" && item.tag !== "SUBROOM"} onSaved={(ids) => setPinOverride({ basis: pinBasis, ids })}>
+            <SidebarConversationRow key={item.slug} item={item} pinnedIds={pinnedIds} onPinsSaved={(ids) => setPinOverride({ basis: pinBasis, ids })} selected={selected?.databaseId === item.databaseId} onReadingPause={onReadingPause}>
             <ConversationRow
               item={item}
               active={selected?.slug === item.slug}
@@ -641,8 +639,7 @@ function AppSidebar({
               displayName={user.displayName}
               unread={(item.databaseId ? unreadByConversation[item.databaseId] ?? 0 : 0) + (item.kind === "room" && !item.slug.includes("--") ? serverSubrooms.filter((child) => child.slug.startsWith(`${item.slug}--`)).reduce((sum, child) => sum + (unreadByConversation[child.databaseId!] ?? 0), 0) : 0)}
             />
-            </SidebarPinRow>
-            </SubroomOrderRow>
+            </SidebarConversationRow>
           ))}
           {query && ordered.length === 0 ? (
             <p className="search-empty">Nothing found</p>
@@ -1444,6 +1441,7 @@ export function MessagingApp({
         latestActivityByConversation={latestActivityByConversation}
         friendAttention={attention.requests}
         notificationCount={attention.notifications}
+        onReadingPause={setReadingPaused}
       />
       <div className="working-surface">
         {selected ? (

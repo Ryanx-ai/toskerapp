@@ -16,6 +16,13 @@ For each new item record: stable ID; service/capability; discovered milestone; r
 
 ## B — MS7.6 provisioning backlog
 
+### MS7.2 intake — identity / support operations (2026-09-15)
+
+- **P-007 / B — operational support delivery.** A simple founder-confirmed monitored address/URL is a current MS7.2 content/configuration requirement, not permission to buy a service. No destination is supplied yet. If beta volume needs transactional delivery/ticketing, research options in MS7.6; no provider, new token or budget presumed. Environment separation, spam limits, minimal diagnostic content, privacy/retention and delivery/failure tests are required. Never send passwords, verification codes or raw account/provider payloads. Founder supplies monitored destination now; approves later service/cost only if warranted.
+- **P-008 / B — account deletion/ownership retention lifecycle.** Existing Clerk can delete an identity without Tosker's required Room ownership/retention process. Current MS7.2 Account panel is gated, not patched with CSS. A/B read-only capability check confirms self-service deletion enabled. Founder must decide the immediate provider safety setting or approve the gated boundary; do not silently alter configuration. Later lifecycle design must address owned Rooms, memberships, canonical user/auth links, messages/Hall retention, identifiers, private aliases and provider deletion ordering with failure recovery and exact scoped acceptance. Existing credentials only; no new provider or automatic deletion now. Complexity high; policy approval precedes implementation.
+
+Seven-character existing-TID transition, active profile/Room audience correctness and stale-write defenses remain current MS7.2 obligations, not deferred provisioning work. Font deployment rights are a typography gate, not infrastructure. Current schema migrations0016–0018 are additive Development changes with catalog/hash verification, not Production environment certification. P-002/P-003 remain the environment/operations handoff; no new service or credential was provisioned by MS7.2.
+
 ### P-005 — One-time scheduled text messages (FP3 direction only)
 
 Discovered/approved for **Development preview only** in MS7.1-FP3, 2026-09-13. Class B, not provisioned or implemented. The timer beside emoji is an explicitly Deferred explanation, not a scheduler.

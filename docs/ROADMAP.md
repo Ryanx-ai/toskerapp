@@ -7,7 +7,7 @@ Updated 2026-09-09 by the founder's roadmap-memory/state-alignment brief. This i
 Current override (2026-09-14): founder completed FP3 walkthrough and explicitly pre-authorized lock after FP4 acceptance/live smoke. **MS7.1 is now LOCKED** at live-tested application `f3ab7d017ce92bee34a473fbb22230b26cffdaa4`, READY deployment `dpl_HXkQgqRzL7h7zDk4Bn9F4yRc6qpX`, canonical HTTPS200. [FP4 acceptance/lock record](MS7-1-FP4-FOUNDER-PATCH.md). MS7.2 Profile + Settings is the next authorized bounded development slice; MS7.3+ and new infrastructure are not authorized. Historical September9 state/protocol below is superseded by this lock, not erased.
 
 - MS6 is COMPLETE AND LOCKED.
-Current continuation: **MS7.2 IN PROGRESS**, bounded local-only MS7.2.1 own Profile/Settings foundation from recovery checkpoint `5ae54fb`; [scope, acceptance and founder policy gates](MS7-2-PROFILE-SETTINGS.md). Canonical remains locked FP4. No later milestone or partial-MS7.2 deployment is authorized by this checkpoint.
+Current continuation (2026-09-15): **MS7.2 Gate 2 IN PROGRESS**, local validated frame/profile/privacy/Room-identity/Settings/Brand/banner checkpoints; [current implementation and remaining gates](MS7-2-IMPLEMENTATION.md). Founder authorized full MS7.2 through integrated validation and canonical review, but no partial push/deploy. Canonical remains locked FP4. Provider Account safety, monitored Support and existing-TID transition still require resolution; MS7.2 is not founder-ready/locked, and MS7.3+ has not started.
 
 The following bullets retain the historical pre-FP4 state:
 - MS7.1 — Chat + Rooms Productization / Beta Hardening — is IN PROGRESS and unlocked. Preserve all local checkpoints, including `428b8aa`, `eda4451`, `b3bd7a1`, `bfb444d`, `449caf8` and `8b6d29c`; re-inspect Git on resume.
@@ -65,9 +65,9 @@ MS7.6 covers deliberate Development/beta infrastructure provisioning, appropriat
 | MS8 | Hardcore whole-product UI/UX polish |
 | MS9 | Gizmos + ToskerBot prototype |
 | MS10 | Full Tosker Art integration |
-| MS11 | Desktop packaging |
-| MS12 | Native iOS / Android |
-| MS13 | Full ToskerWeb creation |
+| MS11 | Full ToskerWeb creation |
+| MS12 | Desktop packaging |
+| MS13 | Native iOS / Android, including contemporary landscape/tablet/foldable research |
 | MS14 | Hardcore cross-platform destruction testing |
 | MS15 | Production / launch priming |
 | MS16 | Full Beta launch |
@@ -83,4 +83,6 @@ Read [CROSS-PROJECT-INHERITANCE.md](CROSS-PROJECT-INHERITANCE.md) before relevan
 - Luna/LunaVault → MS7.1/7.2 Room/settings/governance architecture, then later customization/skins.
 - HUDL → MS9 collaborative Gizmos.
 
-Existing website refinement remains parked until authorized; full ToskerWeb is MS13. `toskerArt/` stays untouched/untracked until separately authorized Art work. Roadmap placement does not authorize starting it.
+Founder MS7.2 platform/typography addenda supersede the older MS11–13 order: full ToskerWeb is MS11, desktop packaging MS12, native mobile MS13. Current desktop/laptop Web is primary; responsive tablet/mobile Web is secondary, not a mobile-first redesign. [Design/typography/platform memory](MS7-2-DESIGN-MEMORY.md) preserves the forward direction without implementing later milestones.
+
+Existing website refinement remains parked until authorized. `toskerArt/` stays untouched/untracked until separately authorized Art work. Roadmap placement does not authorize starting it.

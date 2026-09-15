@@ -7,6 +7,7 @@ import { getDatabase } from "@/server/db/client";
 import { readSidebarPins } from "@/server/conversations/sidebar-pins";
 import { readOwnProfile, type OwnProfile } from "@/server/profiles/own-read";
 import { readPersonalNavigation } from "./personal-navigation";
+import { establishToskerUser } from "./tid";
 import {
   conversationParticipants,
   conversations,
@@ -17,7 +18,6 @@ import {
   roomTags,
   subroomAccess,
   subrooms,
-  users,
 } from "@/server/db/schema";
 
 const tidAlphabet = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
@@ -26,10 +26,6 @@ function randomSegment(length: number) {
   return [...randomBytes(length)]
     .map((byte) => tidAlphabet[byte % tidAlphabet.length])
     .join("");
-}
-
-function createTid() {
-  return `TID-${randomSegment(4)}-${randomSegment(4)}`;
 }
 
 function normalizeUsername(value: string) {
@@ -89,45 +85,7 @@ export async function ensureToskerAccount(
   const db = getDatabase();
 
   const account = await db.transaction(async (tx) => {
-    let [user] = await tx
-      .select({ id: users.id, tid: users.tid })
-      .from(users)
-      .where(
-        and(
-          eq(users.authProvider, identity.provider),
-          eq(users.authSubject, identity.subject),
-        ),
-      )
-      .limit(1);
-
-    for (let attempt = 0; !user && attempt < 5; attempt += 1) {
-      [user] = await tx
-        .insert(users)
-        .values({
-          authProvider: identity.provider,
-          authSubject: identity.subject,
-          tid: createTid(),
-        })
-        .onConflictDoNothing()
-        .returning({ id: users.id, tid: users.tid });
-
-      if (!user) {
-        [user] = await tx
-          .select({ id: users.id, tid: users.tid })
-          .from(users)
-          .where(
-            and(
-              eq(users.authProvider, identity.provider),
-              eq(users.authSubject, identity.subject),
-            ),
-          )
-          .limit(1);
-      }
-    }
-
-    if (!user) {
-      throw new Error("Unable to establish a unique Tosker identity.");
-    }
+    const user = await establishToskerUser(tx, identity);
 
     let [profile] = await tx
       .select({

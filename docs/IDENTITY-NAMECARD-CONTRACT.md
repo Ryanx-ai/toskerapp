@@ -2,6 +2,14 @@
 
 Established by MS7.1-FP4. This is the bridge into MS7.2, not a public profile directory or a new identity policy.
 
+## MS7.2 Gate 2 current overlay (local, not deployed)
+
+[Implementation/evidence](MS7-2-IMPLEMENTATION.md) supersedes the historical FP4 boundaries below only for the authorized MS7.2 slice. Core UUID/Clerk identity, username/TID immutability under presentation changes, Common Rooms authorization and copied authored text remain unchanged. Optional bio/accent audience defaults self; manual status defaults friends/current co-members. A Personal conversation alone never grants optional fields/status. Server projections enforce self/friends/shared-context before serialization.
+
+Current parent membership nickname is member-owned, max60 UTF-16 units/NFC, blank→global. Owners may reset others but not choose their persona; minimal actor/target/time accountability contains no old nickname. Children inherit; leave clears; rejoin starts blank with a new revision epoch. Room labels resolve nickname→global→safe fallback, while Personal/Friends resolve viewer-private alias→global. Room-opened Namecards carry an authorized Room context and still show canonical identity; private alias remains viewer-only. Normal users cannot change another profile or an identity identifier.
+
+Five finite accents decorate authorized identity framing only, not text/status/other users' app themes. Actor-only banner preferences never reach peer DTOs or alter persisted unread. Content-free existing-channel metadata refresh and foreground/reconnect canonical reads reconcile changes; dirty editors retain snapshots and reject stale writes. Existing six legacy TIDs are unchanged pending transition resolution; do not claim all-seven-character acceptance yet. The historical account-delete/provider boundary is not widened.
+
 ## Identity ownership
 
 | Layer | Authority and visibility | Current boundary |

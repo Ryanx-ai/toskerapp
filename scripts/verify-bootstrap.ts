@@ -3,6 +3,7 @@ import { and, count, eq } from "drizzle-orm";
 import { ensureToskerAccount } from "../src/server/accounts/bootstrap";
 import { getDatabase } from "../src/server/db/client";
 import { conversations, profiles, users } from "../src/server/db/schema";
+import { isCanonicalTid } from "../src/lib/tid-contract";
 
 const subject = `ms5-bootstrap-check-${crypto.randomUUID()}`;
 const db = getDatabase();
@@ -16,7 +17,7 @@ async function main() {
       usernameHint: "ms5-bootstrap-check",
     };
     const first = await ensureToskerAccount(input);
-    const second = await ensureToskerAccount(input);
+    const second = await ensureToskerAccount({ ...input, displayName: "Changed provider display name" });
 
     const [{ userCount }] = await db
       .select({ userCount: count() })
@@ -39,7 +40,8 @@ async function main() {
     const stable =
       first.userId === second.userId &&
       first.tid === second.tid &&
-      first.sandboxConversationId === second.sandboxConversationId;
+      first.sandboxConversationId === second.sandboxConversationId &&
+      first.displayName === second.displayName && isCanonicalTid(first.tid);
 
     if (!stable || userCount !== 1 || profileCount !== 1 || sandboxCount !== 1) {
       throw new Error("Account bootstrap is not idempotent.");
@@ -49,6 +51,8 @@ async function main() {
       JSON.stringify({
         bootstrap: "ok",
         stableIdentity: true,
+        canonicalTid: true,
+        providerNameDidNotOverwriteProfile: true,
         userCount,
         profileCount,
         sandboxCount,
@@ -62,4 +66,4 @@ async function main() {
 main().catch((error: unknown) => {
   console.error(error instanceof Error ? error.message : "Bootstrap check failed.");
   process.exitCode = 1;
-});
+}).finally(() => db.$client.end());

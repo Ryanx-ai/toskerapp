@@ -90,6 +90,8 @@ Support has real Help navigation but no fabricated delivery form/address. Founde
 
 ## Remaining ordered execution
 
+New-user TID foundation checkpoint: [audit and transition gate](MS7-2-TID-TRANSITION.md). Crypto7 generator and extracted unchanged five-attempt authoritative bootstrap insert/reread boundary pass forced collision/exhaustion and generic bootstrap integration; synthetic identities cleaned up. Unicode/punctuation/length and lowercase exact-normalization helpers pass. Existing six legacy IDs remain unchanged and displayed truthfully; canonical lookup/copy and existing-ID migration remain outstanding pending external-sharing/compatibility resolution. No new migration in this foundation. Current full release still blocked, not silently downgraded to new-users-only acceptance.
+
 1. Global profile/audience slice is implemented above; integrate its contracts into remaining identity/Account surfaces and repeat full acceptance after subsequent changes.
 2. Parent membership nickname slice is implemented and validated above; retain its author/projection regressions in the integrated gate.
 3. Settings/Brand/banner implementation and local validation are recorded above. Full provider Account panel is gated by enabled self-service deletion; monitored Support destination is also absent. Founder actions are explicit; do not silently change provider configuration or invent a destination.

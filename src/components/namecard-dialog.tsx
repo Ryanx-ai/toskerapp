@@ -17,27 +17,27 @@ import { PersonalChatSettings } from "./personal-chat-settings";
 const statusNames = { online: "Online", idle: "Idle", away: "Away", meeting: "In a meeting" };
 
 export function NamecardProvider({ enabled, children }: { enabled: boolean; children: ReactNode }) {
-  const [target, setTarget] = useState<string | null>(null);
+  const [target, setTarget] = useState<{userId:string;roomId?:string} | null>(null);
   const trigger = useRef<HTMLElement | null>(null);
-  const open = useCallback((userId: string) => { if (!target) trigger.current = document.activeElement as HTMLElement | null; setTarget(userId); }, [target]);
+  const open = useCallback((userId: string, roomId?: string) => { if (!target) trigger.current = document.activeElement as HTMLElement | null; setTarget({userId,roomId}); }, [target]);
   const close = () => { setTarget(null); requestAnimationFrame(() => { if (trigger.current?.isConnected) trigger.current.focus({ preventScroll: true }); }); };
-  return <NamecardContext.Provider value={enabled ? open : null}>{children}{enabled && target ? <NamecardDialog key={target} userId={target} onClose={close} /> : null}</NamecardContext.Provider>;
+  return <NamecardContext.Provider value={enabled ? open : null}>{children}{enabled && target ? <NamecardDialog key={`${target.userId}:${target.roomId ?? "global"}`} userId={target.userId} roomId={target.roomId} onClose={close} /> : null}</NamecardContext.Provider>;
 }
 
-function NamecardDialog({ userId, onClose }: { userId: string; onClose: () => void }) {
+function NamecardDialog({ userId, roomId, onClose }: { userId: string; roomId?: string; onClose: () => void }) {
   const id = useId(), router = useRouter();
   const [person, setPerson] = useState<Namecard | null>(null);
   const [error, setError] = useState(""), [attempt, setAttempt] = useState(0);
   const [busy, setBusy] = useState(false), [nickname, setNickname] = useState(false), [settings, setSettings] = useState(false);
   const revision = useRef(0);
-  const refresh = useCallback(async () => { const version = ++revision.current; const next = await getNamecardAction(userId); if (version === revision.current) setPerson(next); return next; }, [userId]);
+  const refresh = useCallback(async () => { const version = ++revision.current; const next = await getNamecardAction(userId,roomId); if (version === revision.current) setPerson(next); return next; }, [userId,roomId]);
   useEffect(() => {
     let active = true, pending = false;
     const read = async () => {
       if (pending || document.hidden) return;
       pending = true;
       const version = revision.current;
-      try { const next = await getNamecardAction(userId); if (active && version === revision.current) { setPerson(next); setError(""); } }
+      try { const next = await getNamecardAction(userId,roomId); if (active && version === revision.current) { setPerson(next); setError(""); } }
       catch { if (active && version === revision.current) { setPerson(null); setError("Namecard unavailable. Check your connection or access and try again."); } }
       finally { pending = false; }
     };
@@ -46,9 +46,9 @@ function NamecardDialog({ userId, onClose }: { userId: string; onClose: () => vo
     const timer = window.setInterval(() => void read(), 12_000);
     window.addEventListener(ACTIVITY_REFRESH, read); document.addEventListener("visibilitychange", read);
     return () => { active = false; clearInterval(timer); window.removeEventListener(ACTIVITY_REFRESH, read); document.removeEventListener("visibilitychange", read); };
-  }, [userId, attempt]);
-  const name = person?.nickname || person?.displayName || "Namecard";
-  if (settings && person?.conversationId && !person.self) return <PersonalChatSettings conversation={{ databaseId: person.conversationId, slug: `chat-${person.conversationId}`, identitySeed: person.userId, avatarUrl: person.avatarUrl, kind: "personal", name, initials: person.displayName.slice(0, 2), color: "pink", context: `@${person.username}`, preview: "", time: "", messages: [] }} onClose={() => setSettings(false)} />;
+  }, [userId, roomId, attempt]);
+  const name = (person?.roomContext ? person.roomNickname || person.displayName : person?.nickname || person?.displayName) || "Namecard";
+  if (settings && person?.conversationId && !person.self) return <PersonalChatSettings conversation={{ databaseId: person.conversationId, slug: `chat-${person.conversationId}`, identitySeed: person.userId, avatarUrl: person.avatarUrl, kind: "personal", name: person.nickname || person.displayName, initials: person.displayName.slice(0, 2), color: "pink", context: `@${person.username}`, preview: "", time: "", messages: [] }} onClose={() => setSettings(false)} />;
   if (nickname && person?.connectionId) return <NicknameDialog target={{ id: person.connectionId, name: person.displayName, nickname: person.nickname }} onSaved={refresh} onClose={() => {
     setNickname(false);
     requestAnimationFrame(() => document.querySelector<HTMLButtonElement>(".namecard-actions .namecard-nickname")?.focus());
@@ -59,7 +59,8 @@ function NamecardDialog({ userId, onClose }: { userId: string; onClose: () => vo
     {person ? <>
       <PersonAvatar seed={person.userId} initials={person.displayName.slice(0, 2)} imageUrl={person.avatarUrl} className="avatar-large" />
       <h2 id={`${id}-title`}>{name}</h2>
-      {person.nickname ? <p className="namecard-canonical">{person.displayName}</p> : null}
+      {name !== person.displayName ? <p className="namecard-canonical">{person.displayName}</p> : null}
+      {person.roomContext ? <p className="settings-scope">In {person.roomContext.name}{person.nickname ? <> · You call them {person.nickname}</> : null}</p> : null}
       <p className="namecard-handle">@{person.username} · {person.tid}</p>
       {person.presenceStatus ? <p className="namecard-status"><i className={`presence-mark ${person.presenceStatus}`} aria-hidden="true" />{statusNames[person.presenceStatus]}</p> : null}
       {person.namecardBio ? <p className="namecard-bio">{person.namecardBio}</p> : null}

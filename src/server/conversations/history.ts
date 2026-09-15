@@ -7,6 +7,7 @@ import { hallScope } from "@/server/hall/service";
 import { isConversationId } from "@/lib/realtime-contract";
 import type { ReactionSummary } from "@/lib/reaction-contract";
 import type { MentionSpan } from "@/lib/mentions";
+import { contextualName, conversationRoomId } from "@/server/profiles/context-name";
 
 export type HistoryOptions = { before?: string; after?: string; target?: string; ids?: string[]; checkIds?: string[] };
 export class InvalidHistoryRequest extends Error {}
@@ -17,6 +18,8 @@ export async function readMessageHistory(db: ToskerDatabase, actor: Authenticate
   await hallScope(db, actor, conversationId);
   if (options.checkIds && (options.checkIds.length > 202 || options.checkIds.some((id) => !isConversationId(id)))) throw new InvalidHistoryRequest("Invalid removal check.");
   const authorized = performance.now();
+  const roomId = conversationRoomId(conversationId);
+  const relatedName = contextualName(actor.userId,roomId,sql`p.user_id`,sql`p.display_name`);
   // Cursor timestamps come from this conversation, never a forged client tuple.
   const boundary = options.before ? sql`(${messages.createdAt}, ${messages.id}) < (select created_at, id from messages where id = ${options.before} and conversation_id = ${conversationId})`
     : options.after ? sql`(${messages.createdAt}, ${messages.id}) > (select created_at, id from messages where id = ${options.after} and conversation_id = ${conversationId})`
@@ -25,12 +28,12 @@ export async function readMessageHistory(db: ToskerDatabase, actor: Authenticate
   const ascending = Boolean(options.after || options.ids);
   const checked = [...new Set([...(options.checkIds ?? []), ...(options.ids ?? []), ...(options.target ? [options.target] : [])])];
   const [rows, newest, removed] = await Promise.all([
-    db.select({ id: messages.id, author: profiles.displayName, authorId: messages.authorId, avatarUrl: profiles.avatarUrl, body: messages.body, createdAt: messages.createdAt,
+    db.select({ id: messages.id, author: contextualName(actor.userId,roomId,sql`${profiles.userId}`,sql`${profiles.displayName}`), authorId: messages.authorId, avatarUrl: profiles.avatarUrl, body: messages.body, createdAt: messages.createdAt,
       editedAt: messages.editedAt, deletedAt: messages.deletedAt, replyToId: messages.replyToId,
       replyTo: sql<string | null>`(select left(m.body, 240) from messages m where m.id = ${messages.replyToId} and m.conversation_id = ${conversationId} and m.deleted_at is null)`,
-      replyAuthor: sql<string | null>`(select p.display_name from messages m join profiles p on p.user_id = m.author_id where m.id = ${messages.replyToId} and m.conversation_id = ${conversationId} and m.deleted_at is null)`,
+      replyAuthor: sql<string | null>`(select ${relatedName} from messages m join profiles p on p.user_id = m.author_id where m.id = ${messages.replyToId} and m.conversation_id = ${conversationId} and m.deleted_at is null)`,
       mentions: sql<MentionSpan[]>`coalesce((select json_agg(json_build_object('userId', mm.user_id, 'start', mm.start, 'length', mm.length, 'label', mm.label) order by mm.start) from message_mentions mm where mm.message_id = ${messages.id}), '[]'::json)`,
-      reactionSummary: sql<ReactionSummary[]>`coalesce((select json_agg(r order by r.emoji) from (select emoji, count(*)::int as count, bool_or(mr.user_id = ${actor.userId}) as mine, array_agg(p.display_name order by p.display_name) as participants from message_reactions mr join profiles p on p.user_id = mr.user_id where message_id = ${messages.id} group by emoji) r), '[]'::json)`,
+      reactionSummary: sql<ReactionSummary[]>`coalesce((select json_agg(r order by r.emoji) from (select emoji, count(*)::int as count, bool_or(mr.user_id = ${actor.userId}) as mine, array_agg(${relatedName} order by ${relatedName}) as participants from message_reactions mr join profiles p on p.user_id = mr.user_id where message_id = ${messages.id} group by emoji) r), '[]'::json)`,
     }).from(messages).innerJoin(profiles, eq(profiles.userId, messages.authorId))
       .where(and(eq(messages.conversationId, conversationId), isNull(messages.deletedAt), boundary))
       .orderBy(ascending ? asc(messages.createdAt) : desc(messages.createdAt), ascending ? asc(messages.id) : desc(messages.id)).limit(options.ids ? 200 : 51),

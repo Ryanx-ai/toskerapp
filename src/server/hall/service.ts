@@ -8,6 +8,7 @@ import { conversations, hallComments, hallCommentReactions, hallItems, hallReact
 import { validateEmoji } from "@/server/emoji";
 import type { ReactionSummary } from "@/lib/reaction-contract";
 import { HALL_REACTIONS, type HallReaction } from "@/lib/hall-contract";
+import { contextualName, conversationRoomId } from "@/server/profiles/context-name";
 
 export async function hallScope(db: ToskerReader, actor: AuthenticatedActor, conversationId: string) {
   await requireConversationParticipant(db, actor, conversationId);
@@ -54,8 +55,9 @@ async function lockHallNote(tx: ToskerReader, actor: AuthenticatedActor, convers
 
 export async function listHallComments(db: ToskerDatabase, actor: AuthenticatedActor, conversationId: string, itemId: string, before?: string) {
   await requireHallNote(db, actor, conversationId, itemId);
-  const rows = await db.select({ id: hallComments.id, body: hallComments.body, createdAt: hallComments.createdAt, author: profiles.displayName, authorId: hallComments.authorId,
-    reactions: sql<ReactionSummary[]>`coalesce((select json_agg(r order by r.emoji) from (select emoji, count(*)::int as count, bool_or(cr.user_id = ${actor.userId}) as mine, array_agg(p.display_name order by p.display_name) as participants from hall_comment_reactions cr join profiles p on p.user_id = cr.user_id where comment_id = ${hallComments.id} group by emoji) r), '[]'::json)`,
+  const roomId = conversationRoomId(conversationId), relatedName = contextualName(actor.userId,roomId,sql`p.user_id`,sql`p.display_name`);
+  const rows = await db.select({ id: hallComments.id, body: hallComments.body, createdAt: hallComments.createdAt, author: contextualName(actor.userId,roomId,sql`${profiles.userId}`,sql`${profiles.displayName}`), authorId: hallComments.authorId,
+    reactions: sql<ReactionSummary[]>`coalesce((select json_agg(r order by r.emoji) from (select emoji, count(*)::int as count, bool_or(cr.user_id = ${actor.userId}) as mine, array_agg(${relatedName} order by ${relatedName}) as participants from hall_comment_reactions cr join profiles p on p.user_id = cr.user_id where comment_id = ${hallComments.id} group by emoji) r), '[]'::json)`,
   })
     .from(hallComments).innerJoin(profiles, eq(profiles.userId, hallComments.authorId))
     .where(and(eq(hallComments.itemId, itemId), before ? sql`(${hallComments.createdAt}, ${hallComments.id}) < (select created_at, id from hall_comments where id = ${before} and item_id = ${itemId})` : undefined))

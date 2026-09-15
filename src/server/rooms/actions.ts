@@ -1,7 +1,7 @@
 "use server";
 
 import { createHash, randomBytes } from "node:crypto";
-import { and, eq, ilike, ne, or } from "drizzle-orm";
+import { and, eq, ilike, ne, or, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 import { requireCurrentActor } from "@/server/auth/clerk";
@@ -190,7 +190,7 @@ export async function roomDetailsAction(roomSlug: string) {
   const [room] = await db.select().from(rooms).where(eq(rooms.slug, roomSlug));
   if (!room) throw new Error("Room unavailable.");
   const membership = await requireRoomMember(db, actor, room.id);
-  const members = await db.select({ userId: roomMemberships.userId, role: roomMemberships.role, name: profiles.displayName })
+  const members = await db.select({ userId: roomMemberships.userId, role: roomMemberships.role, name: sql<string>`coalesce(${roomMemberships.nickname},${profiles.displayName})`, globalName: profiles.displayName, nickname: roomMemberships.nickname, nicknameRevision: roomMemberships.nicknameRevision })
     .from(roomMemberships).innerJoin(profiles, eq(profiles.userId, roomMemberships.userId)).where(eq(roomMemberships.roomId, room.id));
   const tags = await db.select({ value: roomTags.value }).from(roomTags).where(eq(roomTags.roomId, room.id));
   return { id: room.id, name: room.name, slug: room.slug, role: membership.role, members, tags: tags.map(({ value }) => value) };

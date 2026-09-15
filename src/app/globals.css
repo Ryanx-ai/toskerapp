@@ -1129,6 +1129,9 @@ h1,h2,h3 { font-family:var(--font-mermaid),Georgia,serif; font-weight:400; lette
 .scoped-settings-shell button:disabled { opacity:.55; cursor:default; }
 .scoped-settings-shell .room-member-list { margin:12px 0 18px; }
 .scoped-settings-shell .room-member-list strong { overflow-wrap:anywhere; }
+.scoped-settings-shell .room-member-list li { flex-wrap:wrap; }
+.scoped-settings-shell .room-member-list li > span:not(.avatar) { flex:1 1 160px; }
+.scoped-settings-shell .room-member-list li > button:not(.namecard-trigger) { max-width:100%; }
 .scoped-settings-shell .room-structure { margin-bottom:18px; }
 .scoped-settings-shell .settings-toggle { margin-bottom:12px; }
 .scoped-settings-preview { margin:20px 0; padding:20px; border:1px dashed var(--border); border-radius:14px; background:rgba(255,255,255,.015); }

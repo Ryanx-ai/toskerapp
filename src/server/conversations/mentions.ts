@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, eq, ilike, inArray, isNotNull, isNull, or } from "drizzle-orm";
+import { and, asc, eq, ilike, inArray, isNotNull, isNull, or, sql } from "drizzle-orm";
 import type { AuthenticatedActor } from "@/server/auth/actor";
 import type { ToskerDatabase, ToskerReader } from "@/server/db/client";
 import { conversations, conversationParticipants, profiles, roomMemberships, subroomAccess, subrooms } from "@/server/db/schema";
@@ -9,7 +9,9 @@ import { isConversationId } from "@/lib/realtime-contract";
 
 async function scopedMembers(db: ToskerReader, conversationId: string, query?: string, ids?: string[]) {
   const pattern = query ? `%${query.replace(/[\\%_]/g, "\\$&")}%` : undefined;
-  return db.select({ userId: profiles.userId, name: profiles.displayName, username: profiles.username }).from(conversationParticipants)
+  // Membership is already joined to this authorized parent/child context.
+  const name = sql<string>`coalesce(${roomMemberships.nickname},${profiles.displayName})`;
+  return db.select({ userId: profiles.userId, name, username: profiles.username }).from(conversationParticipants)
     .innerJoin(conversations, eq(conversations.id, conversationParticipants.conversationId))
     .innerJoin(roomMemberships, and(eq(roomMemberships.roomId, conversations.roomId), eq(roomMemberships.userId, conversationParticipants.userId)))
     .innerJoin(profiles, eq(profiles.userId, conversationParticipants.userId))
@@ -17,9 +19,9 @@ async function scopedMembers(db: ToskerReader, conversationId: string, query?: s
     .leftJoin(subroomAccess, and(eq(subroomAccess.subroomId, subrooms.id), eq(subroomAccess.userId, conversationParticipants.userId)))
     .where(and(eq(conversations.id, conversationId), eq(conversations.kind, "room"),
       or(isNull(conversations.subroomId), eq(subrooms.visibility, "everyone"), isNotNull(subroomAccess.userId), and(eq(subrooms.visibility, "owners"), eq(roomMemberships.role, "owner"))),
-      pattern ? or(ilike(profiles.displayName, pattern), ilike(profiles.username, pattern)) : undefined,
+      pattern ? or(ilike(name, pattern), ilike(profiles.displayName, pattern), ilike(profiles.username, pattern)) : undefined,
       ids ? inArray(profiles.userId, ids) : undefined))
-    .orderBy(asc(profiles.displayName), asc(profiles.userId)).limit(ids ? 10 : 8);
+    .orderBy(asc(name), asc(profiles.userId)).limit(ids ? 10 : 8);
 }
 
 export async function mentionSuggestions(db: ToskerDatabase, actor: AuthenticatedActor, conversationId: string, query: string) {

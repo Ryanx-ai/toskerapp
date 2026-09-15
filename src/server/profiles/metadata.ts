@@ -1,6 +1,7 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
-import { sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
+import { roomMemberships } from "@/server/db/schema";
 import { getDatabase } from "@/server/db/client";
 import { getRealtimeServer } from "@/server/realtime/provider";
 import { PROFILE_CHANGED, userChannel } from "@/lib/realtime-contract";
@@ -24,4 +25,14 @@ export async function publishProfileMetadata(userId: string) {
     for (let i=0;i<result.rows.length;i+=10) await Promise.all(result.rows.slice(i,i+10).map(row =>
       getRealtimeServer().channels.get(userChannel(row.user_id)).publish({ id: randomUUID(), name: PROFILE_CHANGED, data: { version: 1 } })));
   } catch { console.warn("[realtime] Profile signal unavailable; canonical reconciliation retained."); }
+}
+
+/** Same content-free primitive, limited to current members of the changed Room. */
+export async function publishRoomIdentityMetadata(roomId: string) {
+  if (!process.env.ABLY_API_KEY) return;
+  try {
+    const members = await getDatabase().select({userId:roomMemberships.userId}).from(roomMemberships).where(eq(roomMemberships.roomId,roomId)).limit(500);
+    for(let i=0;i<members.length;i+=10) await Promise.all(members.slice(i,i+10).map(member => getRealtimeServer().channels.get(userChannel(member.userId))
+      .publish({id:randomUUID(),name:PROFILE_CHANGED,data:{version:1}})));
+  } catch { console.warn("[realtime] Room identity signal unavailable; canonical reconciliation retained."); }
 }

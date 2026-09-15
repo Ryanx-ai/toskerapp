@@ -5,6 +5,7 @@ import type { ToskerDatabase } from "@/server/db/client";
 import { messages, profiles } from "@/server/db/schema";
 import { hallScope } from "@/server/hall/service";
 import { isConversationId } from "@/lib/realtime-contract";
+import { contextualName, conversationRoomId } from "@/server/profiles/context-name";
 
 export class InvalidSearchRequest extends Error {}
 export async function searchConversation(db: ToskerDatabase, actor: AuthenticatedActor, conversationId: string, query: string, before?: string) {
@@ -13,7 +14,7 @@ export async function searchConversation(db: ToskerDatabase, actor: Authenticate
   await hallScope(db, actor, conversationId);
   // Bound to this conversation; literal substring, not user-supplied SQL/LIKE syntax.
   const pattern = `%${term.replace(/[\\%_]/g, "\\$&")}%`;
-  const rows = await db.select({ id: messages.id, author: profiles.displayName, authorId: messages.authorId, createdAt: messages.createdAt,
+  const rows = await db.select({ id: messages.id, author: contextualName(actor.userId,conversationRoomId(conversationId),sql`${profiles.userId}`,sql`${profiles.displayName}`), authorId: messages.authorId, createdAt: messages.createdAt,
     excerpt: sql<string>`substring(${messages.body} from greatest(1, strpos(lower(${messages.body}), lower(${term})) - 80) for 400)`,
   }).from(messages).innerJoin(profiles, eq(profiles.userId, messages.authorId))
     .where(and(eq(messages.conversationId, conversationId), isNull(messages.deletedAt), ilike(messages.body, pattern),

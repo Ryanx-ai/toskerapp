@@ -12,6 +12,7 @@ import type { HallReaction } from "@/lib/hall-contract";
 import { publishConversationActivity, publishUserActivity } from "@/server/realtime/provider";
 import { acknowledgeNotifications } from "@/server/attention/service";
 import { changeHallLifecycle, createHallNote, ownsHallRoom, pinChatMessage } from "@/server/hall/lifecycle";
+import { contextualName, conversationRoomId } from "@/server/profiles/context-name";
 
 export async function listHallSnapshotAction(conversationId: string, archived = false) {
   const actor = await requireCurrentActor();
@@ -40,12 +41,13 @@ export async function listHallItemsAction(conversationId: string, archived = fal
   const db = getDatabase();
   const scope = await hallScope(db, actor, conversationId);
   const owner = await ownsHallRoom(db, actor, conversationId);
+  const roomId = conversationRoomId(conversationId);
   const rows = await db
-    .select({ id: hallItems.id, kind: hallItems.kind, title: hallItems.title, body: hallItems.body, sourceBody: messages.body, sourceMessageId: hallItems.sourceMessageId, author: profiles.displayName, createdAt: hallItems.createdAt, color: hallItems.color, position: hallItems.position, archivedAt: hallItems.archivedAt,
+    .select({ id: hallItems.id, kind: hallItems.kind, title: hallItems.title, body: hallItems.body, sourceBody: messages.body, sourceMessageId: hallItems.sourceMessageId, author: contextualName(actor.userId, roomId, sql`${hallItems.authorId}`, sql`${profiles.displayName}`), createdAt: hallItems.createdAt, color: hallItems.color, position: hallItems.position, archivedAt: hallItems.archivedAt,
       imagePath: hallItems.imagePath, imageAlt: hallItems.imageAlt, authorId: hallItems.authorId,
       sourceDeletedAt: messages.deletedAt,
       sourceAuthorId: messages.authorId,
-      sourceAuthor: sql<string | null>`(select display_name from profiles source_author where source_author.user_id = ${messages.authorId})`,
+      sourceAuthor: sql<string | null>`(select ${contextualName(actor.userId, roomId, sql`source_author.user_id`, sql`source_author.display_name`)} from profiles source_author where source_author.user_id = ${messages.authorId})`,
       commentCount: sql<number>`(select count(*)::int from hall_comments where item_id = ${hallItems.id})`,
       reactions: sql<Array<{ reaction: HallReaction; count: number; mine: boolean }>>`coalesce((select json_agg(r) from (select reaction, count(*)::int as count, bool_or(user_id = ${actor.userId}) as mine from hall_reactions where item_id = ${hallItems.id} group by reaction) r), '[]'::json)`,
     })
@@ -142,7 +144,8 @@ export async function installRoomCapabilityAction(input: { conversationId: strin
 export async function listNotificationsAction() {
   const actor = await requireCurrentActor();
   const db = getDatabase();
-  const rows = await db.select({ id: notifications.id, invitationId: notifications.invitationId, invitationStatus: invites.status, invitationExpiresAt: invites.expiresAt, type: notifications.type, isMention: notifications.isMention, roomId: notifications.roomId, conversationId: notifications.conversationId, messageId: notifications.messageId, actorId: notifications.actorId, actorName: profiles.displayName, conversationKind: conversations.kind, subroomId: conversations.subroomId, roomSlug: rooms.slug, roomName: rooms.name, conversationTitle: conversations.title, createdAt: notifications.createdAt, readAt: notifications.readAt, destinationReadAt: notifications.destinationReadAt }).from(notifications).leftJoin(profiles, eq(profiles.userId, notifications.actorId)).leftJoin(messages, eq(messages.id, notifications.messageId)).leftJoin(conversations, eq(conversations.id, notifications.conversationId)).leftJoin(rooms, sql`${rooms.id} = coalesce(${conversations.roomId}, ${notifications.roomId})`).leftJoin(invites, and(eq(invites.id, notifications.invitationId), eq(invites.recipientUserId, actor.userId), eq(invites.kind, "direct"))).where(and(eq(notifications.userId, actor.userId), sql`(${notifications.messageId} is null or (${messages.id} is not null and ${messages.deletedAt} is null))`)).orderBy(asc(notifications.createdAt));
+  const actorName = contextualName(actor.userId, sql`coalesce(${conversations.roomId}, ${notifications.roomId})`, sql`${notifications.actorId}`, sql`${profiles.displayName}`);
+  const rows = await db.select({ id: notifications.id, invitationId: notifications.invitationId, invitationStatus: invites.status, invitationExpiresAt: invites.expiresAt, type: notifications.type, isMention: notifications.isMention, roomId: notifications.roomId, conversationId: notifications.conversationId, messageId: notifications.messageId, actorId: notifications.actorId, actorName, conversationKind: conversations.kind, subroomId: conversations.subroomId, roomSlug: rooms.slug, roomName: rooms.name, conversationTitle: conversations.title, createdAt: notifications.createdAt, readAt: notifications.readAt, destinationReadAt: notifications.destinationReadAt }).from(notifications).leftJoin(profiles, eq(profiles.userId, notifications.actorId)).leftJoin(messages, eq(messages.id, notifications.messageId)).leftJoin(conversations, eq(conversations.id, notifications.conversationId)).leftJoin(rooms, sql`${rooms.id} = coalesce(${conversations.roomId}, ${notifications.roomId})`).leftJoin(invites, and(eq(invites.id, notifications.invitationId), eq(invites.recipientUserId, actor.userId), eq(invites.kind, "direct"))).where(and(eq(notifications.userId, actor.userId), sql`(${notifications.messageId} is null or (${messages.id} is not null and ${messages.deletedAt} is null))`)).orderBy(asc(notifications.createdAt));
   const scopes = [...new Set(rows.flatMap((item) => item.conversationId ? [item.conversationId] : []))];
   // Notification history is not friendship state. Resolved/deleted requests must
   // never keep Friends lit; an older notification also cannot stand for a re-request.

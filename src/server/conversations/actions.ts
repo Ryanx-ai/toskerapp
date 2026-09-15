@@ -14,6 +14,7 @@ import { acknowledgeChat, acknowledgeDestination } from "@/server/attention/serv
 import { clearManualUnread } from "./preferences";
 import { validateMentionTargets } from "./mentions";
 import { adjustMentions, type MentionSpan } from "@/lib/mentions";
+import { contextualName, conversationRoomId } from "@/server/profiles/context-name";
 
 export type PersistentMessage = {
   id: string;
@@ -36,6 +37,8 @@ export async function listMessagesAction(
   const actor = await requireCurrentActor();
   const db = getDatabase();
   await hallScope(db, actor, conversationId);
+  const roomId = conversationRoomId(conversationId);
+  const reactionName = contextualName(actor.userId, roomId, sql`p.user_id`, sql`p.display_name`);
   const boundary = before
     ? or(
         lt(messages.createdAt, new Date(before.createdAt)),
@@ -43,10 +46,10 @@ export async function listMessagesAction(
       )
     : undefined;
   const rows = await db
-    .select({ id: messages.id, author: profiles.displayName, authorId: messages.authorId, body: messages.body, createdAt: messages.createdAt,
+    .select({ id: messages.id, author: contextualName(actor.userId, roomId, sql`${messages.authorId}`, sql`${profiles.displayName}`), authorId: messages.authorId, body: messages.body, createdAt: messages.createdAt,
       editedAt: messages.editedAt, deletedAt: messages.deletedAt, replyToId: messages.replyToId,
       replyTo: sql<string | null>`(select left(m.body, 240) from messages m where m.id = ${messages.replyToId} and m.conversation_id = ${conversationId} and m.deleted_at is null)`,
-      reactionSummary: sql<ReactionSummary[]>`coalesce((select json_agg(r order by r.emoji) from (select emoji, count(*)::int as count, bool_or(mr.user_id = ${actor.userId}) as mine, array_agg(p.display_name order by p.display_name) as participants from message_reactions mr join profiles p on p.user_id = mr.user_id where message_id = ${messages.id} group by emoji) r), '[]'::json)`,
+      reactionSummary: sql<ReactionSummary[]>`coalesce((select json_agg(r order by r.emoji) from (select emoji, count(*)::int as count, bool_or(mr.user_id = ${actor.userId}) as mine, array_agg(${reactionName} order by ${reactionName}) as participants from message_reactions mr join profiles p on p.user_id = mr.user_id where message_id = ${messages.id} group by emoji) r), '[]'::json)`,
     })
     .from(messages)
     .innerJoin(profiles, eq(profiles.userId, messages.authorId))

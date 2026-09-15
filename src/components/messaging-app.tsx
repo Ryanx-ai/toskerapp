@@ -2,7 +2,7 @@
 import { useConversationRealtime } from "./use-conversation-realtime";
 import { NicknameDialog } from "./nickname-editor";
 import { NamecardProvider } from "./namecard-dialog";
-import { NamecardButton } from "./namecard-context";
+import { NamecardButton, NamecardRoomContext } from "./namecard-context";
 import { SidebarConversationRow } from "./sidebar-conversation-row";
 import { RoomDetails } from "./room-details";
 import { ACTIVITY_REFRESH, CONVERSATION_ACCESS_LOST, PROFILE_REFRESH } from "@/lib/realtime-contract";
@@ -1451,7 +1451,7 @@ export function MessagingApp({
       />
       <div className="working-surface">
         {selected ? (
-          <>
+          <NamecardRoomContext.Provider value={contextRoom?.id}>
             <SurfaceHeader
               conversation={selected}
               surface={surface}
@@ -1476,7 +1476,7 @@ export function MessagingApp({
             ) : (
               <ChatSurface key={selected.slug} conversation={selected} realtime={realtime} manualUnreadId={selectedPreference?.manualChatUnreadId} readingPaused={readingPaused} />
             )}
-          </>
+          </NamecardRoomContext.Provider>
         ) : selectedSlug && identity ? (
           <div className="desktop-welcome" role="status"><h2>Conversation unavailable</h2><p>Check your access or return to Chats.</p><Link className="quiet-action" href="/app">Return to Chats</Link></div>
         ) : workspace === "friends" ? (

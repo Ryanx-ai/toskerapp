@@ -182,6 +182,8 @@ export const roomMemberships = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     role: membershipRole("role").default("member").notNull(),
+    nickname: text("nickname"),
+    nicknameRevision: uuid("nickname_revision").defaultRandom().notNull(),
     joinedAt: timestamp("joined_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
@@ -191,6 +193,15 @@ export const roomMemberships = pgTable(
     index("room_memberships_user_idx").on(table.userId),
   ],
 );
+
+/** Minimal reset accountability; never retain past nickname text. */
+export const roomIdentityResets = pgTable("room_identity_resets", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  roomId: uuid("room_id").notNull().references(() => rooms.id, { onDelete: "cascade" }),
+  actorId: uuid("actor_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  targetUserId: uuid("target_user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, table => [index("room_identity_resets_room_idx").on(table.roomId, table.createdAt)]);
 
 export const invites = pgTable(
   "invites",

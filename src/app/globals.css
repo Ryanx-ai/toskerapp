@@ -1121,6 +1121,20 @@ h1,h2,h3 { font-family:var(--font-mermaid),Georgia,serif; font-weight:400; lette
 .scoped-settings-footer:empty { display:none; }
 .scoped-settings-footer > p { font-size:13px; margin:0 0 12px; }
 .namecard-bio { margin:16px 0; font:400 13px/1.6 var(--font-montserrat),sans-serif; color:var(--text-secondary); overflow-wrap:anywhere; }
+.identity-accent-gold,.accent-gold { --identity-accent:#d6ad69; }
+.identity-accent-rose,.accent-rose { --identity-accent:#cb8da2; }
+.identity-accent-sage,.accent-sage { --identity-accent:#91afa0; }
+.identity-accent-sky,.accent-sky { --identity-accent:#8daec5; }
+.identity-accent-neutral,.accent-neutral { --identity-accent:var(--border); }
+.namecard:not(.identity-accent-neutral) .namecard-banner { background:linear-gradient(120deg,color-mix(in srgb,var(--identity-accent) 35%,var(--surface)),var(--surface)); }
+.contextual-namecard:not(.identity-accent-neutral) { box-shadow:inset 0 3px var(--identity-accent); }
+.identity-accent-options { margin:0 0 20px; padding:0; border:0; display:flex; flex-wrap:wrap; gap:8px; }
+.identity-accent-options legend { margin-bottom:12px; font-size:13px; }
+.identity-accent-options label { display:flex; align-items:center; gap:8px; min-height:44px; padding:8px 10px; border-radius:10px; background:var(--surface-hover); font-size:13px; cursor:pointer; }
+.identity-accent-options label:hover,.identity-accent-options label:has(input:checked) { background:rgba(255,255,255,.1); }
+.identity-accent-options label:focus-within { outline:2px solid var(--brand-gold); outline-offset:2px; }
+.identity-accent-options input { width:16px; height:16px; min-height:0; accent-color:var(--brand-gold); }
+.identity-accent-swatch { width:14px; height:14px; border-radius:50%; background:var(--identity-accent); }
 .scoped-settings-danger { display:flex; align-items:center; justify-content:space-between; gap:16px; padding-top:16px; border-top:1px solid var(--border); }
 .scoped-settings-danger p { margin:0; color:var(--text-secondary); font-size:12px; }
 .scoped-settings-shell .danger { color:var(--danger,#f28b9c); background:transparent; }

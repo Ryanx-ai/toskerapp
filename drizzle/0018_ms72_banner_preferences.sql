@@ -1,0 +1,2 @@
+CREATE TYPE "public"."banner_preference" AS ENUM('all', 'direct_mentions', 'quiet');--> statement-breakpoint
+ALTER TABLE "profiles" ADD COLUMN "banner_preference" "banner_preference" DEFAULT 'all' NOT NULL;

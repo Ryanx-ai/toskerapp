@@ -53,7 +53,7 @@ function NamecardDialog({ userId, roomId, onClose }: { userId: string; roomId?: 
     setNickname(false);
     requestAnimationFrame(() => document.querySelector<HTMLButtonElement>(".namecard-actions .namecard-nickname")?.focus());
   }} />;
-  return <ModalLayer onClose={() => { if (!busy) onClose(); }}><section className="identity-dialog contextual-namecard" aria-labelledby={`${id}-title`}>
+  return <ModalLayer onClose={() => { if (!busy) onClose(); }}><section className={`identity-dialog contextual-namecard identity-accent-${person?.identityAccent ?? "neutral"}`} aria-labelledby={`${id}-title`}>
     <button className="overlay-close" aria-label="Close Namecard" disabled={busy} onClick={onClose}><X size={18} /></button>
     <p className="eyebrow">Namecard{person?.self ? " · You" : ""}</p>
     {person ? <>

@@ -1,4 +1,5 @@
 import { PersonAvatar } from "@/components/identity-avatar";
+import type { IdentityAccent } from "@/lib/profile-contract";
 
 export type IdentityCardProfile = {
   userId?: string;
@@ -9,6 +10,7 @@ export type IdentityCardProfile = {
   initials: string;
   color: string;
   status: string;
+  identityAccent?: IdentityAccent;
 };
 
 export function IdentityCard({
@@ -22,13 +24,13 @@ export function IdentityCard({
   compact?: boolean;
 }) {
   return (
-    <article className={`namecard ${compact ? "namecard-compact" : ""}`}>
+    <article className={`namecard identity-accent-${profile.identityAccent ?? "neutral"} ${compact ? "namecard-compact" : ""}`}>
       <div className="namecard-banner" aria-hidden="true" />
       <PersonAvatar seed={profile.userId ?? profile.tid} initials={profile.initials} imageUrl={profile.avatarUrl} className="namecard-avatar" />
       <div className="namecard-body">
         <h2>{profile.name}</h2>
         <strong>{profile.username} · {profile.tid}</strong>
-        <span className="presence">{profile.status}</span>
+        {profile.status ? <span className="presence">{profile.status}</span> : null}
         {action}
       </div>
     </article>

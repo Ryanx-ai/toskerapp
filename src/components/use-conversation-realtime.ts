@@ -88,17 +88,18 @@ export function useConversationRealtime(conversationId: string | undefined, user
       void channel?.subscribe(MESSAGE_CHANGED, changed).then(() => changed()).catch(() => undefined);
       // Attachment/re-attachment closes the fetch-before-subscribe race.
       channel?.on("attached", () => changed());
+      let previouslyConnected = false;
       realtime.connection.on((state) => {
         if (disposed) return;
         updateHealth();
-        if (state.current === "connected") { changed(); refreshActivity(); window.dispatchEvent(new Event(HALL_REFRESH)); }
+        if (state.current === "connected") { changed(); refreshActivity(); window.dispatchEvent(new Event(HALL_REFRESH)); if (previouslyConnected) window.dispatchEvent(new Event(PROFILE_REFRESH)); previouslyConnected = true; }
         else { peers.clear(); updatePeers(); wasTyping = false; refreshActivity(); }
       });
       const onVisible = () => {
         if (document.hidden) { sendRef.current(false); peers.clear(); updatePeers(); }
-        else { realtime.connect(); changed(); refreshActivity(); window.dispatchEvent(new Event(HALL_REFRESH)); }
+        else { realtime.connect(); changed(); refreshActivity(); window.dispatchEvent(new Event(HALL_REFRESH)); window.dispatchEvent(new Event(PROFILE_REFRESH)); }
       };
-      const onOnline = () => { realtime.connect(); changed(); refreshActivity(); window.dispatchEvent(new Event(HALL_REFRESH)); };
+      const onOnline = () => { realtime.connect(); changed(); refreshActivity(); window.dispatchEvent(new Event(HALL_REFRESH)); window.dispatchEvent(new Event(PROFILE_REFRESH)); };
       document.addEventListener("visibilitychange", onVisible);
       window.addEventListener("online", onOnline);
       close = () => {

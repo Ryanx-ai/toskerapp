@@ -36,3 +36,10 @@ export async function publishRoomIdentityMetadata(roomId: string) {
       .publish({id:randomUUID(),name:PROFILE_CHANGED,data:{version:1}})));
   } catch { console.warn("[realtime] Room identity signal unavailable; canonical reconciliation retained."); }
 }
+
+/** Private preference invalidation never goes to peers. */
+export async function publishOwnSettingsMetadata(userId: string) {
+  if (!process.env.ABLY_API_KEY) return;
+  try { await getRealtimeServer().channels.get(userChannel(userId)).publish({id:randomUUID(),name:PROFILE_CHANGED,data:{version:1}}); }
+  catch { console.warn("[realtime] Settings signal unavailable; canonical reconciliation retained."); }
+}

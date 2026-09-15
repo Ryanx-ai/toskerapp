@@ -6,6 +6,7 @@ import { NamecardButton, NamecardRoomContext } from "./namecard-context";
 import { SidebarConversationRow } from "./sidebar-conversation-row";
 import { RoomDetails } from "./room-details";
 import { ACTIVITY_REFRESH, CONVERSATION_ACCESS_LOST, PROFILE_REFRESH } from "@/lib/realtime-contract";
+import { allowsActivityBanner, type BannerPreference } from "@/lib/banner-preference";
 import { removedMessageIds } from "@/lib/message-removal";
 import { notificationHref } from "@/lib/notification-href";
 import { deriveAttention } from "@/lib/attention";
@@ -1284,7 +1285,7 @@ export function MessagingApp({
       lastRefresh = Date.now();
       inFlight = true;
       const snapshot = await fetch("/api/workspace", { credentials: "same-origin", cache: "no-store", signal: AbortSignal.timeout(15000) })
-        .then(async (response) => response.ok ? await response.json() as { activity: Awaited<ReturnType<typeof listNotificationsAction>>; navigation: Awaited<ReturnType<typeof refreshWorkspaceNavigationAction>>; preferences: ConversationPreference[] } : null)
+        .then(async (response) => response.ok ? await response.json() as { activity: Awaited<ReturnType<typeof listNotificationsAction>>; navigation: Awaited<ReturnType<typeof refreshWorkspaceNavigationAction>>; preferences: ConversationPreference[]; bannerPreference: BannerPreference } : null)
         .catch(() => null);
       const next = snapshot?.activity.filter((item) => !item.messageId || !item.conversationId || !removedMessageIds(item.conversationId).has(item.messageId)), nextNavigation = snapshot?.navigation;
       inFlight = false;
@@ -1294,9 +1295,10 @@ export function MessagingApp({
       const previous = seenActivity.current;
       workspaceSnapshot.publish({ userId: identity.userId, activity: next, navigation: nextNavigation ?? workspaceSnapshot.get(identity.userId).navigation, preferences: snapshot?.preferences ?? [], navigationBasis: identity });
       seenActivity.current = new Set(next.map((item) => item.id));
-      setToast((current) => current && next.some((item) => item.id === current.id) ? current : null);
+      const bannerMode = snapshot?.bannerPreference ?? "all";
+      setToast((current) => current && next.some((item) => item.id === current.id && allowsActivityBanner(bannerMode,item)) ? current : null);
       if (previous) {
-        const incoming = next.find((item) => !previous.has(item.id) && !item.readAt && !item.muted && item.actorId !== identity.userId && !(item.type === "message" && item.conversationId === activeConversationRef.current));
+        const incoming = next.find((item) => !previous.has(item.id) && !item.readAt && allowsActivityBanner(bannerMode,item) && item.actorId !== identity.userId && !(item.type === "message" && item.conversationId === activeConversationRef.current));
         if (incoming) {
           setToast(incoming);
           window.clearTimeout(toastTimer);

@@ -17,15 +17,16 @@ function SettingsFooter({ children, onClose }: { children: ReactNode | ((request
   return <footer className="scoped-settings-footer">{typeof children === "function" ? children(onClose) : children}</footer>;
 }
 /** Small layout primitives only; no settings schema or speculative persistence. */
-export function SettingsShell({ title, context, identity, sections, onClose, busy = false, dirty = false, onDiscard, children, footer }: {
+export function SettingsShell({ title, context, identity, sections, onClose, busy = false, dirty = false, onDiscard, children, footer, selectedSection, onSectionChange }: {
   title: string; context: string; identity?: ReactNode; sections: { id: string; label: string; content: ReactNode }[];
   onClose: () => void; busy?: boolean; dirty?: boolean; onDiscard?: () => void; children?: ReactNode; footer?: ReactNode | ((requestClose: () => void) => ReactNode);
+  selectedSection?: string; onSectionChange?: (id: string) => void;
 }) {
   const id = useId(), [selected, setSelected] = useState(sections[0]?.id);
   const [categories, setCategories] = useState(false), [discard, setDiscard] = useState(false);
   const [pendingSection, setPendingSection] = useState<string | null>(null);
   const panel = useRef<HTMLElement>(null), categoryButton = useRef<HTMLButtonElement>(null), returnFocus = useRef<HTMLElement | null>(null);
-  const current = sections.find((section) => section.id === selected) ?? sections[0];
+  const current = sections.find((section) => section.id === (selectedSection ?? selected)) ?? sections[0];
   useEffect(() => {
     const dialog = panel.current?.closest("dialog"), viewport = window.visualViewport;
     if (!dialog || !viewport) return;
@@ -56,7 +57,7 @@ export function SettingsShell({ title, context, identity, sections, onClose, bus
     else onClose();
   };
   const selectSection = (sectionId: string) => {
-    setSelected(sectionId); setCategories(false);
+    setSelected(sectionId); setCategories(false); onSectionChange?.(sectionId);
     panel.current?.querySelector(".scoped-settings-body")?.scrollTo({ top: 0 });
     requestAnimationFrame(() => {
       if (categoryButton.current?.checkVisibility()) categoryButton.current.focus();

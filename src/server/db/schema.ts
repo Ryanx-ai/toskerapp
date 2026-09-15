@@ -53,6 +53,7 @@ export const subroomVisibility = pgEnum("subroom_visibility", ["everyone", "sele
 export const hallReactionKind = pgEnum("hall_reaction_kind", ["heart", "like", "celebrate"]);
 export const profileAudience = pgEnum("profile_audience", ["self", "friends", "shared_context"]);
 export const identityAccent = pgEnum("identity_accent", ["neutral", "gold", "rose", "sage", "sky"]);
+export const bannerPreference = pgEnum("banner_preference", ["all", "direct_mentions", "quiet"]);
 
 export const users = pgTable(
   "users",
@@ -73,6 +74,7 @@ export const users = pgTable(
 );
 
 export const profiles = pgTable("profiles", {
+  bannerPreference: bannerPreference("banner_preference").default("all").notNull(),
   userId: uuid("user_id")
     .primaryKey()
     .references(() => users.id, { onDelete: "cascade" }),

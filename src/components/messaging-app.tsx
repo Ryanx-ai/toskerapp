@@ -3,6 +3,7 @@ import { useConversationRealtime } from "./use-conversation-realtime";
 import { NicknameDialog } from "./nickname-editor";
 import { NamecardProvider } from "./namecard-dialog";
 import { NamecardButton, NamecardRoomContext } from "./namecard-context";
+import { RevealName } from "./reveal-name";
 import { SidebarConversationRow } from "./sidebar-conversation-row";
 import { RoomDetails } from "./room-details";
 import { ACTIVITY_REFRESH, CONVERSATION_ACCESS_LOST, PROFILE_REFRESH } from "@/lib/realtime-contract";
@@ -52,8 +53,6 @@ import {
 import {
   ArrowLeft,
   Bell,
-  CircleHelp,
-  Compass,
   MessageCircle,
   MoreHorizontal,
   PanelLeftClose,
@@ -68,10 +67,6 @@ import {
 export type AppWorkspace = ProductWorkspace | "friends" | "create";
 type Overlay = "choose" | "chat" | "room" | "invite" | "subroom" | "manage" | null;
 type NotificationActivity = Awaited<ReturnType<typeof listNotificationsAction>>[number];
-const nav = [
-  { label: "Explore", icon: Compass, href: "/explore" },
-  { label: "Friends", icon: UsersRound, href: "/friends" },
-];
 function PresenceMark({ status, label = true }: { status?: "online" | "idle" | "away" | "meeting" | null; label?: boolean }) {
   if (!status) return null;
   const names = { online: "Online", idle: "Idle", away: "Away", meeting: "In a meeting" };
@@ -285,7 +280,7 @@ function ConversationRow({
         <Avatar item={item} />
         <span className="conversation-copy">
           <span className="conversation-name">
-            <span>{nameOf(item, displayName)}</span>
+            <RevealName>{nameOf(item, displayName)}</RevealName>
           </span>
           {item.kind !== "my-room" ? <span className="conversation-preview">{item.kind === "room" && item.tag !== "SUBROOM" ? <RoomCategory value={item.tag ?? "Room"} /> : item.preview}</span> : null}
         </span>
@@ -323,23 +318,25 @@ function ConversationRow({
 function ProfileRegion({
   workspace,
   notificationCount = 0,
+  friendAttention = 0,
 }: {
   workspace?: AppWorkspace;
   notificationCount?: number;
+  friendAttention?: number;
 }) {
   const user = useCurrentToskerUser() ?? prototypeUser;
   const identity = useToskerIdentity();
   return (
     <div className="sidebar-bottom">
       <div className="profile-nameplate">
-        <Link className="profile-avatar-button" href="/profile" aria-label="Open your Namecard">
+        <NamecardButton className="profile-avatar-button" userId={identity?.userId} name="your">
         <PersonAvatar seed={identity?.userId ?? "demo-self"} initials={user.initials} imageUrl={identity?.avatarUrl} className="profile-avatar">
           <i className="profile-avatar-badge" aria-hidden="true" />
           <PresenceMark status={"presenceStatus" in user ? user.presenceStatus as "online" | "idle" | "away" | "meeting" : undefined} label />
         </PersonAvatar>
-        </Link>
+        </NamecardButton>
         <span>
-          <strong>{user.displayName}</strong>
+          <strong><RevealName focusable>{user.displayName}</RevealName></strong>
           <small>{user.role}</small>
         </span>
         <div className="profile-actions">
@@ -363,13 +360,14 @@ function ProfileRegion({
             <Settings size={16} />
           </Link>
           <Link
-            href="/help"
-            aria-label="Help & Feedback"
-            data-tip="Help & Feedback"
+            href="/friends"
+            aria-label={`Friends${friendAttention ? `, ${friendAttention} new requests` : ""}`}
+            data-tip="Friends"
             className="has-tip"
-            aria-current={workspace === "help" ? "page" : undefined}
+            aria-current={workspace === "friends" ? "page" : undefined}
           >
-            <CircleHelp size={16} />
+            <UsersRound size={16} />
+            <AttentionMark count={friendAttention} label="new friend requests" />
           </Link>
         </div>
       </div>
@@ -565,28 +563,6 @@ function AppSidebar({
           {collapsed ? <PanelLeftOpen size={19} /> : <PanelLeftClose size={19} />}
         </button>
       </div>
-      <nav className="product-nav" aria-label="Tosker destinations">
-        {nav.map((item) => {
-          const Icon = item.icon;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              aria-label={`${item.label}${item.label === "Friends" && friendAttention ? `, ${friendAttention} new requests` : ""}`}
-              aria-current={
-                (workspace === "studio" || workspace === "marketplace" ? "explore" : workspace) === item.label.toLowerCase() ? "page" : undefined
-              }
-              className={`product-nav-item ${(workspace === "studio" || workspace === "marketplace" ? "explore" : workspace) === item.label.toLowerCase() ? "active" : ""}`}
-            >
-              <span>
-                <Icon size={17} />
-              </span>
-              <strong>{item.label}</strong>
-              {item.label === "Friends" ? <AttentionMark count={friendAttention} label="new friend requests" /> : null}
-            </Link>
-          );
-        })}
-      </nav>
       <section className="conversation-section">
         <div className="unified-search">
           {collapsed ? (
@@ -647,7 +623,7 @@ function AppSidebar({
           ) : null}
         </div>
       </section>
-      <ProfileRegion workspace={workspace} notificationCount={notificationCount} />
+      <ProfileRegion workspace={workspace} notificationCount={notificationCount} friendAttention={friendAttention} />
     </aside>
   );
 }
@@ -1215,12 +1191,6 @@ function MobileNav({ friendAttention, notificationCount, chatAttention }: { frie
           <AttentionMark count={notificationCount} label="unread notifications" />
         </span>
         Notifications
-      </Link>
-      <Link href="/explore">
-        <span>
-          <Compass size={17} />
-        </span>
-        Explore
       </Link>
       <Link href="/profile">
         <span className="mobile-profile-avatar">{user.initials}</span>

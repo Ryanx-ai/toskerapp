@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import {run,ev,until,button} from "./browser-fp2.mjs";
-const a="ms72-a",b="ms72-b",origin="http://localhost:3000",room="/room/ms722-frame-qa";
+const a=process.env.MS72_A??"ms72-a",b=process.env.MS72_B??"ms72-b",origin=process.env.MS72_ORIGIN??"http://localhost:3000",room="/room/ms722-frame-qa";
 const qaName="MS7.2 Room nickname QA",longName="Long Room name العربية "+"W".repeat(35);
 async function open(s,path=room) {
   await run(s,"open",origin+path);

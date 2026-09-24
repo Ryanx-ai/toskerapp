@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import {run,ev,until,button} from "./browser-fp2.mjs";
-const a="ms72-a",b="ms72-b",origin="http://localhost:3000",personal="/personal/chat-be192eac-38c6-4d46-a6d2-bea19fa324fa";
+const a=process.env.MS72_A??"ms72-a",b=process.env.MS72_B??"ms72-b",origin=process.env.MS72_ORIGIN??"http://localhost:3000",personal="/personal/chat-be192eac-38c6-4d46-a6d2-bea19fa324fa";
 const bio="MS7.2 transient profile privacy QA",qaName="MS7.2 Identity QA A";
 async function recover(s) {
   await until(s,"!!document.querySelector('.composer textarea')||[...document.querySelectorAll('button')].some(e=>['Edit Profile','Reload workspace'].includes(e.textContent))","settled local auth UI");

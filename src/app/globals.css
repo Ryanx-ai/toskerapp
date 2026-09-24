@@ -1410,6 +1410,63 @@ h1,h2,h3 { font-family:var(--font-mermaid),Georgia,serif; font-weight:400; lette
 .tid-copy > button { min-height: 36px; display: inline-flex; align-items: center; gap: 6px; }
 .tid-copy > [role="status"] { font-size: 12px; overflow-wrap: anywhere; }
 .fp2-invite-response { scroll-margin-top: 80px; }
+/* MS7.2 FP1: compact identity surfaces; deliberately scoped, not a new theme. */
+.reveal-name { display:block; min-width:0; max-width:100%; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.reveal-name > span { display:inline-block; min-width:100%; white-space:nowrap; }
+.reveal-name:focus-visible { outline:1px solid var(--brand-gold); outline-offset:2px; border-radius:2px; }
+@media (hover:hover) and (prefers-reduced-motion:no-preference) {
+  .reveal-name > span { transition:transform .15s ease-out; }
+  .reveal-name[data-overflow=true]:is(:hover,:focus) > span,
+  :is(a,button):focus-visible .reveal-name[data-overflow=true] > span { transform:translateX(var(--name-shift)); transition:transform var(--name-duration) linear .35s; }
+}
+@media (hover:none), (prefers-reduced-motion:reduce) {
+  .reveal-name { overflow-x:auto; scrollbar-width:none; }
+  .reveal-name > span { transform:none!important; transition:none!important; }
+}
+.conversation-name > .reveal-name { width:100%; }
+.active-copy :is(h2,.room-context-trigger) .reveal-name,.active-copy :is(h2,.room-context-trigger) .reveal-name > span { font:inherit; color:inherit; }
+.profile-nameplate > span { min-width:0; }
+.profile-nameplate .profile-avatar-button { flex:none; width:36px; height:40px; }
+.profile-nameplate .profile-avatar-button::after { display:none; }
+.profile-actions a { position:relative; }
+.profile-surface > .namecard { max-width:480px; margin:12px auto 0; }
+.profile-surface .namecard-banner { height:76px; }
+.profile-surface .namecard-avatar { width:72px; height:72px; margin:-30px 0 0 26px; border-width:4px; }
+.profile-surface .namecard-body { padding:12px 26px 26px; }
+.profile-surface .namecard-body h2 { margin:6px 0 10px; font:600 23px/1.4 var(--font-montserrat),sans-serif; }
+.profile-surface .namecard-body .tid-copy { display:flex; margin-top:10px; }
+.profile-surface .namecard-body .tid-copy button { padding:0; background:transparent; color:var(--text-secondary); font:500 12px var(--font-montserrat),sans-serif; }
+.profile-surface .namecard-body .tid-copy button:hover { color:var(--text-primary); }
+.profile-shortcuts { display:flex; flex-wrap:wrap; gap:8px; margin-top:20px; }
+.profile-shortcuts :is(button,a) { display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:10px 14px; border-radius:10px; background:var(--surface); color:var(--text-primary); font:600 12px/1.4 var(--font-montserrat),sans-serif; }
+.profile-shortcuts .primary-action { background:var(--action-fill); color:var(--on-action); }
+.profile-shortcuts :is(button,a):hover { filter:brightness(1.15); }
+.profile-bio { overflow-wrap:anywhere; font-size:13px; color:var(--text-secondary); }
+.profile-landing-link { max-width:480px; margin:20px auto; }
+.modal-layer .contextual-namecard { width:min(400px,calc(100vw - 32px)); padding:24px; box-shadow:0 24px 70px #0008,inset 0 1px #ffffff0a; }
+.contextual-namecard .eyebrow { padding-right:36px; }
+.contextual-namecard .avatar-large { width:60px; height:60px; }
+.contextual-namecard .overlay-close { width:44px; height:44px; }
+.contextual-namecard .namecard-actions { margin:16px 0 0; }
+.contextual-namecard .namecard-actions :is(a,button) { display:inline-flex; align-items:center; min-height:44px; padding:10px 12px; font-size:12px; }
+.contextual-namecard .namecard-common { margin-top:20px; }
+.contextual-namecard .namecard-common ul { max-height:144px; overflow-y:auto; }
+.modal-layer .scoped-settings-shell { border-color:#ffffff14; box-shadow:0 28px 90px #0009,inset 0 1px #ffffff0a; }
+.scoped-settings-nav { background:#00000012; border-color:#ffffff0b; }
+.scoped-settings-header,.scoped-settings-footer { border-color:#ffffff0d; }
+.scoped-settings-identity > div { flex:1; }
+@supports (backdrop-filter:blur(12px)) {
+  .modal-layer .contextual-namecard { background:color-mix(in srgb,var(--surface-soft) 96%,transparent); backdrop-filter:blur(12px); }
+}
+@media (prefers-reduced-transparency:reduce), (prefers-contrast:more) {
+  .modal-layer .contextual-namecard { background:var(--surface-soft); backdrop-filter:none; }
+  .modal-layer .scoped-settings-shell { border-color:var(--text-secondary); }
+}
+@media(max-width:640px) {
+  .mobile-app-nav { grid-template-columns:repeat(4,minmax(0,1fr)); }
+  .modal-layer:has(> .contextual-namecard) { align-items:flex-end; }
+  .modal-layer .contextual-namecard { width:100%; max-height:calc(100dvh - 16px); padding:24px 20px max(24px,env(safe-area-inset-bottom)); border-radius:20px 20px 14px 14px; }
+}
 @media (max-width: 600px) {
   .fp2-share .invite-layout { display: flex; flex-direction: column; align-items: stretch; }
   .fp2-share .fake-qr { align-self: center; }

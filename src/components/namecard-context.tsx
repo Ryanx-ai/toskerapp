@@ -10,5 +10,5 @@ export function NamecardButton({ userId, name, children, className = "", onOpen,
   const open = useContext(NamecardContext);
   const contextRoom = useContext(NamecardRoomContext);
   if (!userId || !open) return <>{children}</>;
-  return <button type="button" className={`namecard-trigger ${className}`} aria-label={`Open ${name}'s Namecard`} aria-haspopup="dialog" onClick={(event) => { event.stopPropagation(); onOpen?.(); open(userId,roomId ?? contextRoom); }}>{children}</button>;
+  return <button type="button" className={`namecard-trigger ${className}`} aria-label={name === "your" ? "Open your Namecard" : `Open ${name}'s Namecard`} aria-haspopup="dialog" onClick={(event) => { event.stopPropagation(); onOpen?.(); open(userId,roomId ?? contextRoom); }}>{children}</button>;
 }

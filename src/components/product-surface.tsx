@@ -427,7 +427,7 @@ function Profile() {
         <IdentityCard
           label="Your Namecard"
           profile={{ userId: identity?.userId, avatarUrl: identity?.avatarUrl, name: user.displayName, username: user.username, tid: user.tid, initials: user.initials, color: "gold", status: user.role, identityAccent:identity?.ownProfile.identityAccent }}
-          action={identity ? <button onClick={() => setEditing(true)}>Edit Profile</button> : undefined}
+          action={identity ? <><p className="profile-bio">{identity.ownProfile.namecardBio}</p><div className="profile-shortcuts"><button className="primary-action" onClick={() => setEditing(true)}>Edit Profile</button><Link href="/friends">Friends</Link><Link href="/settings">Settings</Link></div></> : undefined}
         />
         <Link href="/" className="landing-footer-link profile-landing-link">View landing page</Link>
       </section>

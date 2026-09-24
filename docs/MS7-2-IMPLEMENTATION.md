@@ -1,5 +1,9 @@
 # MS7.2 — Gate 2 execution ledger
 
+## 2026-09-25 — FP1 continuation (current)
+
+Founder authorized recovery, bounded Profile/Settings/sidebar/performance patch, trip/map research and canonical founder-review release after the full gate. [Current execution, validation and release ledger](MS7-2-FP1-FOUNDER-PATCH.md). Recovered HEAD `4d39801`, seven ahead of canonical/origin `5ae54fb`; all19 migration checks and Development invariants passed. Earlier local slices and TID reset remain preserved, not reimplemented. MS7.1 locked, MS7.2 unlocked; no MS7.3 implementation. Historical Sept16 blocker/evidence below is retained, not silently treated as today's acceptance.
+
 2026-09-15. **IN PROGRESS — local only, not founder-ready or locked. MS7.3 has not started.**
 
 ## 2026-09-16 — release-unblock closing checkpoint

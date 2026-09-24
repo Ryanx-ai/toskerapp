@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { run, ev, until, button } from "./browser-fp2.mjs";
-const a="ms72-a",b="ms72-b",origin="http://localhost:3000",room="/room/ms722-frame-qa";
+const a=process.env.MS72_A??"ms72-a",b=process.env.MS72_B??"ms72-b",origin=process.env.MS72_ORIGIN??"http://localhost:3000",room="/room/ms722-frame-qa";
 const id=n=>`f7220000-2026-4000-8000-${n.toString(16).padStart(12,"0")}`;
 const pins="[...document.querySelectorAll('.messenger-sidebar .sidebar-pin-row.is-pinned')].map(e=>e.dataset.pinId)";
 const children="[...document.querySelectorAll('.messenger-sidebar [data-subroom-id]')].map(e=>e.dataset.subroomId).filter(id=>id.startsWith('f7220000'))";

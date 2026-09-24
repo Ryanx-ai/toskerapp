@@ -1,6 +1,7 @@
 import { PersonAvatar } from "@/components/identity-avatar";
 import type { IdentityAccent } from "@/lib/profile-contract";
 import { CopyTid } from "./copy-tid";
+import { RevealName } from "./reveal-name";
 
 export type IdentityCardProfile = {
   userId?: string;
@@ -29,7 +30,7 @@ export function IdentityCard({
       <div className="namecard-banner" aria-hidden="true" />
       <PersonAvatar seed={profile.userId ?? profile.tid} initials={profile.initials} imageUrl={profile.avatarUrl} className="namecard-avatar" />
       <div className="namecard-body">
-        <h2>{profile.name}</h2>
+        <h2><RevealName focusable>{profile.name}</RevealName></h2>
         <strong>{profile.username} · {profile.tid}</strong>
         {!compact ? <CopyTid tid={profile.tid} /> : null}
         {profile.status ? <span className="presence">{profile.status}</span> : null}

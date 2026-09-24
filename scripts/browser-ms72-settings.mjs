@@ -1,13 +1,13 @@
 import assert from "node:assert/strict";
 import {run,ev,until,button} from "./browser-fp2.mjs";
-const a="ms72-a",b="ms72-b",origin="http://localhost:3000";
+const a=process.env.MS72_A??"ms72-a",b=process.env.MS72_B??"ms72-b",origin=process.env.MS72_ORIGIN??"http://localhost:3000";
 async function open(s,section="profile") {
   await run(s,"open",`${origin}/settings?section=${section}`);
   await until(s,"!!document.querySelector('.scoped-settings-shell')||[...document.querySelectorAll('button')].some(e=>e.textContent==='Reload workspace')","settled Settings");
   if(await ev(s,"[...document.querySelectorAll('button')].some(e=>e.textContent==='Reload workspace')")) await button(s,"Reload workspace");
   await until(s,"!!document.querySelector('.scoped-settings-shell')","Settings");
 }
-const ids={Profile:"profile",Status:"status",Privacy:"privacy",Account:"account",Notifications:"notifications",Appearance:"appearance",Language:"language","Personal Brand":"brand",Support:"support"};
+const ids={Profile:"profile",Status:"status",Privacy:"privacy",Account:"account",Notifications:"notifications","Personal Brand":"brand",Support:"support"};
 async function section(s,label) {
   if(await ev(s,"!!document.querySelector('.settings-category-trigger')?.checkVisibility()")) await run(s,"click",".settings-category-trigger");
   await button(s,label);
@@ -35,7 +35,7 @@ try {
       assert(r.x>=0&&r.y>=0&&r.right<=r.vw+1&&r.bottom<=r.vh+1&&r.overflow<=1,JSON.stringify({label,...r})); assert.equal(r.h,before.h); assert.equal(r.y,before.y);
     }
   }
-  console.log("PASS nine addressable categories, stable frame/scroll bounds at six widths");
+  console.log("PASS seven addressable categories, stable frame/scroll bounds at six widths");
   await section(a,"Profile"); const name=await ev(a,"document.querySelector('input[name=displayName]').value");
   await run(a,"fill","input[name=displayName]","Unsaved Settings draft");
   await button(a,"Account"); await button(a,"Keep editing");

@@ -12,6 +12,7 @@ import { SettingsSection, SettingsShell } from "./settings-shell";
 import { AccountSecurity } from "./account-security";
 import { IdentityCard } from "./identity-card";
 import { CopyTid } from "./copy-tid";
+import { SUPPORT_EMAIL } from "@/config/support";
 
 const editable = ["displayName", "presenceStatus", "namecardBio", "detailsAudience", "statusAudience", "identityAccent", "bannerPreference"] as const;
 export function OwnProfileEditor({ identity, onClose, accountMode = false, selectedSection, onSectionChange }: { identity: CanonicalIdentity; onClose: () => void; accountMode?: boolean; selectedSection?: string; onSectionChange?: (id: string) => void }) {
@@ -61,18 +62,16 @@ export function OwnProfileEditor({ identity, onClose, accountMode = false, selec
         <label className="owner-profile-field">Show banners<select value={draft.bannerPreference} disabled={busy} onChange={event=>setDraft({...draft,bannerPreference:event.target.value as BannerPreference})}>{BANNER_PREFERENCES.map(value=><option key={value} value={value}>{({all:"All eligible updates",direct_mentions:"Direct conversations and mentions",quiet:"Quiet"})[value]}</option>)}</select></label>
         <p className="settings-scope">Unread dots and your notification list stay unchanged. Chat and Room mutes still apply; direct mentions can pass those mutes, but never Quiet. Email, push and browser notifications aren’t connected.</p>
       </>) },
-      { id:"appearance", label:"Appearance", content:<SettingsSection title="Your view" description="Tosker currently uses its dark, warm interface."><p className="settings-scope">The interface follows your system’s reduced-motion setting and supports browser zoom. Saved themes aren’t available yet. Your Personal Brand accent changes your identity card, not anyone’s workspace.</p></SettingsSection> },
-      { id:"language", label:"Language", content:<SettingsSection title="Language" description="The interface currently uses English."><p className="settings-scope">Names and messages support Unicode. Interface translations and message translation aren’t connected yet.</p></SettingsSection> },
       { id:"brand", label:"Personal Brand", content:section("Your identity accent",`A small personal touch. Visible to: ${audienceLabels[draft.detailsAudience]}.`,<>
         <fieldset className="identity-accent-options" disabled={busy}><legend>Accent</legend>{IDENTITY_ACCENTS.map(value=><label key={value}><input type="radio" name="identityAccent" value={value} checked={draft.identityAccent===value} onChange={()=>setDraft({...draft,identityAccent:value})} /><i className={`identity-accent-swatch accent-${value}`} aria-hidden="true" /><span>{value[0].toUpperCase()+value.slice(1)}</span></label>)}</fieldset>
         <p className="settings-scope">Preview · your card only. Text and status colors stay readable.</p>
         <IdentityCard compact label="Accent preview" profile={{userId:identity.userId,avatarUrl:identity.avatarUrl,name:draft.displayName,username:identity.username,tid:identity.tid,initials:draft.displayName.slice(0,2),color:"gold",status:"",identityAccent:draft.identityAccent}} />
         <button type="button" className="quiet-action" disabled={busy || draft.identityAccent==="neutral"} onClick={()=>setDraft({...draft,identityAccent:"neutral"})}>Reset to neutral</button>
       </>) },
-      { id:"support", label:"Support", content:<SettingsSection title="Help and feedback" description="Find your way around Tosker."><Link className="quiet-action" href="/help">Open Help</Link><a className="quiet-action" href="mailto:ryanchinqf2@gmail.com">Contact support</a><p className="settings-scope">Opens your email app. Include the page, what you expected and what happened. Don’t include passwords or verification codes.</p></SettingsSection> },
+      { id:"support", label:"Support", content:<SettingsSection title="Help and feedback" description="Find your way around Tosker."><Link className="quiet-action" href="/help">Open Help</Link><a className="quiet-action" href={`mailto:${SUPPORT_EMAIL}`}>Contact support</a><p className="settings-scope">Opens your email app. Include the page, what you expected and what happened. Don’t include passwords or verification codes.</p><p className="settings-scope">Tosker currently uses English and a dark interface. Browser zoom and reduced motion follow your device. Translation and themes aren’t available.</p></SettingsSection> },
     ] : []),
   ]} footer={requestClose => <div className="owner-profile-save">{error ? <p role="alert">{error}</p> : null}{feedback && !changed ? <p role="status">{feedback}</p> : null}
-    {accountMode && ["account","appearance","language","support"].includes(selectedSection ?? "") ? <form id={formId} onSubmit={save} /> : null}
+    {accountMode && ["account","support"].includes(selectedSection ?? "") ? <form id={formId} onSubmit={save} /> : null}
     {conflict ? <button className="quiet-action" disabled={busy} onClick={async () => {
       setBusy(true);
       try { const saved=await readOwnProfileAction(); setBase(saved); setDraft(saved); setConflict(false); setError(""); }

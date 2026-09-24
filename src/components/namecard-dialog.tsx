@@ -14,6 +14,10 @@ import { PersonAvatar } from "./identity-avatar";
 import { NicknameDialog } from "./nickname-editor";
 import { PersonalChatSettings } from "./personal-chat-settings";
 import { CopyTid } from "./copy-tid";
+import { RevealName } from "./reveal-name";
+import { useToskerIdentity } from "./tosker-identity";
+import { OwnProfileEditor } from "./own-profile-editor";
+import { RoomIdentityEditor } from "./room-identity-editor";
 
 const statusNames = { online: "Online", idle: "Idle", away: "Away", meeting: "In a meeting" };
 
@@ -27,6 +31,8 @@ export function NamecardProvider({ enabled, children }: { enabled: boolean; chil
 
 function NamecardDialog({ userId, roomId, onClose }: { userId: string; roomId?: string; onClose: () => void }) {
   const id = useId(), router = useRouter();
+  const identity = useToskerIdentity();
+  const [editing, setEditing] = useState<"global" | "room" | null>(null);
   const [person, setPerson] = useState<Namecard | null>(null);
   const [error, setError] = useState(""), [attempt, setAttempt] = useState(0);
   const [busy, setBusy] = useState(false), [nickname, setNickname] = useState(false), [settings, setSettings] = useState(false);
@@ -49,6 +55,14 @@ function NamecardDialog({ userId, roomId, onClose }: { userId: string; roomId?: 
     return () => { active = false; clearInterval(timer); window.removeEventListener(ACTIVITY_REFRESH, read); document.removeEventListener("visibilitychange", read); };
   }, [userId, roomId, attempt]);
   const name = (person?.roomContext ? person.roomNickname || person.displayName : person?.nickname || person?.displayName) || "Namecard";
+  const closeEditor = () => {
+    const selector = editing === "room" ? ".namecard-edit-room" : ".namecard-edit-profile";
+    setEditing(null);
+    void refresh().catch(() => { setPerson(null); setError("Namecard unavailable. Try again."); });
+    requestAnimationFrame(() => document.querySelector<HTMLButtonElement>(selector)?.focus());
+  };
+  if (editing === "global" && person?.self && identity) return <OwnProfileEditor identity={identity} onClose={closeEditor} />;
+  if (editing === "room" && person?.self && roomId) return <RoomIdentityEditor roomId={roomId} onClose={closeEditor} />;
   if (settings && person?.conversationId && !person.self) return <PersonalChatSettings conversation={{ databaseId: person.conversationId, slug: `chat-${person.conversationId}`, identitySeed: person.userId, avatarUrl: person.avatarUrl, kind: "personal", name: person.nickname || person.displayName, initials: person.displayName.slice(0, 2), color: "pink", context: `@${person.username}`, preview: "", time: "", messages: [] }} onClose={() => setSettings(false)} />;
   if (nickname && person?.connectionId) return <NicknameDialog target={{ id: person.connectionId, name: person.displayName, nickname: person.nickname }} onSaved={refresh} onClose={() => {
     setNickname(false);
@@ -59,7 +73,7 @@ function NamecardDialog({ userId, roomId, onClose }: { userId: string; roomId?: 
     <p className="eyebrow">Namecard{person?.self ? " · You" : ""}</p>
     {person ? <>
       <PersonAvatar seed={person.userId} initials={person.displayName.slice(0, 2)} imageUrl={person.avatarUrl} className="avatar-large" />
-      <h2 id={`${id}-title`}>{name}</h2>
+      <h2 id={`${id}-title`}><RevealName focusable>{name}</RevealName></h2>
       {name !== person.displayName ? <p className="namecard-canonical">{person.displayName}</p> : null}
       {person.roomContext ? <p className="settings-scope">In {person.roomContext.name}{person.nickname ? <> · You call them {person.nickname}</> : null}</p> : null}
       <p className="namecard-handle">@{person.username} · {person.tid}</p>
@@ -72,7 +86,13 @@ function NamecardDialog({ userId, roomId, onClose }: { userId: string; roomId?: 
           catch { setError("Couldn't open this Chat. Try again."); }
           finally { setBusy(false); }
         }}>{busy ? "Opening…" : "Message"}</button>{person.conversationId ? <button className="quiet-action" disabled={busy} onClick={() => setSettings(true)}>Chat Settings</button> : null}
-          {person.connectionId ? <button className="quiet-action namecard-nickname" disabled={busy} onClick={() => setNickname(true)}>Private nickname</button> : null}</div> : <Link className="quiet-action" href="/profile" onClick={onClose}>Your Profile</Link>}
+          {person.connectionId ? <button className="quiet-action namecard-nickname" disabled={busy} onClick={() => setNickname(true)}>Private nickname</button> : null}</div> : <div className="namecard-actions">
+          {identity ? <button className="primary-action namecard-edit-profile" onClick={() => setEditing("global")}>Edit Profile</button> : null}
+          {roomId ? <button className="quiet-action namecard-edit-room" onClick={() => setEditing("room")}>Your Room identity</button> : null}
+          <Link className="quiet-action" href="/friends" onClick={onClose}>Friends</Link>
+          <Link className="quiet-action" href="/settings" onClick={onClose}>Settings</Link>
+          <Link className="quiet-action" href="/profile" onClick={onClose}>Your Profile</Link>
+        </div>}
         {!person.self ? <section className="namecard-common"><h3>Common Rooms</h3>{person.commonRooms.length ? <ul>{person.commonRooms.map((room) => <li key={room.id}><Link href={`/room/${room.slug}`} onClick={onClose}>{room.name}</Link></li>)}</ul> : <p>No shared Rooms.</p>}{person.moreCommonRooms ? <small>Showing the first 20 shared Rooms.</small> : null}</section> : null}
     </> : <><h2 id={`${id}-title`}>Namecard</h2>{!error ? <p role="status">Loading identity…</p> : null}</>}
     {error ? <p role="alert">{error} <button className="quiet-action" disabled={busy} onClick={() => { setError(""); setAttempt((value) => value + 1); }}>Retry</button></p> : null}

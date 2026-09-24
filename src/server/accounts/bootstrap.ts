@@ -8,6 +8,7 @@ import { readSidebarPins } from "@/server/conversations/sidebar-pins";
 import { readOwnProfile, type OwnProfile } from "@/server/profiles/own-read";
 import { readPersonalNavigation } from "./personal-navigation";
 import { establishToskerUser } from "./tid";
+import { usernameBase as normalizeUsername } from "@/lib/username-contract";
 import {
   conversationParticipants,
   conversations,
@@ -26,16 +27,6 @@ function randomSegment(length: number) {
   return [...randomBytes(length)]
     .map((byte) => tidAlphabet[byte % tidAlphabet.length])
     .join("");
-}
-
-function normalizeUsername(value: string) {
-  const normalized = value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "")
-    .slice(0, 24);
-
-  return normalized || `tosker-${randomSegment(6).toLowerCase()}`;
 }
 
 export type BootstrapIdentity = {
@@ -192,8 +183,8 @@ export async function ensureToskerAccount(
     };
   });
 
-  const ownProfile = await readOwnProfile(db, account.userId);
-  return { ...account, displayName: ownProfile.displayName, presenceStatus: ownProfile.presenceStatus, ownProfile, ...await getWorkspaceNavigation(account.userId) };
+  const [ownProfile, navigation] = await Promise.all([readOwnProfile(db, account.userId), getWorkspaceNavigation(account.userId)]);
+  return { ...account, displayName: ownProfile.displayName, presenceStatus: ownProfile.presenceStatus, ownProfile, ...navigation };
 }
 
 /** Read-only navigation snapshot, reused after private activity invalidations. */
@@ -215,23 +206,28 @@ export async function getWorkspaceNavigation(userId: string): Promise<Pick<Canon
       and(eq(conversations.roomId, rooms.id), eq(conversations.isPrimary, true)),
     )
     .where(eq(roomMemberships.userId, account.userId));
-  const tags = memberships.length
-    ? await db
+  // Independent, actor-scoped reads run together after membership is established.
+  // No shared cache and no change to authorization predicates or write ordering.
+  const [tags, capabilities, subroomRows, personalConversations, sidebarPinnedIds] = await Promise.all([
+    memberships.length
+    ? db
         .select({ roomId: roomTags.roomId, value: roomTags.value })
         .from(roomTags)
         .where(inArray(roomTags.roomId, memberships.map((room) => room.id)))
-    : [];
-  const capabilities = memberships.length
-    ? await db.select({ roomId: roomCapabilities.roomId, value: roomCapabilities.capabilityKey }).from(roomCapabilities).where(inArray(roomCapabilities.roomId, memberships.map((room) => room.id)))
-    : [];
-  const subroomRows = memberships.length ? await db.select({ roomId: subrooms.roomId, id: subrooms.id, name: subrooms.name, visibility: subrooms.visibility, conversationId: conversations.id })
+    : [],
+    memberships.length
+    ? db.select({ roomId: roomCapabilities.roomId, value: roomCapabilities.capabilityKey }).from(roomCapabilities).where(inArray(roomCapabilities.roomId, memberships.map((room) => room.id)))
+    : [],
+    memberships.length ? db.select({ roomId: subrooms.roomId, id: subrooms.id, name: subrooms.name, visibility: subrooms.visibility, conversationId: conversations.id })
     .from(subrooms).innerJoin(conversations, eq(conversations.subroomId, subrooms.id)).leftJoin(subroomAccess, and(eq(subroomAccess.subroomId, subrooms.id), eq(subroomAccess.userId, account.userId)))
     .where(and(inArray(subrooms.roomId, memberships.map((room) => room.id)), or(eq(subrooms.visibility, "everyone"), eq(subroomAccess.userId, account.userId))))
-    .orderBy(subrooms.position, subrooms.createdAt, subrooms.id) : [];
-  const personalConversations = await readPersonalNavigation(db, account.userId);
+    .orderBy(subrooms.position, subrooms.createdAt, subrooms.id) : [],
+    readPersonalNavigation(db, account.userId),
+    readSidebarPins(db, userId),
+  ]);
 
   return {
-    sidebarPinnedIds: await readSidebarPins(db, userId),
+    sidebarPinnedIds,
     rooms: memberships.map((room) => ({
       ...room,
       tag: tags.find((tag) => tag.roomId === room.id)?.value ?? "ROOM",

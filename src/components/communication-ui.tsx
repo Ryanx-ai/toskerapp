@@ -1,4 +1,5 @@
 "use client";
+import { RevealName } from "./reveal-name";
 import { PersonalChatSettings } from "./personal-chat-settings";
 import { NamecardButton } from "./namecard-context";
 import { EditMessageDialog } from "./edit-message-dialog";
@@ -166,7 +167,7 @@ export function SurfaceHeader({
         </Link>
         {conversation.kind === "my-room" ? <SandboxAvatar className="avatar-large" /> : conversation.kind === "room" ? <RoomAvatar name={conversation.name} seed={conversation.identitySeed ?? conversation.slug.split("--")[0]} subroom={conversation.tag === "SUBROOM"} className="avatar-large" /> : <NamecardButton userId={conversation.databaseId ? conversation.identitySeed : undefined} name={conversation.name}><PersonAvatar seed={conversation.identitySeed ?? conversation.slug} initials={conversation.initials} imageUrl={conversation.avatarUrl} className="avatar-large" /></NamecardButton>}
         <div className="active-copy">
-          {parentRoom ? <button className="room-context-trigger" aria-label={`Switch Room context: ${parentRoom.name}${conversation.tag === "SUBROOM" ? ` / ${conversation.name}` : ""}`} aria-haspopup="dialog" aria-expanded={Boolean(contextAnchor)} onClick={(event) => setContextAnchor(event.currentTarget)}><span>{parentRoom.name}</span><ChevronDown size={15} /></button> : <h2><NamecardButton userId={conversation.kind === "personal" && conversation.databaseId ? conversation.identitySeed : undefined} name={conversation.name}>{titleOf(conversation, user.displayName)}</NamecardButton></h2>}
+          {parentRoom ? <button className="room-context-trigger" aria-label={`Switch Room context: ${parentRoom.name}${conversation.tag === "SUBROOM" ? ` / ${conversation.name}` : ""}`} aria-haspopup="dialog" aria-expanded={Boolean(contextAnchor)} onClick={(event) => setContextAnchor(event.currentTarget)}><RevealName>{parentRoom.name}</RevealName><ChevronDown size={15} /></button> : <h2><NamecardButton userId={conversation.kind === "personal" && conversation.databaseId ? conversation.identitySeed : undefined} name={conversation.name}><RevealName>{titleOf(conversation, user.displayName)}</RevealName></NamecardButton></h2>}
           {conversation.kind === "personal" && conversation.presenceStatus ? <span className="header-presence"><i className={`presence-mark ${conversation.presenceStatus}`} aria-label={{ online: "Online", idle: "Idle", away: "Away", meeting: "In a meeting" }[conversation.presenceStatus]} />{{ online: "Online", idle: "Idle", away: "Away", meeting: "In a meeting" }[conversation.presenceStatus]}</span> : null}
           {conversation.kind === "room" && conversation.context ? <span className="header-context" title={parentRoom ? conversation.name : conversation.context}>{parentRoom ? conversation.name : conversation.context}</span> : null}
         </div>

@@ -2,6 +2,18 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## MS7.2 FP1 — local acceptance / human registration gate (2026-09-25)
+
+Current application checkpoint **`ac3b282`**, research/roadmap checkpoint `3adbf6f`; both local. Origin and canonical remain MS7.1 `5ae54fb`, READY deployment `dpl_8HeaZ9UFjhwJ615VzZSc1iEL6xwp`, `https://toskerapp.vercel.app`. No FP1 push/deploy. MS7.1 LOCKED; MS7.2 NOT LOCKED/not yet founder-ready; MS7.3 NOT STARTED. [Full acceptance, timings, captures and restart steps](docs/MS7-2-FP1-FOUNDER-PATCH.md). [Proposed Room + Map direction](docs/MS7-2-FP1-PIVOT-RESEARCH.md); no Map/Fleet/service/Art/Web implementation.
+
+Implemented compact Profile/Namecards and direct self/contextual edit, identity-area Friends, Help in Settings, seven real Settings categories, long-name hover/focus/reduced-motion behavior, bounded parallel authorized reads, new-account username constraints (existing handles fixed), central MS7.2 FP1 Development marker. Existing TID transition is already applied: DO NOT rerun it. Preserve Clerk/Neon/Ably authority and all prior checkpoints.
+
+Fresh type/lint/build/diff, all19 migration hashes/catalog, DB invariants, secrets/client bundles, privacy/Room/Settings/TID/bootstrap services PASS. Real A/B Profile/audience/stale-save, Room nickname/reset/Subroom, sidebar pins/order/mute/unread, seven-category/six-width and short-viewport/failure/focus, long-name motion, exact TID/copy/discovery/Support/Account checks PASS. Personal/Room/Subroom messages and Hall pin/source-Nuke smoke PASS. Original profile values/preferences restored. Three exact empty QA send receipts removed; real history preserved. Final counts: six users/profiles/Sandboxes, four Rooms, seven memberships, five Personal conversations, 29 messages, nine Hall notes, two pins, 32 notifications; no invariant failures. Empty QA Rooms `ms722-frame-qa` and `ms722-second-qa` remain pending final release cleanup.
+
+**Next action requires founder:** complete normal fresh-user signup past Clerk's Cloudflare human challenge. Attempt `tosker.ms72.fp1.20260925+clerk_test@example.com` created zero Clerk accounts (read-only verified). Do not automate CAPTCHA, weaken protections, change credentials or treat existing A/B login as new-user acceptance. Then verify stable new User/Profile/canonical TID/Sandbox across reload/logout, Profile/Namecard/discovery and exact disposable-user cleanup if applicable. Finish registration/sign-in timing evidence and guarded QA Room cleanup; fresh release checks if code changes; normal main push → Git-backed canonical SHA/READY/alias/HTTP → live A/B smoke/timings → STOP for founder walkthrough. Never claim FP1 live before this gate.
+
+Local owned dev server remains on port3000. Browser sessions `fp1-a`/`fp1-b`; captures `/tmp/tosker-fp1-qa.QoDX4M/`. `fp1-registration` holds the challenged signup. No secret printed or committed. Existing unrelated handoff/inheritance/Design Hub/Web/Art/research/experiments WIP is preserved; **`toskerArt/` untouched/untracked**. Only the current handoff hunk belongs to this checkpoint; leave historical unrelated hunks unstaged.
+
 ## MS7.2 — founder decisions implemented / night checkpoint (2026-09-16)
 
 Baseline `f1e5c35`; find the newer focused release-unblock commit in Git. LOCAL ONLY, not pushed/deployed or founder-ready/locked. Founder resolved all three decisions: full Clerk Account panel stays gated (no global setting change); monitored Support mail action implemented; legacy Development TIDs deliberately reset without aliases. Account lifecycle belongs to **MS15**, not MS7.2. Canonical URL unchanged. MS7.1 locked; MS7.3 not started.

@@ -1,5 +1,11 @@
 # MS7.6 — Provisioning Backlog + Development / Backend Polish
 
+## 2026-09-25 FP1 / trip-coordination intake
+
+FP1 adds no service, credential, schema or dependency. Proposed later Map requires a separate provider decision covering Web/native coverage, map tiles, geocoding/directions, quotas/budget, attribution and permissible storage/caching. Class B for this Profile/Settings patch; reassess as a current-wave blocker when Map is actually authorized. No promise that existing Ably/Neon alone provides route calculations or background location.
+
+Later live-location work needs explicit scoped/time-limited/revocable consent, stale-state rules, minimal retention, reconnect/revocation tests, browser/native lifecycle and battery validation. PTT/voice/video, push, media/profile storage and scheduled jobs remain independently gated. MS15 still owns genuine production environments and coordinated account deletion; the canonical review uses Development identity/data services. [Research](MS7-2-FP1-PIVOT-RESEARCH.md).
+
 Created 2026-09-09. Durable intake for infrastructure/backend needs discovered in MS7.1–7.5. Governing order and classification: [canonical roadmap](ROADMAP.md). Documentation structure only; no service provisioning, credential changes, migration or implementation is authorized by this record. MS15 retains full production/launch priming.
 
 ## Intake / decision contract

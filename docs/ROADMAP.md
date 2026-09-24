@@ -1,5 +1,25 @@
 # Tosker roadmap — canonical founder direction
 
+## Current direction — founder huddle, 2026-09-25
+
+This section supersedes the older destination-led MS7.3/7.4 and HUDL-at-MS9 scheduling below. MS1–6 and MS7.1 remain locked. **MS7.2 FP1 is executing locally; not locked.** No Map/Fleet implementation or next milestone is authorized in this pass. [FP1 state](MS7-2-FP1-FOUNDER-PATCH.md) and [evidence / pivot proposal](MS7-2-FP1-PIVOT-RESEARCH.md).
+
+| Wave | Proposed revised purpose / preserved boundary |
+|---|---|
+| MS7.2 FP1 | Complete Profile/Settings/identity/sidebar/performance founder-review build; research pivot only |
+| MS7.3 | Collaborative Trips / Map Coordination, replacing standalone Friends/Search wave. Relationships/discovery remain integrated capabilities; Map first flagship Gizmo after approval |
+| MS7.4 | Trip Execution / Live Coordination only after shared planning proof; Explore is deferred, not a mandatory beta destination |
+| MS7.5 | Product completeness and bounded extensibility: surface/default ordering, proven Map integration; Pages later readiness, no marketplace detour |
+| MS7.6 | Existing provisioning/backend/dev hardening backlog, including map/location dependencies after decision |
+| MS8 | Whole-product UI/UX around the proven loop |
+| MS9 | Generalize proven Gizmo patterns; ToskerBot prototype, not prerequisite to the first Map |
+| MS10 / MS11 | Art integration / ToskerWeb (people, places, plans, movement) |
+| MS12 / MS13 | Desktop packaging / native adaptive mobile and foldables |
+| MS14 / MS15 | Cross-platform destruction / production and account-lifecycle launch priming |
+| MS16 / MS17+ | Real-group beta and repeat-trip use / evidence-led expansion |
+
+Location sharing requires separate explicit consent; Room membership never grants tracking consent. No fleet hardware, military-specific workflow, navigation safety claim, PTT/voice/video, SDK, storage or map-provider provisioning now. Founder review still gates the pivot's product scope. Earlier evidence is retained below as historical sequence, not current authorization.
+
 Updated 2026-09-09 by the founder's roadmap-memory/state-alignment brief. This is the single current milestone-order reference; it supersedes early roadmap numbering and old attachment-blocker scheduling. Git and [CODEX-HANDOFF.md](../CODEX-HANDOFF.md) remain authoritative for implemented state and recovery. Historical milestone evidence stays in the handoff and individual milestone records.
 
 ## Current state / authorization

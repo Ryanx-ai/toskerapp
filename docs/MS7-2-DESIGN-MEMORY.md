@@ -1,5 +1,13 @@
 # MS7.2 — Design Hub inheritance / forward memory
 
+## 2026-09-25 FP1 / post-pivot direction
+
+Current execution keeps the warm Tosker palette and existing licensed stack. Compact contextual Namecards, explicit owner editing and useful Profile shortcuts replace oversized utility presentation; Settings uses native stable frames and restrained tonal separation. Long single-line names have deliberate reveal and motion/touch alternatives. Discord is an identity/flow reference, not a skin; fintech references inform spacing/elevation only. No new display font or Art.
+
+HUDL/TethrMap is read-only interaction research: numbered places, list/map coherence, purposeful group context and explicit sharing. Its Swift map model loads mocks; don't inherit its Supabase proposal, neon branding or claim it proves Tosker persistence. [Verified sources and decisions](MS7-2-FP1-PIVOT-RESEARCH.md). Proposed MS7.3 now hosts Map as the first flagship Gizmo; do not wait for a generic MS9 platform, nor build Map during FP1.
+
+Carry people/places/plans/movement into MS8, MS10 and MS11. Preserve BELONG → TALK → SHAPE → CONTRIBUTE → BEGIN as a narrative candidate and test it against the trip-coordination direction at MS11, not a mandate to edit the website now. Current UI must remain useful before whole-product polish. No source-project or `toskerArt/` mutations.
+
 2026-09-15. Founder-authorized documentation, not permission to change Art, Website, source projects or later milestones. This focused tracked addendum complements the existing uncommitted `TOSKER-DESIGN-HUB-MIGRATION.md`; its unrelated content is preserved, not absorbed into MS7.2 commits.
 
 ## Typography

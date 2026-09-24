@@ -1,7 +1,7 @@
 import "server-only";
 import { sql, type SQL } from "drizzle-orm";
 import { profiles } from "@/server/db/schema";
-import type { IdentityAccent } from "@/lib/profile-contract";
+import type { IdentityAccent, IdentityBanner, IdentityFrame } from "@/lib/profile-contract";
 
 /** Correlated to the selected profile. Apply BEFORE serialization, never in JSX.
  * A Personal conversation alone deliberately grants no optional details/status.
@@ -23,5 +23,7 @@ export function projectedProfileDetails(viewerId: string) {
   return {
     namecardBio: sql<string | null>`case when ${visible} then ${profiles.namecardBio} else null end`,
     identityAccent: sql<IdentityAccent>`case when ${visible} then ${profiles.identityAccent}::text else 'neutral' end`,
+    identityBanner: sql<IdentityBanner>`case when ${visible} then ${profiles.identityBanner}::text else 'glow' end`,
+    identityFrame: sql<IdentityFrame>`case when ${visible} then ${profiles.identityFrame}::text else 'none' end`,
   };
 }

@@ -13,7 +13,7 @@ export async function updateOwnProfileAction(input: OwnProfileChange, expectedRe
   try {
     const saved = await updateOwnProfile(getDatabase(), actor, input, expectedRevision);
     revalidatePath("/", "layout");
-    after(() => Object.keys(input).every(key => key === "bannerPreference") ? publishOwnSettingsMetadata(actor.userId) : publishProfileMetadata(actor.userId));
+    after(() => Object.keys(input).every(key => key === "bannerPreference" || key === "interfaceAccent") ? publishOwnSettingsMetadata(actor.userId) : publishProfileMetadata(actor.userId));
     return { ok: true as const, profile: saved };
   } catch(error) {
     if (error instanceof ProfileConflictError) return { ok: false as const, reason: "conflict" as const };

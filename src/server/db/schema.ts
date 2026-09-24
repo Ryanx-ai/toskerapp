@@ -54,6 +54,9 @@ export const hallReactionKind = pgEnum("hall_reaction_kind", ["heart", "like", "
 export const profileAudience = pgEnum("profile_audience", ["self", "friends", "shared_context"]);
 export const identityAccent = pgEnum("identity_accent", ["neutral", "gold", "rose", "sage", "sky"]);
 export const bannerPreference = pgEnum("banner_preference", ["all", "direct_mentions", "quiet"]);
+export const identityBanner = pgEnum("identity_banner", ["glow", "weave", "plain"]);
+export const identityFrame = pgEnum("identity_frame", ["none", "ring"]);
+export const interfaceAccent = pgEnum("interface_accent", ["tosker", "iris", "tide"]);
 
 export const users = pgTable(
   "users",
@@ -87,6 +90,9 @@ export const profiles = pgTable("profiles", {
   detailsAudience: profileAudience("details_audience").default("self").notNull(),
   statusAudience: profileAudience("status_audience").default("shared_context").notNull(),
   identityAccent: identityAccent("identity_accent").default("neutral").notNull(),
+  identityBanner: identityBanner("identity_banner").default("glow").notNull(),
+  identityFrame: identityFrame("identity_frame").default("none").notNull(),
+  interfaceAccent: interfaceAccent("interface_accent").default("tosker").notNull(),
   revision: integer("revision").default(0).notNull(),
   ...timestamps,
 }, (table) => [uniqueIndex("profiles_username_unique").on(table.username)]);

@@ -134,6 +134,13 @@
       "when": 1789479986382,
       "tag": "0018_ms72_banner_preferences",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1790273550432,
+      "tag": "0019_ms72_fp2_customization",
+      "breakpoints": true
     }
   ]
 }

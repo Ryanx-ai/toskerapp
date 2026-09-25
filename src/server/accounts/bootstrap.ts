@@ -1,4 +1,5 @@
 import "server-only";
+import { roomSidebarTag } from "@/lib/room-tags";
 
 import { randomBytes } from "node:crypto";
 import { and, eq, inArray, or } from "drizzle-orm";
@@ -230,7 +231,7 @@ export async function getWorkspaceNavigation(userId: string): Promise<Pick<Canon
     sidebarPinnedIds,
     rooms: memberships.map((room) => ({
       ...room,
-      tag: tags.find((tag) => tag.roomId === room.id)?.value ?? "ROOM",
+      tag: roomSidebarTag(tags.filter((tag) => tag.roomId === room.id).map(tag => tag.value)),
       capabilities: capabilities.filter((item) => item.roomId === room.id).map((item) => item.value),
       subrooms: subroomRows.filter((item) => item.roomId === room.id).map((item) => ({ id: item.id, name: item.name, visibility: item.visibility, conversationId: item.conversationId })),
     })),

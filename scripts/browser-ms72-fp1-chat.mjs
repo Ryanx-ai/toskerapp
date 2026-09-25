@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import {run,ev,until,button} from "./browser-fp2.mjs";
 const a=process.env.MS72_A??"fp1-a",b=process.env.MS72_B??"fp1-b",origin=process.env.MS72_ORIGIN??"http://localhost:3000";
-const routes=["/personal/chat-be192eac-38c6-4d46-a6d2-bea19fa324fa","/room/ms722-frame-qa","/room/ms722-frame-qa/subroom/f7220000-2026-4000-8000-000000000003"];
+const room=process.env.MS72_SMOKE_ROOM??"/room/ms722-frame-qa";
+const routes=["/personal/chat-be192eac-38c6-4d46-a6d2-bea19fa324fa",room,`${room}/subroom/${process.env.MS72_SMOKE_CHILD??"f7220000-2026-4000-8000-000000000003"}`];
 const start=Number(process.env.MS72_SMOKE_START??0);assert(Number.isInteger(start)&&start>=0&&start<routes.length);
 for(const [index,path] of routes.entries()) {
   if(index<start)continue; // Explicitly resume after a recorded completed scope; never resend it.

@@ -1,4 +1,10 @@
 export const DEFAULT_ROOM_TAGS = ["TRIP", "EVENT", "WORK", "GAMING", "FAMILY", "Just Chilling"];
+/** Display-only summary of existing tags; never route/location data. */
+export function roomSidebarTag(tags: string[]) {
+  if (!tags.some(tag => tag.toUpperCase() === "TRIP")) return tags[0] ?? "ROOM";
+  const label = tags.find(tag => tag.toUpperCase() !== "TRIP");
+  return label ? `TRIP · ${label}` : "TRIP";
+}
 export function normalizeRoomTags(input: string[]) {
   if (!Array.isArray(input) || input.length > 5) throw new Error("Choose up to five tags.");
   const tags = input.map((tag) => {

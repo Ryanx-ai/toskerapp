@@ -23,7 +23,7 @@ import type { ConversationPreference } from "@/lib/conversation-preferences";
 
 import Image from "next/image";
 import { ModalLayer } from "./modal-layer";
-import { DEFAULT_ROOM_TAGS, normalizeRoomTags } from "@/lib/room-tags";
+import { normalizeRoomTags } from "@/lib/room-tags";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
@@ -106,7 +106,6 @@ const friends = [
     status: "Offline",
   },
 ];
-const roomTags = DEFAULT_ROOM_TAGS;
 const COLLAPSE_KEY = "tosker.sidebar.collapsed";
 const collapseStore = {
   subscribe(listener: () => void) {
@@ -902,7 +901,6 @@ function CreationOverlay({
   const [mode, setMode] = useState(initial);
   const [step, setStep] = useState(1);
   const [name, setName] = useState("");
-  const [tags, setTags] = useState<string[]>(["Just Chilling"]);
   const [customTag, setCustomTag] = useState("");
   const [acceptedFriends, setAcceptedFriends] = useState<Awaited<ReturnType<typeof listConnectionsAction>>>([]);
   const [room, setRoom] = useState<{ slug: string; name: string; tags: string[] } | null>(null);
@@ -957,12 +955,13 @@ function CreationOverlay({
     setSaveError("");
     try {
       if (!identity) {
+        const tags = normalizeRoomTags(["TRIP", ...(customTag.trim() ? [customTag] : [])]);
         const created = prototypeStore.createRoom({ name, tags, things: [] });
         router.push(`/room/${created.slug}`); onClose(); return;
       }
       const created = await createRoomAction({
         name,
-        tags,
+        tags: normalizeRoomTags(["TRIP", ...(customTag.trim() ? [customTag] : [])]),
         capabilities: [],
       });
       setRoom(created);
@@ -1026,7 +1025,8 @@ function CreationOverlay({
         {mode === "chat" ? (
           <>
             <p className="eyebrow">Start a chat</p>
-            <h2>Who are you looking for?</h2>
+            <h2>Find your people</h2>
+            <p id="create-chat-search-label">Name, @username or TID</p>
             <label className="friends-search">
               <Search size={16} aria-hidden="true" />
               <input
@@ -1038,7 +1038,8 @@ function CreationOverlay({
                   setPeopleSearching(Boolean(identity && value.trim().length >= 2));
                   if (value.trim().length < 2) setPeopleResults([]);
                 }}
-                placeholder="Name, username or TID"
+                placeholder="Search people"
+                aria-describedby="create-chat-search-label"
                 aria-label="Find a friend to chat with"
               />
             </label>
@@ -1046,7 +1047,7 @@ function CreationOverlay({
               {identity && friendQuery.trim().length < 2 ? <>
                 <h3 className="contact-list-label">Friends</h3>
                 {acceptedFriends.map(({ id, person }) => person ? <article key={id}><span className="avatar avatar-pink">{person.displayName.slice(0, 2).toUpperCase()}</span><div><strong>{person.nickname || person.displayName}</strong><small>@{person.username}</small></div><button disabled={saving} onClick={() => void startPersistentChat(person.userId)}>Chat</button></article> : null)}
-                {!acceptedFriends.length ? <p>No Friends yet. Search by name or TID.</p> : null}
+                {!acceptedFriends.length ? <p>Find someone above to start a chat.</p> : null}
                 {identity.personalConversations.length ? <><h3 className="contact-list-label">Your conversations</h3>{identity.personalConversations.map((chat) => <Link className="recent-chat-link" key={chat.slug} href={`/personal/${chat.slug}`} onClick={onClose}>{chat.nickname || chat.displayName}</Link>)}</> : null}
               </> : null}
               {identity ? (friendQuery.trim().length >= 2 ? peopleResults : []).map((person) => (
@@ -1089,8 +1090,8 @@ function CreationOverlay({
             </div>
             {step === 1 ? (
               <>
-                <h2>Name your Room</h2>
-                <p>That's all you need.</p>
+                <h2>Where are we going?</h2>
+                <p>Give your trip a Room.</p>
                 <label className="wizard-field">
                   <span>Room name</span>
                   <input
@@ -1101,7 +1102,7 @@ function CreationOverlay({
                       if (event.key === "Enter" && name.trim()) nextRoom();
                     }}
                     maxLength={80}
-                    placeholder="Sunday Dinner"
+                    placeholder="Malacca Weekend"
                     aria-label="Room name"
                   />
                 </label>
@@ -1109,32 +1110,11 @@ function CreationOverlay({
             ) : null}
             {step === 2 ? (
               <>
-                <h2>Add tags</h2>
-                <p>Optional. Keep it easy to spot.</p>
-                <div className="option-grid tags">
-                  {[...new Set([...roomTags, ...tags])].map((tag, index) => (
-                    <button
-                      autoFocus={index === 0}
-                      className={tags.includes(tag) ? "active" : ""}
-                      aria-pressed={tags.includes(tag)}
-                      disabled={tags.length >= 5 && !tags.includes(tag)}
-                      onClick={() =>
-                        setTags((current) =>
-                          current.includes(tag)
-                            ? current.filter((item) => item !== tag)
-                            : [...current, tag],
-                        )
-                      }
-                      key={tag}
-                    >
-                      <RoomCategory value={tag} />
-                    </button>
-                  ))}
-                </div>
-                <div className="custom-tag-field"><input aria-label="Custom tag" placeholder="Custom tag" maxLength={24} value={customTag} onChange={(event) => setCustomTag(event.target.value)} /><button disabled={!customTag.trim() || tags.length >= 5} onClick={() => {
-                  try { setTags(normalizeRoomTags([...tags, customTag])); setCustomTag(""); setSaveError(""); }
-                  catch { setSaveError("Use up to five tags, 24 characters each."); }
-                }}>Add tag</button></div>
+                <h2>Trip details</h2>
+                <p>A little context for your people.</p>
+                <div className="trip-purpose"><RoomCategory value="TRIP" /><span>{name.trim()}</span></div>
+                <label className="wizard-field"><span>Trip label <small>Optional</small></span><input autoFocus placeholder="JB Supper Run" maxLength={24} value={customTag} onChange={(event) => setCustomTag(event.target.value)} aria-describedby="trip-label-help" /></label>
+                <p id="trip-label-help">A destination or short label. You can change it in Room Settings.</p>
               </>
             ) : null}
             {step === 5 && room ? (
@@ -1408,7 +1388,7 @@ export function MessagingApp({
   };
   return (
     <ToskerIdentityProvider identity={identity}><NamecardProvider key={identity?.userId ?? "demo"} enabled={Boolean(identity)}><main
-      className={`messaging-app ${selected ? "has-selection" : "list-only"} ${collapsed ? "sidebar-collapsed" : ""}`}
+      className={`messaging-app fp3-shell ${selected ? "has-selection" : "list-only"} ${collapsed ? "sidebar-collapsed" : ""}`}
     >
       <AppSidebar
         selected={selected}
@@ -1424,6 +1404,7 @@ export function MessagingApp({
         onReadingPause={setReadingPaused}
       />
       <div className="working-surface">
+        {!selected ? <header className="workspace-topbar"><span>{workspace ? workspace.charAt(0).toUpperCase() + workspace.slice(1) : "Your conversations"}</span><button className="quiet-action" onClick={() => setOverlay("choose")}><Plus size={16} aria-hidden="true" />Create</button></header> : null}
         {selected ? (
           <NamecardRoomContext.Provider value={contextRoom?.id}>
             <SurfaceHeader

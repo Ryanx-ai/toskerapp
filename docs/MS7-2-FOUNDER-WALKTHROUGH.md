@@ -1,6 +1,17 @@
 # MS7.2 — walkthrough preparation
 
-**NOT YET FOUNDER-READY / NOT LIVE / NOT LOCKED.** This checklist is a preparation artifact, not a release certificate. Canonical remains locked MS7.1; [local evidence and gaps](MS7-2-IMPLEMENTATION.md). MS7.3 has not started.
+**FP3 FOUNDER WALK3 — RELEASE VERIFICATION IN PROGRESS / NOT LOCKED.** FP2 signup gate is now verified; use the newer [FP3 ledger](MS7-2-FP3-FOUNDER-PATCH.md) for exact current release state. Historical pending decisions below are superseded, not new requests. MS7.3 has not started.
+
+## Founder Walk3 opening sequence
+
+1. Open the canonical build; verify `MS7.2 FP3`. Compare floating sidebar, separate top bar and rounded working area. Collapse/restore using pointer and keyboard, then reload.
+2. Start Chat: one quiet search/focus treatment, exact TID finds the existing person and reuses the conversation.
+3. Create a trip Room: name → optional short label → create. Edit the label in owner Room Settings; confirm the sidebar follows. No Map runtime is implied.
+4. Check Profile, Namecard, Settings and Notifications. Change one Personal Brand preset and a separate private appearance preset; save/reload/reset. The other user's app theme must not change.
+5. Check Personal/Room/Subroom Chat and a pinned Hall source with another user. Review practical loading and small-screen behavior, not just still screenshots.
+6. Signed out: inspect normal Sign in/Create account, alternate sign-in methods, outside click/Escape retaining the form and explicit close. Development identity/provider labels remain truthful.
+
+Founder decides whether MS7.2 can lock after this walkthrough. No automatic MS7.3 start.
 
 ## Decisions RESOLVED / remaining release gate (2026-09-16)
 

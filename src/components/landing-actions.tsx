@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useAuth, SignInButton, SignUpButton } from "@clerk/nextjs";
+import { useAuth } from "@clerk/nextjs";
+import { AuthModalButton } from "./auth-modal-button";
 import { ArrowRight } from "lucide-react";
 import styles from "@/app/landing.module.css";
 
@@ -12,12 +13,12 @@ export function LandingActions() {
       <Link className={styles.primary} href="/app">Open Tosker <ArrowRight size={16} aria-hidden="true" /></Link>
       <Link className={styles.secondary} href="/app">Join Tosker</Link>
     </> : <>
-      <SignInButton mode="modal" forceRedirectUrl="/app" signUpForceRedirectUrl="/app">
+      <AuthModalButton>
         <button className={styles.primary} disabled={!isLoaded}>Open Tosker <ArrowRight size={16} aria-hidden="true" /></button>
-      </SignInButton>
-      <SignUpButton mode="modal" forceRedirectUrl="/app" signInForceRedirectUrl="/app">
+      </AuthModalButton>
+      <AuthModalButton initial="sign-up">
         <button className={styles.secondary} disabled={!isLoaded}>Join Tosker</button>
-      </SignUpButton>
+      </AuthModalButton>
     </>}
   </div>;
 }

@@ -1,4 +1,4 @@
-# MS7.2 FP3 — recovery / signup gate
+# MS7.2 FP3 — partial UI overhaul / release ledger
 
 2026-09-25. Founder execution PDF read in full. FP3 authorized through local acceptance, normal push, canonical deployment and live smoke; MS7.2 must not auto-lock and MS7.3 must not start. Preserve unrelated Art/Web/research/experiments and untouched/untracked `toskerArt/`.
 
@@ -29,8 +29,44 @@ Founder explicitly approved the two-account repair and continuation on2026-09-25
 
 Fresh TypeScript, scoped ESLint, all20 migration hashes/catalog and DB invariants PASS after repair. Founder-performed normal signup plus verified canonical application identity closes the prior **FP2 RELEASE GATE: SATISFIED**. FP2 local acceptance remains complete; canonical release is still pending, explicitly combined with the next validated FP3 candidate. The original failed verification below is retained as history, not an outstanding request.
 
-## Historical decision / remaining execution
+## FP3 implementation
 
-Obtain explicit approval to replace ONLY these two founder accounts' legacy public TIDs with unique seven-character values, accepting that copied legacy IDs stop resolving (no aliases under the existing transition policy). Preserve UUIDs, Clerk bindings, profiles, Sandboxes, Rooms, history and every non-TID field. Then use a separately scoped guarded transaction with dependency review and before/after fingerprints, verify collision/uniqueness and identity viability, and close the FP2 gate before FP3 implementation. Re-inventory before release because the old canonical writer remains live until the validated FP3 deployment.
+Repair checkpoint `a72800e`. Dedicated scoped `fp3-shell.css` establishes three desktop planes: floating sidebar, separate context/top bar, bounded rounded workspace. Collapse retains an explicit recovery button and widens the workspace; private saved preference remains unchanged by routing. Reduced motion is immediate; translucent planes have opaque fallback. Existing palette, Montserrat/Mermaid hierarchy and profile/appearance presets are retained. UI/UX skills informed geometry, focus, contrast and recovery checks; no new design system or artwork.
 
-Repair complete; FP3 product implementation, push and deployment remain. Existing useful work preserved. Next: floating shell/depth/collapse; coherent Create Chat focus; supported auth dismissal; trip-focused creation without Map/schema expansion; full visual/functional gate; exact validated Git-backed canonical release and live smoke; Founder Walk3. No automatic milestone lock.
+Create Chat has one search focus ring and lean copy. Create Room keeps TRIP plus one optional short trip label in existing Room tags; owner Settings can edit/remove the label. Server permission, limits and persistence remain authoritative. Sidebar projects `TRIP · label` independent of tag retrieval order. No Map schema or service. Sandbox stays first; no fabricated Now timestamps; Friends stays with identity and Help with Settings.
+
+Tosker owns a bounded native auth dialog and its explicit X; outside click and Escape deliberately retain the form. Clerk's [supported embedded SignIn/SignUp API](https://clerk.com/docs/reference/components/authentication/sign-in) owns credentials, verification and OAuth. Stable appearance element IDs only; no internal DOM interception, credential change, provider-setting change or auth bypass. Alternative sign-in/recovery methods remain visible. Auth fields/buttons meet the existing functional typography/contrast direction.
+
+Neutral workspace loading has no stale/private identity. Existing Settings/Namecard hierarchy and all durable Chat/Hall mechanisms are preserved.
+
+## Validation and defects caught
+
+- Fresh TypeScript and optimized build PASS; ESLint0errors, one pre-existing unused `eq` warning in unrelated `cleanup-fp4-qa.ts`.
+- All20 migration hashes and full current catalog match (25tables/164columns/78constraints/15enums). No FP3 migration, historical backfill or schema mutation.
+- Rollback service suites PASS:30 Brand combinations,3 private appearance accents, owner/forgery/stale/reset/audience isolation, profile privacy/legacy writer, Room identity/history/child inheritance, Settings, TID generation/collision/stability. New trip-label suite passes owner/member denial, persistence/reset/input limits and zero Message/Hall/Notification writes.
+- Browser A/B: all Brand/banner/ring choices save/reload; peer metadata but no theme inheritance; private appearance; saved reset; two-tab stale conflict; failed-save draft/retry; six-width Profile/Account/Namecard. Original preferences restored.
+- Normal Clerk A/B sign-in is tested separately from founder-performed signup. No extra signup account created during auth layout tests.
+- Real fresh Room creation, owner label edit/reload and sidebar label PASS. Private pin/reload/peer isolation/restoration, Room/Subroom inherited mute/restoration, selected mark-unread exit, member no-owner editor and Leave-cancel PASS.
+- A→B Personal/Room/Subroom message delivery and durable reload PASS. Author Nuke and peer reload PASS; Room pin→Hall reference→source Nuke removes reference PASS. Exact disposable Room/child and receipt IDs are tracked, not a general cleanup campaign.
+- A/B Room nickname metadata, owner reset/stale-draft rejection, parent/child inheritance and six-width editor/member views PASS; original blank QA nickname restored.
+- Six-width shell/creation/Settings/Profile/Notifications geometry PASS; auth outside/Escape/X/reopen PASS at320/390/430/768/1440/1728, no browser errors.
+
+Browser-discovered fixes: search input shrank to zero width (explicit flexible width); inherited auth-card heading enlarged embedded Clerk title (scope to direct child); broad Clerk footer hiding also removed alternate methods (scope to signIn/signUp footer IDs only); reopened auth Escape navigated away (native dialog capture prevents dismissal); collapsed row menus obscured avatars (show on hover/focus). All require fresh final-build verification, not reliance on previous screenshots.
+
+Evidence directory: `/tmp/tosker-fp3-qa.eDdxjh`. Scripts `browser-ms72-fp3-*`, existing configurable Chat/Room identity suites. Development provider warnings, synthetic CLI-inclusive route timings and emulated viewports are not physical-device, screen-reader, real-world performance or production-auth certification.
+
+## Release protocol / scope boundary
+
+After the complete local gate: explicit owned-file commit → normal fetch/push → Git-backed canonical READY deployment matching exact SHA → HTTPS/alias check → bounded live A/B smoke → exact synthetic cleanup → invariant recheck → Founder Walk3. Never release dirty directory contents or silently advance the milestone. Re-inventory TIDs before/after rollout; do not repair any additional account without authority.
+
+MS7.6: bounded performance/reliability follow-up, including unresolved Development route latency; no new providers now. MS8: systemic whole-product rhythm, art/type and deeper motion/depth work. Current partial shell is not MS8. No media storage, Map/Fleet runtime, OS features, new fonts, Art integration or Website redesign. Preserve `toskerArt/` untouched/untracked.
+
+MS7.1 REMAINS LOCKED. MS7.2 NOT LOCKED. MS7.3 NOT STARTED. Canonical release/live smoke still pending until recorded below.
+
+## Final local release gate
+
+PASS on final optimized application build: normal A and B sign-in through the corrected embedded Clerk flow; six-width auth and creation/shell matrix repeated; canonical TID/copy/exact discovery/negative partial lookup; private metadata/appearance and Room identity suites; seven-size settled Personal/Room/Subroom/Sandbox composer bounds; actual Create Chat reuse; keyboard Enter/Space collapse/reload/recovery; reduced-motion0s; Room Structure→Subroom switcher and capability-only Add. Screenshot review includes settled messages, empty Room, collapsed shell and corrected auth form. No client exceptions on completed repeat suites.
+
+Timing/reliability caveat: most settled local routes including CLI overhead took5.4–7.6s (not an instantaneous-entry claim). During the prolonged matrix one route recorded393.9s, a later landscape route120.3s and one wait timed out; server logged destination-stream/connection termination. Pages recovered. Explicit repeat Personal/Room measured7.389/5.512/5.411/5.487s, all completed without browser errors. Root cause is not established; prior Development DB/host-runtime instability is not claimed fixed. Keep this in MS7.6 and require live smoke before founder handoff. Earlier geometry-only captures were superseded by settled-content captures.
+
+Fresh final typecheck/scoped QA lint/diff/trip rollback suite PASS; previous final-source whole lint/build PASS. All20 checksums/catalog/invariants pass; secret scan397owned/sourcefiles28clientbundles passes. Read-only pre-release TID inventory confirms all8 remain canonical; approved two-account IDs stable. No code/schema/provider change since the final build, only test/docs refinement.

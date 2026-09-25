@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Show, SignInButton, SignUpButton } from "@clerk/nextjs";
+import { Show } from "@clerk/nextjs";
+import { AuthModalButton } from "./auth-modal-button";
 import { useSyncExternalStore } from "react";
 import { prototypeStore } from "@/lib/prototype-store";
 import { useToskerIdentity } from "@/components/tosker-identity";
@@ -40,12 +41,12 @@ export function AuthGate({ children, allowDemo = true }: { children: React.React
             <h1>Your people, Rooms, and conversations—kept together.</h1>
             <p>Sign in to enter your Tosker workspace.</p>
             <div className="auth-actions">
-              <SignInButton mode="modal">
+              <AuthModalButton>
                 <button className="button button-primary">Sign in</button>
-              </SignInButton>
-              <SignUpButton mode="modal">
+              </AuthModalButton>
+              <AuthModalButton initial="sign-up">
                 <button className="button">Create account</button>
-              </SignUpButton>
+              </AuthModalButton>
               <button className="button demo-button" onClick={() => { window.localStorage.setItem("tosker.demo.mode", "true"); prototypeStore.setMode("demo"); window.dispatchEvent(new Event("tosker:demo")); }}>View Demo</button>
             </div>
           </section>

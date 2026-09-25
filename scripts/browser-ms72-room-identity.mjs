@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import {run,ev,until,button} from "./browser-fp2.mjs";
-const a=process.env.MS72_A??"ms72-a",b=process.env.MS72_B??"ms72-b",origin=process.env.MS72_ORIGIN??"http://localhost:3000",room="/room/ms722-frame-qa";
+const a=process.env.MS72_A??"ms72-a",b=process.env.MS72_B??"ms72-b",origin=process.env.MS72_ORIGIN??"http://localhost:3000",room=process.env.MS72_SMOKE_ROOM??"/room/ms722-frame-qa";
+const roomName=process.env.MS72_SMOKE_ROOM_NAME??"MS7.2 Frame QA",child=process.env.MS72_SMOKE_CHILD??"f7220000-2026-4000-8000-000000000003";
 const qaName="MS7.2 Room nickname QA",longName="Long Room name العربية "+"W".repeat(35);
 async function open(s,path=room) {
   await run(s,"open",origin+path);
@@ -28,7 +29,7 @@ try {
   await until(a,`document.querySelector('.room-member-list')?.textContent.includes(${JSON.stringify(qaName)})`,"A sees nickname via metadata");
   await button(a,`Open ${qaName}'s Namecard`);
   await until(a,`document.querySelector('.contextual-namecard h2')?.textContent===${JSON.stringify(qaName)}`,"Room-scoped Namecard");
-  assert(await ev(a,"document.querySelector('.contextual-namecard .settings-scope')?.textContent.includes('MS7.2 Frame QA')"));
+  assert(await ev(a,`document.querySelector('.contextual-namecard .settings-scope')?.textContent.includes(${JSON.stringify(roomName)})`));
   await run(a,"click",".contextual-namecard .overlay-close");
   await button(b,"Close Room Settings"); await open(b); await edit();
   assert.equal(await ev(b,"document.querySelector('.owner-profile-field input').value"),qaName);
@@ -51,7 +52,7 @@ try {
   console.log("PASS real A/B nickname save/reload/metadata, scoped Namecard, owner reset/stale-draft recovery, all six viewport bounds");
   for(const s of [a,b]) await run(s,"set","viewport","1440","900");
   await button(a,"Close Room Settings");
-  await open(a,"/room/ms722-frame-qa/subroom/f7220000-2026-4000-8000-000000000003");
+  await open(a,`${room}/subroom/${child}`);
   await run(a,"fill",".composer textarea","@Long");
   await until(a,`[...document.querySelectorAll('[role=option]')].some(e=>e.textContent.includes(${JSON.stringify(longName)}))`,"child inherited mention name");
   await run(a,"fill",".composer textarea","x"); await run(a,"press","Backspace");

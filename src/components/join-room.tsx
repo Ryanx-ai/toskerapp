@@ -4,7 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { SignInButton, useAuth } from "@clerk/nextjs";
+import { useAuth } from "@clerk/nextjs";
+import { AuthModalButton } from "./auth-modal-button";
 import { ArrowRight, UsersRound } from "lucide-react";
 import { FakeQr } from "@/components/fake-qr";
 import { acceptRoomInviteAction } from "@/server/rooms/actions";
@@ -78,9 +79,9 @@ export function JoinRoom({
             {joining ? "Joining…" : "Join Room"}
           </button>
         ) : (
-          <SignInButton mode="modal" forceRedirectUrl={`/join/${slug}`}>
+          <AuthModalButton redirectUrl={`/join/${slug}`}>
             <button className="primary-action">Sign in to join</button>
-          </SignInButton>
+          </AuthModalButton>
         )}
         {error ? <p role="alert">{error}</p> : null}
         <small>Secure invitation · Authentication required to join</small>

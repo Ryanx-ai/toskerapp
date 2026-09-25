@@ -17,7 +17,7 @@ async function main(){
    console.log('Removed exact already-nuked FP3 Personal receipts only; retained Personal history untouched; no application undo.',ids);
   });return;
  }
- assert(['attach','inspect','cleanup'].includes(mode));assert(/^fp3-review-[a-f0-9]{6}$/.test(slug));
+ assert(['attach','inspect','cleanup','cleanup-empty'].includes(mode));assert(/^fp3-review-[a-f0-9]{6}$/.test(slug));
  await db.transaction(async tx=>{
   const [room]=await tx.select().from(rooms).where(eq(rooms.slug,slug)).for('update');assert(room&&room.ownerId===a&&room.name==='FP3 Review');
   const members=await tx.select().from(roomMemberships).where(eq(roomMemberships.roomId,room.id));assert(members.every(m=>[a,b].includes(m.userId)));
@@ -36,8 +36,10 @@ async function main(){
   const content=await tx.select().from(messages).where(inArray(messages.conversationId,chats.map(c=>c.id)));
   const notes=await tx.select().from(hallItems).where(inArray(hallItems.conversationId,chats.map(c=>c.id)));
   console.log({mode,roomId:room.id,slug,children:children.map(c=>({id:c.id,name:c.name})),messages:content.map(m=>({id:m.id,empty:m.body==='',nuked:Boolean(m.deletedAt)})),hallItems:notes.length});
-  if(mode==='cleanup'){
-   assert.equal(children.length,1);assert(children.every(c=>c.createdBy===a&&c.name==='FP3 Side Trip'));assert.equal(chats.length,2);
+  if(mode==='cleanup'||mode==='cleanup-empty'){
+   assert(room.createdAt>=new Date('2026-09-25T00:00:00+08:00'));
+   if(mode==='cleanup-empty'){assert.equal(children.length,0);assert.equal(chats.length,1);assert.equal(members.length,1);assert.equal(content.length,0);}
+   else {assert.equal(children.length,1);assert(children.every(c=>c.createdBy===a&&c.name==='FP3 Side Trip'));assert.equal(chats.length,2);}
    assert.equal(notes.length,0);assert(content.every(m=>m.authorId===a&&m.body===''&&m.deletedAt&&m.createdAt>=room.createdAt));
    assert(content.length<=4,'Inspect unexpected QA content (one local and one live smoke per child/parent)');
    await tx.delete(rooms).where(eq(rooms.id,room.id));

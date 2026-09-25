@@ -2,7 +2,7 @@
 
 ## Current direction — founder huddle, 2026-09-25
 
-This section supersedes the older destination-led MS7.3/7.4 and HUDL-at-MS9 scheduling below. MS1–6 and MS7.1 remain locked. **MS7.2 FP3 partial UI overhaul is in final release QA; FP2 fresh-signup gate is verified after founder-approved two-account TID repair `a72800e`.** Canonical deployment/live smoke are required before Founder Walk3; MS7.2 is not locked. No Map/Fleet implementation or next milestone is authorized. [FP3 release ledger](MS7-2-FP3-FOUNDER-PATCH.md), [FP2 state](MS7-2-FP2-FOUNDER-PATCH.md) and [pivot proposal](MS7-2-FP1-PIVOT-RESEARCH.md).
+This section supersedes the older destination-led MS7.3/7.4 and HUDL-at-MS9 scheduling below. MS1–6 and MS7.1 remain locked. **MS7.2 FP3 partial UI overhaul is LIVE and two-user verified at application `2c205f4`; FP2 fresh-signup gate is verified after founder-approved two-account TID repair `a72800e`.** Stop for Founder Walk3; MS7.2 is not locked. No Map/Fleet implementation or next milestone is authorized. [FP3 release ledger](MS7-2-FP3-FOUNDER-PATCH.md), [FP2 state](MS7-2-FP2-FOUNDER-PATCH.md) and [pivot proposal](MS7-2-FP1-PIVOT-RESEARCH.md).
 
 FP3 release discipline: completed engineering gate → explicit scoped Git commit → normal push → canonical Git-backed deployment at that exact SHA → live verification → founder walkthrough. Do not leave the canonical site on stale code after an authorized, validated release; equally, do not deploy partial work or auto-lock. Systemic whole-product UI/motion remains MS8; reliability/performance debt remains MS7.6.
 

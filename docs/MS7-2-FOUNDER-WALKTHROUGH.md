@@ -1,6 +1,6 @@
 # MS7.2 — walkthrough preparation
 
-**FP3 FOUNDER WALK3 — RELEASE VERIFICATION IN PROGRESS / NOT LOCKED.** FP2 signup gate is now verified; use the newer [FP3 ledger](MS7-2-FP3-FOUNDER-PATCH.md) for exact current release state. Historical pending decisions below are superseded, not new requests. MS7.3 has not started.
+**FP3 FOUNDER WALK3 — LIVE / VERIFIED / NOT LOCKED.** FP2 signup gate is verified; application `2c205f4` passed canonical two-user smoke. Use the [FP3 release ledger](MS7-2-FP3-FOUNDER-PATCH.md) for exact evidence, cleanup and reliability caveats. Historical pending decisions below are superseded, not new requests. MS7.3 has not started.
 
 ## Founder Walk3 opening sequence
 

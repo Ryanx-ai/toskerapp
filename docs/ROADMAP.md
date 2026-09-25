@@ -2,7 +2,7 @@
 
 ## FP4 alignment — 2026-09-26 (current)
 
-**Collaborative trip planning made fun.** MS7.2 FP4 is in local implementation/acceptance, not yet released. This overrides the earlier stop-at-FP3 instruction; it does not unlock MS7.1 or start MS7.3. Founder Walk4 decides FP5 vs MS7.2 lock.
+**Collaborative trip planning made fun.** MS7.2 FP4 application `b70005f` is LIVE, Git-backed and two-user verified; [release/cleanup evidence](MS7-2-FP4-NAMECARD-ALIGNMENT.md). This overrides the earlier stop-at-FP3 instruction; it does not unlock MS7.1 or start MS7.3. STOP for Founder Walk4, which decides FP5 vs MS7.2 lock.
 
 | Milestone | Current direction |
 |---|---|

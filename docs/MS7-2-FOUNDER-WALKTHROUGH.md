@@ -2,7 +2,7 @@
 
 ## Founder Walk4 — FP4 review sequence
 
-Engineering acceptance/release is being recorded in the [FP4 ledger](MS7-2-FP4-NAMECARD-ALIGNMENT.md). Do not treat this walkthrough list as a release claim. It supersedes the FP3 review sequence below once the exact FP4 Git-backed build is live.
+FP4 application `b70005f` is LIVE, Git-backed and two-user verified. [Exact deployment, acceptance and guarded cleanup](MS7-2-FP4-NAMECARD-ALIGNMENT.md). This supersedes the historical FP3 review below. Stop for this walkthrough; MS7.2 is not automatically locked.
 
 1. Open `/`: product/auth, then your existing Sandbox. Use mobile Back or Chats to recover the list; collapse/expand the desktop rail. No generic welcome or stale landing link.
 2. Open your Namecard: banner, avatar/ring, name, handle, secondary TID, status/bio, lean actions. Edit Profile, save/cancel and inspect focus return. In Settings, **Profile Card** is identity appearance; **Appearance** is your private interface accent.

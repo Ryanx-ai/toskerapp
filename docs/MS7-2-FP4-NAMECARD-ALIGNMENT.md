@@ -1,6 +1,6 @@
 # MS7.2 FP4 — Namecard / trip alignment
 
-2026-09-25. IN PROGRESS — not released or founder-ready. Founder execution PDF (68 sections) read fully. MS7.1 locked; MS7.2 unlocked; MS7.3 not started. No paid provisioning, historical migration edits or Art/Web inheritance writes.
+2026-09-26. FOUNDER-REVIEW BUILD LIVE / VERIFIED. Founder execution PDF (68 sections) read fully. MS7.1 locked; MS7.2 unlocked; MS7.3 not started. No paid provisioning, historical migration edits or Art/Web inheritance writes.
 
 ## Recovery
 
@@ -65,4 +65,14 @@ Final-build repeats now pass: all six sizes with message history fully loaded be
 
 Local tiny smoke PASS: Personal/Room/Subroom A→B delivery, peer reload, reply composer/cancel, B reaction→A display→reload persistence→toggle off, A Nuke→peer reload. Room pin→Hall reference→source Nuke retracts Hall reference. Receipts: Personal `fa328951-d923-4646-a3f9-f4824ede02cb`, Room `12447996-3fda-472c-90cb-f489e1bcd963`, Subroom `8d985763-b2a7-4000-a80d-6a1c498e019c`; all already nuked in UI, exact cleanup still pending. No retained source used as disposable data. Final React review: hooks unconditional/cleanup, one existing workspace preference projection for mute, no new client credential or dependency, intent-only prefetch, native controls/focus and separate identity/viewer colors. No systemic messaging rewrite.
 
-LOCAL ENGINEERING GATE COMPLETE. Still pending: normal scoped commit/push/exact canonical deployment/live smoke and guarded QA cleanup. Do not represent local acceptance as release completion.
+## Release / live acceptance / cleanup
+
+Application commit `b70005fa67195254d9922c2a1f2fcb6109ed7dc9`, normal push to main; Git-backed production-target deployment `dpl_HJr9s3LG8H8JXrRfPTmbvPBy4P44` READY, exact SHA and canonical alias verified. URL `https://tosker-77smd27bn-pangea6.vercel.app`; canonical `https://toskerapp.vercel.app/` intentionally307 → `/app`200. Build ~32.8s. Documentation-only closeout can be newer; application source remains this validated patch. Still Development Clerk/Neon/Ably, not launch-production provisioning.
+
+LIVE PASS: normal isolated A/B sign-ins; Personal/Room/Subroom message delivery, reload, reply composer/cancel, durable peer reaction toggle, author Nuke and peer reload; Room source pin→Hall→Nuke retracts reference. Fully-loaded390×844 and1440×900 matrix passed root/Sandbox/mobile list/Create Chat/Room preview/Namecard/focus/Settings/Profile/Notifications/Personal/Room/Hall/collapse. Observed tool-inclusive route times1.4–2.6s; not a formal performance guarantee. Screenshots `/tmp/tosker-fp4-live.ZlvAxP` (local full six-size evidence `/tmp/tosker-fp4-qa.N9TuTL`). A/B browser errors empty; deployment-specific error/fatal query found no events. No new drain/monitoring setup; MS7.6 observability and Development reliability debt remain.
+
+Exact cleanup COMPLETE after read-only inspection and guards: removed synthetic `fp4-review-d88466`, its one Subroom, memberships/conversations and four already-nuked Room/child receipts (`12447996…`, `8d985763…`, `ab0f0d9c…`, `081e3351…`); removed only the two already-nuked Personal receipts `fa328951-d923-4646-a3f9-f4824ede02cb` and `c438aeaf-2e71-4b38-9796-89ea9b82bb64`. No application undo. No retained history/account/Sandbox/Room deleted. Do NOT rerun those fixture scripts blindly.
+
+Final invariants:8users/8profiles/8Sandboxes/**4 retained Rooms**/5memberships/5Personal conversations/29messages/9Hallnotes/2pins/3capabilities/6accepted connections/32notifications; all duplicate/orphan/Sandbox checks0. All20 hashes/catalog reverified after cleanup. Both live users reopen their own Sandbox, show `Version MS7.2 FP4 - Development`, and no longer list the QA Room. Original customization/private and Room nicknames/pins/mute restored, unsent QA draft cleared. Unrelated tracked handoff/inheritance edits and pre-existing untracked Design/Art/Web/research/experiments/toskerArt remain untouched and excluded from commits.
+
+STOP for Founder Walk4. MS7.1 REMAINS LOCKED; MS7.2 NOT LOCKED; MS7.3 NOT STARTED. Founder decides a further patch versus explicit lock. Trip-first roadmap and MS7.6 procurement/infrastructure ledger updated; optional feature deferrals above remain visible decisions, not completed features.

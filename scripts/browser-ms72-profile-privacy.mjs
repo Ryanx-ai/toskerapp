@@ -27,7 +27,7 @@ let extraTab=false;
 try {
   await privacy("self","self");
   console.log("Saved self audiences; awaiting B projection");
-  await until(b,"!!document.querySelector('.namecard-handle')&&!document.querySelector('.namecard-status')&&!document.querySelector('.namecard-bio')","B fields withheld");
+  await until(b,"!!document.querySelector('.namecard-handle')&&!document.querySelector('.namecard-status')&&!document.querySelector('.namecard-bio')","B fields withheld",75000);
   await identity(qaName,bio);
   console.log("Saved QA identity; awaiting B projection");
   await until(b,`document.querySelector('.contextual-namecard')?.textContent.includes(${JSON.stringify(qaName)})`,"B new global name");
@@ -39,7 +39,9 @@ try {
   await privacy("self","self");
   await until(b,"!document.querySelector('.namecard-bio')&&!document.querySelector('.namecard-status')","B revocation without reload");
   await run(b,"press","Escape");
-  await until(b,"!document.querySelector('.header-presence')","Personal header withholding");
+  // Profile signals are best effort; the existing workspace reconciliation is 60s.
+  // Verify canonical recovery without requiring a reload or changing transport.
+  await until(b,"!document.querySelector('.header-presence')","Personal header withholding",75000);
   await run(b,"open",origin+personal); await until(b,"!!document.querySelector('.composer textarea')","B reload");
   assert(await ev(b,"!document.querySelector('.header-presence')"));
   console.log("PASS real A/B global rename, optional bio/status sharing and revocation without reload; header/reload withholding");

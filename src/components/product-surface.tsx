@@ -4,6 +4,7 @@ import { AccountSettings } from "./account-settings";
 import { RoomInvitationResponse } from "./room-invitation-response";
 import { notificationHref } from "@/lib/notification-href";
 import { notificationBursts } from "@/lib/notification-bursts";
+import { ACTIVITY_REFRESH } from "@/lib/realtime-contract";
 import Link from "next/link";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { WorkspaceBanner } from "@/components/workspace-banner";
@@ -317,7 +318,7 @@ const notificationItems = [
   },
 ];
 
-function Notifications({ empty = false, persistent }: { empty?: boolean; persistent: Awaited<ReturnType<typeof listNotificationsAction>> }) {
+function Notifications({ empty = false, persistent, state = "ready" }: { empty?: boolean; persistent: Awaited<ReturnType<typeof listNotificationsAction>>; state?: "loading" | "error" | "ready" }) {
   const [filter, setFilter] = useState("All");
   const identity = useToskerIdentity();
   const acknowledgedView = useRef<string | null>(null);
@@ -405,13 +406,13 @@ function Notifications({ empty = false, persistent }: { empty?: boolean; persist
             );
           })}
         </div>
-        {shown.length === 0 ? (
+        {state !== "ready" ? <div className="notification-load-state" role={state === "error" ? "alert" : "status"}>{state === "loading" ? "Loading notifications…" : <>Notifications couldn’t be loaded. <button className="quiet-action" onClick={()=>window.dispatchEvent(new Event(ACTIVITY_REFRESH))}>Retry</button></>}</div> : shown.length === 0 ? (
           <div className="two-line-empty">
             <h2>Nothing here</h2>
-            <p>You’re caught up.</p>
+            <p>{filter === "All" ? "You’re caught up." : `No ${filter.toLowerCase()} to show.`}</p>
           </div>
         ) : null}
-        <p className="prototype-strip">{identity ? "You’re up to date." : "A preview of Tosker activity."}</p>
+        {!identity ? <p className="prototype-strip">A preview of Tosker activity.</p> : null}
       </section>
     </ProductChrome>
   );
@@ -426,8 +427,8 @@ function Profile() {
       <section className="profile-surface">
         <IdentityCard
           label="Your Namecard"
-          profile={{ userId: identity?.userId, avatarUrl: identity?.avatarUrl, name: user.displayName, username: user.username, tid: user.tid, initials: user.initials, color: "gold", status: user.role, identityAccent:identity?.ownProfile.identityAccent }}
-          action={identity ? <><p className="profile-bio">{identity.ownProfile.namecardBio}</p><div className="profile-shortcuts"><button className="primary-action" onClick={() => setEditing(true)}>Edit Profile</button><Link href="/friends">Friends</Link><Link href="/settings">Settings</Link></div></> : undefined}
+          profile={{ userId: identity?.userId, avatarUrl: identity?.avatarUrl, name: user.displayName, username: user.username, tid: user.tid, initials: user.initials, color: "gold", status: identity ? "" : user.role, identityAccent:identity?.ownProfile.identityAccent, identityBanner:identity?.ownProfile.identityBanner, identityFrame:identity?.ownProfile.identityFrame }}
+          action={identity ? <><p className="namecard-status"><i className={`presence-mark ${identity.ownProfile.presenceStatus}`} aria-hidden="true" />{({online:"Online",idle:"Idle",away:"Away",meeting:"In a meeting"})[identity.ownProfile.presenceStatus]}</p><p className="profile-bio">{identity.ownProfile.namecardBio}</p><div className="profile-shortcuts"><button className="primary-action" onClick={() => setEditing(true)}>Edit Profile</button><Link href="/friends">Friends</Link><Link href="/settings">Settings</Link></div></> : undefined}
         />
         <Link href="/" className="landing-footer-link profile-landing-link">View landing page</Link>
       </section>
@@ -440,16 +441,18 @@ export function ProductSurface({
   surface,
   mode = "demo",
   activity = [],
+  activityState = "ready",
 }: {
   surface: ProductWorkspace;
   mode?: "new" | "demo" | "returning";
   activity?: Awaited<ReturnType<typeof listNotificationsAction>>;
+  activityState?: "loading" | "error" | "ready";
 }) {
   if (surface === "profile") return <Profile />;
   if (surface === "explore") return <Explore />;
   if (surface === "marketplace") return <Explore />;
   if (surface === "studio") return <Explore studio />;
   if (surface === "settings") return <Settings />;
-  if (surface === "notifications") return <Notifications empty={mode === "new"} persistent={activity} />;
+  if (surface === "notifications") return <Notifications empty={mode === "new"} persistent={activity} state={activityState} />;
   return <Help />;
 }

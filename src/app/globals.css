@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./fp2-customization.css";
 
 /* MS7.2.1 owner-only Profile foundation; reuse scoped Settings geometry. */
 .owner-profile-field { display:grid; gap:8px; font-size:12px; color:var(--text-primary); }
@@ -1126,8 +1127,6 @@ h1,h2,h3 { font-family:var(--font-mermaid),Georgia,serif; font-weight:400; lette
 .identity-accent-sage,.accent-sage { --identity-accent:#91afa0; }
 .identity-accent-sky,.accent-sky { --identity-accent:#8daec5; }
 .identity-accent-neutral,.accent-neutral { --identity-accent:var(--border); }
-.namecard:not(.identity-accent-neutral) .namecard-banner { background:linear-gradient(120deg,color-mix(in srgb,var(--identity-accent) 35%,var(--surface)),var(--surface)); }
-.contextual-namecard:not(.identity-accent-neutral) { box-shadow:inset 0 3px var(--identity-accent); }
 .identity-accent-options { margin:0 0 20px; padding:0; border:0; display:flex; flex-wrap:wrap; gap:8px; }
 .identity-accent-options legend { margin-bottom:12px; font-size:13px; }
 .identity-accent-options label { display:flex; align-items:center; gap:8px; min-height:44px; padding:8px 10px; border-radius:10px; background:var(--surface-hover); font-size:13px; cursor:pointer; }

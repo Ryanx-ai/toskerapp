@@ -68,7 +68,8 @@ function NamecardDialog({ userId, roomId, onClose }: { userId: string; roomId?: 
     setNickname(false);
     requestAnimationFrame(() => document.querySelector<HTMLButtonElement>(".namecard-actions .namecard-nickname")?.focus());
   }} />;
-  return <ModalLayer onClose={() => { if (!busy) onClose(); }}><section className={`identity-dialog contextual-namecard identity-accent-${person?.identityAccent ?? "neutral"}`} aria-labelledby={`${id}-title`}>
+  return <ModalLayer onClose={() => { if (!busy) onClose(); }}><section className={`identity-dialog contextual-namecard identity-accent-${person?.identityAccent ?? "neutral"}`} data-identity-banner={person?.identityBanner ?? "glow"} data-identity-frame={person?.identityFrame ?? "none"} aria-labelledby={`${id}-title`}>
+    <div className="namecard-banner" aria-hidden="true" />
     <button className="overlay-close" aria-label="Close Namecard" disabled={busy} onClick={onClose}><X size={18} /></button>
     <p className="eyebrow">Namecard{person?.self ? " · You" : ""}</p>
     {person ? <>
@@ -76,7 +77,8 @@ function NamecardDialog({ userId, roomId, onClose }: { userId: string; roomId?: 
       <h2 id={`${id}-title`}><RevealName focusable>{name}</RevealName></h2>
       {name !== person.displayName ? <p className="namecard-canonical">{person.displayName}</p> : null}
       {person.roomContext ? <p className="settings-scope">In {person.roomContext.name}{person.nickname ? <> · You call them {person.nickname}</> : null}</p> : null}
-      <p className="namecard-handle">@{person.username} · {person.tid}</p>
+      <p className="namecard-handle identity-username">@{person.username}</p>
+      <p className="identity-tid">TID {person.tid}</p>
       <CopyTid tid={person.tid} />
       {person.presenceStatus ? <p className="namecard-status"><i className={`presence-mark ${person.presenceStatus}`} aria-hidden="true" />{statusNames[person.presenceStatus]}</p> : null}
       {person.namecardBio ? <p className="namecard-bio">{person.namecardBio}</p> : null}

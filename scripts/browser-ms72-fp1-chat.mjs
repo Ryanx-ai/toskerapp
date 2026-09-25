@@ -2,9 +2,14 @@ import assert from "node:assert/strict";
 import {run,ev,until,button} from "./browser-fp2.mjs";
 const a=process.env.MS72_A??"fp1-a",b=process.env.MS72_B??"fp1-b",origin=process.env.MS72_ORIGIN??"http://localhost:3000";
 const routes=["/personal/chat-be192eac-38c6-4d46-a6d2-bea19fa324fa","/room/ms722-frame-qa","/room/ms722-frame-qa/subroom/f7220000-2026-4000-8000-000000000003"];
+const start=Number(process.env.MS72_SMOKE_START??0);assert(Number.isInteger(start)&&start>=0&&start<routes.length);
 for(const [index,path] of routes.entries()) {
-  const body=`MS7.2 FP1 scoped smoke 20260925 ${index}`;
-  for(const s of [a,b]) { await run(s,"set","viewport","1440","900");await run(s,"open",origin+path);await until(s,"!!document.querySelector('.composer textarea')","Chat"); }
+  if(index<start)continue; // Explicitly resume after a recorded completed scope; never resend it.
+  const body=`${process.env.MS72_SMOKE_LABEL??"MS7.2 FP1 scoped smoke 20260925"} ${index}`;
+  for(const s of [a,b]) {
+    await run(s,"set","viewport","1440","900");await run(s,"open",origin+path);
+    await until(s,"!!document.querySelector('.composer textarea')&&!document.querySelector('.composer-error')&&!/Loading messages|Messages couldn't be loaded|Connecting to live updates/.test(document.body.innerText)","loaded, connected Chat",45000);
+  }
   assert(!await ev(a,`[...document.querySelectorAll('.message-bubble p')].some(e=>e.textContent===${JSON.stringify(body)})`),"Inspect preexisting smoke before retry");
   await run(a,"fill",".composer textarea",body);await button(a,"Send message");
   await until(b,`[...document.querySelectorAll('.message-bubble p')].some(e=>e.textContent===${JSON.stringify(body)})`,"A to B realtime message",45000);

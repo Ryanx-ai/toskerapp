@@ -3,7 +3,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useToskerIdentity } from "./tosker-identity";
 import { OwnProfileEditor } from "./own-profile-editor";
 
-const categories = new Set(["profile","status","account","notifications","privacy","brand","support"]);
+const categories = new Set(["profile","status","account","notifications","privacy","brand","appearance","support"]);
 export function AccountSettings() {
   const identity = useToskerIdentity(), router = useRouter(), search = useSearchParams();
   const requested = search.get("section") ?? "profile";

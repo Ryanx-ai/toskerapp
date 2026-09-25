@@ -32,7 +32,7 @@ await run(a,"open",origin+"/personal/chat-be192eac-38c6-4d46-a6d2-bea19fa324fa")
 await until(a,"!!document.querySelector('.header-identity-zone > .namecard-trigger')","Personal header");
 await run(a,"click",".header-identity-zone > .namecard-trigger");
 await until(a,"!!document.querySelector('.contextual-namecard .namecard-handle')","peer Namecard");
-assert(await ev(a,`document.querySelector('.contextual-namecard .namecard-handle').textContent.includes(${JSON.stringify(tids[b])})`));
+assert(await ev(a,`document.querySelector('.contextual-namecard .identity-tid').textContent==='TID '+${JSON.stringify(tids[b])}`));
 await run(a,"click",".contextual-namecard button[aria-label='Copy TID']");
 await until(a,"document.querySelector('.contextual-namecard .tid-copy [role=status]').textContent==='TID copied.'","peer clipboard");
 await run(a,"click",".contextual-namecard .overlay-close");

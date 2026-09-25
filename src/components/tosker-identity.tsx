@@ -1,6 +1,7 @@
 "use client";
 
-import { createContext, useContext } from "react";
+import { createContext, useContext, type CSSProperties } from "react";
+import { interfacePalette } from "@/lib/profile-contract";
 
 import type { CanonicalIdentity } from "@/server/accounts/bootstrap";
 
@@ -13,9 +14,10 @@ export function ToskerIdentityProvider({
   identity: CanonicalIdentity | null;
   children: React.ReactNode;
 }) {
+  const accent=identity?.ownProfile.interfaceAccent ?? "tosker", palette=interfacePalette[accent];
   return (
     <IdentityContext.Provider value={identity}>
-      {children}
+      <div className="viewer-appearance" data-interface-accent={accent} style={{"--action-fill":palette.fill,"--ui-highlight":palette.highlight} as CSSProperties}>{children}</div>
     </IdentityContext.Provider>
   );
 }

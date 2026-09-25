@@ -1224,6 +1224,7 @@ export function MessagingApp({
     workspace === "create" ? "room" : null,
   );
   const activity = snapshot.activity;
+  const [activityFailure, setActivityFailure] = useState<string | null>(null);
   const [readingPaused, setReadingPaused] = useState(false);
   useEffect(() => {
     let pending: ReturnType<typeof setTimeout> | undefined;
@@ -1260,8 +1261,9 @@ export function MessagingApp({
       const next = snapshot?.activity.filter((item) => !item.messageId || !item.conversationId || !removedMessageIds(item.conversationId).has(item.messageId)), nextNavigation = snapshot?.navigation;
       inFlight = false;
       if (pending && active) pendingTimer = window.setTimeout(refresh, 100);
-      if (!next) return;
+      if (!next) { if (active) setActivityFailure(identity.userId); return; }
       if (!active) return;
+      setActivityFailure(null);
       const previous = seenActivity.current;
       workspaceSnapshot.publish({ userId: identity.userId, activity: next, navigation: nextNavigation ?? workspaceSnapshot.get(identity.userId).navigation, preferences: snapshot?.preferences ?? [], navigationBasis: identity });
       seenActivity.current = new Set(next.map((item) => item.id));
@@ -1454,7 +1456,7 @@ export function MessagingApp({
         ) : workspace === "friends" ? (
           <FriendsSurface onMessage={messageFriend} requestActivity={activity.filter((item) => item.type === "connection_request" && item.requestPending && !item.destinationReadAt)} />
         ) : workspace && workspace !== "create" ? (
-          <ProductSurface surface={workspace} mode={state.mode} activity={activity} />
+          <ProductSurface surface={workspace} mode={state.mode} activity={activity} activityState={!identity || snapshot.userId === identity.userId ? "ready" : activityFailure === identity.userId ? "error" : "loading"} />
         ) : (
           <div className="desktop-welcome">
             <div className="welcome-orbit">

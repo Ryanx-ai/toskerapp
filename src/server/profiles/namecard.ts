@@ -4,7 +4,7 @@ import { and, asc, eq, sql } from "drizzle-orm";
 import type { AuthenticatedActor } from "@/server/auth/actor";
 import { AuthorizationDeniedError } from "@/server/auth/authorize";
 import type { ToskerReader } from "@/server/db/client";
-import { profiles, rooms, users } from "@/server/db/schema";
+import { connections, profiles, rooms, users } from "@/server/db/schema";
 import { projectedProfileDetails, projectedProfileStatus } from "./projection";
 import { isConversationId } from "@/lib/realtime-contract";
 
@@ -34,7 +34,8 @@ export async function readNamecard(db: ToskerReader, actor: AuthenticatedActor, 
   const overlap = await db.select({ id: rooms.id, name: rooms.name, slug: rooms.slug }).from(rooms)
     .where(sql`exists (select 1 from room_memberships v join room_memberships p on p.room_id = v.room_id where v.room_id = ${rooms.id} and v.user_id = ${actor.userId} and p.user_id = ${targetId})`)
     .orderBy(asc(rooms.name), asc(rooms.id)).limit(21);
-  return { ...person, roomContext, self: actor.userId === targetId, commonRooms: overlap.slice(0, 20), moreCommonRooms: overlap.length > 20 };
+  const [relationship] = await db.select({id: connections.id, status: connections.status, incoming: sql<boolean>`${connections.addresseeId} = ${actor.userId}`}).from(connections).where(eq(connections.pairKey, pair)).limit(1);
+  return { ...person, relationship: relationship ?? null, roomContext, self: actor.userId === targetId, commonRooms: overlap.slice(0, 20), moreCommonRooms: overlap.length > 20 };
 }
 
 export type Namecard = Awaited<ReturnType<typeof readNamecard>>;

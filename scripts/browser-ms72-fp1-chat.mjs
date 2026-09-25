@@ -17,6 +17,14 @@ for(const [index,path] of routes.entries()) {
   const id=await ev(a,`[...document.querySelectorAll('.message-row')].find(e=>[...e.querySelectorAll('.message-bubble p')].some(p=>p.textContent===${JSON.stringify(body)})).id`);
   console.log("SCOPED QA RECEIPT",id,path);
   await run(b,"open",origin+path);await until(b,`!!document.getElementById(${JSON.stringify(id)})`,"durable reload");
+  if(process.env.MS72_SMOKE_INTERACTIONS==='1') {
+    await run(b,'click',`#${id} [aria-label="Reply"]`);await until(b,"!!document.querySelector('button[aria-label=\"Cancel reply\"]')",'reply composer');await button(b,'Cancel reply');
+    await run(b,'click',`#${id} [aria-label="React"]`);await button(b,'thumbs up');await run(b,'press','Escape');
+    await until(a,`document.querySelector('#${id} .reaction-chips')?.textContent.includes('👍')`,'peer reaction');
+    await run(b,'open',origin+path);await until(b,`!!document.querySelector('#${id} .reaction-chips button[aria-pressed=true]')`,'durable actor reaction');
+    await run(b,'click',`#${id} .reaction-chips button[aria-pressed=true]`);await until(a,`!document.querySelector('#${id} .reaction-chips')?.textContent.includes('👍')`,'reaction removal');
+    console.log('PASS reply context/cancel and durable peer reaction toggle',path);
+  }
   if(index===1) {
     await run(a,"click",`#${id} [aria-label='More message actions']`);await button(a,"Pin to Hall");
     await run(b,"open",origin+path+"/hall");await until(b,`document.querySelector('.hall-surface')?.textContent.includes(${JSON.stringify(body)})`,"Hall retained reference",45000);

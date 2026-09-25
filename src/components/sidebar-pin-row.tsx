@@ -20,7 +20,8 @@ export function SidebarPinRow({ id, name, ids, enabled, onSaved, children, pinAl
     catch { setError("Sidebar preference wasn't saved. Check your connection or access and try again."); }
     finally { setBusy(false); window.dispatchEvent(new Event(ACTIVITY_REFRESH)); router.refresh(); }
   };
-  return <div className={`sidebar-pin-row ${pinned ? "is-pinned" : ""} ${over ? "drag-target" : ""}`} data-pin-id={id}
+  return <div className={`sidebar-pin-row ${pinned ? "is-pinned" : ""} ${over ? "drag-target" : ""}`} data-pin-id={id} draggable={pinned && !busy}
+    onDragStart={(event) => { if (!pinned || busy) return; event.dataTransfer.effectAllowed = "move"; event.dataTransfer.setData(mime,id); setAnchor(null); }}
     onDragOver={(event) => { if (pinned && !busy && event.dataTransfer.types.includes(mime)) { event.preventDefault(); event.dataTransfer.dropEffect = "move"; setOver(true); } }}
     onDragLeave={() => setOver(false)} onDrop={(event) => { if (!pinned || busy || !event.dataTransfer.types.includes(mime)) return; event.preventDefault(); setOver(false); const source = event.dataTransfer.getData(mime); if (source !== id && ids.includes(source)) void change(source, { kind: "move", targetId: id, expectedIds: ids }); }}>
     {children}
@@ -32,7 +33,7 @@ export function SidebarPinRow({ id, name, ids, enabled, onSaved, children, pinAl
       {actions?.(() => setAnchor(null))}
       {pinAllowed ? <button disabled={busy} onClick={() => void change(id, { kind: "pin", pinned: !pinned })}>{pinned ? "Unpin" : "Pin to top"}</button> : null}
       {pinned ? <><button disabled={busy || index <= 0} onClick={() => void change(id, { kind: "move", targetId: ids[index - 1], expectedIds: ids })}>Move earlier</button><button disabled={busy || index === ids.length - 1} onClick={() => void change(id, { kind: "move", targetId: ids[index + 1], expectedIds: ids })}>Move later</button></> : null}
-      {pinAllowed ? <p className="settings-scope">Pins and order are just for you.</p> : null}
+      {pinAllowed ? <p className="settings-scope">Pin to keep it close. Drag pinned chats and Rooms, or use Move earlier/later. Only you see this order.</p> : null}
     </div></InteractionPopover> : null}
     {busy ? <span className="sr-only" role="status">Saving sidebar preference…</span> : null}{error ? <p className="sidebar-pin-error" role="alert">{error}</p> : null}
   </div>;

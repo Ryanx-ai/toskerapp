@@ -54,6 +54,7 @@ import {
   ArrowLeft,
   Search,
   BellOff,
+  Mail,
   GripVertical,
   MoreHorizontal,
   Plus,
@@ -142,7 +143,6 @@ export function SurfaceHeader({
   const [searchOpen, setSearchOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [controlsAnchor, setControlsAnchor] = useState<HTMLElement | null>(null);
-  const [addAnchor, setAddAnchor] = useState<HTMLElement | null>(null);
   const [controlBusy, setControlBusy] = useState(false);
   const [controlFeedback, setControlFeedback] = useState("");
   const router = useRouter();
@@ -155,14 +155,14 @@ export function SurfaceHeader({
       await setConversationPreferenceAction(conversation.databaseId, kind === "mute" ? { kind, muted: !pref.muted } : { kind, surface });
       window.dispatchEvent(new Event(ACTIVITY_REFRESH));
       setControlsAnchor(null);
-      if (kind === "unread") { router.push("/app"); }
+      if (kind === "unread") { router.push("/app?view=list"); }
     } catch { setControlFeedback("That change couldn't be saved. Try again."); onReadingPause?.(false); }
     finally { setControlBusy(false); }
   };
   return (
     <header className="conversation-header">
       <div className="header-identity-zone">
-        <Link href="/app" className="mobile-back" aria-label="Back">
+        <Link href="/app?view=list" className="mobile-back" aria-label="Back">
           <ArrowLeft size={18} />
         </Link>
         {conversation.kind === "my-room" ? <SandboxAvatar className="avatar-large" /> : conversation.kind === "room" ? <RoomAvatar name={conversation.name} seed={conversation.identitySeed ?? conversation.slug.split("--")[0]} subroom={conversation.tag === "SUBROOM"} className="avatar-large" /> : <NamecardButton userId={conversation.databaseId ? conversation.identitySeed : undefined} name={conversation.name}><PersonAvatar seed={conversation.identitySeed ?? conversation.slug} initials={conversation.initials} imageUrl={conversation.avatarUrl} className="avatar-large" /></NamecardButton>}
@@ -173,7 +173,6 @@ export function SurfaceHeader({
         </div>
       </div>
       <div className="core-header-controls">
-        {conversation.kind !== "my-room" ? <span className="fp2-header-deferred"><DeferredControl kind="call" /><DeferredControl kind="video" /></span> : null}
         {conversation.databaseId ? <button className="action-icon" aria-label="Search conversation" title="Search conversation" onClick={() => setSearchOpen(true)}><Search size={17} /></button> : null}
         {pref.muted || pref.inheritedMute ? <span title={pref.inheritedMute ? "Muted by Room" : "Muted"} aria-label={pref.inheritedMute ? "Muted by Room" : "Muted"}><BellOff size={14} /></span> : null}
         {conversation.databaseId || onManage ? <button className="action-icon" aria-label="Conversation options" title="Conversation options" aria-expanded={Boolean(controlsAnchor)} onClick={(event) => { setControlFeedback(""); setControlsAnchor(event.currentTarget); }}><MoreHorizontal size={17} /></button> : null}
@@ -193,24 +192,19 @@ export function SurfaceHeader({
         >
           Hall<AttentionMark count={hallUnread} label="new Hall activities" />
         </Link>
-        <button className="surface-add" aria-label="Add a surface" aria-haspopup="dialog" aria-expanded={Boolean(addAnchor)} onClick={(event) => setAddAnchor(event.currentTarget)}><Plus size={17} aria-hidden="true" /></button>
+        {conversation.kind === "room" ? <span className="surface-upcoming">Map <small>Coming next</small></span> : null}
       </nav>
       {searchOpen && conversation.databaseId ? <ConversationSearch key={conversation.databaseId} conversationId={conversation.databaseId} name={titleOf(conversation, user.displayName)} href={baseHref(conversation)} onClose={() => setSearchOpen(false)} /> : null}
-      {addAnchor ? <InteractionPopover anchor={addAnchor} label="Add a surface" onClose={() => setAddAnchor(null)}><div className="surface-add-menu">
-        <button disabled>Gizmos <small>Planned</small></button>
-        <button disabled>Pages <small>Planned</small></button>
-      </div></InteractionPopover> : null}
       {controlsAnchor ? <InteractionPopover anchor={controlsAnchor} label="Conversation options" onClose={() => { if (!controlBusy) setControlsAnchor(null); }}><div className="room-context-menu communication-options">
         {conversation.kind === "room" && onInvite ? <button disabled={controlBusy} onClick={() => { setControlsAnchor(null); onInvite(); }}><Plus size={15} />Invite</button> : null}
         {onManage ? <button disabled={controlBusy} onClick={() => { setControlsAnchor(null); onManage(); }}><UsersRound size={15} />Room Settings</button> : null}
         {conversation.kind === "personal" && conversation.databaseId ? <button onClick={() => { setControlsAnchor(null); setSettingsOpen(true); }}>Chat Settings</button> : null}
         {conversation.databaseId ? <>
-          <button disabled={controlBusy || pref.inheritedMute} onClick={() => void changePreference("mute")}>{pref.inheritedMute ? "Muted by Room" : pref.muted ? "Unmute" : "Mute"}</button>
+          <button disabled={controlBusy || pref.inheritedMute} onClick={() => void changePreference("mute")}><BellOff size={16} aria-hidden="true" />{pref.inheritedMute ? "Muted by Room" : pref.muted ? "Unmute" : "Mute"}</button>
           <p>{conversation.kind === "room" && conversation.tag !== "SUBROOM" ? "Mute quiets this Room and its Subrooms. " : "Mute quiets notifications. "}Messages and unread indicators stay. Direct mentions still notify.</p>
-          <button disabled={controlBusy} onClick={() => void changePreference("unread")}>Mark {surface === "hall" ? "Hall" : "Chat"} unread</button>
+          <button disabled={controlBusy} onClick={() => void changePreference("unread")}><Mail size={16} aria-hidden="true" />Mark {surface === "hall" ? "Hall" : "Chat"} unread</button>
         </> : null}
         {controlBusy ? <p role="status">Saving…</p> : null}{controlFeedback ? <p role="alert">{controlFeedback}</p> : null}
-        {conversation.kind !== "my-room" ? <div className="fp2-mobile-deferred"><DeferredControl kind="call" text /><DeferredControl kind="video" text /></div> : null}
       </div></InteractionPopover> : null}
       {contextAnchor && parentRoom ? <InteractionPopover anchor={contextAnchor} label="Room contexts" onClose={() => setContextAnchor(null)}><nav className="room-context-menu" aria-label="Room and Subrooms">
         <Link href={`/room/${parentRoom.slug}`} aria-current={conversation.slug === parentRoom.slug ? "page" : undefined} onClick={() => setContextAnchor(null)}>{parentRoom.name}<AttentionMark count={unreadByConversation?.[parentRoom.conversationId] ?? 0} label="unread activities" /></Link>
@@ -816,7 +810,7 @@ export function ChatSurface({ conversation, realtime, manualUnreadId, readingPau
           return true;
         }}
         onTyping={sendTyping}
-        name={titleOf(conversation)}
+        name={titleOf(conversation, user.displayName)}
         reply={reply}
         onCancelReply={() => setReply(null)}
         onSend={send}
@@ -1086,8 +1080,8 @@ export function HallSurface({
             support: "The useful bits from this conversation",
           }
         : {
-            title: "What everyone needs to know",
-            support: "",
+            title: "Keep the trip together",
+            support: "Plans, booking details and messages worth keeping.",
           };
   const isEmpty = (empty || Boolean(conversation.databaseId)) && displayedItems.length === 0;
   return (

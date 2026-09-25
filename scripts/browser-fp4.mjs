@@ -6,7 +6,8 @@ const a = process.env.FP4_A ?? "fp4-a", b = process.env.FP4_B ?? "fp4-b";
 async function button(s,name) { await until(s,`[...document.querySelectorAll('button')].some(e=>e.checkVisibility()&&!e.disabled&&(e.getAttribute('aria-label')||e.textContent).trim()===${JSON.stringify(name)})`,`enabled ${name}`); return clickButton(s,name); }
 async function fill(s, selector, value) { await run(s,"fill",selector,value||" "); if(!value)await run(s,"press","Backspace"); }
 async function login(s, letter) {
-  await run(s,"open",origin+"/app");
+  const path=process.env.FP4_LOGIN_PATH??'/app';assert(path.startsWith('/')&&!path.startsWith('//'));
+  await run(s,"open",origin+path);
   await button(s,"Sign in");
   await run(s,"find","label","Email address","fill",`tosker.user.${letter}+clerk_test@example.com`); await button(s,"Continue");
   await until(s,"!!document.querySelector('input[type=password]') || !!document.querySelector('input[autocomplete=one-time-code]')","Clerk next step");
@@ -17,6 +18,7 @@ async function login(s, letter) {
   await until(s,"!!document.querySelector('input[autocomplete=one-time-code]')","Clerk verification form");
   await run(s,"fill","input[autocomplete=one-time-code]","424242");
   await until(s,"!!document.querySelector('.messaging-app')","normal Clerk test identity",45000);
+  assert.equal(await ev(s,'location.pathname+location.search'),path,'sign-in preserves intended path/query');
   console.log(`PASS normal ${s} sign-in`);
 }
 async function namecard() {

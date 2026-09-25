@@ -46,18 +46,18 @@ export function OwnProfileEditor({ identity, onClose, accountMode = false, selec
   const audience = (field: "detailsAudience" | "statusAudience", label: string) => <label className="owner-profile-field">{label}<select value={draft[field]} disabled={busy} onChange={event => setDraft({...draft,[field]:event.target.value as ProfileAudience})}>{PROFILE_AUDIENCES.map(value => <option key={value} value={value}>{audienceLabels[value]}</option>)}</select></label>;
   return <SettingsShell title={accountMode ? "Settings" : "Edit Profile"} context={accountMode ? "Your account, profile and preferences" : "Your global identity"} selectedSection={selectedSection} onSectionChange={onSectionChange} onClose={onClose} busy={busy} dirty={changed} onDiscard={() => { setDraft(base); setError(""); setConflict(false); }} sections={[
     { id:accountMode ? "profile" : "identity",label:accountMode ? "Profile" : "Identity",content:section("Profile","Your global name. Other people's private nicknames for you stay theirs.",<>
-      <label className="owner-profile-field">Global display name<input name="displayName" value={draft.displayName} maxLength={80} required disabled={busy} onChange={event => setDraft({...draft,displayName:event.target.value})} autoComplete="nickname" /></label>
-      <label className="owner-profile-field">Bio <span className="settings-scope">Optional · {audienceLabels[draft.detailsAudience]}</span><input name="namecardBio" value={draft.namecardBio ?? ""} maxLength={160} disabled={busy} onChange={event => setDraft({...draft,namecardBio:event.target.value})} /></label>
+      <label className="owner-profile-field">Global display name<input name="displayName" placeholder="What should we call you?" value={draft.displayName} maxLength={80} required disabled={busy} onChange={event => setDraft({...draft,displayName:event.target.value})} autoComplete="nickname" /></label>
+      <label className="owner-profile-field">Bio <span className="settings-scope">Optional · {audienceLabels[draft.detailsAudience]}</span><input name="namecardBio" placeholder="Tell people a little about you" value={draft.namecardBio ?? ""} maxLength={160} disabled={busy} onChange={event => setDraft({...draft,namecardBio:event.target.value})} /></label>
       <dl className="owner-profile-identifiers"><div><dt>Username</dt><dd>@{identity.username}</dd></div><div><dt>TID</dt><dd>{identity.tid} <CopyTid tid={identity.tid} /></dd></div></dl>
       <p className="settings-scope">Username and TID stay fixed. Avatar uploads aren’t connected.</p>
     </>) },
     { id:"status",label:"Status",content:section("Availability","A manual status, not live activity tracking.",<><label className="owner-profile-field">Your status<select value={draft.presenceStatus} disabled={busy} onChange={event => setDraft({...draft,presenceStatus:event.target.value as CanonicalIdentity["presenceStatus"]})}><option value="online">Online</option><option value="idle">Idle</option><option value="away">Away</option><option value="meeting">In a meeting</option></select></label><p className="settings-scope">Visible to: {audienceLabels[draft.statusAudience]}.</p></>) },
     { id:"privacy",label:"Privacy",content:section("Profile visibility","Your name and identifiers still appear where people can already find or talk with you.",<>
-      {audience("detailsAudience","Bio and Personal Brand")}
+      {audience("detailsAudience","Bio and Profile Card")}
       {audience("statusAudience","Manual status")}
       <p className="settings-scope">Room members means people currently sharing a Room with you. A Personal Chat alone doesn’t share these details.</p>
     </>) },
-    { id:"brand", label:"Personal Brand", content:section("Make it yours",`Your Namecard and Profile. Visible to: ${audienceLabels[draft.detailsAudience]}.`,<>
+    { id:"brand", label:"Profile Card", content:section("Make it yours",`Your Namecard and Profile. Visible to: ${audienceLabels[draft.detailsAudience]}.`,<>
       <div className="brand-preview">
         <p className="settings-scope">Preview · not saved until you save changes</p>
         <IdentityCard preview label="Your Namecard preview" profile={{userId:identity.userId,avatarUrl:identity.avatarUrl,name:draft.displayName,username:identity.username,tid:identity.tid,initials:draft.displayName.slice(0,2),color:"gold",status:"",identityAccent:draft.identityAccent,identityBanner:draft.identityBanner,identityFrame:draft.identityFrame}} />
@@ -99,6 +99,6 @@ function AppearancePreview({accent}:{accent:InterfaceAccent}) {
   return <figure className="appearance-preview" style={{"--preview-fill":palette.fill,"--preview-highlight":palette.highlight} as React.CSSProperties}>
     <figcaption>Interface preview</figcaption>
     <div><span className="appearance-selected">Selected conversation</span><span className="appearance-primary">Primary action</span></div>
-    <p>Preview only · controls and highlights, not your messages</p>
+    <p>Preview only · controls, highlights and your outgoing bubbles</p>
   </figure>;
 }

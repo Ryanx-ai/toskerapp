@@ -254,7 +254,7 @@ function Help() {
             This help surface will become useful as Tosker grows. For now, bring
             your notes to the founder walkthrough.
           </p>
-          <Link href="/" className="back-link">View landing page</Link>
+          <Link href="/app" className="back-link">Open Sandbox</Link>
         </div>
       </aside>
     </ProductChrome>
@@ -430,7 +430,6 @@ function Profile() {
           profile={{ userId: identity?.userId, avatarUrl: identity?.avatarUrl, name: user.displayName, username: user.username, tid: user.tid, initials: user.initials, color: "gold", status: identity ? "" : user.role, identityAccent:identity?.ownProfile.identityAccent, identityBanner:identity?.ownProfile.identityBanner, identityFrame:identity?.ownProfile.identityFrame }}
           action={identity ? <><p className="namecard-status"><i className={`presence-mark ${identity.ownProfile.presenceStatus}`} aria-hidden="true" />{({online:"Online",idle:"Idle",away:"Away",meeting:"In a meeting"})[identity.ownProfile.presenceStatus]}</p><p className="profile-bio">{identity.ownProfile.namecardBio}</p><div className="profile-shortcuts"><button className="primary-action" onClick={() => setEditing(true)}>Edit Profile</button><Link href="/friends">Friends</Link><Link href="/settings">Settings</Link></div></> : undefined}
         />
-        <Link href="/" className="landing-footer-link profile-landing-link">View landing page</Link>
       </section>
       {editing && identity ? <OwnProfileEditor identity={identity} onClose={() => setEditing(false)} /> : null}
     </ProductChrome>

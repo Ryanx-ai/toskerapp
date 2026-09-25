@@ -1,11 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { Show } from "@clerk/nextjs";
 import { AuthModalButton } from "./auth-modal-button";
 import { useSyncExternalStore } from "react";
-import { prototypeStore } from "@/lib/prototype-store";
 import { useToskerIdentity } from "@/components/tosker-identity";
 
 const demoStore = {
@@ -20,6 +19,8 @@ const demoStore = {
 
 export function AuthGate({ children, allowDemo = true }: { children: React.ReactNode; allowDemo?: boolean }) {
   const pathname = usePathname();
+  const search = useSearchParams().toString();
+  const returnPath = `${pathname}${search ? `?${search}` : ""}`;
   const identity = useToskerIdentity();
   const demo = useSyncExternalStore(demoStore.subscribe, demoStore.getSnapshot, demoStore.getServerSnapshot);
   if (pathname.startsWith("/join/")) return children;
@@ -38,16 +39,15 @@ export function AuthGate({ children, allowDemo = true }: { children: React.React
               height={80}
               priority
             />
-            <h1>Your people, Rooms, and conversations—kept together.</h1>
-            <p>Sign in to enter your Tosker workspace.</p>
+            <h1>Good trips start together.</h1>
+            <p>Collaborative trip planning, made fun. Sign in to get your people and plans together.</p>
             <div className="auth-actions">
-              <AuthModalButton>
+              <AuthModalButton redirectUrl={returnPath}>
                 <button className="button button-primary">Sign in</button>
               </AuthModalButton>
-              <AuthModalButton initial="sign-up">
+              <AuthModalButton initial="sign-up" redirectUrl={returnPath}>
                 <button className="button">Create account</button>
               </AuthModalButton>
-              <button className="button demo-button" onClick={() => { window.localStorage.setItem("tosker.demo.mode", "true"); prototypeStore.setMode("demo"); window.dispatchEvent(new Event("tosker:demo")); }}>View Demo</button>
             </div>
           </section>
         </main>

@@ -2,6 +2,18 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## MS7.2 FP4 — LOCAL ACCEPTANCE COMPLETE / RELEASE PENDING (2026-09-26)
+
+Baseline `3fcf0b4f92584dde400c9d5a790e6616a0003fcb`. Founder authorized the FP4 Namecard/Trip UI alignment execution PDF. The commit containing this checkpoint is the locally validated FP4 application patch, not yet proof of canonical release. [Scope/research/acceptance](docs/MS7-2-FP4-NAMECARD-ALIGNMENT.md), [Founder Walk4](docs/MS7-2-FOUNDER-WALKTHROUGH.md). No FP4 schema/provider changes. MS7.1 locked, MS7.2 NOT locked, MS7.3 NOT started.
+
+Implemented namecard hierarchy and relationship actions/private disclosure; Profile Card naming/form spacing; viewer accent bubbles/focus/tabs; existing Sandbox default and product root; static future Room Map/removal of generic Add and standalone calls; full pinned-row drag; neutral loading frame and bounded route prefetch. Optional social/public share/uploads/light mode/private tags are explicitly deferred with reasons, not fake controls. Roadmap and consolidated MS7.6 ledger updated.
+
+Passed: final TypeScript/lint/build (one unrelated lint warning), all20 hashes/catalog/invariants and source/client secret scan; profile/privacy/relationship, customization/contrast, Room identity, Settings and Trip service suites; all six fully-loaded viewport checks; A/B customization save/reset/reload/isolation/stale/failure; Room identity/long names/owner reset; private nickname focus/restoration; real pinned-row drag/persistence/keyboard alternative, mute icon/unread; Chat/Hall/Subroom switching and draft isolation/reload/background/failed-history retry. Small local A/B Personal/Room/Subroom delivery/reload/reaction toggle/reply controls/Nuke and Hall source retraction PASS. Presets, nicknames, pins and drafts restored. Development stream/Neon/session interruptions are honestly recorded, not claimed fixed by this UI patch.
+
+Active fixture: A-owned `fp4-review-d88466` (FP4 Review), child `23b70de2-e152-4504-92c8-8e4c2b42b98c`, exact guards in `scripts/ms72-fp4-fixture.ts`. Local nuked Personal receipt `fa328951-d923-4646-a3f9-f4824ede02cb`; Room/child receipts `12447996-3fda-472c-90cb-f489e1bcd963` / `8d985763-b2a7-4000-a80d-6a1c498e019c`. Inspect before cleanup/repeat. Retain all8 users/Sandboxes and FOUR pre-existing Rooms, including founder Hello. Local A/B `fp2-fresh`/`fp2-b` (smoke A `fp4-deep`), optimized port3000; captures `/tmp/tosker-fp4-qa.N9TuTL`. Next: scoped commit → normal push → exact Git-backed canonical READY/alias verification → live A/B smoke → exact synthetic cleanup → release evidence closeout → stop for Founder Walk4. Do not imply FP4 is live before verifying it.
+
+Preserve unrelated handoff/inheritance edits and untracked Design/Art/Web/research/experiments. `toskerArt/` MUST remain untouched/untracked. Explicit staging only; do not include the unrelated historical hunks of this file. No MS7.3 implementation or MS7.2 auto-lock.
+
 ## MS7.2 FP3 — LIVE / Founder Walk3 (2026-09-25)
 
 Application `2c205f4ba682b46c03e0c8330dec16051c63f3ea` normally pushed to main and Git-backed deployed: READY `dpl_4cTZSP8zCUQao8D6nAm5RU1vPz3e`, canonical `https://toskerapp.vercel.app/` HTTPS200/exact SHA. Documentation/QA-cleanup-only closeout may be newer; application source unchanged. [Full release/live evidence](docs/MS7-2-FP3-FOUNDER-PATCH.md), [Founder Walk3](docs/MS7-2-FOUNDER-WALKTHROUGH.md). STOP for founder; MS7.1 REMAINS LOCKED, MS7.2 NOT LOCKED, MS7.3 NOT STARTED.

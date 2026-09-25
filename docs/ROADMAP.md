@@ -1,5 +1,27 @@
 # Tosker roadmap — canonical founder direction
 
+## FP4 alignment — 2026-09-26 (current)
+
+**Collaborative trip planning made fun.** MS7.2 FP4 is in local implementation/acceptance, not yet released. This overrides the earlier stop-at-FP3 instruction; it does not unlock MS7.1 or start MS7.3. Founder Walk4 decides FP5 vs MS7.2 lock.
+
+| Milestone | Current direction |
+|---|---|
+| MS7.1 | Chat + Rooms — LOCKED |
+| MS7.2 | Profile + Settings + identity/UI alignment — CURRENT, NOT LOCKED |
+| MS7.3 | Collaborative Trips / native Map + collaborative Location Cards — NEXT, NOT STARTED |
+| MS7.4 | Trip Execution / Live Coordination — evidence-dependent |
+| MS7.5 | Product completeness / bounded extensibility / Pages readiness |
+| MS7.6 | Provisioning + backend polish; consolidated capability ledger below |
+| MS8 | Hardcore whole-product UI/UX: type, art direction, motion, Hall/Map integration, systematic components |
+| MS9 | Generalized extension platform + ToskerBot only after Map proves the model |
+| MS10 | Tosker Art integration |
+| MS11 | ToskerWeb rewrite for trip coordination; current marketing parked |
+| MS12 / MS13 | Desktop packaging / native-adaptive mobile |
+| MS14 / MS15 | Cross-platform destruction / production-launch priming |
+| MS16 / MS17+ | Beta / evidence-led expansion |
+
+Old→new: generic `+`/plugin catalog → focused native Chat/Hall/Map direction; standalone Friends/Explore milestones → integrated Friends capability and trip-planning proof; generic worldbuilding landing → product entry now, trip-coordination website at MS11. “Gizmo” is internal naming debt, not required Beta copy. Map, Location Cards, Gallery/photo dump and Gather/Live coordination are direction only in FP4: no provider, routing, tracking, storage or audio runtime. Appearance cascade and profile-media/privacy gates are recorded in the [FP4 ledger](MS7-2-FP4-NAMECARD-ALIGNMENT.md); [MS7.6 procurement ledger](MS7-6-PROVISIONING-BACKLOG.md) owns infrastructure evaluation, not automatic purchasing.
+
 ## Current direction — founder huddle, 2026-09-25
 
 This section supersedes the older destination-led MS7.3/7.4 and HUDL-at-MS9 scheduling below. MS1–6 and MS7.1 remain locked. **MS7.2 FP3 partial UI overhaul is LIVE and two-user verified at application `2c205f4`; FP2 fresh-signup gate is verified after founder-approved two-account TID repair `a72800e`.** Stop for Founder Walk3; MS7.2 is not locked. No Map/Fleet implementation or next milestone is authorized. [FP3 release ledger](MS7-2-FP3-FOUNDER-PATCH.md), [FP2 state](MS7-2-FP2-FOUNDER-PATCH.md) and [pivot proposal](MS7-2-FP1-PIVOT-RESEARCH.md).

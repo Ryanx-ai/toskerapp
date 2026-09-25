@@ -38,6 +38,13 @@ async function main() {
     assert.equal((await readPersonalNavigation(tx,e.userId))[0].presenceStatus,null);
     assert.equal((await readNamecard(tx,e,a.userId)).presenceStatus,null);
     await assert.rejects(readNamecard(tx,f,a.userId)); await assert.rejects(readNamecard(tx,d,a.userId));
+    assert.equal(friendCard.relationship?.status,"accepted");
+    assert.equal((await readNamecard(tx,e,a.userId)).relationship,null);
+    const [pendingChat]=await tx.insert(conversations).values({kind:"personal",directKey:[a.userId,d.userId].sort().join(":")}).returning();
+    await tx.insert(conversationParticipants).values([a,d].map(actor=>({conversationId:pendingChat.id,userId:actor.userId})));
+    assert.equal((await readNamecard(tx,d,a.userId)).relationship?.incoming,true);
+    assert.equal((await readNamecard(tx,a,d.userId)).relationship?.incoming,false);
+    assert.equal((await readNamecard(tx,d,a.userId)).namecardBio,null);
     console.log("PASS self/friend/co-member/pending/Personal-only/stranger projection; private alias/Common Rooms don't leak");
     let current=await readOwnProfile(tx,a.userId);
     current=await updateOwnProfile(tx,a,{detailsAudience:"friends",statusAudience:"friends"},current.revision);

@@ -1,5 +1,19 @@
 # MS7.2 — walkthrough preparation
 
+## Founder Walk4 — FP4 review sequence
+
+Engineering acceptance/release is being recorded in the [FP4 ledger](MS7-2-FP4-NAMECARD-ALIGNMENT.md). Do not treat this walkthrough list as a release claim. It supersedes the FP3 review sequence below once the exact FP4 Git-backed build is live.
+
+1. Open `/`: product/auth, then your existing Sandbox. Use mobile Back or Chats to recover the list; collapse/expand the desktop rail. No generic welcome or stale landing link.
+2. Open your Namecard: banner, avatar/ring, name, handle, secondary TID, status/bio, lean actions. Edit Profile, save/cancel and inspect focus return. In Settings, **Profile Card** is identity appearance; **Appearance** is your private interface accent.
+3. Open a friend's card: Message/Friends, Common Rooms, then Just for you → Private nickname. Save/reopen and check the other user's identity is unchanged. Pending/incoming relationships must reflect real server state, not fake Add Friend buttons.
+4. Change/reset a preset, save and reload. Compare outgoing bubbles, active Chat/Hall underline, focus and create control. The other person's Profile Card must never recolor your interface. Dark-only; no fake light mode or uploads.
+5. Create a Trip Room, add/edit its short label and reload. Inspect Chat/Hall/Map Coming next; no generic + or standalone phone/video. Map is not interactive. Try the parent/Subroom switcher and confirm drafts remain scoped.
+6. Pin two conversations and drag from the row body; use Move earlier/later as the alternative. Refresh and compare another user. Sandbox stays anchored. Mute shows an icon; Mark Chat unread returns to the list and visibly stays unread until opened.
+7. With another user, send/reply/react, reload, pin to Hall and Nuke a disposable source. Check retained content and attention behavior. Inspect small-screen settings/cards, failed-save retry and slow-navigation recovery.
+
+Explicit deferrals: social links/public share, avatar/banner upload, optional private Chat tags, Light/System, per-Room appearance overrides and Gather/Live voice. Reasons/contracts are in the FP4/MS7.6 ledgers. No procurement or new runtime implied. The founder chooses another bounded patch or explicit MS7.2 lock; MS7.3 has NOT started.
+
 **FP3 FOUNDER WALK3 — LIVE / VERIFIED / NOT LOCKED.** FP2 signup gate is verified; application `2c205f4` passed canonical two-user smoke. Use the [FP3 release ledger](MS7-2-FP3-FOUNDER-PATCH.md) for exact evidence, cleanup and reliability caveats. Historical pending decisions below are superseded, not new requests. MS7.3 has not started.
 
 ## Founder Walk3 opening sequence

@@ -1,5 +1,27 @@
 # MS7.6 — Provisioning Backlog + Development / Backend Polish
 
+## FP4 consolidated procurement / infrastructure ledger — 2026-09-26
+
+Research classes only; no service purchased/provisioned and no credential changed. Current canonical founder builds still use Development Clerk/Neon/Ably. These entries supplement existing P-001–P-008 and do not move launch policy out of MS15.
+
+| Capability | Why infrastructure is required | Likely provider class (not selected) | Data/privacy implication | Dependency | Consumer |
+|---|---|---|---|---|---|
+| Private files/images + signed delivery | Durable authorized objects, purge, quotas | Private object store + signed gateway | Access revocation, MIME/size validation, retention, no public bucket | P-001 authorization/object lifecycle | Chat/Hall/MS7.5+ |
+| Avatar/banner media | Image validation, versioning, deletion and safe delivery | Clerk-hosted avatar or private media store | Clerk image URLs are public; profile audience is not object privacy. Define consent first | Media policy; existing owner projection/sync | Profile/MS8 |
+| Map tiles/geocoding/routing | Licensed geographic data and route calculations | Map API/SDK provider class | Location queries, caching rights, attribution, budget/quotas | Founder provider decision | MS7.3 |
+| Live location | Scoped ephemeral location transport + lifecycle | Realtime/geospatial service class | Explicit revocable consent, limited retention, stale state, no membership-implied tracking | Proven Map + foreground/background rules | MS7.4 |
+| Push notifications | Device registration and reliable delivery | Web/native push delivery class | Permission, token isolation/revocation, no private bodies by default | Environment separation + notification preferences | MS7.4+/MS13 |
+| Scheduled text / durable jobs | Atomic execution, retries, cancellation, recovery | Durable queue/job scheduler | Recheck membership at execution; idempotency, UTC/timezone | P-005/P-006 | Chat/product completeness |
+| Voice/PTT/video | Signaling, media transport, recovery | RTC/media provider class | Explicit join/leave/mute, no silent recording, regional data | Joinable Gather/Live contract + consent | MS7.4 evidence/MS7.6+ |
+| Environment/secrets | Separate Development/Preview/Production identities and data | Current providers, isolated resources | Least privilege, rotation, backups, no cross-environment writes | P-002 | MS7.6; launch MS15 |
+| Monitoring/recovery | Request traces, latency, provider/DB failure recovery | Hosting/provider diagnostics first | Redact identities/content/secrets, retention/access limits | P-003; investigate Development stalls | All consuming waves |
+| Localization/translation | Language service + consistent UI architecture if retained | Translation/localization service class | Message consent/data transfer and attribution of generated text | Explicit feature policy, no fake Translate | Later product scope |
+| Support operations | Deliver and track genuine user reports if mail is insufficient | Monitored mail/ticketing class | Minimal diagnostics, redaction, deletion policy | P-007 founder mailbox already approved | Beta readiness |
+| Abuse/rate limiting | Distributed quotas beyond current bounded counters | Shared quota/store or platform firewall class | Fair limits, appeal/recovery, content-free metrics | P-004 traffic evidence | MS7.6/MS15 |
+| Trip Gallery/photo dump | Shared uploads, thumbnails, quotas, lifecycle | Private media store + processing class | Room authorization/revocation, consent, retention | P-001 | Later trip completeness/MS8+ |
+
+Additional non-procurement design gates: public Namecard/share policy; bounded social-link owner/audience/revision contract; private Personal Chat tag model; Light/System contrast; independent Room appearance overrides. Do not buy a service for these by default. Page-level shell remount/revalidation and Development read stalls require measured backend/routing investigation, not speculative realtime replacement.
+
 ## 2026-09-25 FP1 / trip-coordination intake
 
 FP1 adds no service, credential, schema or dependency. Proposed later Map requires a separate provider decision covering Web/native coverage, map tiles, geocoding/directions, quotas/budget, attribution and permissible storage/caching. Class B for this Profile/Settings patch; reassess as a current-wave blocker when Map is actually authorized. No promise that existing Ably/Neon alone provides route calculations or background location.

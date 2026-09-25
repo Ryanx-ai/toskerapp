@@ -2,6 +2,7 @@
 
 import { useContext, useState, useSyncExternalStore, type ReactNode } from "react";
 import Link from "next/link";
+import { BellOff, Mail } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { Conversation } from "@/data/messaging-data";
 import { EMPTY_PREFERENCE } from "@/lib/conversation-preferences";
@@ -35,7 +36,7 @@ export function SidebarConversationRow({ item, pinnedIds, onPinsSaved, selected,
     try {
       await setConversationPreferenceAction(item.databaseId, kind === "mute" ? { kind, muted: !preference.muted } : { kind, surface: "chat" });
       window.dispatchEvent(new Event(ACTIVITY_REFRESH)); close();
-      if (kind === "unread" && selected) router.push("/app");
+      if (kind === "unread" && selected) router.push("/app?view=list");
     } catch {
       setError("That preference wasn't saved. Check your access or connection and try again.");
       if (kind === "unread" && selected) onReadingPause(false);
@@ -46,8 +47,8 @@ export function SidebarConversationRow({ item, pinnedIds, onPinsSaved, selected,
       {item.kind === "personal" && item.identitySeed && openNamecard ? <button disabled={busy} onClick={() => { close(); requestAnimationFrame(() => openNamecard(item.identitySeed!)); }}>Open Namecard</button> : null}
       {item.kind === "personal" || room ? <button disabled={busy} onClick={() => { close(); setPanel("settings"); }}>{item.kind === "personal" ? "Chat Settings" : child ? "Parent Room Settings" : "Room Settings"}</button> : null}
       {room && !child ? <button disabled={busy} onClick={() => { close(); setPanel("invite"); }}>Invite</button> : null}
-      <button disabled={busy || !snapshot.userId || preference.inheritedMute} onClick={() => void change("mute", close)}>{preference.inheritedMute ? "Muted by Room" : preference.muted ? "Unmute" : "Mute"}</button>
-      <button disabled={busy} onClick={() => void change("unread", close)}>Mark Chat unread</button>
+      <button disabled={busy || !snapshot.userId || preference.inheritedMute} onClick={() => void change("mute", close)}><BellOff size={16} aria-hidden="true" />{preference.inheritedMute ? "Muted by Room" : preference.muted ? "Unmute" : "Mute"}</button>
+      <button disabled={busy} onClick={() => void change("unread", close)}><Mail size={16} aria-hidden="true" />Mark Chat unread</button>
       {room && !child && room.role !== "owner" ? <button className="danger" disabled={busy} onClick={() => { close(); setPanel("leave"); }}>Leave Room</button> : null}
     </>}
     {busy ? <p role="status">Saving…</p> : null}

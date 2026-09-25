@@ -14,6 +14,7 @@ import { deriveAttention } from "@/lib/attention";
 import { AttentionMark } from "./attention-mark";
 import { PersonAvatar, RoomAvatar, SandboxAvatar } from "./identity-avatar";
 import { activeRoomSlug, sandboxName } from "@/lib/workspace-navigation";
+import { collapseStore } from "@/lib/sidebar-state";
 import { RoomCategory } from "./room-category";
 import type { refreshWorkspaceNavigationAction } from "@/server/accounts/actions";
 import { acknowledgeFriendRequestsAction } from "@/server/connections/actions";
@@ -26,7 +27,7 @@ import { ModalLayer } from "./modal-layer";
 import { normalizeRoomTags } from "@/lib/room-tags";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { conversations, type Conversation } from "@/data/messaging-data";
 import { prototypeUser } from "@/data/prototype-user";
 import { prototypeStore } from "@/lib/prototype-store";
@@ -53,6 +54,7 @@ import {
 import {
   ArrowLeft,
   Bell,
+  BellOff,
   MessageCircle,
   MoreHorizontal,
   PanelLeftClose,
@@ -106,30 +108,6 @@ const friends = [
     status: "Offline",
   },
 ];
-const COLLAPSE_KEY = "tosker.sidebar.collapsed";
-const collapseStore = {
-  subscribe(listener: () => void) {
-    window.addEventListener("tosker:sidebar", listener);
-    window.addEventListener("storage", listener);
-    return () => {
-      window.removeEventListener("tosker:sidebar", listener);
-      window.removeEventListener("storage", listener);
-    };
-  },
-  getSnapshot() {
-    return window.localStorage.getItem(COLLAPSE_KEY) === "true";
-  },
-  getServerSnapshot() {
-    return false;
-  },
-  toggle() {
-    window.localStorage.setItem(
-      COLLAPSE_KEY,
-      String(!collapseStore.getSnapshot()),
-    );
-    window.dispatchEvent(new Event("tosker:sidebar"));
-  },
-};
 
 function nameOf(item: Conversation, displayName = prototypeUser.displayName) {
   return item.kind === "my-room"
@@ -213,6 +191,7 @@ function ConversationRow({
   onDropItem,
   displayName,
   unread,
+  muted,
 }: {
   item: Conversation;
   active: boolean;
@@ -220,8 +199,10 @@ function ConversationRow({
   onDropItem: (source: string, target: string) => void;
   displayName: string;
   unread?: number;
+  muted?: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const router = useRouter();
   // No prototype lifecycle menu in the beta shell. Real Room actions live in details.
   const hasActions = false;
   const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -238,8 +219,9 @@ function ConversationRow({
   return (
     <div
       className={`conversation-row-shell ${active ? "active" : ""} ${item.tag === "SUBROOM" ? "subroom-row" : ""}`}
-      draggable={hasActions}
+      draggable={hasActions ? true : undefined}
       onDragStart={(event) => {
+        if (!hasActions) return;
         event.dataTransfer.effectAllowed = "move";
         event.dataTransfer.setData("text/plain", item.slug);
         event.currentTarget.classList.add("is-dragging");
@@ -272,6 +254,10 @@ function ConversationRow({
     >
       <Link
         href={hrefOf(item)}
+        draggable={false}
+        prefetch={false}
+        onMouseEnter={() => router.prefetch(hrefOf(item))}
+        onFocus={() => router.prefetch(hrefOf(item))}
         className="conversation-row"
         aria-label={`${nameOf(item, displayName)}${item.kind === "room" ? item.tag === "SUBROOM" ? ", Subroom" : ", Room" : ""}`}
         data-name={nameOf(item, displayName)}
@@ -284,6 +270,7 @@ function ConversationRow({
           {item.kind !== "my-room" ? <span className="conversation-preview">{item.kind === "room" && item.tag !== "SUBROOM" ? <RoomCategory value={item.tag ?? "Room"} /> : item.preview}</span> : null}
         </span>
         <span className="conversation-trailing">
+          {muted ? <span className="conversation-muted" role="img" aria-label="Muted" title="Muted"><BellOff size={13} aria-hidden="true" /></span> : null}
           {pinned ? <i aria-label="Pinned">⌖</i> : null}
           {unread || item.unread ? (
             <AttentionMark count={unread || item.unread || 0} label="unread activities" />
@@ -371,7 +358,6 @@ function ProfileRegion({
         </div>
       </div>
       <small className="app-version-marker">{APP_VERSION_LABEL}</small>
-      <Link href="/" className="landing-footer-link">View landing page</Link>
     </div>
   );
 }
@@ -384,6 +370,7 @@ function AppSidebar({
   onToggleCollapse,
   unreadByConversation,
   latestActivityByConversation,
+  preferences,
   friendAttention,
   notificationCount,
   onReadingPause,
@@ -396,6 +383,7 @@ function AppSidebar({
   onToggleCollapse: () => void;
   unreadByConversation: Record<string, number>;
   latestActivityByConversation: Record<string, string>;
+  preferences: ConversationPreference[];
   friendAttention: number;
   notificationCount: number;
   onReadingPause: (paused: boolean) => void;
@@ -611,6 +599,7 @@ function AppSidebar({
               item={item}
               active={selected?.slug === item.slug}
               pinned={pinnedIds.includes(item.databaseId ?? "")}
+              muted={preferences.some((pref) => pref.conversationId === item.databaseId && (pref.muted || pref.inheritedMute))}
               onDropItem={identity ? () => undefined : prototypeStore.reorder}
               displayName={user.displayName}
               unread={(item.databaseId ? unreadByConversation[item.databaseId] ?? 0 : 0) + (item.kind === "room" && !item.slug.includes("--") ? serverSubrooms.filter((child) => child.slug.startsWith(`${item.slug}--`)).reduce((sum, child) => sum + (unreadByConversation[child.databaseId!] ?? 0), 0) : 0)}
@@ -1151,7 +1140,7 @@ function MobileNav({ friendAttention, notificationCount, chatAttention }: { frie
   const user = useCurrentToskerUser() ?? prototypeUser;
   return (
     <nav className="mobile-app-nav" aria-label="Mobile destinations">
-      <Link href="/app" aria-label={`Chats${chatAttention ? `, ${chatAttention} unread activities` : ""}`}>
+      <Link href="/app?view=list" aria-label={`Chats${chatAttention ? `, ${chatAttention} unread activities` : ""}`}>
         <span>
           <MessageCircle size={17} />
           <AttentionMark count={chatAttention} label="unread activities" />
@@ -1190,7 +1179,7 @@ export function MessagingApp({
   workspace?: AppWorkspace;
 }) {
   useMobileViewport();
-  const user = useCurrentToskerUser() ?? prototypeUser;
+  const listOnly = useSearchParams().get("view") === "list";
   const baseIdentity = useToskerIdentity();
   const snapshot = useSyncExternalStore(workspaceSnapshot.subscribe, () => workspaceSnapshot.get(baseIdentity?.userId), workspaceSnapshot.server);
   const identity = useMemo(() => baseIdentity && snapshot.navigation && snapshot.navigationBasis === baseIdentity ? { ...baseIdentity, ...snapshot.navigation } : baseIdentity, [baseIdentity, snapshot.navigation, snapshot.navigationBasis]);
@@ -1271,10 +1260,10 @@ export function MessagingApp({
   );
   const canonical = selectedSlug
     ? conversations.find((item) => item.slug === selectedSlug)
-    : undefined;
+    : !workspace && identity && !listOnly ? conversations.find((item) => item.kind === "my-room") : undefined;
   const authenticatedCanonical =
     identity && canonical?.kind === "my-room"
-      ? { ...canonical, databaseId: identity.sandboxConversationId, identitySeed: identity.userId, avatarUrl: identity.avatarUrl }
+      ? { ...canonical, name: sandboxName(identity.displayName), databaseId: identity.sandboxConversationId, identitySeed: identity.userId, avatarUrl: identity.avatarUrl }
       : canonical;
   const prototypeRoom = !identity ? state.rooms.find((room) => room.slug === selectedSlug) : undefined;
   const prototypeChat = !identity ? state.chats.find((chat) => chat.slug === selectedSlug) : undefined;
@@ -1399,6 +1388,7 @@ export function MessagingApp({
         onToggleCollapse={collapseStore.toggle}
         unreadByConversation={unreadByConversation}
         latestActivityByConversation={latestActivityByConversation}
+        preferences={snapshot.preferences}
         friendAttention={attention.requests}
         notificationCount={attention.notifications}
         onReadingPause={setReadingPaused}
@@ -1452,9 +1442,9 @@ export function MessagingApp({
               <span>⌁</span>
             </div>
             <h2>
-              Hey {user.displayName}, let's pick up where you left off
+              Your next trip starts here
             </h2>
-            <p>Choose a conversation or Room</p>
+            <p>Open a conversation or create a Room for your people.</p>
             {state.mode === "new" ? (
               <div className="first-run-actions">
                 <button onClick={() => setOverlay("chat")}>Start Chat</button>

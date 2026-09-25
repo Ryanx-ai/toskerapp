@@ -1,5 +1,11 @@
 # MS7.2 — Design Hub inheritance / forward memory
 
+## 2026-09-25 FP2 — bounded customization
+
+Personal Brand is shared identity, governed by the existing profile audience: five accent choices, three static banner presets (Glow/Weave/Plain), and optional avatar ring. App Appearance is a separate account-backed viewer preference: Tosker/Iris/Tide action and selected-state accents. Neither changes a Room's theme or another viewer's interface. Native preview → Save and staged reset reuse the profile revision boundary. Functional danger/status/focus colors and Montserrat body/control typography remain protected.
+
+This is a deliberately small foundation for MS8, not its whole-product visual/motion/theme overhaul. MS7.6 retains uploaded media/storage; custom fonts require separate rights/loading decisions. No arbitrary CSS, color picker, font management, animated effects, monetization, per-Room brand variant or LunaVault governance engine. [FP2 evidence and release gate](MS7-2-FP2-FOUNDER-PATCH.md). MS7.2 is not automatically locked; MS7.3 has not started.
+
 ## 2026-09-25 FP1 / post-pivot direction
 
 Current execution keeps the warm Tosker palette and existing licensed stack. Compact contextual Namecards, explicit owner editing and useful Profile shortcuts replace oversized utility presentation; Settings uses native stable frames and restrained tonal separation. Long single-line names have deliberate reveal and motion/touch alternatives. Discord is an identity/flow reference, not a skin; fintech references inform spacing/elevation only. No new display font or Art.
@@ -30,4 +36,4 @@ MS12 owns desktop packaging. MS13 owns native-mobile optimization and research i
 
 Global profile, private alias, parent-Room nickname, Namecard audience, Personal Brand and viewer appearance are separate authorities. MS7.3 Friends/Search must consume the same viewer-resolved identity and audience projections. Seven-character TID lookup contract: trim → ASCII uppercase normalization → exact match, never authorization from knowledge of an ID. Existing-ID transition remains in the implementation gate; no claimed backfill here.
 
-MS7.2's first Brand capability is only a finite identity accent with explicit Save/reset/preview and server audience enforcement. No arbitrary CSS, font/media upload, Room governance engine, LunaVault engine or new public profile directory. TethrLink/LunaVault are conceptual inheritance, not copied implementation or authority to modify parallel projects.
+MS7.2's initial Brand capability was a finite identity accent; FP2 extends it with the bounded banner/frame and separate viewer accent described above. Explicit Save/reset/preview and server audience enforcement remain. No arbitrary CSS, font/media upload, Room governance engine, LunaVault engine or new public profile directory. TethrLink/LunaVault are conceptual inheritance, not copied implementation or authority to modify parallel projects.

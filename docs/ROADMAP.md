@@ -2,7 +2,7 @@
 
 ## Current direction — founder huddle, 2026-09-25
 
-This section supersedes the older destination-led MS7.3/7.4 and HUDL-at-MS9 scheduling below. MS1–6 and MS7.1 remain locked. **MS7.2 FP1 is executing locally; not locked.** No Map/Fleet implementation or next milestone is authorized in this pass. [FP1 state](MS7-2-FP1-FOUNDER-PATCH.md) and [evidence / pivot proposal](MS7-2-FP1-PIVOT-RESEARCH.md).
+This section supersedes the older destination-led MS7.3/7.4 and HUDL-at-MS9 scheduling below. MS1–6 and MS7.1 remain locked. **MS7.2 FP2 independent local acceptance is complete at application `03b25a2`; not locked or deployed.** Human fresh-signup acceptance is required before push/deploy. No Map/Fleet implementation or next milestone is authorized in this pass. [FP2 state](MS7-2-FP2-FOUNDER-PATCH.md), [FP1 state](MS7-2-FP1-FOUNDER-PATCH.md) and [evidence / pivot proposal](MS7-2-FP1-PIVOT-RESEARCH.md).
 
 | Wave | Proposed revised purpose / preserved boundary |
 |---|---|

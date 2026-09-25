@@ -1,5 +1,9 @@
 # MS7.2 FP2 — execution and evidence ledger
 
+## FP3 entry — registration gate satisfied (2026-09-25)
+
+Founder completed two real signups. Read-only Clerk/application checks confirmed verified emails and one User/Profile/Sandbox each. Both had legacy IDs from the still-live MS7.1 generator; subsequent explicit founder approval authorized ONLY those two TID repairs. Scoped transaction changed exactly2 IDs, preserved every other field/row and all existing users' IDs, and passed fresh migration/catalog/invariant/type/scoped-lint checks. **FP2 fresh-registration release gate SATISFIED.** Local FP2 acceptance remains complete; canonical release is intentionally combined with FP3 under the new directive, not falsely marked live. [Verification/repair evidence](MS7-2-FP3-FOUNDER-PATCH.md). Historical pending-gate entries below describe the previous checkpoint.
+
 ## Recovery / authority
 
 2026-09-25: main `47ef294`, ten ahead/zero behind origin `5ae54fb`; canonical READY `dpl_8HeaZ9UFjhwJ615VzZSc1iEL6xwp`, Git-backed MS7.1. No later application work. All19 migration checksums/catalog pass (25tables/161columns/78constraints/12enums); Development invariant audit passes: six users/profiles/Sandboxes, four Rooms, seven memberships,29messages,9Hallnotes,2pins,32notifications. Unrelated handoff/inheritance and Art/Web/research/experiments preserved. No provider/credential change. Human fresh-signup gate remains required BEFORE push/deploy; MS7.2 not locked, MS7.3 unstarted.

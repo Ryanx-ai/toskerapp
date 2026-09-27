@@ -2,6 +2,16 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## MS7.2 FP5 — final synthesis release gate (2026-09-27)
+
+Founder FP5 brief authorizes bounded synthesis and conditional lock, superseding the FP4 stop below. [FP5 ledger](docs/MS7-2-FP5-SYNTHESIS.md) owns exact implementation, tests, QA IDs, remaining gates and live/lock state; [Walk5](docs/MS7-2-FOUNDER-WALKTHROUGH.md), [identity policy](docs/IDENTITY-NAMECARD-CONTRACT.md), [MS7.6](docs/MS7-6-PROVISIONING-BACKLOG.md), [MS8 debt](docs/MS8-SETTINGS-DESIGN-DEBT.md). MS7.1 locked; MS7.2 NOT LOCKED until final canonical/live/cleanup acceptance; MS7.3 NOT STARTED.
+
+Implemented safe inline Chat formatting/projections, Hall Enter/Shift+Enter/IME/pending guards, aligned top-layer menus/tooltips including collapsed rail, identity-adjacent mute, utility Create removal, Friends loading/retry, concise Settings and owner-only canonical username editing. Stable UUID/TID/Clerk binding, private aliases, Neon/Ably boundaries preserved. Explicitly deferred avatar/custom banner, private Chat tags and Light/System; no fake upload/theme controls. No schema/migration/dependency/provider/font/Art changes.
+
+Local build/type/lint/20 hashes/catalog/invariants/secrets and formatter/username/privacy/customization/Room/Settings/Trip service suites PASS. Actual A/B formatted Personal/Room/Subroom, reply/reaction/Nuke/Hall-source retraction, Hall keyboard/failure/dedup/lifecycle, username/reload/discovery/restoration, presets/reset/stale/failure/isolation, sidebar pointer order/mute/unread, Room identity/reset/mentions and draft/navigation recovery PASS; viewport/release evidence in ledger. Exact owned QA Room `fp5-review-9381bd` remains for canonical smoke; do not delete retained A/B/users/history or replay removed FP4 fixtures. Guarded cleanup script requires exact recorded IDs.
+
+Use normal focused Git commit/push → Git-backed canonical exact SHA → live two-user verification → exact QA cleanup/invariants → documented conditional lock. Never claim LIVE/LOCKED before those gates. Existing unrelated handoff/inheritance/Design/Art/Web/research/experiments changes are preserved and excluded; `toskerArt/` untouched.
+
 ## MS7.2 FP4 — LIVE / VERIFIED / STOP FOR FOUNDER WALK4 (2026-09-26)
 
 Application `b70005fa67195254d9922c2a1f2fcb6109ed7dc9` normally pushed and Git-backed deployed: READY `dpl_HJr9s3LG8H8JXrRfPTmbvPBy4P44`, exact SHA/canonical alias verified. Root307→`https://toskerapp.vercel.app/app`200, version MS7.2 FP4. Documentation-only closeout may be newer; app source unchanged. [Scope/research/live acceptance/cleanup](docs/MS7-2-FP4-NAMECARD-ALIGNMENT.md), [Founder Walk4](docs/MS7-2-FOUNDER-WALKTHROUGH.md). No FP4 schema/provider changes; current services remain Development. MS7.1 locked, MS7.2 NOT locked, MS7.3 NOT started. STOP for founder.

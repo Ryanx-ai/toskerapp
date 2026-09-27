@@ -76,7 +76,7 @@ export function SettingsShell({ title, context, identity, sections, onClose, bus
     else if (categories) { setCategories(false); categoryButton.current?.focus(); }
     else requestClose();
   }}><section ref={panel} className={`creation-panel scoped-settings-shell${categories ? " categories-open" : ""}`} aria-labelledby={`${id}-title`}>
-    <header className="scoped-settings-header"><div className="scoped-settings-identity">{identity}<div><h2 id={`${id}-title`}>{title}</h2><p><RevealName focusable>{context}</RevealName></p></div></div><button type="button" className="overlay-close" aria-label={`Close ${title}`} disabled={busy} onClick={requestClose}><X size={18} /></button></header>
+    <header className="scoped-settings-header"><div className="scoped-settings-identity">{identity}<div><h2 id={`${id}-title`}>{title}</h2><p><RevealName focusable>{context}</RevealName></p></div></div><button type="button" autoFocus className="overlay-close" aria-label={`Close ${title}`} disabled={busy} onClick={requestClose}><X size={18} /></button></header>
     <div className="scoped-settings-layout">
       <button ref={categoryButton} type="button" className="settings-category-trigger" aria-expanded={categories} aria-controls={`${id}-sections`} disabled={busy || Boolean(children) || discard} onClick={() => setCategories(!categories)}>{current?.label}<ChevronDown size={16} aria-hidden="true" /></button>
       <nav id={`${id}-sections`} aria-label={`${title} sections`} className="scoped-settings-nav">{sections.map((section) => <button type="button" key={section.id} id={`${id}-${section.id}`} aria-current={current?.id === section.id ? "page" : undefined} disabled={busy || Boolean(children) || discard} onClick={() => {

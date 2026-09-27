@@ -1,5 +1,16 @@
 # MS7.6 — Provisioning Backlog + Development / Backend Polish
 
+## FP5 intake — 2026-09-27
+
+No procurement, credential change or new provider. Clerk remains authentication, Neon durable authority, Ably content-free invalidation/reconciliation. FP5 adds no migration.
+
+- **Avatar / custom banner: explicitly deferred.** Existing Clerk avatar rendering is not a private media pipeline. An editable uploader needs an approved public-image consent contract or authorized private delivery, actual type/size validation, replacement/deletion and projection synchronization. Clerk `setProfileImage` existence alone is not privacy approval. Settings now says picture editing/custom banner uploads are unavailable; presets remain functional. See [Clerk User API](https://clerk.com/docs/nextjs/reference/objects/user), checked against installed types. No fake file picker or promise of upload success.
+- **Private Chat tags: deferred data contract**, not a procurement need: actor-owned storage, revision/conflict handling, isolation, deletion and search semantics must be approved before an editor. Room-owned tags remain distinct and working.
+- **Light/System: deferred whole-app completeness**, not a provider blocker. Dark remains the only offered theme; three private interface accents remain real and independent of Profile Card identity. No half-working theme selector.
+- **Reliability evidence:** FP5 local optimized route-settle measurements include browser automation overhead, generally 3.5–10.7 seconds with one 16.6-second sample. A later `/app` timeout resolved to the signed-out entry; do not mislabel it as a successful layout sample or a proven database timeout. Earlier Development stream/DB instability remains P-003 investigation debt. Canonical measurements and final lock assessment belong in the FP5 ledger.
+
+These explicit deferrals do not authorize files, maps, location, voice, jobs, fonts or MS7.3 code. Existing provider/environment/cost/privacy/consumer table below remains current.
+
 ## FP4 consolidated procurement / infrastructure ledger — 2026-09-26
 
 Research classes only; no service purchased/provisioned and no credential changed. Current canonical founder builds still use Development Clerk/Neon/Ably. These entries supplement existing P-001–P-008 and do not move launch policy out of MS15.

@@ -15,7 +15,7 @@ import { CopyTid } from "./copy-tid";
 import { SUPPORT_EMAIL } from "@/config/support";
 import { IDENTITY_BANNERS, IDENTITY_FRAMES, INTERFACE_ACCENTS, interfacePalette, type InterfaceAccent } from "@/lib/profile-contract";
 
-const editable = ["displayName", "presenceStatus", "namecardBio", "detailsAudience", "statusAudience", "identityAccent", "bannerPreference", "identityBanner", "identityFrame", "interfaceAccent"] as const;
+const editable = ["username", "displayName", "presenceStatus", "namecardBio", "detailsAudience", "statusAudience", "identityAccent", "bannerPreference", "identityBanner", "identityFrame", "interfaceAccent"] as const;
 export function OwnProfileEditor({ identity, onClose, accountMode = false, selectedSection, onSectionChange }: { identity: CanonicalIdentity; onClose: () => void; accountMode?: boolean; selectedSection?: string; onSectionChange?: (id: string) => void }) {
   const router = useRouter(), formId = useId();
   // A deliberate edit snapshot: background revalidation must not replace a draft.
@@ -35,7 +35,7 @@ export function OwnProfileEditor({ identity, onClose, accountMode = false, selec
       const changes = Object.fromEntries(editable.filter(key => (normalized[key] ?? "") !== (base[key] ?? "")).map(key => [key,normalized[key]])) as OwnProfileChange;
       if (!Object.keys(changes).length) { setDraft(base); return; }
       const result = await updateOwnProfileAction(changes,base.revision);
-      if (!result.ok) { setConflict(true); setError("Your profile changed elsewhere. Your draft is still here."); return; }
+      if (!result.ok) { setConflict(result.reason === "conflict"); setError(result.reason === "username" ? result.message : "Your profile changed elsewhere. Your draft is still here."); return; }
       window.dispatchEvent(new Event(ACTIVITY_REFRESH)); router.refresh();
       if (accountMode) { setBase(result.profile); setDraft(result.profile); setFeedback("Changes saved."); }
       else onClose();
@@ -48,8 +48,9 @@ export function OwnProfileEditor({ identity, onClose, accountMode = false, selec
     { id:accountMode ? "profile" : "identity",label:accountMode ? "Profile" : "Identity",content:section("Profile","Your global name. Other people's private nicknames for you stay theirs.",<>
       <label className="owner-profile-field">Global display name<input name="displayName" placeholder="What should we call you?" value={draft.displayName} maxLength={80} required disabled={busy} onChange={event => setDraft({...draft,displayName:event.target.value})} autoComplete="nickname" /></label>
       <label className="owner-profile-field">Bio <span className="settings-scope">Optional · {audienceLabels[draft.detailsAudience]}</span><input name="namecardBio" placeholder="Tell people a little about you" value={draft.namecardBio ?? ""} maxLength={160} disabled={busy} onChange={event => setDraft({...draft,namecardBio:event.target.value})} /></label>
-      <dl className="owner-profile-identifiers"><div><dt>Username</dt><dd>@{identity.username}</dd></div><div><dt>TID</dt><dd>{identity.tid} <CopyTid tid={identity.tid} /></dd></div></dl>
-      <p className="settings-scope">Username and TID stay fixed. Avatar uploads aren’t connected.</p>
+      <label className="owner-profile-field">Username<input name="username" placeholder="your-name" value={draft.username} maxLength={80} required disabled={busy} onChange={event => setDraft({...draft,username:event.target.value})} autoCapitalize="none" autoComplete="off" spellCheck={false} /><span className="settings-scope">3–24 letters, numbers or hyphens. Your sign-in and TID stay the same. Your old username becomes available.</span></label>
+      <dl className="owner-profile-identifiers"><div><dt>TID · permanent</dt><dd>{identity.tid} <CopyTid tid={identity.tid} /></dd></div></dl>
+      <div className="media-deferred"><strong>Edit profile picture · not available yet</strong><p>Your current sign-in picture is used. Private image uploads need protected storage and image safety checks.</p></div>
     </>) },
     { id:"status",label:"Status",content:section("Availability","A manual status, not live activity tracking.",<><label className="owner-profile-field">Your status<select value={draft.presenceStatus} disabled={busy} onChange={event => setDraft({...draft,presenceStatus:event.target.value as CanonicalIdentity["presenceStatus"]})}><option value="online">Online</option><option value="idle">Idle</option><option value="away">Away</option><option value="meeting">In a meeting</option></select></label><p className="settings-scope">Visible to: {audienceLabels[draft.statusAudience]}.</p></>) },
     { id:"privacy",label:"Privacy",content:section("Profile visibility","Your name and identifiers still appear where people can already find or talk with you.",<>
@@ -60,10 +61,11 @@ export function OwnProfileEditor({ identity, onClose, accountMode = false, selec
     { id:"brand", label:"Profile Card", content:section("Make it yours",`Your Namecard and Profile. Visible to: ${audienceLabels[draft.detailsAudience]}.`,<>
       <div className="brand-preview">
         <p className="settings-scope">Preview · not saved until you save changes</p>
-        <IdentityCard preview label="Your Namecard preview" profile={{userId:identity.userId,avatarUrl:identity.avatarUrl,name:draft.displayName,username:identity.username,tid:identity.tid,initials:draft.displayName.slice(0,2),color:"gold",status:"",identityAccent:draft.identityAccent,identityBanner:draft.identityBanner,identityFrame:draft.identityFrame}} />
+        <IdentityCard preview label="Your Namecard preview" profile={{userId:identity.userId,avatarUrl:identity.avatarUrl,name:draft.displayName,username:draft.username,tid:identity.tid,initials:draft.displayName.slice(0,2),color:"gold",status:"",identityAccent:draft.identityAccent,identityBanner:draft.identityBanner,identityFrame:draft.identityFrame}} />
       </div>
       <fieldset className="identity-accent-options" disabled={busy}><legend>Accent</legend>{IDENTITY_ACCENTS.map(value=><label key={value}><input type="radio" name="identityAccent" value={value} checked={draft.identityAccent===value} onChange={()=>setDraft({...draft,identityAccent:value})} /><i className={`identity-accent-swatch accent-${value}`} aria-hidden="true" /><span>{value==="neutral" ? "Tosker" : value[0].toUpperCase()+value.slice(1)}</span></label>)}</fieldset>
       <fieldset className="identity-accent-options" disabled={busy}><legend>Banner</legend>{IDENTITY_BANNERS.map(value=><label key={value}><input type="radio" name="identityBanner" value={value} checked={draft.identityBanner===value} onChange={()=>setDraft({...draft,identityBanner:value})} /><span>{({glow:"Glow",weave:"Weave",plain:"Plain"})[value]}</span></label>)}</fieldset>
+      <div className="media-deferred"><strong>Custom banner image · not available yet</strong><p>Choose a preset for now. Custom images need protected storage and image safety checks.</p></div>
       <fieldset className="identity-accent-options" disabled={busy}><legend>Avatar frame</legend>{IDENTITY_FRAMES.map(value=><label key={value}><input type="radio" name="identityFrame" value={value} checked={draft.identityFrame===value} onChange={()=>setDraft({...draft,identityFrame:value})} /><span>{value==="none"?"None":"Ring"}</span></label>)}</fieldset>
       <button type="button" className="quiet-action" disabled={busy || (draft.identityAccent==="neutral" && draft.identityBanner==="glow" && draft.identityFrame==="none")} onClick={()=>setDraft({...draft,identityAccent:"neutral",identityBanner:"glow",identityFrame:"none"})}>Reset to Tosker default</button>
       <p className="settings-scope">Reset is saved with your changes. Your interface and Room nickname stay unchanged. Custom images and fonts aren’t available.</p>
@@ -75,6 +77,7 @@ export function OwnProfileEditor({ identity, onClose, accountMode = false, selec
         <p className="settings-scope">Unread dots and your notification list stay unchanged. Chat and Room mutes still apply; direct mentions can pass those mutes, but never Quiet. Email, push and browser notifications aren’t connected.</p>
       </>) },
       { id:"appearance", label:"Appearance", content:section("Your interface","Only you see this. Your saved accent follows your account across browsers.",<>
+        <div className="media-deferred"><strong>Theme · Dark</strong><p>Light and Follow System are not available yet. Dark is the supported theme across Tosker.</p></div>
         <fieldset className="identity-accent-options" disabled={busy}><legend>Interface accent</legend>{INTERFACE_ACCENTS.map(value=><label key={value}><input type="radio" name="interfaceAccent" value={value} checked={draft.interfaceAccent===value} onChange={()=>setDraft({...draft,interfaceAccent:value})} /><i className="identity-accent-swatch" style={{background:interfacePalette[value].fill}} aria-hidden="true" /><span>{value[0].toUpperCase()+value.slice(1)}</span></label>)}</fieldset>
         <AppearancePreview accent={draft.interfaceAccent} />
         <button type="button" className="quiet-action" disabled={busy || draft.interfaceAccent==="tosker"} onClick={()=>setDraft({...draft,interfaceAccent:"tosker"})}>Reset to Tosker default</button>

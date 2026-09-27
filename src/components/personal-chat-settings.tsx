@@ -31,10 +31,10 @@ export function PersonalChatSettings({ conversation, preference, onClose }: { co
     return () => { active = false; };
   }, [conversation.identitySeed, conversation.databaseId, preference, attempt]);
   return <SettingsShell title="Chat Settings" context={conversation.name} identity={<PersonAvatar seed={conversation.identitySeed ?? conversation.slug} initials={conversation.initials} imageUrl={conversation.avatarUrl} />} onClose={onClose} busy={busy} dirty={dirty} onDiscard={() => { setDirty(false); setDraftKey((value) => value + 1); }} sections={[
-    { id: "overview", label: "Overview", content: <SettingsSection title={conversation.name} description={conversation.context}>
+    { id: "overview", label: "Identity", content: <SettingsSection title={conversation.name} description="Your private nickname stays just for you.">
       {person ? <><p className="settings-scope">{person.displayName} · @{person.username}</p>{!dirty ? <NamecardButton userId={person.userId} name={person.displayName} className="quiet-action" onOpen={onClose}>Open Namecard</NamecardButton> : null}{person.connectionId ? <PrivateNicknameForm key={draftKey} target={{ id: person.connectionId, name: person.displayName, nickname: person.nickname }} onBusy={setBusy} onDirty={setDirty} /> : null}</> : loading ? <p role="status">Loading identity…</p> : error ? <p role="alert">{error} <button className="quiet-action" onClick={() => { setLoading(true); setAttempt((value) => value + 1); }}>Retry</button></p> : null}
     </SettingsSection> },
-    { id: "communication", label: "Communication", content: <SettingsSection title="Notifications" description="Only for you. Mute quiets this Chat; messages and unread stay.">
+    { id: "communication", label: "Notifications", content: <SettingsSection title="Notifications" description="Mute quiets notifications. Messages and unread stay; direct mentions can still notify.">
       <button className="quiet-action settings-toggle" aria-pressed={muted} disabled={busy || loading || !person} onClick={async () => {
         if (!conversation.databaseId || busy) return;
         setBusy(true); setError(""); setFeedback("");
@@ -43,9 +43,8 @@ export function PersonalChatSettings({ conversation, preference, onClose }: { co
         finally { setBusy(false); }
       }}>{muted ? "Unmute Chat" : "Mute Chat"}</button>{error ? <p role="alert">{error}</p> : null}{feedback ? <p role="status">{feedback}</p> : null}
     </SettingsSection> },
-    { id: "media", label: "Media", content: <SettingsSection title="Media" description="Shared photos and video will appear here when private attachments are available."><p className="settings-scope">Not available in this Development review. No uploads or media library are connected.</p></SettingsSection> },
-    { id: "files", label: "Files", content: <SettingsSection title="Files" description="Private file sharing is not available yet."><p className="settings-scope">It requires authorized storage, protected downloads and a retention policy. Your Chat remains text-only.</p></SettingsSection> },
-    { id: "links", label: "Links", content: <SettingsSection title="Links" description="Links remain in their original messages."><p className="settings-scope">Use conversation Search to find them. A separate shared-link collection is not available yet.</p></SettingsSection> },
-    { id: "privacy", label: "Privacy", content: <SettingsSection title="Privacy" description="Personal Chat is shared with its participants. Nicknames and mute preferences belong only to you."><p className="settings-scope">This is a Development review. Blocking, disappearing messages and a separate privacy policy editor are not available here.</p></SettingsSection> },
+    { id: "content", label: "Shared content", content: <SettingsSection title="Shared content" description="Find links in conversation Search. Pin important messages to Hall."><div className="media-deferred"><strong>Photos, files and gallery · not available yet</strong><p>Private uploads and protected downloads are being prepared.</p></div></SettingsSection> },
+    { id: "organization", label: "Organization", content: <SettingsSection title="Organization" description="Pin this Chat in the sidebar, then drag it or use Move earlier/later."><div className="media-deferred"><strong>Private tags · not available yet</strong><p>Your tags will belong only to you. Shared Room tags stay separate.</p></div><p className="settings-scope">This Chat uses your interface accent from Settings → Appearance. Chat-specific themes are not available.</p></SettingsSection> },
+    { id: "privacy", label: "Privacy", content: <SettingsSection title="Privacy" description="Only participants can open this Chat. Nicknames and mute preferences belong only to you."><p className="settings-scope">Blocking and disappearing messages are not available yet.</p></SettingsSection> },
   ]} />;
 }

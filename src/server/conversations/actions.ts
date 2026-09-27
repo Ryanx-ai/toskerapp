@@ -160,6 +160,8 @@ export async function changeOwnMessageAction(input: { conversationId: string; me
 
 export async function findPeopleAction(query: string, includeSelf = false) {
   const actor = await requireCurrentActor();
+  if (typeof query !== "string" || query.length > 80) throw new Error("Use up to 80 characters.");
+  const handleOnly = query.trim().startsWith("@");
   const term = query.trim().replace(/^@/, "").slice(0, 80);
   const tid = normalizeTidLookup(query);
   if (term.length < 2) return [];
@@ -168,7 +170,7 @@ export async function findPeopleAction(query: string, includeSelf = false) {
     .select({ userId: users.id, displayName: profiles.displayName, username: profiles.username, tid: users.tid })
     .from(users)
     .innerJoin(profiles, eq(profiles.userId, users.id))
-    .where(and(includeSelf ? undefined : ne(users.id, actor.userId), or(ilike(profiles.displayName, `%${term}%`), ilike(profiles.username, `%${term}%`), tid ? eq(users.tid, tid) : undefined)))
+    .where(and(includeSelf ? undefined : ne(users.id, actor.userId), handleOnly ? sql`lower(${profiles.username}) = ${term.toLowerCase()}` : or(ilike(profiles.displayName, `%${term}%`), ilike(profiles.username, `%${term}%`), tid ? eq(users.tid, tid) : undefined)))
     .limit(8);
 }
 

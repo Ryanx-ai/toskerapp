@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {run,ev,until,button} from './browser-fp2.mjs';
 const a=process.env.MS72_A??'fp2-fresh',b=process.env.MS72_B??'fp2-b',o=process.env.MS72_ORIGIN??'http://localhost:3000';
-const room=process.env.FP4_ROOM,child=process.env.FP4_CHILD;assert(room?.startsWith('/room/fp4-review-')&&child);
+const room=process.env.FP4_ROOM,child=process.env.FP4_CHILD;assert(/^\/room\/fp[45]-review-[a-f0-9]{6}$/.test(room)&&child);
 const personal='/personal/chat-be192eac-38c6-4d46-a6d2-bea19fa324fa',draft='FP4 unsent navigation check';
 async function ready(s){await until(s,"!!document.querySelector('.composer textarea')&&!document.querySelector('.chat-load-state')",'settled Chat',45000);}
 async function open(s,path){await run(s,'open',o+path);await until(s,`location.pathname===${JSON.stringify(path)}`,'route committed');await ready(s);}

@@ -5,6 +5,8 @@ import { NamecardProvider } from "./namecard-dialog";
 import { NamecardButton, NamecardRoomContext } from "./namecard-context";
 import { RevealName } from "./reveal-name";
 import { SidebarConversationRow } from "./sidebar-conversation-row";
+import { WorkspaceTooltips } from "./workspace-tooltips";
+import { InteractionPopover } from "./interaction-popover";
 import { RoomDetails } from "./room-details";
 import { ACTIVITY_REFRESH, CONVERSATION_ACCESS_LOST, PROFILE_REFRESH } from "@/lib/realtime-contract";
 import { allowsActivityBanner, type BannerPreference } from "@/lib/banner-preference";
@@ -53,6 +55,8 @@ import {
 } from "@/components/communication-ui";
 import {
   ArrowLeft,
+  Pencil,
+  Eraser,
   Bell,
   BellOff,
   MessageCircle,
@@ -628,16 +632,18 @@ function FriendsSurface({
   const [profile, setProfile] = useState<(typeof friends)[number] | null>(null);
   const [nicknameTarget, setNicknameTarget] = useState<{ id: string; name: string; nickname: string | null } | null>(null);
   const [friendMenuId, setFriendMenuId] = useState<string | null>(null);
+  const [friendMenuAnchor, setFriendMenuAnchor] = useState<HTMLElement | null>(null);
   const identity = useToskerIdentity();
   const router = useRouter();
   const [serverConnections, setServerConnections] = useState<Awaited<ReturnType<typeof listConnectionsAction>>>([]);
+  const [connectionsState, setConnectionsState] = useState<"loading" | "ready" | "error">("loading");
   const [peopleResults, setPeopleResults] = useState<Awaited<ReturnType<typeof findPeopleAction>>>([]);
   const [searchState, setSearchState] = useState({ term: "", loading: false, error: false });
   const identityId = identity?.userId;
   const [busyId, setBusyId] = useState<string | null>(null);
   const [actionError, setActionError] = useState("");
   const discovering = Boolean(query.trim());
-  const refreshConnections = useCallback(() => listConnectionsAction().then(setServerConnections), []);
+  const refreshConnections = useCallback(() => listConnectionsAction().then((next) => { setServerConnections(next); setConnectionsState("ready"); }), []);
   useEffect(() => {
     if (!identityId) return;
     let active = true, inFlight = false, pending = false;
@@ -647,8 +653,8 @@ function FriendsSurface({
       if (inFlight) { pending = true; return; }
       pending = false;
       inFlight = true;
-      try { const next = await listConnectionsAction(); if (active) setServerConnections(next); }
-      catch { /* Retain the last successful result during a temporary outage. */ }
+      try { const next = await listConnectionsAction(); if (active) { setServerConnections(next); setConnectionsState("ready"); } }
+      catch { if (active) setConnectionsState(current => current === "ready" ? current : "error"); }
       finally { inFlight = false; if (pending && active) pendingTimer = window.setTimeout(refresh, 100); }
     };
     void refresh();
@@ -745,7 +751,7 @@ function FriendsSurface({
           </button>
         ))}
       </nav>
-      {tab === "Requests" ? (
+      {identity && connectionsState !== "ready" ? <p role={connectionsState === "error" ? "alert" : "status"}>{connectionsState === "loading" ? "Loading your connections…" : <>Connections couldn’t load. <button className="quiet-action" onClick={() => { setConnectionsState("loading"); void refreshConnections().catch(() => setConnectionsState("error")); }}>Retry</button></>}</p> : tab === "Requests" ? (
         serverConnections.filter((item) => item.status === "pending" && item.direction === "incoming").length ? (
           <div className="friend-list">{serverConnections.filter((item) => item.status === "pending" && item.direction === "incoming").map((item) => item.person ? (
             <article key={item.id}><PersonAvatar seed={item.person.userId} imageUrl={item.person.avatarUrl} initials={item.person.displayName.slice(0, 1).toUpperCase()} /><div><strong>{item.person.displayName}</strong><small>@{item.person.username} · {item.person.tid}</small></div><button disabled={Boolean(busyId)} onClick={() => void actOnPerson(item.person!.userId, () => acceptConnectionAction(item.id))}>{busyId === item.person.userId ? "Saving…" : "Accept"}</button></article>
@@ -754,7 +760,14 @@ function FriendsSurface({
       ) : (
           <div className="friend-list">
           {identity ? serverConnections.filter((item) => item.status === "accepted" && item.person && (tab !== "Online" || item.person.presenceStatus === "online") && `${item.person.nickname ?? ""} ${item.person.displayName} ${item.person.username} ${item.person.tid}`.toLowerCase().includes(query.toLowerCase())).map((item) => item.person ? (
-            <article key={item.id}><NamecardButton userId={item.person.userId} name={item.person.nickname || item.person.displayName}><PersonAvatar seed={item.person.userId} imageUrl={item.person.avatarUrl} initials={item.person.displayName.slice(0, 1).toUpperCase()}><PresenceMark status={item.person.presenceStatus} /></PersonAvatar></NamecardButton><div className="friend-nameplate"><NamecardButton userId={item.person.userId} name={item.person.nickname || item.person.displayName}><strong>{item.person.nickname || item.person.displayName}</strong></NamecardButton><small>@{item.person.username} · {item.person.tid}</small></div><i>Friend</i><div className="friend-actions"><button aria-label={`Message ${item.person.nickname || item.person.displayName}`} onClick={async () => { const chat = await startPersonalConversationAction(item.person!.userId); router.push(`/personal/${chat.slug}`); router.refresh(); }}><MessageCircle size={15} /></button><button aria-label={`More actions for ${item.person.nickname || item.person.displayName}`} aria-expanded={friendMenuId === item.id} onClick={() => setFriendMenuId(friendMenuId === item.id ? null : item.id)}><MoreHorizontal size={16} /></button>{friendMenuId === item.id ? <div className="context-menu friend-context-menu"><button onClick={() => { setFriendMenuId(null); setNicknameTarget({ id: item.id, name: item.person!.displayName, nickname: item.person!.nickname }); }}>{item.person.nickname ? "Edit nickname" : "Set nickname"}</button>{item.person.nickname ? <button onClick={async () => { await removeConnectionNicknameAction(item.id); await refreshConnections(); setFriendMenuId(null); }}>Remove nickname</button> : null}</div> : null}</div></article>
+            <article key={item.id}><NamecardButton userId={item.person.userId} name={item.person.nickname || item.person.displayName}><PersonAvatar seed={item.person.userId} imageUrl={item.person.avatarUrl} initials={item.person.displayName.slice(0, 1).toUpperCase()}><PresenceMark status={item.person.presenceStatus} /></PersonAvatar></NamecardButton><div className="friend-nameplate"><NamecardButton userId={item.person.userId} name={item.person.nickname || item.person.displayName}><strong>{item.person.nickname || item.person.displayName}</strong></NamecardButton><small>@{item.person.username} · {item.person.tid}</small></div><i>Friend</i><div className="friend-actions">
+              <button aria-label={`Message ${item.person.nickname || item.person.displayName}`} disabled={Boolean(busyId)} onClick={() => void actOnPerson(item.person!.userId, async () => { const chat = await startPersonalConversationAction(item.person!.userId); router.push(`/personal/${chat.slug}`); })}><MessageCircle size={15} /></button>
+              <button aria-label={`More actions for ${item.person.nickname || item.person.displayName}`} aria-haspopup="dialog" aria-expanded={friendMenuId === item.id} onClick={(event) => { setFriendMenuAnchor(event.currentTarget); setFriendMenuId(friendMenuId === item.id ? null : item.id); }}><MoreHorizontal size={16} /></button>
+              {friendMenuId === item.id ? <InteractionPopover anchor={friendMenuAnchor} label="Friend actions" onClose={() => setFriendMenuId(null)}><div className="message-action-list">
+                <button onClick={() => { setFriendMenuId(null); setNicknameTarget({ id: item.id, name: item.person!.displayName, nickname: item.person!.nickname }); }}><Pencil aria-hidden="true" />{item.person.nickname ? "Edit nickname" : "Set nickname"}</button>
+                {item.person.nickname ? <button disabled={Boolean(busyId)} onClick={() => void actOnPerson(item.person!.userId, async () => { await removeConnectionNicknameAction(item.id); setFriendMenuId(null); })}><Eraser aria-hidden="true" />Remove nickname</button> : null}
+              </div></InteractionPopover> : null}
+            </div></article>
           ) : null) : shown
             .filter((friend) => tab !== "Online" || friend.status === "Online")
             .map((friend) => (
@@ -1379,6 +1392,7 @@ export function MessagingApp({
     <ToskerIdentityProvider identity={identity}><NamecardProvider key={identity?.userId ?? "demo"} enabled={Boolean(identity)}><main
       className={`messaging-app fp3-shell ${selected ? "has-selection" : "list-only"} ${collapsed ? "sidebar-collapsed" : ""}`}
     >
+      <WorkspaceTooltips />
       <AppSidebar
         selected={selected}
         surface={surface}
@@ -1394,7 +1408,7 @@ export function MessagingApp({
         onReadingPause={setReadingPaused}
       />
       <div className="working-surface">
-        {!selected ? <header className="workspace-topbar"><span>{workspace ? workspace.charAt(0).toUpperCase() + workspace.slice(1) : "Your conversations"}</span><button className="quiet-action" onClick={() => setOverlay("choose")}><Plus size={16} aria-hidden="true" />Create</button></header> : null}
+        {!selected ? <header className="workspace-topbar"><span>{workspace ? workspace.charAt(0).toUpperCase() + workspace.slice(1) : "Your conversations"}</span>{!workspace || workspace === "create" ? <button className="quiet-action" onClick={() => setOverlay("choose")}><Plus size={16} aria-hidden="true" />Create</button> : null}</header> : null}
         {selected ? (
           <NamecardRoomContext.Provider value={contextRoom?.id}>
             <SurfaceHeader

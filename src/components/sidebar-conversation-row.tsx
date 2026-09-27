@@ -2,7 +2,7 @@
 
 import { useContext, useState, useSyncExternalStore, type ReactNode } from "react";
 import Link from "next/link";
-import { BellOff, Mail } from "lucide-react";
+import { BellOff, Mail, UserRound, Settings, UserPlus, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { Conversation } from "@/data/messaging-data";
 import { EMPTY_PREFERENCE } from "@/lib/conversation-preferences";
@@ -43,13 +43,13 @@ export function SidebarConversationRow({ item, pinnedIds, onPinsSaved, selected,
     } finally { setBusy(false); }
   };
   const actions = (close: () => void) => <>
-    {sandbox ? <><Link href="/profile" onClick={close}>Your Profile</Link><Link href="/settings" onClick={close}>Settings</Link></> : <>
-      {item.kind === "personal" && item.identitySeed && openNamecard ? <button disabled={busy} onClick={() => { close(); requestAnimationFrame(() => openNamecard(item.identitySeed!)); }}>Open Namecard</button> : null}
-      {item.kind === "personal" || room ? <button disabled={busy} onClick={() => { close(); setPanel("settings"); }}>{item.kind === "personal" ? "Chat Settings" : child ? "Parent Room Settings" : "Room Settings"}</button> : null}
-      {room && !child ? <button disabled={busy} onClick={() => { close(); setPanel("invite"); }}>Invite</button> : null}
+    {sandbox ? <><Link href="/profile" onClick={close}><UserRound aria-hidden="true" />Your Profile</Link><Link href="/settings" onClick={close}><Settings aria-hidden="true" />Settings</Link></> : <>
+      {item.kind === "personal" && item.identitySeed && openNamecard ? <button disabled={busy} onClick={() => { close(); requestAnimationFrame(() => openNamecard(item.identitySeed!)); }}><UserRound aria-hidden="true" />Open Namecard</button> : null}
+      {item.kind === "personal" || room ? <button disabled={busy} onClick={() => { close(); setPanel("settings"); }}><Settings aria-hidden="true" />{item.kind === "personal" ? "Chat Settings" : child ? "Parent Room Settings" : "Room Settings"}</button> : null}
+      {room && !child ? <button disabled={busy} onClick={() => { close(); setPanel("invite"); }}><UserPlus aria-hidden="true" />Invite</button> : null}
       <button disabled={busy || !snapshot.userId || preference.inheritedMute} onClick={() => void change("mute", close)}><BellOff size={16} aria-hidden="true" />{preference.inheritedMute ? "Muted by Room" : preference.muted ? "Unmute" : "Mute"}</button>
       <button disabled={busy} onClick={() => void change("unread", close)}><Mail size={16} aria-hidden="true" />Mark Chat unread</button>
-      {room && !child && room.role !== "owner" ? <button className="danger" disabled={busy} onClick={() => { close(); setPanel("leave"); }}>Leave Room</button> : null}
+      {room && !child && room.role !== "owner" ? <button className="danger" disabled={busy} onClick={() => { close(); setPanel("leave"); }}><LogOut aria-hidden="true" />Leave Room</button> : null}
     </>}
     {busy ? <p role="status">Saving…</p> : null}
   </>;

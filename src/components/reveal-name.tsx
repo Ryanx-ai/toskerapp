@@ -13,6 +13,7 @@ export function RevealName({ children, focusable = false }: { children: string; 
       node.style.setProperty("--name-shift", `${-distance}px`);
       node.style.setProperty("--name-duration", `${Math.max(1, Math.min(8, distance / 55))}s`);
       node.dataset.overflow = String(distance > 1);
+      if (focusable) node.tabIndex = distance > 1 ? 0 : -1;
     };
     const observer = new ResizeObserver(measure);
     observer.observe(node);
@@ -20,6 +21,6 @@ export function RevealName({ children, focusable = false }: { children: string; 
     void document.fonts.ready.then(measure);
     measure();
     return () => observer.disconnect();
-  }, [children]);
+  }, [children, focusable]);
   return <span ref={ref} className="reveal-name" tabIndex={focusable ? 0 : undefined} title={children} style={{"--name-shift":"0px"} as CSSProperties}><span>{children}</span></span>;
 }

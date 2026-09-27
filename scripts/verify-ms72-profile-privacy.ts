@@ -65,7 +65,7 @@ async function main() {
     await tx.update(profiles).set({presenceStatus:"idle"}).where(eq(profiles.userId,a.userId));
     await assert.rejects(updateOwnProfile(tx,a,{displayName:"Old draft"},current.revision),ProfileConflictError);
     const latest=await readOwnProfile(tx,a.userId); assert.equal(latest.revision,current.revision+1);
-    for(const input of [{},{displayName:" "},{displayName:"x".repeat(81)},{namecardBio:"x".repeat(161)},{displayName:"bad\u202ename"},{displayName:"bad\u0085name"},{statusAudience:"everyone"},{detailsAudience:"public"},{identityAccent:"#ff00ff"},{presenceStatus:"invisible"},{userId:b.userId,displayName:"forged"},{username:"change"},{tid:"CHANGED"},{avatarUrl:"https://example.com/private"},{revision:999}]) await assert.rejects(updateOwnProfile(tx,a,input as OwnProfileChange,latest.revision));
+    for(const input of [{},{displayName:" "},{displayName:"x".repeat(81)},{namecardBio:"x".repeat(161)},{displayName:"bad\u202ename"},{displayName:"bad\u0085name"},{statusAudience:"everyone"},{detailsAudience:"public"},{identityAccent:"#ff00ff"},{presenceStatus:"invisible"},{userId:b.userId,displayName:"forged"},{username:"bad handle"},{tid:"CHANGED"},{avatarUrl:"https://example.com/private"},{revision:999}]) await assert.rejects(updateOwnProfile(tx,a,input as OwnProfileChange,latest.revision));
     assert.deepEqual(await readOwnProfile(tx,b.userId),peerBefore);
     assert.deepEqual(await tx.select().from(users).where(inArray(users.id,ids)),identifiers);
     for(const [table,column] of [[messages,messages.authorId],[notifications,notifications.userId],[hallItems,hallItems.authorId],[conversationReads,conversationReads.userId]] as const) assert.equal((await tx.select().from(table).where(inArray(column,ids))).length,0);

@@ -23,6 +23,8 @@ export function HallNoteInteractions({ conversationId, item, onChanged }: {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const draftId = useRef<string | null>(null);
+  const submitting = useRef(false);
+  const composing = useRef(false);
   const [picker, setPicker] = useState<{ anchor: HTMLElement; commentId?: string } | null>(null);
   const imagePath = safeHallImagePath(item.imagePath);
   useEffect(() => {
@@ -83,7 +85,8 @@ export function HallNoteInteractions({ conversationId, item, onChanged }: {
         <div className="hall-comment-list">{page.comments.map((comment) => <article key={comment.id} className="hall-comment"><NamecardButton userId={comment.authorId} name={comment.author}><span className="avatar avatar-pink" aria-hidden="true">{comment.author.split(/\s+/).map((part) => part[0]).join("").slice(0, 2)}</span></NamecardButton><div><NamecardButton userId={comment.authorId} name={comment.author}><strong>{comment.author}</strong></NamecardButton><time dateTime={comment.createdAt} title={new Date(comment.createdAt).toLocaleString()}>{new Date(comment.createdAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</time><p>{comment.body}</p><div className="comment-reactions"><ReactionChips values={comment.reactions} disabled={busy} onToggle={(emoji, active) => void reactToComment(comment.id, emoji, active)} /><button className="comment-react-control" aria-label={`React to comment by ${comment.author}`} disabled={busy} onClick={(event) => setPicker({ anchor: event.currentTarget, commentId: comment.id })}><SmilePlus size={15} /></button></div></div></article>)}</div>
         <form className="hall-comment-form" onSubmit={async (event) => {
           event.preventDefault();
-          if (!body.trim() || busy) return;
+          if (!body.trim() || busy || submitting.current || composing.current) return;
+          submitting.current = true;
           setBusy(true); setError(""); draftId.current ??= crypto.randomUUID();
           let saved = false;
           try {
@@ -93,9 +96,13 @@ export function HallNoteInteractions({ conversationId, item, onChanged }: {
             setPage(await listHallCommentsAction(conversationId, item.id));
             await onChanged();
           } catch { setError(saved ? "Comment saved. Reopen comments to refresh." : "Comment couldn't be saved. Your draft is still here."); }
-          finally { setBusy(false); }
+          finally { submitting.current = false; setBusy(false); }
         }}>
-          <textarea rows={1} maxLength={1000} disabled={busy} aria-label="Add a comment" placeholder="Add a comment…" value={body} onChange={(event) => { setBody(event.target.value); draftId.current = null; }} />
+          <textarea rows={1} maxLength={1000} disabled={busy} aria-label="Add a comment" placeholder="Add a comment…" value={body} onChange={(event) => { setBody(event.target.value); draftId.current = null; }} onCompositionStart={() => { composing.current = true; }} onCompositionEnd={() => { composing.current = false; }} onKeyDown={(event) => {
+            if (event.key !== "Enter" || event.shiftKey || event.nativeEvent.isComposing || composing.current || event.nativeEvent.keyCode === 229) return;
+            event.preventDefault();
+            if (!event.repeat) event.currentTarget.form?.requestSubmit();
+          }} />
           <button type="submit" className="hall-comment-send" aria-label="Post comment" disabled={!body.trim() || busy}><ArrowUp size={17} /></button>
         </form>
       </section> : null}

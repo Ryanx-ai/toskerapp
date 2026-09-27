@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {run,ev,until,button} from './browser-fp2.mjs';
 const a=process.env.MS72_A??'fp2-fresh',b=process.env.MS72_B??'fp2-b',o=process.env.MS72_ORIGIN??'http://localhost:3000';
-const room=process.env.FP4_ROOM;assert(room?.startsWith('/room/fp4-review-'));
+const room=process.env.FP4_ROOM;assert(/^\/room\/fp[45]-review-[a-f0-9]{6}$/.test(room));
 const personal='/personal/chat-be192eac-38c6-4d46-a6d2-bea19fa324fa';
 const pins="[...document.querySelectorAll('.messenger-sidebar .sidebar-pin-row.is-pinned')].map(e=>e.dataset.pinId)";
 const row=path=>`.sidebar-pin-row:has(a[href="${path}"])`;

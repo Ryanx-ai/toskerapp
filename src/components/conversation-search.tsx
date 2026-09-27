@@ -8,8 +8,10 @@ import type { ConversationSearchPage } from "@/server/conversations/search";
 import { MESSAGE_LOCATION_REQUEST } from "@/lib/message-location";
 import { CHAT_REFRESH } from "@/lib/realtime-contract";
 import { MESSAGES_REMOVED, removedMessageIds } from "@/lib/message-removal";
+import { messagePlainPreview } from "@/lib/message-format";
 
 function Highlight({ text, query }: { text: string; query: string }) {
+  text = messagePlainPreview(text);
   const start = text.toLocaleLowerCase().indexOf(query.toLocaleLowerCase());
   return start < 0 ? <>{text}</> : <>{text.slice(0, start)}<mark>{text.slice(start, start + query.length)}</mark>{text.slice(start + query.length)}</>;
 }

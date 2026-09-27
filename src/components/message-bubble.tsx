@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { Copy, MoreHorizontal, Pencil, Pin, Reply, SmilePlus, Trash2 } from "lucide-react";
-import { messageTextParts } from "@/lib/message-links";
+import { MessageText } from "./message-text";
 import type { Message } from "@/data/messaging-data";
 import type { ReactionSummary } from "@/lib/reaction-contract";
 import { EmojiPicker, ReactionChips } from "./emoji-picker";
@@ -11,14 +11,6 @@ import { DeferredControl } from "./deferred-control";
 import { PersonAvatar } from "./identity-avatar";
 import { NamecardButton } from "./namecard-context";
 import { EditMessageDialog } from "./edit-message-dialog";
-import { validMentionSpans, type MentionSpan } from "@/lib/mentions";
-
-function MessageText({ body, mentions = [] }: { body: string; mentions?: MentionSpan[] }) {
-  const text = (value: string) => messageTextParts(value).map((part, index) => part.href ? <a key={index} className="message-link" href={part.href} target="_blank" rel="noopener noreferrer" title="Opens in a new tab" aria-label={`${part.text} (opens in new tab)`}>{part.text}</a> : part.text);
-  if (!validMentionSpans(body, mentions) || !mentions.length) return <>{text(body)}</>;
-  const spans = [...mentions].sort((a, b) => a.start - b.start);
-  return <>{spans.map((span, index) => <span key={span.start}>{text(body.slice(index ? spans[index - 1].start + spans[index - 1].length : 0, span.start))}<span className="message-mention" title="Mentioned member">{span.label}</span></span>)}{text(body.slice(spans.at(-1)!.start + spans.at(-1)!.length))}</>;
-}
 
 export function MessageBubble({ message, grouped, onReply, onReaction, onChange, onPin, onLocate }: {
   message: Message; grouped?: boolean; onReply: (message: Message) => void;
@@ -66,7 +58,7 @@ export function MessageBubble({ message, grouped, onReply, onReaction, onChange,
           const element = event.currentTarget;
           press.current = setTimeout(() => { show("menu", element); }, 600);
         }} onPointerMove={(event) => { if (Math.hypot(event.clientX - start.current.x, event.clientY - start.current.y) > 8) cancelPress(); }} onPointerUp={cancelPress} onPointerCancel={cancelPress}>
-          {message.replyTo ? <blockquote>{message.replyToId && onLocate ? <button className="reply-source" onClick={() => onLocate(message.replyToId!)} aria-label={`Open reply source${message.replyAuthor ? ` from ${message.replyAuthor}` : ""}`}><strong>{message.replyAuthor ?? "Reply"}</strong><span>{message.replyTo}</span></button> : <><strong>{message.replyAuthor ?? "Reply"}</strong>{message.replyTo}</>}</blockquote> : null}
+          {message.replyTo ? <blockquote>{message.replyToId && onLocate ? <button className="reply-source" onClick={() => onLocate(message.replyToId!)} aria-label={`Open reply source${message.replyAuthor ? ` from ${message.replyAuthor}` : ""}`}><strong>{message.replyAuthor ?? "Reply"}</strong><span><MessageText body={message.replyTo} links={false} /></span></button> : <><strong>{message.replyAuthor ?? "Reply"}</strong><MessageText body={message.replyTo} links={false} /></>}</blockquote> : null}
           <p>{message.deletedAt ? message.body : <MessageText body={message.body} mentions={message.mentions} />}</p>
           {message.editedAt && !message.deletedAt ? <small className="message-edited" title={`Edited ${new Date(message.editedAt).toLocaleString()}`}>edited</small> : null}
           {message.attachment ? <p className="message-attachment">{message.attachment.name} · {message.attachment.meta}</p> : null}

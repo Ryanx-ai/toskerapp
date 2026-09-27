@@ -1,5 +1,9 @@
 # Tosker roadmap — canonical founder direction
 
+## FP5 synthesis — 2026-09-27 (current execution)
+
+Founder authorized final bounded Profile/Settings/UI synthesis and conditional MS7.2 lock. [FP5 implementation, evidence, cleanup and exact release state](MS7-2-FP5-SYNTHESIS.md) supersedes the FP4 stop below. MS7.1 remains LOCKED. MS7.2 is NOT LOCKED until every current acceptance gate is documented green; MS7.3 NOT STARTED. Next remains Collaborative Trips / Map + Location Cards, not a generic extension platform. [MS7.6 intake](MS7-6-PROVISIONING-BACKLOG.md) and [MS8 design debt](MS8-SETTINGS-DESIGN-DEBT.md) separate genuine provider/privacy/theme prerequisites from this bounded patch.
+
 ## FP4 alignment — 2026-09-26 (current)
 
 **Collaborative trip planning made fun.** MS7.2 FP4 application `b70005f` is LIVE, Git-backed and two-user verified; [release/cleanup evidence](MS7-2-FP4-NAMECARD-ALIGNMENT.md). This overrides the earlier stop-at-FP3 instruction; it does not unlock MS7.1 or start MS7.3. STOP for Founder Walk4, which decides FP5 vs MS7.2 lock.

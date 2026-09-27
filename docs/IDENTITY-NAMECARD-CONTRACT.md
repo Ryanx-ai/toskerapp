@@ -2,6 +2,14 @@
 
 Established by MS7.1-FP4. This is the bridge into MS7.2, not a public profile directory or a new identity policy.
 
+## MS7.2 FP5 current overlay — 2026-09-27
+
+This supersedes historical username immutability below **only for explicit owner username edits**. Tosker handle: trim, optional leading `@`, lowercase;3–24 ASCII letters/numbers/hyphens with alphanumeric ends, reserved-name rejection. Server resolves the Clerk actor, rejects foreign/unknown fields and stale/missing revisions, checks case-insensitive collisions (including legacy mixed case), and retains the existing unique index as the concurrent lower-case write guard. All active provisioning/edit writers normalize lowercase. Ten actor-scoped attempts per10 minutes use the existing operation counter; invalid/collision attempts consume it. No migration or migration metadata changes.
+
+The old handle becomes available, with **no redirect/alias history**. `@handle` discovery is exact and case-insensitive; regular discovery retains name/handle/normalized-TID behavior. UUID, permanent canonical7-character TID, Clerk sign-in binding, authored messages, Room memberships and private aliases are unchanged. Names/handles never grant authorization. Owner/Namecard/Friends/header/discovery projections read the canonical profile; content-free metadata invalidates existing authorized consumers. Dirty editors never silently take newer data.
+
+Current Room nickname, profile-audience and preset behavior is documented in the MS7.2/FP5 ledgers; the old Gate2/FP4 paragraphs below are historical. Avatar/custom-banner upload is explicitly deferred, not a current permission grant for public media.
+
 ## MS7.2 Gate 2 current overlay (local, not deployed)
 
 [Implementation/evidence](MS7-2-IMPLEMENTATION.md) supersedes the historical FP4 boundaries below only for the authorized MS7.2 slice. Core UUID/Clerk identity, username/TID immutability under presentation changes, Common Rooms authorization and copied authored text remain unchanged. Optional bio/accent audience defaults self; manual status defaults friends/current co-members. A Personal conversation alone never grants optional fields/status. Server projections enforce self/friends/shared-context before serialization.

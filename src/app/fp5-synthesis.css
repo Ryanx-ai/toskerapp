@@ -1,0 +1,23 @@
+/* FP5 shared action geometry. Existing product palette/identity remain authoritative. */
+.messaging-app .has-tip::after,
+.sidebar-collapsed .conversation-row::after,
+.sidebar-collapsed .tooltip-item::after,
+.sidebar-collapsed .profile-actions a::before { content:none; }
+.workspace-tooltip { position:fixed; inset:auto; margin:0; max-width:min(220px,calc(100vw - 16px)); padding:8px 12px; border:1px solid var(--border); border-radius:10px; background:var(--surface); color:var(--text-primary); font:500 12px/1.5 var(--font-montserrat),sans-serif; box-shadow:0 8px 24px #0004; }
+.header-title-line { display:flex; align-items:center; gap:8px; min-width:0; }
+.header-title-line :is(h2,.room-context-trigger) { min-width:0; }
+.header-muted { flex:none; display:inline-flex; color:var(--text-secondary); }
+.interaction-popover { max-width:calc(100vw - 16px); max-height:calc(100dvh - 16px); overflow:auto; border-radius:14px; }
+.interaction-popover :is(.message-action-list,.room-context-menu) { display:flex; flex-direction:column; min-width:min(220px,calc(100vw - 32px)); padding:4px; gap:2px; }
+.interaction-popover :is(.message-action-list,.room-context-menu) > :is(button,a) { display:flex; align-items:center; gap:10px; width:100%; min-height:44px; padding:10px 12px; border:0; border-radius:10px; text-align:left; font:500 13px/1.4 var(--font-montserrat),sans-serif; color:var(--text-primary); background:transparent; }
+.interaction-popover :is(button,a) > svg { flex:none; width:16px; height:16px; }
+.interaction-popover :is(.message-action-list,.room-context-menu) > :is(button,a):hover { background:var(--surface-hover,var(--surface)); }
+.interaction-popover :is(.message-action-list,.room-context-menu) > .danger { color:var(--danger,#f3a6a6); }
+.interaction-popover button:disabled { opacity:.45; cursor:not-allowed; }
+.interaction-popover hr { width:100%; border:0; border-top:1px solid var(--border); margin:6px 0; }
+.workspace-topbar .quiet-action { border-radius:12px; }
+.message-bubble :is(p,blockquote) strong { font-weight:700; }
+.message-bubble em { font-style:italic; }
+.media-deferred { border:1px dashed var(--border); border-radius:12px; padding:16px; }
+.media-deferred p { margin:8px 0 0; color:var(--text-secondary); font-size:13px; line-height:1.6; }
+.media-deferred strong { font-size:14px; }

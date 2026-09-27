@@ -1,5 +1,20 @@
 # MS7.2 — walkthrough preparation
 
+## Founder Walk5 — final synthesis review
+
+Use the [FP5 ledger](MS7-2-FP5-SYNTHESIS.md) for the actual live/lock state; this sequence alone is not a release claim.
+
+1. Collapse the sidebar. Hover/focus Settings, Friends, Notifications and a conversation: labels must be fully visible over the working area. Escape dismisses. Open the same action menus from sidebar/header/Friends/Hall; labels and spacing should be consistent.
+2. Mute a disposable Chat/Room. Look beside the identity for the indicator, then unmute. Mark unread from the menu and confirm the list retains it until opened. Pin/reorder/unpin; another user's ordering is unchanged.
+3. Open Friends and Notifications: no redundant topbar Create. Friends has an honest loading/error/retry state; row nickname options have a bounded menu.
+4. Settings → Profile: change your Tosker username, save and reload; compare another user's Namecard/search. Username is not your login or permanent TID. A former handle is released, not an alias. Use a test account: there is a 10-attempt/10-minute limit and stale edits require reload.
+5. Profile Card controls change identity presets; Appearance changes only your own interface. Save/reset/reload and compare another user. Dark remains the sole offered theme; avatar/custom-banner uploads are clearly unavailable, without a fake picker.
+6. In disposable Personal/Room/Subroom messages, try `**bold**`, `*italic*`, `_italic_`, links and literal HTML-like text. Reply, search, edit, pin to Hall and Nuke; compare the other user and reload. Formatting must not change authorization or notification privacy.
+7. Hall note comments: Enter posts, Shift+Enter adds a line, whitespace does not post, composition does not prematurely send. Failure keeps the draft; repeated pending submits must not duplicate it. Archive/Restore/Nuke only disposable notes.
+8. Chat Settings separates private identity, notification and organization choices. Room Settings keeps Trip details, owner controls and membership separate. No Map/provider/MS7.3 runtime is implied.
+
+No full redesign, new font, Art integration or procurement in FP5. Physical-device/assistive-tech certification is not inferred from browser emulation. The release ledger owns unresolved blockers and the conditional lock decision.
+
 ## Founder Walk4 — FP4 review sequence
 
 FP4 application `b70005f` is LIVE, Git-backed and two-user verified. [Exact deployment, acceptance and guarded cleanup](MS7-2-FP4-NAMECARD-ALIGNMENT.md). This supersedes the historical FP3 review below. Stop for this walkthrough; MS7.2 is not automatically locked.

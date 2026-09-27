@@ -35,6 +35,7 @@ import { useCurrentToskerUser, useToskerIdentity } from "@/components/tosker-ide
 import { prototypeStore } from "@/lib/prototype-store";
 import { HallNoteInteractions } from "@/components/hall-note-interactions";
 import { MessageBubble } from "./message-bubble";
+import { MessageText } from "./message-text";
 import type { useConversationRealtime } from "./use-conversation-realtime";
 import { ACTIVITY_REFRESH, CHAT_REFRESH, HALL_REFRESH } from "@/lib/realtime-contract";
 import { acknowledgeDraft, removeDraftSources, chatDraftKey, chatDrafts, type DraftReply } from "@/lib/chat-drafts";
@@ -52,6 +53,7 @@ import { ModalLayer } from "./modal-layer";
 import type { HallReaction } from "@/lib/hall-contract";
 import {
   ArrowLeft,
+  Settings, PinOff, Archive, ArchiveRestore, Pencil, Palette, Trash2, ArrowUpDown, MessageCircle,
   Search,
   BellOff,
   Mail,
@@ -167,14 +169,16 @@ export function SurfaceHeader({
         </Link>
         {conversation.kind === "my-room" ? <SandboxAvatar className="avatar-large" /> : conversation.kind === "room" ? <RoomAvatar name={conversation.name} seed={conversation.identitySeed ?? conversation.slug.split("--")[0]} subroom={conversation.tag === "SUBROOM"} className="avatar-large" /> : <NamecardButton userId={conversation.databaseId ? conversation.identitySeed : undefined} name={conversation.name}><PersonAvatar seed={conversation.identitySeed ?? conversation.slug} initials={conversation.initials} imageUrl={conversation.avatarUrl} className="avatar-large" /></NamecardButton>}
         <div className="active-copy">
+          <div className="header-title-line">
           {parentRoom ? <button className="room-context-trigger" aria-label={`Switch Room context: ${parentRoom.name}${conversation.tag === "SUBROOM" ? ` / ${conversation.name}` : ""}`} aria-haspopup="dialog" aria-expanded={Boolean(contextAnchor)} onClick={(event) => setContextAnchor(event.currentTarget)}><RevealName>{parentRoom.name}</RevealName><ChevronDown size={15} /></button> : <h2><NamecardButton userId={conversation.kind === "personal" && conversation.databaseId ? conversation.identitySeed : undefined} name={conversation.name}><RevealName>{titleOf(conversation, user.displayName)}</RevealName></NamecardButton></h2>}
+          {pref.muted || pref.inheritedMute ? <span className="header-muted" role="img" title={pref.inheritedMute ? "Muted by Room" : "Muted"} aria-label={pref.inheritedMute ? "Muted by Room" : "Muted"}><BellOff size={14} aria-hidden="true" /></span> : null}
+          </div>
           {conversation.kind === "personal" && conversation.presenceStatus ? <span className="header-presence"><i className={`presence-mark ${conversation.presenceStatus}`} aria-label={{ online: "Online", idle: "Idle", away: "Away", meeting: "In a meeting" }[conversation.presenceStatus]} />{{ online: "Online", idle: "Idle", away: "Away", meeting: "In a meeting" }[conversation.presenceStatus]}</span> : null}
           {conversation.kind === "room" && conversation.context ? <span className="header-context" title={parentRoom ? conversation.name : conversation.context}>{parentRoom ? conversation.name : conversation.context}</span> : null}
         </div>
       </div>
       <div className="core-header-controls">
         {conversation.databaseId ? <button className="action-icon" aria-label="Search conversation" title="Search conversation" onClick={() => setSearchOpen(true)}><Search size={17} /></button> : null}
-        {pref.muted || pref.inheritedMute ? <span title={pref.inheritedMute ? "Muted by Room" : "Muted"} aria-label={pref.inheritedMute ? "Muted by Room" : "Muted"}><BellOff size={14} /></span> : null}
         {conversation.databaseId || onManage ? <button className="action-icon" aria-label="Conversation options" title="Conversation options" aria-expanded={Boolean(controlsAnchor)} onClick={(event) => { setControlFeedback(""); setControlsAnchor(event.currentTarget); }}><MoreHorizontal size={17} /></button> : null}
       </div>
       <nav className="surface-tabs" aria-label="Space surfaces">
@@ -198,10 +202,9 @@ export function SurfaceHeader({
       {controlsAnchor ? <InteractionPopover anchor={controlsAnchor} label="Conversation options" onClose={() => { if (!controlBusy) setControlsAnchor(null); }}><div className="room-context-menu communication-options">
         {conversation.kind === "room" && onInvite ? <button disabled={controlBusy} onClick={() => { setControlsAnchor(null); onInvite(); }}><Plus size={15} />Invite</button> : null}
         {onManage ? <button disabled={controlBusy} onClick={() => { setControlsAnchor(null); onManage(); }}><UsersRound size={15} />Room Settings</button> : null}
-        {conversation.kind === "personal" && conversation.databaseId ? <button onClick={() => { setControlsAnchor(null); setSettingsOpen(true); }}>Chat Settings</button> : null}
+        {conversation.kind === "personal" && conversation.databaseId ? <button onClick={() => { setControlsAnchor(null); setSettingsOpen(true); }}><Settings aria-hidden="true" />Chat Settings</button> : null}
         {conversation.databaseId ? <>
           <button disabled={controlBusy || pref.inheritedMute} onClick={() => void changePreference("mute")}><BellOff size={16} aria-hidden="true" />{pref.inheritedMute ? "Muted by Room" : pref.muted ? "Unmute" : "Mute"}</button>
-          <p>{conversation.kind === "room" && conversation.tag !== "SUBROOM" ? "Mute quiets this Room and its Subrooms. " : "Mute quiets notifications. "}Messages and unread indicators stay. Direct mentions still notify.</p>
           <button disabled={controlBusy} onClick={() => void changePreference("unread")}><Mail size={16} aria-hidden="true" />Mark {surface === "hall" ? "Hall" : "Chat"} unread</button>
         </> : null}
         {controlBusy ? <p role="status">Saving…</p> : null}{controlFeedback ? <p role="alert">{controlFeedback}</p> : null}
@@ -303,7 +306,7 @@ function Composer({
         <div className="reply-context">
           <div>
             <strong>Replying to {reply.author}</strong>
-            <span>{reply.body}</span>
+            <span><MessageText body={reply.body} links={false} /></span>
           </div>
           <button onClick={onCancelReply} aria-label="Cancel reply">
             <X size={15} />
@@ -915,8 +918,7 @@ function PersistentHallCard({
   const [editingSource, setEditingSource] = useState(false);
   const viewer = useToskerIdentity();
   const [colorsOpen, setColorsOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  useDismissLayer(open, () => { setOpen(false); setColorsOpen(false); }, ref);
+  const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
   const pinned = item.kind === "pinned_message" || item.kind === "pinned-message";
   const archived = Boolean(item.archivedAt || item.archived);
   return (
@@ -925,31 +927,31 @@ function PersistentHallCard({
       <div>
         {pinned ? <small>Pinned from Chat</small> : null}
         {!pinned ? <h3>{item.title}</h3> : null}
-        <p>{item.body}</p>
+        <p>{pinned ? <MessageText body={item.body} /> : item.body}</p>
         <footer><NamecardButton userId={pinned ? item.sourceAuthorId ?? undefined : item.authorId} name={pinned ? item.sourceAuthor ?? item.author : item.author}>{pinned ? item.sourceAuthor ?? item.author : item.author}</NamecardButton></footer>
       </div>
       {!archived ? <button className="hall-drag-handle" disabled={busy || (!canEarlier && !canLater)} draggable={!busy} onDragStart={onDragStart} onDragEnd={onDragEnd} aria-label={`Reorder ${item.title ?? "pinned message"}; use arrow keys to move`} title="Drag to reorder · Arrow keys to move" onKeyDown={(event) => {
         if (["ArrowLeft", "ArrowUp", "ArrowRight", "ArrowDown"].includes(event.key)) { event.preventDefault(); const earlier = event.key === "ArrowLeft" || event.key === "ArrowUp"; if (earlier ? canEarlier : canLater) onReorder(earlier ? "left" : "right"); }
       }}><GripVertical size={16} /></button> : null}
       {!archived && conversation.databaseId ? <HallNoteInteractions conversationId={conversation.databaseId} item={item} onChanged={onChanged} /> : null}
-      {!archived || onRestore || onNuke ? <button className="hall-card-more" disabled={busy} onClick={() => { openLayer(); setOpen((value) => !value); }} aria-label={`Actions for ${item.title ?? "Pinned message"}`} aria-expanded={open}>
+      {!archived || onRestore || onNuke ? <button className="hall-card-more" disabled={busy} onClick={(event) => { openLayer(); setMenuAnchor(event.currentTarget); setOpen((value) => !value); }} aria-label={`Actions for ${item.title ?? "Pinned message"}`} aria-haspopup="dialog" aria-expanded={open}>
         <MoreHorizontal size={15} />
       </button> : null}
       {open ? (
-        <div ref={ref} className="context-menu hall-context" role="menu">
-          {pinned ? <button disabled={busy} onClick={() => { setOpen(false); onUnpin(); }}>Unpin from Hall</button> : <>
-            {archived ? onRestore ? <button disabled={busy} onClick={() => { setOpen(false); onRestore(); }}>Restore</button> : null : <>
-            {onEdit ? <button onClick={() => { setOpen(false); onEdit(); }}>Edit</button> : null}
-            <button onClick={() => setColorsOpen((value) => !value)} aria-expanded={colorsOpen}>Change color</button>
+        <InteractionPopover anchor={menuAnchor} label="Hall actions" onClose={() => { setOpen(false); setColorsOpen(false); }}><div className="message-action-list">
+          {pinned ? <button disabled={busy} onClick={() => { setOpen(false); onUnpin(); }}><PinOff aria-hidden="true" />Unpin from Hall</button> : <>
+            {archived ? onRestore ? <button disabled={busy} onClick={() => { setOpen(false); onRestore(); }}><ArchiveRestore aria-hidden="true" />Restore</button> : null : <>
+            {onEdit ? <button onClick={() => { setOpen(false); onEdit(); }}><Pencil aria-hidden="true" />Edit</button> : null}
+            <button onClick={() => setColorsOpen((value) => !value)} aria-expanded={colorsOpen}><Palette aria-hidden="true" />Change color</button>
             {colorsOpen ? <div className="hall-color-options" role="group" aria-label="Hall note colors">{hallColors.map((color) => <button key={color} className={`hall-color-choice hall-color-${color}`} aria-label={color} aria-pressed={(item.color ?? "neutral") === color} disabled={busy} onClick={() => { onColor(color); setOpen(false); }}>{color}</button>)}</div> : null}
-            {onArchive ? <button disabled={busy} onClick={() => { setOpen(false); onArchive(); }}>Archive</button> : null}
+            {onArchive ? <button disabled={busy} onClick={() => { setOpen(false); onArchive(); }}><Archive aria-hidden="true" />Archive</button> : null}
             </>}
-            {onNuke ? <button className="danger" disabled={busy} onClick={() => { setOpen(false); setConfirming(true); }}>Nuke</button> : null}
+            {onNuke ? <button className="danger" disabled={busy} onClick={() => { setOpen(false); setConfirming(true); }}><Trash2 aria-hidden="true" />Nuke</button> : null}
           </>}
-          {!archived ? <><button disabled={busy || !canEarlier} onClick={() => { onReorder("left"); setOpen(false); }}>Move earlier</button>
-          <button disabled={busy || !canLater} onClick={() => { onReorder("right"); setOpen(false); }}>Move later</button></> : null}
-          {pinned && item.sourceMessageId && conversation.databaseId ? <><Link href={`${baseHref(conversation)}?message=${item.sourceMessageId}`} onClick={() => setOpen(false)}>Go to message</Link>{item.sourceAuthorId === viewer?.userId ? <button disabled={busy} onClick={() => { setOpen(false); setEditingSource(true); }}>Edit message</button> : null}</> : null}
-        </div>
+          {!archived ? <><hr /><button disabled={busy || !canEarlier} onClick={() => { onReorder("left"); setOpen(false); }}><ArrowUpDown aria-hidden="true" />Move earlier</button>
+          <button disabled={busy || !canLater} onClick={() => { onReorder("right"); setOpen(false); }}><ArrowUpDown aria-hidden="true" />Move later</button></> : null}
+          {pinned && item.sourceMessageId && conversation.databaseId ? <><Link href={`${baseHref(conversation)}?message=${item.sourceMessageId}`} onClick={() => setOpen(false)}><MessageCircle aria-hidden="true" />Go to message</Link>{item.sourceAuthorId === viewer?.userId ? <button disabled={busy} onClick={() => { setOpen(false); setEditingSource(true); }}><Pencil aria-hidden="true" />Edit message</button> : null}</> : null}
+        </div></InteractionPopover>
       ) : null}
       {confirming && onNuke ? <ModalLayer onClose={() => { if (!busy) setConfirming(false); }}><section className="creation-panel hall-nuke-panel" role="alertdialog" aria-label="Nuke note confirmation"><h2>Nuke this note?</h2><p>The note, comments and reactions will be permanently deleted. This cannot be undone.</p><div className="overlay-actions"><button disabled={busy} onClick={() => setConfirming(false)}>Cancel</button><button className="danger" disabled={busy} onClick={async () => { if (await onNuke()) setConfirming(false); }}>{busy ? "Deleting…" : "Nuke"}</button></div>{mutationError ? <p role="alert">{mutationError}</p> : null}</section></ModalLayer> : null}
       {editingSource && item.sourceMessageId && conversation.databaseId ? <EditMessageDialog body={item.body} onClose={() => setEditingSource(false)} onSave={async (body) => { await changeOwnMessageAction({ conversationId: conversation.databaseId!, messageId: item.sourceMessageId!, body }); await onChanged(); }} /> : null}

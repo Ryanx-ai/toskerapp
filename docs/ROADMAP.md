@@ -1,8 +1,8 @@
 # Tosker roadmap — canonical founder direction
 
-## FP5 synthesis — 2026-09-27 (current execution)
+## FP5 synthesis — 2026-09-27 (LIVE / LOCKED)
 
-Founder authorized final bounded Profile/Settings/UI synthesis and conditional MS7.2 lock. [FP5 implementation, evidence, cleanup and exact release state](MS7-2-FP5-SYNTHESIS.md) supersedes the FP4 stop below. MS7.1 remains LOCKED. MS7.2 is NOT LOCKED until every current acceptance gate is documented green; MS7.3 NOT STARTED. Next remains Collaborative Trips / Map + Location Cards, not a generic extension platform. [MS7.6 intake](MS7-6-PROVISIONING-BACKLOG.md) and [MS8 design debt](MS8-SETTINGS-DESIGN-DEBT.md) separate genuine provider/privacy/theme prerequisites from this bounded patch.
+Founder-authorized conditional lock completed after canonical application `0edd73d` / READY `dpl_8AeQWyP5XnAP5jcjRtVLY87XvWzW`, live A/B and guarded QA cleanup/invariants. [FP5 implementation, recovery caveats, evidence and exact release state](MS7-2-FP5-SYNTHESIS.md) supersedes the FP4 stop below. MS7.1 remains LOCKED. MS7.2 LOCKED. MS7.3 NOT STARTED; NEXT only: Collaborative Trips / Map + Location Cards, not a generic extension platform. STOP; no next-wave implementation authorized tonight. [MS7.6 intake](MS7-6-PROVISIONING-BACKLOG.md) and [MS8 design debt](MS8-SETTINGS-DESIGN-DEBT.md) remain current; Dark only and truthful media deferrals are preserved.
 
 ## FP4 alignment — 2026-09-26 (current)
 
@@ -11,7 +11,7 @@ Founder authorized final bounded Profile/Settings/UI synthesis and conditional M
 | Milestone | Current direction |
 |---|---|
 | MS7.1 | Chat + Rooms — LOCKED |
-| MS7.2 | Profile + Settings + identity/UI alignment — CURRENT, NOT LOCKED |
+| MS7.2 | Profile + Settings + identity/UI alignment — LIVE, ACCEPTED, LOCKED at FP5 |
 | MS7.3 | Collaborative Trips / native Map + collaborative Location Cards — NEXT, NOT STARTED |
 | MS7.4 | Trip Execution / Live Coordination — evidence-dependent |
 | MS7.5 | Product completeness / bounded extensibility / Pages readiness |

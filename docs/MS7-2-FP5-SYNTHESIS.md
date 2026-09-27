@@ -1,6 +1,6 @@
 # MS7.2 FP5 — synthesis and lock gate
 
-2026-09-27. IN PROGRESS, NOT RELEASED, NOT LOCKED. Authority: founder FP5 execution PDF, all 52 sections. MS7.1 stays locked; MS7.3 code is out of scope.
+2026-09-27. LIVE AND ACCEPTED — MS7.2 LOCKED after canonical A/B acceptance and exact QA cleanup. Authority: founder FP5 execution PDF and post-restart continuation/conditional lock directive. MS7.1 remains locked; MS7.3 NOT STARTED, NEXT only: Collaborative Trips / Map + Location Cards. Historical pending checkpoints below are superseded by the final acceptance section.
 
 ## Recovery (before mutation)
 
@@ -109,3 +109,36 @@ Fresh visual coverage completed as split evidence:320 full `ui` run PASS;1440 an
 Fresh A/B Personal formatted send/reload/reply, authorized search excerpt, formatted edit propagation, reaction and Nuke PASS. Exact additional empty Nuked receipt: `d57f2f28-9fb9-4646-99d4-6f2b781cdd61`. No retained message altered. Prior Room/Subroom and Hall behavior evidence is inherited; canonical repeats remain pending.
 
 Local candidate accepted for focused Git release with the explicitly recorded split visual evidence. Pending exact canonical Git deploy/live smoke, guarded cleanup and lock assessment. Do not infer LIVE/LOCKED from source tests. Replacement captures: `/Users/ryanc/.codex/artifacts/tosker-fp5-recovery-20260927/`; old `/tmp` captures were lost. Browser emulation and synthetic composition events are not physical-device/IME certification.
+
+### Git-backed release and live acceptance
+
+Focused38-file implementation/evidence commit `0edd73dd8ff5b0640588894f1a2bbb8413dfa47b`; normal fetch showed1ahead/0behind, normal push succeeded. Only the FP5 handoff hunk was staged; unrelated historical handoff/Design/Art/Web/research/inheritance work remains on disk and excluded. No reset/clean/force push or working-tree upload.
+
+Canonical READY `dpl_8AeQWyP5XnAP5jcjRtVLY87XvWzW`, exact application SHA above, `tosker-pubvg8c9w-pangea6.vercel.app`, aliases include `toskerapp.vercel.app`. Root follows to `/app` HTTP200. Production hosting still uses the expected Development identity/data/realtime services; no provider configuration changed.
+
+Supplemental final-build shell check PASS with no browser errors: Sandbox default; actual client-link switching Personal1878ms/Room2376ms; identity-adjacent mute/unmute restored; manual unread visible in list; Room/Subroom/Hall/Friends/Notifications/Profile/Namecard; canonical username; explicit media and Dark-only states;1440 and320 geometry. This independently confirms final shell behavior beyond the interrupted full-tour commands.
+
+Canonical A/B sign-in PASS. Live captures use `/Users/ryanc/.codex/artifacts/tosker-fp5-live-20260927/`. A documentation/test-locator-only closeout may produce a newer deployment; application source remains the exact live-tested commit above. Verify its final canonical SHA/ID rather than assuming alias ownership.
+
+### Final acceptance / lock audit
+
+- Live A→B Personal/Room/Subroom: formatted send/edit, escaped HTML, authorized search excerpts, durable reload, reply preview, reactions, Nuke all PASS. Room source pin formats in Hall and retracts on source Nuke.
+- Live Hall: whitespace rejection, Enter, Shift+Enter, synthetic IME guard, failed-submit draft retention, repeated pending submission deduplication, peer reload with3 comments, Archive/Restore/Nuke PASS. Exact note `eb87c02b-748f-4b6e-9a32-b0b6d7204e6a` was removed through UI; old already-removed note was not replayed.
+- Live shell PASS, browser errors empty: Sandbox default; Personal/Room/Subroom/Hall; Friends/Notifications; Profile/Namecard; canonical username and stable TID projection for peer; Settings truthful image deferrals; Dark-only Appearance; identity-adjacent mute/unmute; manual unread feedback;1440 and320 geometry. Actual client navigation Personal1402ms/Room1382ms; canonical full-route settle1357–2919ms in this bounded sample. This is an acceptance sample, not a load/performance guarantee.
+- Live real-pointer tooltip bounds/Escape/expansion PASS at1440 and1728. Local full-tour driver context-loss caveat remains recorded above; independent local and canonical checks passed without changing product code to appease the driver.
+- Deployment-scoped error/fatal and5xx scans returned no matching logs after smoke. Canonical alias rechecked exact `0edd73d` READY; HTTP200. Development services remain intentional, not launch-ready Production provisioning.
+- Exact cleanup dry runs PASS, then deleted only owned Room `401257a2-b17c-4323-ab65-4b0621dac707`, its single child,4 empty Nuked Room/child receipts and their dependent QA state;3 exact empty Personal receipts (`d1e6713b-56a7-40a2-9275-8c08e48b572b`, `d57f2f28-9fb9-4646-99d4-6f2b781cdd61`, `a56aac7e-25e0-43e6-b7f3-f6d776f1e6d5`). Live Room/child receipts were `45d64c49-b60a-4ce3-8322-a8d3b149145d` / `f29deed0-ab75-41a8-9c78-9a61ec25f5f9`. Permanent QA-only deletion; not an undoable archive. Never rerun deleted fixtures.
+- Post-cleanup baseline restored exactly:8 users/profiles/Sandboxes;4 Rooms/5 memberships;5 Personal conversations;29 retained messages;9 Hall notes/2 pins;6 accepted connections;32 notifications; duplicate/orphan checks0. All20 migration hashes/catalog and DB invariants PASS again. No migration, schema, user deletion or metadata repair.
+
+| Lock gate | Final disposition |
+|---|---|
+| Exact canonical / live A/B | PASS, application0edd73d / READY deployment above |
+| Settings / username / privacy / recovery | PASS, fresh and inherited evidence explicitly separated |
+| Images / Appearance | PASS current contract: truthful deferred media; Dark only, real private accents |
+| Menus / tooltips / sidebar / headers | PASS responsive capture inspection plus independent local/live interactions |
+| Hall keyboard / safe Chat grammar | PASS service and canonical A/B |
+| Switching / loading | PASS bounded canonical sample and prior recovery suite; operational latency debt retained |
+| Cleanup / DB / secrets / historical integrity | PASS; exact retained baseline restored |
+| MS7.6 / MS8 debt | Current, explicit and not silently implemented |
+
+MS7.2 LOCKED under the founder's conditional authority. No known FP5 functional blocker remains. MS7.6 retains private media/delivery/image safety, environment separation, observability/latency and broader provider/operational prerequisites; private Chat tags require an owner/revision data contract, not speculative procurement. MS8 retains whole-product visual/motion/type refinement, complete Light/System contrast, physical-device/assistive-technology/complex-IME validation. Design skills informed reuse of the existing palette, top-layer interactions and keyboard geometry—not a replacement design system. No fonts/Art/provider/schema changes. STOP; no MS7.3 code.

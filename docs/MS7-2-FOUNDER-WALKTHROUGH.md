@@ -2,7 +2,7 @@
 
 ## Founder Walk5 — final synthesis review
 
-Use the [FP5 ledger](MS7-2-FP5-SYNTHESIS.md) for the actual live/lock state; this sequence alone is not a release claim.
+FP5 is LIVE AND ACCEPTED; MS7.2 LOCKED under the founder's post-restart conditional authority. Use the [FP5 ledger](MS7-2-FP5-SYNTHESIS.md) for exact SHA/deployment, live acceptance, browser-driver caveats and cleanup. All recorded FP5 QA fixtures have been removed; do not replay them. This is an optional walkthrough of shipped behavior, not authority to start MS7.3.
 
 1. Collapse the sidebar. Hover/focus Settings, Friends, Notifications and a conversation: labels must be fully visible over the working area. Escape dismisses. Open the same action menus from sidebar/header/Friends/Hall; labels and spacing should be consistent.
 2. Mute a disposable Chat/Room. Look beside the identity for the indicator, then unmute. Mark unread from the menu and confirm the list retains it until opened. Pin/reorder/unpin; another user's ordering is unchanged.

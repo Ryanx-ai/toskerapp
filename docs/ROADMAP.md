@@ -1,5 +1,11 @@
 # Tosker roadmap — canonical founder direction
 
+## Post-lock shell amendment + MS7.3 Gate 1 — 2026-09-28 (CURRENT)
+
+**MS7.1 LOCKED; MS7.2 LOCKED.** Bounded post-lock shell amendment LIVE at application `0e02dfeedf5d7a23215d9cf2d2a7cd1d37143579`, READY `dpl_2p1NKhzJJuX3WMZ3mR1cwo1iAdCR`, exact canonical alias/HTTP200 and normal live A/B verification; [release evidence](MS7-2-POST-LOCK-SHELL.md). Documentation-only closeout may be newer with identical application source. Not FP6 and not an unlocked milestone.
+
+**MS7.3 GATE 1 COMPLETE; DEVELOPMENT NOT STARTED.** [One canonical Map plan](MS7-3-GATE-1-MAP-PLAN.md) contains read-only inheritance, current primary-source market/provider research, Room/Map/Location Card UX, proposed schema/auth/concurrency/realtime, responsive/failure/a11y requirements, slices and founder decisions. [MS7.6 intake P-009–P-014](MS7-6-PROVISIONING-BACKLOG.md) records unprovisioned dependencies. Recommended ordered places only, parent-Room Map, member collaboration, reversible archive, conditional provider evaluation and Chat panel after core proof. **STOP for founder approval; no Map code, migrations, provider accounts/keys or purchases.** MS7.4 remains evidence-dependent; MS7.6 provisioning/backend polish; MS8 larger visual systems. Earlier statuses below are historical and superseded by this current gate.
+
 ## Final lock patch — 2026-09-28 (LIVE / LOCKED)
 
 Founder acceptance closeout and micro-consistency sweep are bounded MS7.2 work, not FP6. Application `8861a96`, READY `dpl_5CsGPNH82scyeG1qkrJYLQBtc76M`, exact canonical alias / final HTTP200 / normal live A/B smoke PASS; [final lock ledger](MS7-2-FINAL-LOCK-PATCH.md) owns the evidence and caveats. **MS7.1 and MS7.2 LOCKED.** MS7.3 remains NOT STARTED; NEXT exclusively **Collaborative Trips / Map + Location Cards**. STOP. Start the next session with TethrMap / HUDL / Tethr 2024 / current Tosker Room-Chat-Hall product/design/architecture priming, not implementation. Protected custom-avatar delivery remains MS7.6; larger visual systems remain MS8.
@@ -16,7 +22,7 @@ Founder-authorized conditional lock completed after canonical application `0edd7
 |---|---|
 | MS7.1 | Chat + Rooms — LOCKED |
 | MS7.2 | Profile + Settings + identity/UI alignment — LIVE, ACCEPTED, LOCKED at FP5 |
-| MS7.3 | Collaborative Trips / native Map + collaborative Location Cards — NEXT, NOT STARTED |
+| MS7.3 | Collaborative Trips / native Map + collaborative Location Cards — GATE 1 COMPLETE; DEVELOPMENT NOT STARTED; founder approval required |
 | MS7.4 | Trip Execution / Live Coordination — evidence-dependent |
 | MS7.5 | Product completeness / bounded extensibility / Pages readiness |
 | MS7.6 | Provisioning + backend polish; consolidated capability ledger below |

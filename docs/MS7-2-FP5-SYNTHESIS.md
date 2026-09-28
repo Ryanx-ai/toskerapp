@@ -1,6 +1,6 @@
 # MS7.2 FP5 — synthesis and lock gate
 
-2026-09-28 closeout: the founder's **FINAL LOCK PATCH**, not FP6, is implemented and locally verified. [Current release/lock ledger](MS7-2-FINAL-LOCK-PATCH.md) records the micro-consistency sweep and remaining canonical/live gate; this FP5 record remains inherited evidence, not a claim that every historical campaign was rerun.
+2026-09-28 closeout: the founder's **FINAL LOCK PATCH**, not FP6, is LIVE AND ACCEPTED at application `8861a96` / READY `dpl_5CsGPNH82scyeG1qkrJYLQBtc76M`, exact canonical alias / final HTTP200 and normal live A/B smoke PASS. **MS7.2 LOCKED.** [Current release/lock ledger](MS7-2-FINAL-LOCK-PATCH.md) records the micro-consistency sweep and canonical acceptance; this FP5 record remains inherited evidence, not a claim that every historical campaign was rerun. MS7.1 stays LOCKED; MS7.3 NOT STARTED, NEXT only Collaborative Trips / Map + Location Cards. STOP.
 
 2026-09-27. LIVE AND ACCEPTED — MS7.2 LOCKED after canonical A/B acceptance and exact QA cleanup. Authority: founder FP5 execution PDF and post-restart continuation/conditional lock directive. MS7.1 remains locked; MS7.3 NOT STARTED, NEXT only: Collaborative Trips / Map + Location Cards. Historical pending checkpoints below are superseded by the final acceptance section.
 

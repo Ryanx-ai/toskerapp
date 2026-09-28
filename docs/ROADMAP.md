@@ -1,8 +1,8 @@
 # Tosker roadmap — canonical founder direction
 
-## Final lock patch — 2026-09-28 (local gate complete; canonical pending)
+## Final lock patch — 2026-09-28 (LIVE / LOCKED)
 
-Founder acceptance closeout and micro-consistency sweep are bounded MS7.2 work, not FP6. [Final lock ledger](MS7-2-FINAL-LOCK-PATCH.md) owns the current evidence and remaining canonical/live gate. MS7.1 remains locked. MS7.3 remains NOT STARTED; NEXT exclusively **Collaborative Trips / Map + Location Cards**. Start the next session with TethrMap / HUDL / Tethr 2024 / current Tosker Room-Chat-Hall product/design/architecture priming, not implementation. Protected custom-avatar delivery remains MS7.6; larger visual systems remain MS8.
+Founder acceptance closeout and micro-consistency sweep are bounded MS7.2 work, not FP6. Application `8861a96`, READY `dpl_5CsGPNH82scyeG1qkrJYLQBtc76M`, exact canonical alias / final HTTP200 / normal live A/B smoke PASS; [final lock ledger](MS7-2-FINAL-LOCK-PATCH.md) owns the evidence and caveats. **MS7.1 and MS7.2 LOCKED.** MS7.3 remains NOT STARTED; NEXT exclusively **Collaborative Trips / Map + Location Cards**. STOP. Start the next session with TethrMap / HUDL / Tethr 2024 / current Tosker Room-Chat-Hall product/design/architecture priming, not implementation. Protected custom-avatar delivery remains MS7.6; larger visual systems remain MS8.
 
 ## FP5 synthesis — 2026-09-27 (LIVE / LOCKED)
 

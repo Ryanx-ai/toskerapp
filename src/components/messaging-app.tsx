@@ -1,4 +1,5 @@
 "use client";
+import { ContextSearch } from "./context-search";
 import { useConversationRealtime } from "./use-conversation-realtime";
 import { NicknameDialog } from "./nickname-editor";
 import { NamecardProvider } from "./namecard-dialog";
@@ -61,8 +62,7 @@ import {
   BellOff,
   MessageCircle,
   MoreHorizontal,
-  PanelLeftClose,
-  PanelLeftOpen,
+  Menu,
   Plus,
   Search,
   Settings,
@@ -327,7 +327,7 @@ function ProfileRegion({
         </NamecardButton>
         <span>
           <strong><RevealName focusable>{user.displayName}</RevealName></strong>
-          <small>{user.role}</small>
+          <small><RevealName focusable>{user.role}</RevealName></small>
         </span>
         <div className="profile-actions">
           <Link
@@ -527,6 +527,15 @@ function AppSidebar({
   return (
     <aside className="messenger-sidebar">
       <div className="sidebar-brand">
+        <button
+          className="collapse-button has-tip"
+          data-tip={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-expanded={!collapsed}
+          onClick={onToggleCollapse}
+        >
+          <Menu size={20} aria-hidden="true" />
+        </button>
         <Link href="/app" aria-label="Tosker chats">
           <Image
             className="full-logo"
@@ -544,23 +553,14 @@ function AppSidebar({
             height={38}
           />
         </Link>
-        <button
-          className="collapse-button has-tip"
-          data-tip={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          aria-expanded={!collapsed}
-          onClick={onToggleCollapse}
-        >
-          {collapsed ? <PanelLeftOpen size={19} /> : <PanelLeftClose size={19} />}
-        </button>
       </div>
       <section className="conversation-section">
         <div className="unified-search">
           {collapsed ? (
             <button
               className="collapsed-search-trigger has-tip"
-              data-tip="Search"
-              aria-label="Search conversations"
+              data-tip="Find a chat or Room"
+              aria-label="Find a chat or Room"
               onClick={openCollapsedSearch}
             >
               <Search size={15} />
@@ -583,8 +583,8 @@ function AppSidebar({
                     sidebarRouter.push(hrefOf(ordered[0]));
                   }
                 }}
-                placeholder="Search"
-                aria-label="Search"
+                placeholder="Find a chat or Room"
+                aria-label="Find a chat or Room"
               />
             </label>
           )}
@@ -1408,7 +1408,7 @@ export function MessagingApp({
         onReadingPause={setReadingPaused}
       />
       <div className="working-surface">
-        {!selected ? <header className="workspace-topbar"><span>{workspace ? workspace.charAt(0).toUpperCase() + workspace.slice(1) : "Your conversations"}</span>{!workspace || workspace === "create" ? <button className="quiet-action" onClick={() => setOverlay("choose")}><Plus size={16} aria-hidden="true" />Create</button> : null}</header> : null}
+        {!selected ? <header className="workspace-topbar"><span>{workspace ? workspace.charAt(0).toUpperCase() + workspace.slice(1) : "Your conversations"}</span><ContextSearch />{!workspace || workspace === "create" ? <button className="quiet-action" onClick={() => setOverlay("choose")}><Plus size={16} aria-hidden="true" />Create</button> : null}</header> : null}
         {selected ? (
           <NamecardRoomContext.Provider value={contextRoom?.id}>
             <SurfaceHeader

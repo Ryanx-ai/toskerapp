@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { X, MessageCircle, Pencil, UsersRound, Settings, Check, UserPlus } from "lucide-react";
+import { X, MessageCircle, Pencil, UsersRound, Settings, Check, UserPlus, Camera } from "lucide-react";
+import { DEVELOPMENT_REVIEW } from "@/config/app";
 import { acceptConnectionAction, requestConnectionAction } from "@/server/connections/actions";
 import { getNamecardAction } from "@/server/profiles/namecard-actions";
 import type { Namecard } from "@/server/profiles/namecard";
@@ -38,16 +39,17 @@ function NamecardDialog({ userId, roomId, onClose }: { userId: string; roomId?: 
   const [error, setError] = useState(""), [attempt, setAttempt] = useState(0);
   const [busy, setBusy] = useState(false), [nickname, setNickname] = useState(false), [settings, setSettings] = useState(false);
   const [privateExpanded, setPrivateExpanded] = useState(false);
+  const [photoInfo, setPhotoInfo] = useState(false);
   const returnFocus = useRef<string | null>(null);
   useEffect(() => {
-    if (editing || nickname || settings || !returnFocus.current) return;
+    if (editing || nickname || settings || photoInfo || !returnFocus.current) return;
     const selector = returnFocus.current;
     const frame = requestAnimationFrame(() => {
       document.querySelector<HTMLButtonElement>(selector)?.focus({ preventScroll: true });
       returnFocus.current = null;
     });
     return () => cancelAnimationFrame(frame);
-  }, [editing, nickname, settings]);
+  }, [editing, nickname, settings, photoInfo]);
   const revision = useRef(0);
   const refresh = useCallback(async () => { const version = ++revision.current; const next = await getNamecardAction(userId,roomId); if (version === revision.current) setPerson(next); return next; }, [userId,roomId]);
   useEffect(() => {
@@ -74,6 +76,16 @@ function NamecardDialog({ userId, roomId, onClose }: { userId: string; roomId?: 
     void refresh().catch(() => { setPerson(null); setError("Namecard unavailable. Try again."); });
   };
   if (editing === "global" && person?.self && identity) return <OwnProfileEditor identity={identity} onClose={closeEditor} />;
+  if (photoInfo && person?.self && DEVELOPMENT_REVIEW) {
+    const closePhoto = () => { returnFocus.current = ".namecard-change-photo"; setPhotoInfo(false); };
+    return <ModalLayer onClose={closePhoto}><section className="creation-panel photo-deferred" aria-labelledby={`${id}-photo-title`}>
+      <button className="overlay-close" aria-label="Close photo information" onClick={closePhoto}><X size={18} /></button>
+      <h2 id={`${id}-photo-title`}>Change photo</h2>
+      <p className="settings-scope">Development · Deferred to MS7.6</p>
+      <p>Your sign-in photo is used for now. Custom profile photos need protected storage, image safety checks and access-aware delivery. No photo has been changed.</p>
+      <button className="primary-action" onClick={closePhoto}>Got it</button>
+    </section></ModalLayer>;
+  }
   if (editing === "room" && person?.self && roomId) return <RoomIdentityEditor roomId={roomId} onClose={closeEditor} />;
   if (settings && person?.conversationId && !person.self) return <PersonalChatSettings conversation={{ databaseId: person.conversationId, slug: `chat-${person.conversationId}`, identitySeed: person.userId, avatarUrl: person.avatarUrl, kind: "personal", name: person.nickname || person.displayName, initials: person.displayName.slice(0, 2), color: "pink", context: `@${person.username}`, preview: "", time: "", messages: [] }} onClose={() => setSettings(false)} />;
   if (nickname && person?.connectionId) return <NicknameDialog target={{ id: person.connectionId, name: person.displayName, nickname: person.nickname }} onSaved={refresh} onClose={() => {
@@ -85,7 +97,10 @@ function NamecardDialog({ userId, roomId, onClose }: { userId: string; roomId?: 
     <button className="overlay-close" aria-label="Close Namecard" disabled={busy} onClick={onClose}><X size={18} /></button>
     {person ? <>
       <div className="namecard-content">
-      <PersonAvatar seed={person.userId} initials={person.displayName.slice(0, 2)} imageUrl={person.avatarUrl} className="avatar-large" />
+      {person.self && DEVELOPMENT_REVIEW ? <button className="namecard-change-photo" aria-label="Change photo" aria-haspopup="dialog" onClick={() => setPhotoInfo(true)}>
+        <PersonAvatar seed={person.userId} initials={person.displayName.slice(0, 2)} imageUrl={person.avatarUrl} className="avatar-large" />
+        <span><Camera size={14} aria-hidden="true" />Change photo</span>
+      </button> : <PersonAvatar seed={person.userId} initials={person.displayName.slice(0, 2)} imageUrl={person.avatarUrl} className="avatar-large" />}
       <h2 id={`${id}-title`}><RevealName focusable>{name}</RevealName></h2>
       {name !== person.displayName ? <p className="namecard-canonical">{person.displayName}</p> : null}
       {person.roomContext ? <p className="settings-scope">In {person.roomContext.name}{person.nickname ? <> · You call them {person.nickname}</> : null}</p> : null}

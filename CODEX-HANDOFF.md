@@ -2,6 +2,10 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## MS7.2 FINAL LOCK PATCH — local gate complete, canonical pending (2026-09-28)
+
+Founder closeout plus consistency addendum supersede the FP5 stop below. [Final lock ledger](docs/MS7-2-FINAL-LOCK-PATCH.md) records shared header/avatar spacing, persistent scoped top-bar search, hamburger-before-logo, shared footer reveal, self-only truthful photo deferral, tooltip/Subroom alignment and six-width production resweep. Fresh engineering, focused regression, normal A/B login and guarded exact cleanup passed. Expected Clerk/Neon/Ably Development services remain unchanged. Next gate: focused normal commit/push → exact canonical SHA/READY/alias/HTTP200 → small live A/B smoke → lock record. No MS7.3 implementation; NEXT only Collaborative Trips / Map + Location Cards. Preserve unrelated historical handoff/inheritance/Art/Design/Web/research/experiments WIP; never stage it with this patch. Do not replay removed QA fixtures.
+
 ## MS7.2 FP5 — LIVE AND ACCEPTED / MS7.2 LOCKED (2026-09-27)
 
 Founder FP5 brief and post-restart directive authorize this conditional lock, superseding the FP4 stop below. Application `0edd73dd8ff5b0640588894f1a2bbb8413dfa47b` normally pushed; READY `dpl_8AeQWyP5XnAP5jcjRtVLY87XvWzW`, exact canonical alias/HTTP200, live A/B PASS. Documentation/test-locator-only closeout may be newer; app source unchanged. [FP5 ledger](docs/MS7-2-FP5-SYNTHESIS.md) owns recovery, split/inherited/fresh evidence, exact release and cleanup; [Walk5](docs/MS7-2-FOUNDER-WALKTHROUGH.md), [identity policy](docs/IDENTITY-NAMECARD-CONTRACT.md), [MS7.6](docs/MS7-6-PROVISIONING-BACKLOG.md), [MS8 debt](docs/MS8-SETTINGS-DESIGN-DEBT.md). MS7.1 remains LOCKED; MS7.2 LOCKED; MS7.3 NOT STARTED, NEXT only: Collaborative Trips / Map + Location Cards.

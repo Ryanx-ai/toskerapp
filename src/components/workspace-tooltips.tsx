@@ -23,9 +23,12 @@ export function WorkspaceTooltips() {
         panel.textContent = target.dataset.tip ?? target.dataset.name ?? target.dataset.tooltip ?? "";
         panel.showPopover();
         const rect = target.getBoundingClientRect(), gap = 8;
-        const collapsed = Boolean(target.closest(".sidebar-collapsed"));
+        const collapsed = Boolean(target.closest(".sidebar-collapsed .messenger-sidebar"));
         const left = collapsed ? rect.right + gap : rect.left + (rect.width - panel.offsetWidth) / 2;
-        const top = collapsed ? rect.top + (rect.height - panel.offsetHeight) / 2 : rect.top - panel.offsetHeight - gap;
+        const above = rect.top - panel.offsetHeight - gap;
+        // Clamping an above-anchor tooltip to the viewport edge can cover the
+        // trigger and intercept its next click. Flip below instead.
+        const top = collapsed ? rect.top + (rect.height - panel.offsetHeight) / 2 : above >= gap ? above : rect.bottom + gap;
         panel.style.left = `${Math.max(gap, Math.min(left, window.innerWidth - panel.offsetWidth - gap))}px`;
         panel.style.top = `${Math.max(gap, Math.min(top, window.innerHeight - panel.offsetHeight - gap))}px`;
         if (!target.hasAttribute("aria-describedby")) target.setAttribute("aria-describedby", id);

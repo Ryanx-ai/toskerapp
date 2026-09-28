@@ -16,7 +16,7 @@ function Highlight({ text, query }: { text: string; query: string }) {
   return start < 0 ? <>{text}</> : <>{text.slice(0, start)}<mark>{text.slice(start, start + query.length)}</mark>{text.slice(start + query.length)}</>;
 }
 
-export function ConversationSearch({ conversationId, name, href, onClose }: { conversationId: string; name: string; href: string; onClose: () => void }) {
+export function ConversationSearch({ conversationId, name, href, scopeLabel = "Find in this chat", onClose }: { conversationId: string; name: string; href: string; scopeLabel?: string; onClose: () => void }) {
   const [query, setQuery] = useState("");
   const [submitted, setSubmitted] = useState("");
   const [page, setPage] = useState<ConversationSearchPage | null>(null);
@@ -56,8 +56,8 @@ export function ConversationSearch({ conversationId, name, href, onClose }: { co
   }, [conversationId, submitted, search]);
   return <ModalLayer onClose={onClose}><section className="creation-panel conversation-search" aria-labelledby="conversation-search-title">
     <button className="overlay-close" aria-label="Close search" onClick={onClose}><X size={18} /></button>
-    <h2 id="conversation-search-title">Search Chat</h2><p className="search-context">{name}</p>
-    <form onSubmit={(event) => { event.preventDefault(); void search(); }}>
+    <h2 id="conversation-search-title">{scopeLabel}</h2><p className="search-context">Chat messages in {name}</p>
+    <form role="search" aria-label="Current Chat messages" onSubmit={(event) => { event.preventDefault(); void search(); }}>
       <label className="wizard-field"><span>Message text</span><input ref={input} autoFocus type="search" value={query} maxLength={120} minLength={2} required onKeyDown={(event) => { if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); onClose(); } }} onChange={(event) => { request.current?.abort(); setPending(false); setError(""); setPage(null); setSubmitted(""); setQuery(event.target.value); }} placeholder="Search this conversation" /></label>
       <button className="quiet-action" disabled={pending || query.trim().length < 2}><Search size={16} />{pending ? "Searching…" : "Search"}</button>
     </form>

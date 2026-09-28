@@ -76,6 +76,8 @@ Class B / research and provisioning backlog, discovered in FP3. Potential consum
 
 ### P-001 — Private attachments / object-media storage
 
+**2026-09-28 MS7.2 lock-patch avatar recheck:** own-Namecard Change photo is an explicit Development disclosure, not an upload feature. Current bootstrap only syncs existing approved Clerk-hosted photos; those publicly retrievable URLs do not enforce profile audiences. Before enabling custom photos: approve media consent/audience policy and private storage; authenticated owner-only upload/finalize; byte/type/size validation and image safety processing; versioned durable metadata; access-aware delivery/cache invalidation under privacy changes; replacement/deletion/retention and orphan cleanup; tested failure/retry/revocation. Never persist base64 or arbitrary public URLs. No new provider, secret, picker or fake success in this patch.
+
 | Field | Current record |
 |---|---|
 | Discovered during | MS7.1; previously reserved internal slice MS7.1.7 |

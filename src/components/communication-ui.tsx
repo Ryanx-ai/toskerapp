@@ -8,7 +8,7 @@ import { MESSAGE_LOCATION_REQUEST, type MessageLocationRequest } from "@/lib/mes
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ConversationSearch } from "./conversation-search";
+import { ContextSearch } from "./context-search";
 import { adjustMentions, type MentionSpan, type MentionCandidate } from "@/lib/mentions";
 import { setConversationPreferenceAction } from "@/server/conversations/preference-actions";
 import { type ConversationPreference, EMPTY_PREFERENCE } from "@/lib/conversation-preferences";
@@ -54,7 +54,6 @@ import type { HallReaction } from "@/lib/hall-contract";
 import {
   ArrowLeft,
   Settings, PinOff, Archive, ArchiveRestore, Pencil, Palette, Trash2, ArrowUpDown, MessageCircle,
-  Search,
   BellOff,
   Mail,
   GripVertical,
@@ -142,7 +141,6 @@ export function SurfaceHeader({
   const identity = useToskerIdentity();
   const parentRoom = conversation.kind === "room" ? identity?.rooms.find((room) => room.slug === conversation.slug.split("--")[0]) : undefined;
   const [contextAnchor, setContextAnchor] = useState<HTMLElement | null>(null);
-  const [searchOpen, setSearchOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [controlsAnchor, setControlsAnchor] = useState<HTMLElement | null>(null);
   const [controlBusy, setControlBusy] = useState(false);
@@ -177,8 +175,8 @@ export function SurfaceHeader({
           {conversation.kind === "room" && conversation.context ? <span className="header-context" title={parentRoom ? conversation.name : conversation.context}>{parentRoom ? conversation.name : conversation.context}</span> : null}
         </div>
       </div>
+      <ContextSearch context={conversation.databaseId ? { id: conversation.databaseId, name: titleOf(conversation, user.displayName), href: baseHref(conversation), kind: conversation.kind, subroom: conversation.tag === "SUBROOM" } : undefined} />
       <div className="core-header-controls">
-        {conversation.databaseId ? <button className="action-icon" aria-label="Search conversation" title="Search conversation" onClick={() => setSearchOpen(true)}><Search size={17} /></button> : null}
         {conversation.databaseId || onManage ? <button className="action-icon" aria-label="Conversation options" title="Conversation options" aria-expanded={Boolean(controlsAnchor)} onClick={(event) => { setControlFeedback(""); setControlsAnchor(event.currentTarget); }}><MoreHorizontal size={17} /></button> : null}
       </div>
       <nav className="surface-tabs" aria-label="Space surfaces">
@@ -198,7 +196,6 @@ export function SurfaceHeader({
         </Link>
         {conversation.kind === "room" ? <span className="surface-upcoming">Map <small>Coming next</small></span> : null}
       </nav>
-      {searchOpen && conversation.databaseId ? <ConversationSearch key={conversation.databaseId} conversationId={conversation.databaseId} name={titleOf(conversation, user.displayName)} href={baseHref(conversation)} onClose={() => setSearchOpen(false)} /> : null}
       {controlsAnchor ? <InteractionPopover anchor={controlsAnchor} label="Conversation options" onClose={() => { if (!controlBusy) setControlsAnchor(null); }}><div className="room-context-menu communication-options">
         {conversation.kind === "room" && onInvite ? <button disabled={controlBusy} onClick={() => { setControlsAnchor(null); onInvite(); }}><Plus size={15} />Invite</button> : null}
         {onManage ? <button disabled={controlBusy} onClick={() => { setControlsAnchor(null); onManage(); }}><UsersRound size={15} />Room Settings</button> : null}

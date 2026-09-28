@@ -161,6 +161,7 @@ export function SurfaceHeader({
   };
   return (
     <header className="conversation-header">
+      <div className="conversation-topbar">
       <div className="header-identity-zone">
         <Link href="/app?view=list" className="mobile-back" aria-label="Back">
           <ArrowLeft size={18} />
@@ -178,6 +179,7 @@ export function SurfaceHeader({
       <ContextSearch context={conversation.databaseId ? { id: conversation.databaseId, name: titleOf(conversation, user.displayName), href: baseHref(conversation), kind: conversation.kind, subroom: conversation.tag === "SUBROOM" } : undefined} />
       <div className="core-header-controls">
         {conversation.databaseId || onManage ? <button className="action-icon" aria-label="Conversation options" title="Conversation options" aria-expanded={Boolean(controlsAnchor)} onClick={(event) => { setControlFeedback(""); setControlsAnchor(event.currentTarget); }}><MoreHorizontal size={17} /></button> : null}
+      </div>
       </div>
       <nav className="surface-tabs" aria-label="Space surfaces">
         <Link

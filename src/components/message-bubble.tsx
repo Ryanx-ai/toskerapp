@@ -12,12 +12,13 @@ import { PersonAvatar } from "./identity-avatar";
 import { NamecardButton } from "./namecard-context";
 import { EditMessageDialog } from "./edit-message-dialog";
 
-export function MessageBubble({ message, grouped, onReply, onReaction, onChange, onPin, onLocate }: {
+export function MessageBubble({ message, grouped, onReply, onReaction, onChange, onPin, onLocate, highlightQuery }: {
   message: Message; grouped?: boolean; onReply: (message: Message) => void;
   onReaction: (id: string, emoji: string, active: boolean) => Promise<void>;
   onChange: (id: string, body?: string, remove?: boolean) => Promise<void>;
   onPin?: (message: Message) => Promise<void>;
   onLocate?: (id: string) => void;
+  highlightQuery?: string;
 }) {
   const [panel, setPanel] = useState<"menu" | "emoji" | null>(null);
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
@@ -59,7 +60,7 @@ export function MessageBubble({ message, grouped, onReply, onReaction, onChange,
           press.current = setTimeout(() => { show("menu", element); }, 600);
         }} onPointerMove={(event) => { if (Math.hypot(event.clientX - start.current.x, event.clientY - start.current.y) > 8) cancelPress(); }} onPointerUp={cancelPress} onPointerCancel={cancelPress}>
           {message.replyTo ? <blockquote>{message.replyToId && onLocate ? <button className="reply-source" onClick={() => onLocate(message.replyToId!)} aria-label={`Open reply source${message.replyAuthor ? ` from ${message.replyAuthor}` : ""}`}><strong>{message.replyAuthor ?? "Reply"}</strong><span><MessageText body={message.replyTo} links={false} /></span></button> : <><strong>{message.replyAuthor ?? "Reply"}</strong><MessageText body={message.replyTo} links={false} /></>}</blockquote> : null}
-          <p>{message.deletedAt ? message.body : <MessageText body={message.body} mentions={message.mentions} />}</p>
+          <p>{message.deletedAt ? message.body : <MessageText body={message.body} mentions={message.mentions} highlightQuery={highlightQuery} />}</p>
           {message.editedAt && !message.deletedAt ? <small className="message-edited" title={`Edited ${new Date(message.editedAt).toLocaleString()}`}>edited</small> : null}
           {message.attachment ? <p className="message-attachment">{message.attachment.name} · {message.attachment.meta}</p> : null}
         </div>

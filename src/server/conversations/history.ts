@@ -23,9 +23,17 @@ export async function readMessageHistory(db: ToskerDatabase, actor: Authenticate
   // Cursor timestamps come from this conversation, never a forged client tuple.
   const boundary = options.before ? sql`(${messages.createdAt}, ${messages.id}) < (select created_at, id from messages where id = ${options.before} and conversation_id = ${conversationId})`
     : options.after ? sql`(${messages.createdAt}, ${messages.id}) > (select created_at, id from messages where id = ${options.after} and conversation_id = ${conversationId})`
-    : options.target ? sql`(${messages.createdAt}, ${messages.id}) <= (select created_at, id from messages where id = ${options.target} and conversation_id = ${conversationId})`
+    : options.target ? sql`${messages.id} in (
+        (select id from messages where conversation_id = ${conversationId} and deleted_at is null
+          and (created_at,id) <= (select created_at,id from messages where id = ${options.target} and conversation_id = ${conversationId} and deleted_at is null)
+          order by created_at desc,id desc limit 26)
+        union all
+        (select id from messages where conversation_id = ${conversationId} and deleted_at is null
+          and (created_at,id) > (select created_at,id from messages where id = ${options.target} and conversation_id = ${conversationId} and deleted_at is null)
+          order by created_at,id limit 25)
+      )`
     : options.ids ? inArray(messages.id, options.ids) : undefined;
-  const ascending = Boolean(options.after || options.ids);
+  const ascending = Boolean(options.after || options.ids || options.target);
   const checked = [...new Set([...(options.checkIds ?? []), ...(options.ids ?? []), ...(options.target ? [options.target] : [])])];
   const [rows, newest, removed] = await Promise.all([
     db.select({ id: messages.id, author: contextualName(actor.userId,roomId,sql`${profiles.userId}`,sql`${profiles.displayName}`), authorId: messages.authorId, avatarUrl: profiles.avatarUrl, body: messages.body, createdAt: messages.createdAt,
@@ -40,13 +48,16 @@ export async function readMessageHistory(db: ToskerDatabase, actor: Authenticate
     db.select({ id: messages.id, createdAt: messages.createdAt }).from(messages).where(and(eq(messages.conversationId, conversationId), isNull(messages.deletedAt))).orderBy(desc(messages.createdAt), desc(messages.id)).limit(1),
     checked.length ? db.select({ id: messages.id }).from(messages).where(and(eq(messages.conversationId, conversationId), isNotNull(messages.deletedAt), or(inArray(messages.id, checked), inArray(messages.id, db.select({ id: messages.replyToId }).from(messages).where(and(eq(messages.conversationId, conversationId), inArray(messages.id, checked))))))) : Promise.resolve([]),
   ]);
-  const page = options.ids ? rows : rows.slice(0, 50);
+  // A target is an authorized context window, never a query-filtered transcript.
+  // Keep <=50 rows and one extra older row as evidence for the older cursor.
+  const targetHasOlder = Boolean(options.target && rows.findIndex(row => row.id === options.target) === 25);
+  const page = options.target ? (targetHasOlder ? rows.slice(1) : rows).slice(0,50) : options.ids ? rows : rows.slice(0, 50);
   if (!ascending) page.reverse();
   const cursor = (message: { id: string; createdAt: Date }) => ({ id: message.id, createdAt: message.createdAt.toISOString() });
   return {
     messages: page.map((message) => ({ ...message, replyToId: message.replyTo ? message.replyToId : null, editedAt: message.editedAt?.toISOString() ?? null, deletedAt: null, createdAt: message.createdAt.toISOString(), mine: message.authorId === actor.userId })),
     removedIds: removed.map((row) => row.id),
-    nextCursor: !options.ids && rows.length > 50 && page.length ? cursor(options.after ? page.at(-1)! : page[0]) : null,
+    nextCursor: !options.ids && (options.target ? targetHasOlder : rows.length > 50) && page.length ? cursor(options.after ? page.at(-1)! : page[0]) : null,
     latest: newest[0] ? cursor(newest[0]) : null,
     timing: { authorizationMs: authorized - started, queryMs: performance.now() - authorized, totalMs: performance.now() - started },
   };

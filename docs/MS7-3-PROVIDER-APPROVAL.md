@@ -1,5 +1,13 @@
 # MS7.3 — Development provider decision and credential gate
 
+## Bounded canonical configuration — founder approval, 2026-09-29
+
+Founder explicitly approved assigning the existing separate credentials to Vercel Production for `pangea6/tosker.app`, canonical `toskerapp.vercel.app`, solely for MS7.3 founder review. Both assignments succeeded through CLI stdin with output suppressed: `GEOAPIFY_SEARCH_KEY` is a Production **Secret**; `NEXT_PUBLIC_GEOAPIFY_MAP_KEY` is Production **Config** (intentionally public Map renderer key). Metadata confirms separate Development assignments remain; no Preview assignment was added. Local Development files were not overwritten. No account, key, paid resource, billing or plan change.
+
+At founder request, added only the browser key's strict HTTPS canonical Referer rule `^https://toskerapp\.vercel\.app(?:/.*)?$`. Existing localhost/127.0.0.1 rules remain. Provider UI exposes Referer/IP/Origin restrictions, not an API-specific allowlist here; no unsupported API restriction is claimed. Origin/IP/CORS settings and server key settings were unchanged. Credential-bearing UI text was redacted before tool output. Post-save style checks: canonical nested path **200**, localhost **200**, unrelated domain **401**, canonical-lookalike suffix domain **401**. No wildcard domain expansion. This header check does not make a browser key a secret; deployed-browser verification remains required.
+
+Pre-release scan passed 460 source/owned files and 39 generated client/worker bundles, including exact and encoded server credentials. Rerun against the final release build after the newly requested Search cleanup. Current provider dashboard showed 20 requests / 16 credits (period includes Sep29; may lag). Free 3,000/day plan, approved bounded evaluation quotas, attribution and replaceable MapLibre/provider boundary remain intact. **This is not permanent production-provider approval or MS15 certification. No deployment is claimed by this configuration step.**
+
 2026-09-29 · **FOUNDER APPROVED: Geoapify Free for bounded Development evaluation. Separate server/browser Development credentials configured. Search smoke and local-origin positive/negative map smoke passed; real MapLibre basemap implemented locally.**
 
 Supersedes the earlier approval request. Founder reports creating Geoapify project **tosker** and an API key. Codex created no account/key/paid resource and changed no billing. Anonymous vendor demos were used for the comparison below; they are **not evidence that the founder-owned credential works**. The LocationIQ comparison is now stopped.

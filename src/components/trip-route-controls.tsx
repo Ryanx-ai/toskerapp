@@ -1,15 +1,10 @@
 "use client";
 import { useState } from "react";
-import { TRIP_COLORS, orderedRoutePlaces, quickOrder, type TripColor, type TripCommand, type TripSnapshot } from "@/lib/trip-contract";
+import { TRIP_COLORS, orderedRoutePlaces, quickOrder, mergeVisibleOrder, type TripColor, type TripCommand, type TripSnapshot } from "@/lib/trip-contract";
 import styles from "./room-map-workspace.module.css";
 
 export type TripChange = (command: Exclude<TripCommand, { type: "add" }>, revision?: number) => Promise<{ revision: number; resultId: string | null } | undefined>;
 type Props = { plan: TripSnapshot; activeId: string | null; ghosts: string[]; disabled: boolean; activate(id: string): void; ghost(id: string): void; change: TripChange };
-/** Reorders visible places while retaining archived memberships in their slots. */
-export function mergeVisibleOrder(plan: TripSnapshot, routeId: string, visibleIds: string[]) {
-  const ids = new Set(visibleIds); let next = 0;
-  return plan.memberships.filter(m => m.routeId === routeId).sort((a,b) => a.position-b.position || a.placeId.localeCompare(b.placeId)).map(m => ids.has(m.placeId) ? visibleIds[next++] : m.placeId);
-}
 export default function TripRouteControls({ plan, activeId, ghosts, disabled, activate, ghost, change }: Props) {
   const [editing, setEditing] = useState<{ id: string | null; name: string; color: TripColor; revision: number } | null>(null);
   const [proposal, setProposal] = useState<{ routeId: string; revision: number; before: string[]; after: string[] } | null>(null);

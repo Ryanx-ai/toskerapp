@@ -519,7 +519,7 @@ function AppSidebar({
     (item) => Boolean(identity) || !state.archived.includes(item.slug),
   );
   const filtered = all.filter((item) =>
-    `${nameOf(item, user.displayName)} ${item.name} ${item.tag ?? ""}`
+    `${nameOf(item, user.displayName)} ${item.name} ${item.kind === "personal" ? item.context : ""} ${item.tag ?? ""}`
       .toLowerCase()
       .includes(query.trim().toLowerCase()),
   );
@@ -605,6 +605,11 @@ function AppSidebar({
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 onKeyDown={(event) => {
+                  if (event.nativeEvent.isComposing) return;
+                  if (event.key === "ArrowDown") {
+                    event.preventDefault();
+                    sidebarRef.current?.querySelector<HTMLAnchorElement>(".conversation-list .conversation-row")?.focus();
+                  }
                   if (event.key === "Escape" && expandedForSearch) {
                     setExpandedForSearch(false);
                     onToggleCollapse();
@@ -616,6 +621,7 @@ function AppSidebar({
                 placeholder="Find a chat or Room"
                 aria-label="Find a chat or Room"
               />
+              {query && <button className="sidebar-search-clear" aria-label="Clear chat and Room search" onClick={() => { setQuery(""); searchInputRef.current?.focus(); }}><X size={14} aria-hidden="true" /></button>}
             </label>
           )}
           <button

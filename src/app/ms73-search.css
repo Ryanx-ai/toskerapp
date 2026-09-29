@@ -1,0 +1,41 @@
+/* One outer field focus treatment, shared with the contextual Chat search. */
+.fp3-shell .unified-search label { display:flex; gap:8px; border-radius:var(--control-radius); }
+.fp3-shell .unified-search label > span { display:flex; flex:none; }
+.fp3-shell .unified-search input { flex:1; min-width:0; width:100%; }
+.fp3-shell .unified-search label:focus-within,.context-search-field:focus-within { outline:2px solid var(--action-secondary); outline-offset:2px; }
+.fp3-shell .unified-search input:focus-visible,.context-search-field input:focus-visible { outline:none; box-shadow:none; }
+.sidebar-search-clear { flex:none; display:grid; place-items:center; width:28px; height:28px; border:0; border-radius:8px; background:transparent; color:var(--text-secondary); cursor:pointer; }
+.context-search { position:relative; grid-area:1/2; min-width:0; width:100%; }
+.context-search-field { display:flex; align-items:center; gap:10px; min-height:var(--control-size); padding:0 12px; border:1px solid var(--border); border-radius:var(--control-radius); background:var(--surface); color:var(--text-secondary); }
+.context-search-field > svg { flex:none; }
+.context-search-field input { width:100%; min-width:0; flex:1; border:0; border-radius:inherit; outline:0; padding:10px 0; background:transparent; color:var(--text-primary); font:500 13px/1.5 var(--font-montserrat),sans-serif; }
+.context-search-field input::-webkit-search-cancel-button { display:none; }
+.context-search-field button,.context-search-compact { display:grid; place-items:center; flex:none; width:36px; min-height:36px; padding:0; border:0; border-radius:10px; background:transparent; color:var(--text-secondary); cursor:pointer; }
+.context-search-field button:hover { color:var(--text-primary); background:var(--surface-hover); }
+.context-search-compact,.context-search-field .context-search-close { display:none; }
+.context-search-dropdown { position:absolute; z-index:30; top:calc(100% + 8px); left:50%; transform:translateX(-50%); width:min(480px,calc(100vw - 32px)); max-height:min(520px,65dvh); overflow-y:auto; overscroll-behavior:contain; padding:12px; border:1px solid var(--border); border-radius:16px; background:var(--surface); color:var(--text-primary); box-shadow:var(--depth-raised); }
+.context-search-dropdown > p { margin:0 0 10px; color:var(--text-secondary); font-size:12px; line-height:1.5; overflow-wrap:anywhere; }
+.context-search-dropdown .context-search-scope { font-size:11px; }
+.context-search-dropdown [role=listbox] { display:grid; gap:6px; }
+.context-search-dropdown .conversation-search-result { border:1px solid transparent; width:100%; text-align:left; cursor:pointer; background:var(--shell-plane); min-height:44px; padding:10px 12px; }
+.context-search-dropdown .conversation-search-result:is(:hover,[aria-selected=true]) { background:var(--surface-hover); border-color:var(--action-secondary); }
+.context-search-dropdown .conversation-search-result strong { font-size:12px; }
+.context-search-dropdown .conversation-search-result time { font-size:10px; }
+.context-search-dropdown .conversation-search-result p { margin:6px 0 0; font-size:13px; line-height:1.5; }
+.context-search-dropdown mark,.message-source-highlight .message-search-match { color:inherit; background:color-mix(in srgb,var(--action-secondary) 28%,transparent); border-radius:3px; }
+.message-search-match { color:inherit; background:transparent; }
+.fp3-shell .working-surface > .workspace-topbar { position:relative; z-index:4; }
+@media(min-width:641px) and (max-width:1100px) {
+  .context-search-dropdown { left:auto; right:0; transform:none; }
+}
+@media(max-width:640px) {
+  .context-search-compact { display:grid; width:44px; height:44px; border:1px solid var(--border); border-radius:var(--control-radius); background:var(--surface); }
+  .context-search-field { display:none; }
+  .context-search.is-open { position:static; }
+  .context-search.is-open .context-search-field { display:flex; position:absolute; z-index:32; inset:8px 12px auto; min-height:48px; }
+  .context-search-field input { font-size:16px; }
+  .context-search-field button { width:44px; min-height:44px; }
+  .context-search-field .context-search-close { display:grid; }
+  .context-search-dropdown { top:64px; left:12px; right:12px; transform:none; width:auto; max-height:55dvh; z-index:33; }
+  .sidebar-search-clear { width:36px; height:36px; }
+}

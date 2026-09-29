@@ -1,11 +1,11 @@
 .workspace { --trip-gold:var(--brand-gold); --trip-rose:#d9a1b8; --trip-sage:#9ebcaf; --trip-sky:#9fc5d6; --trip-iris:#beb1df; display:flex; flex:1; flex-direction:column; gap:16px; padding:var(--workspace-inset); min-width:0; min-height:0; overflow:auto; }
 .mapPlane { flex:none; display:flex; flex-direction:column; min-width:0; border:1px solid var(--border); border-radius:16px; background:var(--shell-plane); overflow:hidden; }
-.canvasRegion { position:relative; min-width:0; height:clamp(280px,36vh,460px); isolation:isolate; }
+.canvasRegion { position:relative; min-width:0; height:clamp(240px,28vh,400px); isolation:isolate; }
 .canvas { position:absolute; inset:0; }
 .canvasRegion .emptyMap { position:absolute; inset:0; background:var(--shell-plane); }
 .mapStatus { position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip-path:inset(50%); }
 .resetMap,.retryMap { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:44px; padding:10px 14px; border:1px solid var(--border); border-radius:var(--control-radius); background:var(--shell-plane); color:var(--text-primary); font:600 12px/1.5 var(--font-montserrat),sans-serif; cursor:pointer; }
-.resetMap { position:absolute; top:12px; left:12px; }
+.cameraControls { position:absolute; top:12px; left:12px; display:flex; flex-direction:column; gap:8px; align-items:flex-start; }
 .resetMap:hover,.retryMap:hover { background:var(--surface-hover); }
 .canvasRegion :is(button,a,canvas):focus-visible { outline:2px solid var(--brand-gold); outline-offset:-3px; }
 .canvasRegion :global(.maplibregl-ctrl-group) { border:1px solid var(--border); border-radius:var(--control-radius); background:var(--shell-plane); box-shadow:none; overflow:hidden; }
@@ -119,9 +119,9 @@
 .cardMenu { display:grid; gap:8px; padding:8px; }
 .cardMenu fieldset { margin:0; padding:8px; border:1px solid var(--border); border-radius:8px; }
 .cardMenu p { font-size:12px; }
-.stripControls > span { flex:1; min-width:160px; }
-.stripControls + .cardStrip { padding-top:8px; }
+.stripControls { padding:0; flex-wrap:nowrap; gap:8px; }
+.stripControls button { padding:10px; min-width:44px; }
 .cardStrip { align-items:flex-start; }
 .workspace .cardStrip:focus-visible { outline:2px solid var(--brand-gold); outline-offset:2px; }
 @media(max-width:640px) { .workspace { flex:1; min-height:0; overflow:auto; padding:12px; gap:12px; } .canvasRegion { height:360px; } .state { padding:12px; font-size:11px; } .emptyMap { padding:24px 16px; } .toolbar { padding:12px; gap:10px; } .cards { padding:16px; } }
-@media(max-width:768px) { .mobileViews { display:flex; gap:8px; } .mobileViews button { flex:1; } .mobileMapHidden { display:none; } .preview { align-items:stretch; flex-direction:column; gap:12px; padding:16px; } .cardStrip { flex-direction:column; overflow-x:visible; } .placeCard { flex:auto; } .cardSelect { min-height:100px; } .search { max-width:none; } }
+@media(max-width:768px) { .mobileViews { display:flex; gap:8px; } .mobileViews button { flex:1; } .mobileMapHidden { display:none; } .preview { align-items:stretch; flex-direction:column; gap:12px; padding:16px; } .cardStrip { flex-direction:column; overflow-x:visible; align-items:stretch; } .placeCard { flex:auto; width:100%; } .cardSelect { min-height:100px; } .search { max-width:none; } .stripControls { display:none; } }

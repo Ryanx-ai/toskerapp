@@ -1,5 +1,7 @@
 # MS7.3 Gate 2 — execution ledger
 
+**2026-09-30 integrated update:** [release ledger](MS7-3-RELEASE.md) supersedes the historical slice-A statuses below. Shared Map/cards/routes and bounded Search cleanup pass local engineering acceptance; canonical release/live smoke next, then Founder Walk stop. Not locked.
+
 2026-09-29 · **IN PROGRESS — local slice A checkpoint; not deployed, not locked.**
 
 Authority: founder's `TOSKER_MS7_3_GATE2_MAP_EXECUTION.pdf` and “lfg codex! MS7.3”. This supersedes Gate 1's execution stop. MS7.1 and MS7.2 remain locked. No MS7.4/MS8 expansion.

@@ -30,6 +30,12 @@ export function orderedRoutePlaces(snapshot: TripSnapshot, routeId: string) {
     .map(m => ({ ...places.get(m.placeId)!, isStop: m.isStop }));
 }
 
+/** Reorder visible places while retaining archived route references in their slots. */
+export function mergeVisibleOrder(plan: TripSnapshot, routeId: string, visibleIds: string[]) {
+  const ids = new Set(visibleIds); let next = 0;
+  return plan.memberships.filter(m => m.routeId === routeId).sort((a,b) => a.position-b.position || a.placeId.localeCompare(b.placeId)).map(m => ids.has(m.placeId) ? visibleIds[next++] : m.placeId);
+}
+
 /** Deterministic nearest-neighbour suggestion only. Not road routing/optimization. */
 export function quickOrder(places: Pick<TripPlace, "id" | "latitude" | "longitude">[], startId: string) {
   const start = places.find(p => p.id === startId);

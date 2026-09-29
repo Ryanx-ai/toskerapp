@@ -12,6 +12,8 @@
     "retained": true,
     "purpose": "Retained A/B Map + Location Cards + Routes + Board + Chat Founder Walk"
   }],
-  "activeDisposableReceipt": "MS7-3-STRESS-FIXTURE.json",
-  "deletedDisposableSlugs": ["ms73-qa-07148c6b", "ms73-qa-5f5557a1", "ms73-qa-9aacd278", "ms73-qa-dc29faba"]
+  "activeDisposableReceipt": null,
+  "historicalDeletedSearchReceipt": "MS7-3-SEARCH-FIXTURE.json",
+  "historicalDeletedStressReceipt": "MS7-3-STRESS-FIXTURE.json",
+  "deletedDisposableSlugs": ["ms73-qa-07148c6b", "ms73-qa-5f5557a1", "ms73-qa-9aacd278", "ms73-qa-dc29faba", "ms73-qa-b04cc204", "ms73-qa-6d3d6f27"]
 }

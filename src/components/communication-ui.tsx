@@ -393,7 +393,10 @@ function displayMessages(persisted: HistoryPage["messages"]): Message[] {
 export function ChatSurface({ conversation, realtime, manualUnreadId, readingPaused = false }: { conversation: Conversation; realtime: ReturnType<typeof useConversationRealtime>; manualUnreadId?: string | null; readingPaused?: boolean }) {
   const router = useRouter();
   const conversationHref = baseHref(conversation);
-  const targetMessage = useSearchParams().get("message");
+  const urlMessage = useSearchParams().get("message");
+  const [locationOverride, setLocationOverride] = useState<{ url: string | null; id: string; query?: string } | null>(null);
+  const targetMessage = locationOverride?.url === urlMessage ? locationOverride.id : urlMessage;
+  const targetQuery = locationOverride?.url === urlMessage ? locationOverride.query : undefined;
   const [targetError, setTargetError] = useState(false);
   const [targetRetry, setTargetRetry] = useState(0);
   const [targetNotice, setTargetNotice] = useState("");
@@ -615,23 +618,28 @@ export function ChatSurface({ conversation, realtime, manualUnreadId, readingPau
         throw new Error("Source unavailable");
       }
       historyMode.current = true; nearBottom.current = false;
-      setHistoryView(true); setOlderCursor(page.nextCursor?.id ?? null);
-      setNewerAvailable(Boolean(page.latest && page.latest.id !== targetMessage));
+      const alreadyLoaded = currentMessages.current.some(message => message.id === targetMessage);
+      const context = alreadyLoaded ? mergePersisted(currentMessages.current, displayMessages(page.messages)).slice(-200) : displayMessages(page.messages);
+      setHistoryView(true); if (!alreadyLoaded) setOlderCursor(page.nextCursor?.id ?? null);
+      setNewerAvailable(Boolean(page.latest && page.latest.id !== context.at(-1)?.id));
       scrollAnchor.current = { id: `message-${targetMessage}`, top: (scrollRef.current?.getBoundingClientRect().top ?? 0) + 80 };
       pendingLocation.current = { id: targetMessage, epoch };
-      setMessages(() => displayMessages(page.messages));
+      setMessages(() => context);
       setLoaded(true); setFetchError(false);
     }).catch(() => { if (active) { setTargetError(true); setTargetNotice(""); } }).finally(() => { if (active) { paging.current = false; setPageLoading(false); window.dispatchEvent(new Event(CHAT_REFRESH)); } });
     return () => { active = false; paging.current = false; pendingLocation.current = null; if (locationHighlightTimer.current) clearTimeout(locationHighlightTimer.current); document.getElementById(`message-${targetMessage}`)?.classList.remove("message-source-highlight"); };
-  }, [conversation.databaseId, conversationHref, router, targetMessage, targetRetry, setMessages]);
+  }, [conversation.databaseId, conversationHref, router, targetMessage, targetRetry, setMessages, mergePersisted]);
   useEffect(() => {
     const locateAgain = (event: Event) => {
       const detail = (event as CustomEvent<MessageLocationRequest>).detail;
-      if (detail?.conversationId === conversation.databaseId && detail.messageId === targetMessage) setTargetRetry((value) => value + 1);
+      if (detail?.conversationId === conversation.databaseId) {
+        setLocationOverride({ url: urlMessage, id: detail.messageId, query: detail.query?.slice(0,120) });
+        setTargetRetry(value => value+1);
+      }
     };
     window.addEventListener(MESSAGE_LOCATION_REQUEST, locateAgain);
     return () => window.removeEventListener(MESSAGE_LOCATION_REQUEST, locateAgain);
-  }, [conversation.databaseId, targetMessage]);
+  }, [conversation.databaseId, urlMessage]);
   useLayoutEffect(() => {
     const area = scrollRef.current;
     if (area) area.scrollTop = area.scrollHeight;
@@ -729,7 +737,7 @@ export function ChatSurface({ conversation, realtime, manualUnreadId, readingPau
     else setMessages((current) => current.map((message) => message.id === id ? { ...message, body: body!, editedAt: new Date().toISOString() } : message));
   };
   return (
-    <section className="conversation-surface art-layer-ready" data-realtime={conversation.databaseId ? connected ? "connected" : "reconnecting" : undefined}>
+    <section className="conversation-surface art-layer-ready" data-chat-conversation={conversation.databaseId} data-realtime={conversation.databaseId ? connected ? "connected" : "reconnecting" : undefined}>
       <span className="sr-only" role="status">{targetNotice}</span>
       <div
         ref={scrollRef}
@@ -757,6 +765,7 @@ export function ChatSurface({ conversation, realtime, manualUnreadId, readingPau
               {!previous || messageDay(previous.createdAt) !== messageDay(message.createdAt) ? <div className="day-marker"><span>{messageDayLabel(message.createdAt)}</span></div> : null}
               <MessageBubble
                 message={message}
+                highlightQuery={message.id === targetMessage ? targetQuery : undefined}
                 grouped={grouped}
                 onReply={setReply}
                 onReaction={react}

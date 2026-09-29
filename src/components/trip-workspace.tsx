@@ -1,11 +1,11 @@
 "use client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { MapPin, Search, List, Map as MapIcon } from "lucide-react";
+import { MapPin, Search, List, Map as MapIcon, ArrowLeft, ArrowRight } from "lucide-react";
 import { readTripAction, mutateTripAction } from "@/server/trips/actions";
 import { ACTIVITY_REFRESH, CONVERSATION_ACCESS_LOST, TRIP_REFRESH } from "@/lib/realtime-contract";
-import { orderedRoutePlaces, type PlaceCandidate, type TripSnapshot } from "@/lib/trip-contract";
+import { orderedRoutePlaces, mergeVisibleOrder, type PlaceCandidate, type TripSnapshot } from "@/lib/trip-contract";
 import TripMapCanvas from "./trip-map-canvas";
-import TripRouteControls, { mergeVisibleOrder, type TripChange } from "./trip-route-controls";
+import TripRouteControls from "./trip-route-controls";
 import TripPlaceCard from "./trip-place-card";
 import { useToskerIdentity } from "./tosker-identity";
 import styles from "./room-map-workspace.module.css";
@@ -14,7 +14,7 @@ type Preview = { candidate: PlaceCandidate; token: string };
 type Pending = Parameters<typeof mutateTripAction>[0];
 export default function TripWorkspace({ roomSlug, conversationId }: { roomSlug: string; conversationId: string }) {
   const [plan, setPlan] = useState<TripSnapshot | null>(null), [error, setError] = useState("");
-  const [query, setQuery] = useState(""), [results, setResults] = useState<Preview[]>([]), [searching, setSearching] = useState(false), [searched, setSearched] = useState(false);
+  const [query, setQuery] = useState(""), [results, setResults] = useState<Preview[]>([]), [searching, setSearching] = useState(false), [searched, setSearched] = useState(false), [searchAttempt, setSearchAttempt] = useState(0);
   const [preview, setPreview] = useState<Preview | null>(null), [notice, setNotice] = useState("");
   const [pinMode, setPinMode] = useState(false), [selectedId, setSelectedId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false), [pending, setPending] = useState<Pending | null>(null);
@@ -69,7 +69,7 @@ export default function TripWorkspace({ roomSlug, conversationId }: { roomSlug: 
       finally { if (!controller.signal.aborted && alive.current) setSearching(false); }
     }, 700);
     return () => { clearTimeout(timer); controller.abort(); };
-  }, [query, roomSlug, deny]);
+  }, [query, roomSlug, deny, searchAttempt]);
   const select = useCallback((id: string) => {
     setSelectedId(id); setPreview(null);
     requestAnimationFrame(() => cards.current?.querySelector<HTMLElement>(`[data-place-id="${id}"]`)?.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "instant" }));
@@ -121,10 +121,10 @@ export default function TripWorkspace({ roomSlug, conversationId }: { roomSlug: 
   };
   return <section className={styles.workspace} aria-label="Room Map" data-trip-revision={plan?.revision}>
     <div className={styles.mobileViews} aria-label="Map view"><button aria-pressed={view === "map"} onClick={() => setView("map")}><MapIcon size={16} aria-hidden="true" />Map</button><button aria-pressed={view === "places"} onClick={() => setView("places")}><List size={16} aria-hidden="true" />Places ({plan?.places.filter(p => !p.archived).length ?? 0})</button></div>
-    {error && <div className={styles.feedback} role="alert"><p>{error}</p>{pending ? <button disabled={busy} onClick={() => void write(pending)}>Retry same change</button> : <button onClick={() => void load()}>Refresh saved places</button>}</div>}
+    {error && <div className={styles.feedback} role="alert"><p>{error}</p>{pending ? <button disabled={busy} onClick={() => void write(pending)}>Retry same change</button> : <div className={styles.actions}><button onClick={() => void load()}>Refresh saved places</button>{query.trim().length >= 3 && <button disabled={searching} onClick={() => setSearchAttempt(value => value+1)}>Retry search</button>}</div>}</div>}
     <div className={`${styles.mapPlane} ${view === "places" ? styles.mobileMapHidden : ""}`}>
       <div className={styles.state}><span className={styles.stateDot} aria-hidden="true" />Singapore planning · Shared with this Room</div>
-      <TripMapCanvas places={places} routes={mapRoutes} candidate={preview?.candidate ?? null} selectedId={selectedId} onSelect={select} onSelectGhost={(routeId, id) => { prefer({ ...preferences, activeId: routeId }); setLibrary(false); setArchived(false); select(id); }} pinMode={pinMode && !disabled} onPin={(lat, lon) => void pin(lat, lon)} />
+      <TripMapCanvas places={places} routes={mapRoutes} snapshotReady={!!plan} candidate={preview?.candidate ?? null} selectedId={selectedId} onSelect={select} onSelectGhost={(routeId, id) => { prefer({ ...preferences, activeId: routeId }); setLibrary(false); setArchived(false); select(id); }} pinMode={pinMode && !disabled} onPin={(lat, lon) => void pin(lat, lon)} />
       {mapRoutes.length > 0 && <div className={styles.legend} aria-label="Planning line legend"><span>Planning order · straight lines between Stops, not directions or ETA</span>{mapRoutes.map(r => <span key={r.id} data-route-color={r.color}><i className={styles.swatch} aria-hidden="true" />{r.name} · {r.ghost ? "Ghost / dashed" : "Active / solid"}</span>)}</div>}
     </div>
     <div className={styles.searchPanel}>
@@ -132,19 +132,19 @@ export default function TripWorkspace({ roomSlug, conversationId }: { roomSlug: 
         <label className={styles.search}><Search size={18} aria-hidden="true" /><span className={styles.srOnly}>Search Singapore places</span><input aria-label="Search places" placeholder="Search Singapore places" maxLength={160} disabled={disabled} value={query} onChange={event => { request.current?.abort(); setSearching(false); setQuery(event.target.value); setResults([]); setSearched(false); setPinMode(false); setPreview(null); setNotice(""); }} /></label>
         <button className={styles.control} aria-pressed={pinMode} disabled={disabled} onClick={() => { request.current?.abort(); setSearching(false); setQuery(""); setResults([]); setSearched(false); setPreview(null); setView("map"); setPinMode(value => !value); }}><MapPin size={16} aria-hidden="true" />{pinMode ? "Cancel pin mode" : "Drop a pin"}</button>
       </div>
-      <p className={styles.helper} role="status">{searching ? "Looking up this place…" : pinMode ? "Click the map to preview a pin. Nothing is saved until you confirm." : searched && !results.length ? "No results found. Try a fuller address or drop a pin." : "Choose a result, preview it, then add it to your trip."}</p>
+      {(searching || pinMode || (searched && !results.length)) && <p className={styles.helper} role="status">{searching ? "Looking up this place…" : pinMode ? "Click the map to preview a pin. Nothing is saved until you confirm." : "No results found. Try a fuller address or drop a pin."}</p>}
       {results.length > 0 && !preview && <ul className={styles.results} aria-label="Place search results">{results.map((result, index) => <li key={result.token}><button disabled={disabled} onClick={() => { setPreview(result); setSelectedId(null); setNotice("Check the name and position before adding. Search results can be approximate."); }}><span>{index + 1}. {result.candidate.title}</span><small>{result.candidate.address}</small></button></li>)}</ul>}
       {preview && <section className={styles.preview} aria-label="Place preview">
         <div><span className={styles.previewLabel}>Not saved yet</span><h2>{preview.candidate.title}</h2><p>{preview.candidate.address || "Manually selected point"}</p><p>{preview.candidate.latitude.toFixed(5)}, {preview.candidate.longitude.toFixed(5)}</p><p>{notice}</p>{preview.candidate.attribution && <small>{preview.candidate.attribution} · {preview.candidate.license}</small>}</div>
         <div className={styles.actions}><button className={styles.primary} disabled={disabled || !preview.token} onClick={() => change({ type: "add", token: preview.token, routeId: route?.id ?? null })}>{busy ? "Saving…" : preview.candidate.source === "pin" ? "Confirm pin" : "Add to trip"}</button><button className={styles.control} disabled={busy || !!pending} onClick={() => { request.current?.abort(); setSearching(false); setPreview(null); setNotice(""); }}>Cancel</button></div>
       </section>}
       {!preview && notice && <p className={styles.helper} role="status">{notice}</p>}
-      <p className={styles.attribution}><a href="https://www.geoapify.com/" target="_blank" rel="noopener noreferrer">Search by Geoapify</a> · Review approximate results before saving.</p>
+      <p className={styles.attribution}><a href="https://www.geoapify.com/" target="_blank" rel="noopener noreferrer">Search by Geoapify</a> · Choose a result, review its preview, then add. Results can be approximate.</p>
     </div>
     <section className={styles.cards} aria-labelledby="location-cards-heading">
-      <header><div><h2 id="location-cards-heading">{archived ? "Archived places" : "Location Cards"}</h2><span>{library ? "All saved places" : route?.name ?? "Your shared trip"}</span></div><div className={styles.actions}><button className={styles.control} aria-pressed={library} onClick={() => { setLibrary(value => !value); setArchived(false); }}>{library ? "Show active route" : "All saved places"}</button><button className={styles.control} aria-pressed={archived} onClick={() => setArchived(value => !value)}>{archived ? "Show trip" : "Archived places"}</button></div></header>
-      {plan && <TripRouteControls plan={plan} activeId={route?.id ?? null} ghosts={preferences.ghosts} disabled={disabled} activate={id => { prefer({ ...preferences, activeId: id }); setArchived(false); setLibrary(false); setSelectedId(null); }} ghost={id => prefer({ ...preferences, ghosts: preferences.ghosts.includes(id) ? preferences.ghosts.filter(g => g !== id) : [...preferences.ghosts,id] })} change={change as TripChange} />}
-      {!plan ? <p className={styles.helper} role="status">Loading saved places…</p> : shown.length === 0 ? <div className={styles.cardsEmpty}><MapPin size={20} aria-hidden="true" /><p>{archived ? "No archived places." : "Search for a place, preview a pin, or reuse one from All saved places."}</p></div> : <><div className={styles.stripControls}><span>Scroll cards, drag their handles or use Move controls in Place actions.</span><button className={styles.control} aria-label="Scroll cards earlier" onClick={() => cards.current?.scrollBy({ left: -240, behavior: "instant" })}>Earlier</button><button className={styles.control} aria-label="Scroll cards later" onClick={() => cards.current?.scrollBy({ left: 240, behavior: "instant" })}>Later</button></div><div className={styles.cardStrip} ref={cards} role="list" aria-label="Saved trip places" tabIndex={0}>{shown.map((place, index) => <TripPlaceCard key={place.id} place={place} plan={plan} routeId={!library && !archived ? route?.id ?? null : null} index={index} total={shown.length} selected={selectedId === place.id} disabled={disabled} select={select} move={(id, offset) => { const target = places[places.findIndex(p => p.id === id)+offset]; if (target) reorder(id,target.id); }} drop={reorder} change={change as TripChange} />)}</div></>}
+      <header><div><h2 id="location-cards-heading">{archived ? "Archived places" : "Location Cards"}</h2><span>{library ? "All saved places" : route?.name ?? "Your shared trip"}</span></div><div className={styles.actions}><button className={styles.control} aria-pressed={library} onClick={() => { setLibrary(value => !value); setArchived(false); }}>{library ? "Show active route" : "All saved places"}</button><button className={styles.control} aria-pressed={archived} onClick={() => setArchived(value => !value)}>{archived ? "Show trip" : "Archived places"}</button><span className={styles.stripControls}><button className={styles.control} aria-label="Scroll cards earlier" onClick={() => cards.current?.scrollBy({ left: -240, behavior: "instant" })}><ArrowLeft size={16} aria-hidden="true" /></button><button className={styles.control} aria-label="Scroll cards later" onClick={() => cards.current?.scrollBy({ left: 240, behavior: "instant" })}><ArrowRight size={16} aria-hidden="true" /></button></span></div></header>
+      {plan && <TripRouteControls plan={plan} activeId={route?.id ?? null} ghosts={preferences.ghosts} disabled={disabled} activate={id => { prefer({ ...preferences, activeId: id }); setArchived(false); setLibrary(false); setSelectedId(null); }} ghost={id => prefer({ ...preferences, ghosts: preferences.ghosts.includes(id) ? preferences.ghosts.filter(g => g !== id) : [...preferences.ghosts,id] })} change={change} />}
+      {!plan ? <p className={styles.helper} role="status">Loading saved places…</p> : shown.length === 0 ? <div className={styles.cardsEmpty}><MapPin size={20} aria-hidden="true" /><p>{archived ? "No archived places." : "Search for a place, preview a pin, or reuse one from All saved places."}</p></div> : <><p className={styles.srOnly} id="trip-card-help">Scroll cards, drag their handles or use Move controls in Place actions.</p><div className={styles.cardStrip} ref={cards} role="list" aria-label="Saved trip places" aria-describedby="trip-card-help" tabIndex={0}>{shown.map((place, index) => <TripPlaceCard key={place.id} place={place} plan={plan} routeId={!library && !archived ? route?.id ?? null : null} index={index} total={shown.length} selected={selectedId === place.id} disabled={disabled} select={select} move={(id, offset) => { const target = places[places.findIndex(p => p.id === id)+offset]; if (target) reorder(id,target.id); }} drop={reorder} change={change} />)}</div></>}
     </section>
   </section>;
 }

@@ -11,17 +11,30 @@ import styles from "./room-map-workspace.module.css";
 type Status = "loading" | "ready" | "unavailable" | "failed";
 type PlanningRoute = TripRoute & { ghost: boolean; places: (TripPlace & { isStop: boolean })[] };
 
-export default function TripMapCanvas({ places, routes, candidate, selectedId, onSelect, onSelectGhost, pinMode, onPin }: { places: TripPlace[]; routes: PlanningRoute[]; candidate: PlaceCandidate | null; selectedId: string | null; onSelect(id: string): void; onSelectGhost(routeId: string, id: string): void; pinMode: boolean; onPin(latitude: number, longitude: number): void }) {
+export default function TripMapCanvas({ places, routes, snapshotReady, candidate, selectedId, onSelect, onSelectGhost, pinMode, onPin }: { places: TripPlace[]; routes: PlanningRoute[]; snapshotReady: boolean; candidate: PlaceCandidate | null; selectedId: string | null; onSelect(id: string): void; onSelectGhost(routeId: string, id: string): void; pinMode: boolean; onPin(latitude: number, longitude: number): void }) {
   const container = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapInstance | null>(null);
+  const initialCamera = useRef(false);
   const [status, setStatus] = useState<Status>("loading");
   const [attempt, setAttempt] = useState(0);
   const selected = useEffectEvent((id: string) => onSelect(id));
   const selectedGhost = useEffectEvent((routeId: string, id: string) => onSelectGhost(routeId, id));
   const clicked = useEffectEvent((latitude: number, longitude: number) => { if (pinMode) onPin(latitude, longitude); });
+  const fitTrip = () => {
+    if (!places.length || !mapRef.current) return;
+    const lons = places.map(p => p.longitude), lats = places.map(p => p.latitude);
+    mapRef.current.fitBounds([[Math.min(...lons),Math.min(...lats)],[Math.max(...lons),Math.max(...lats)]], { padding: 64, maxZoom: 14, duration: 0 });
+  };
+  const fitInitialTrip = useEffectEvent(fitTrip);
+  useEffect(() => {
+    if (!snapshotReady || status !== "ready" || initialCamera.current) return;
+    initialCamera.current = true; fitInitialTrip();
+    // Fit only the initial authorized snapshot; peer changes never drive this camera.
+  }, [snapshotReady, status]);
 
   useEffect(() => {
     let disposed = false;
+    initialCamera.current = false;
     let instance: MapInstance | undefined;
     let observer: ResizeObserver | undefined;
     let timer: ReturnType<typeof setTimeout> | undefined;
@@ -155,7 +168,7 @@ export default function TripMapCanvas({ places, routes, candidate, selectedId, o
 
   return <div className={styles.canvasRegion} data-map-state={status}>
     <div ref={container} className={styles.canvas} />
-    {status === "ready" && <button type="button" className={styles.resetMap} onClick={() => mapRef.current?.jumpTo({ center: SINGAPORE_CENTER, zoom: 11, bearing: 0, pitch: 0 })}><RotateCcw size={16} aria-hidden="true" />Singapore</button>}
+    {status === "ready" && <div className={styles.cameraControls}><button type="button" className={styles.resetMap} onClick={() => mapRef.current?.jumpTo({ center: SINGAPORE_CENTER, zoom: 11, bearing: 0, pitch: 0 })}><RotateCcw size={16} aria-hidden="true" />Singapore</button>{places.length > 0 && <button type="button" className={styles.resetMap} onClick={fitTrip}>Fit trip</button>}</div>}
     <p className={styles.mapStatus} role="status">{status === "ready" ? "Map ready. No live location is shared." : status === "loading" ? "Loading Singapore map…" : ""}</p>
     {status !== "ready" && <div className={styles.emptyMap}>
       <MapIcon size={36} strokeWidth={1.25} aria-hidden="true" />

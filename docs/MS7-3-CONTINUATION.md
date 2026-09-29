@@ -1,5 +1,9 @@
 # MS7.3 continuation — shared trip / founder review
 
+## Superseding integrated checkpoint — 2026-09-30
+
+Map/core A/B and post-Map Search acceptance are now complete locally. See [release ledger](MS7-3-RELEASE.md) for final evidence, founder-authorized canonical environment configuration, retained Founder Review Room and six deleted disposables. Earlier pending statuses below are historical. Canonical/live release remains the next gate; MS7.3 is not locked.
+
 ## Authority and recovery — 2026-09-29
 
 Founder continuation resumes `f24f8b5` through integrated canonical release and live acceptance, then STOP for Founder Walk. MS7.1/MS7.2 remain locked; MS7.3 is not locked; MS7.4 and Live location are not started. The latest Founder QA Identity Addendum applies to every newly created collaborative fixture, including service/security test Rooms.

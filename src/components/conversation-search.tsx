@@ -1,75 +1,108 @@
 "use client";
-
-import { useCallback, useEffect, useRef, useState } from "react";
-import Link from "next/link";
-import { Search, X } from "lucide-react";
-import { ModalLayer } from "./modal-layer";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Search, X, ChevronUp } from "lucide-react";
 import type { ConversationSearchPage } from "@/server/conversations/search";
 import { MESSAGE_LOCATION_REQUEST } from "@/lib/message-location";
-import { CHAT_REFRESH } from "@/lib/realtime-contract";
+import { CHAT_REFRESH, CONVERSATION_ACCESS_LOST } from "@/lib/realtime-contract";
 import { MESSAGES_REMOVED, removedMessageIds } from "@/lib/message-removal";
 import { messagePlainPreview } from "@/lib/message-format";
 
+// Ephemeral handoff across Board/Map -> Chat, never localStorage or URL query text.
+let handoff: { conversationId: string; query: string } | null = null;
 function Highlight({ text, query }: { text: string; query: string }) {
   text = messagePlainPreview(text);
   const start = text.toLocaleLowerCase().indexOf(query.toLocaleLowerCase());
   return start < 0 ? <>{text}</> : <>{text.slice(0, start)}<mark>{text.slice(start, start + query.length)}</mark>{text.slice(start + query.length)}</>;
 }
 
-export function ConversationSearch({ conversationId, name, href, scopeLabel = "Find in this chat", onClose }: { conversationId: string; name: string; href: string; scopeLabel?: string; onClose: () => void }) {
-  const [query, setQuery] = useState("");
-  const [submitted, setSubmitted] = useState("");
+export function ConversationSearch({ conversationId, name, href, scopeLabel }: { conversationId?: string; name?: string; href?: string; scopeLabel: string }) {
+  const router = useRouter();
+  const [query, setQuery] = useState(() => handoff && handoff.conversationId === conversationId ? handoff.query : "");
+  const [open, setOpen] = useState(false), [composing, setComposing] = useState(false);
   const [page, setPage] = useState<ConversationSearchPage | null>(null);
-  const [pending, setPending] = useState(false);
-  const [error, setError] = useState("");
-  const input = useRef<HTMLInputElement>(null);
-  const request = useRef<AbortController | null>(null);
-  useEffect(() => () => request.current?.abort(), []);
-  useEffect(() => {
-    // React's autoFocus runs before the native dialog enters the top layer.
-    const frame = requestAnimationFrame(() => input.current?.focus());
-    return () => cancelAnimationFrame(frame);
-  }, []);
+  const [pending, setPending] = useState(false), [error, setError] = useState("");
+  const [attempt, setAttempt] = useState(0), [active, setActive] = useState(-1);
+  const input = useRef<HTMLInputElement>(null), root = useRef<HTMLDivElement>(null);
+  const request = useRef<AbortController | null>(null), epoch = useRef(0);
+  const listId = useId(), helpId = useId();
+  const term = query.trim();
+  const close = useCallback(() => { request.current?.abort(); epoch.current++; setPending(false); setOpen(false); setActive(-1); }, []);
+  const cancelRequest = useCallback(() => { request.current?.abort(); epoch.current++; }, []);
+  useEffect(() => { handoff = null; return cancelRequest; }, [cancelRequest]);
   const search = useCallback(async (before?: string) => {
-    request.current?.abort();
-    const controller = new AbortController(); request.current = controller;
-    const term = query.trim();
-    setPending(true); setError(""); setSubmitted(term);
-    if (!before) setPage(null);
+    if (!conversationId || term.length < 2) return;
+    request.current?.abort(); const controller = new AbortController(); request.current = controller;
+    const version = ++epoch.current;
+    setPending(true); setError(""); setActive(-1); setPage(null);
     try {
       const params = new URLSearchParams({ q: term }); if (before) params.set("before", before);
       const response = await fetch(`/api/conversations/${encodeURIComponent(conversationId)}/search?${params}`, { cache: "no-store", credentials: "same-origin", signal: AbortSignal.any([controller.signal, AbortSignal.timeout(15000)]) });
+      if (controller.signal.aborted || version !== epoch.current) return;
+      if (response.status === 401 || response.status === 403) {
+        setPage(null); setQuery(""); close();
+        window.dispatchEvent(new CustomEvent(CONVERSATION_ACCESS_LOST, { detail: conversationId })); return;
+      }
       if (!response.ok) throw new Error();
       const result = await response.json() as ConversationSearchPage;
-      if (!controller.signal.aborted) setPage({ ...result, results: result.results.filter((row) => !removedMessageIds(conversationId).has(row.id)) });
-    } catch { if (!controller.signal.aborted) setError("Search couldn't be loaded. Try again."); }
-    finally { if (!controller.signal.aborted) setPending(false); }
-  }, [conversationId, query]);
+      if (!controller.signal.aborted && version === epoch.current) setPage({ ...result, results: result.results.filter(row => !removedMessageIds(conversationId).has(row.id)) });
+    } catch { if (!controller.signal.aborted && version === epoch.current) setError("Search couldn't be loaded. Try again."); }
+    finally { if (!controller.signal.aborted && version === epoch.current) setPending(false); }
+  }, [conversationId, term, close]);
   useEffect(() => {
-    const refresh = () => { if (submitted && !document.hidden) void search(); };
-    const remove = () => setPage((current) => current ? { ...current, results: current.results.filter((row) => !removedMessageIds(conversationId).has(row.id)) } : current);
-    window.addEventListener(CHAT_REFRESH, refresh);
-    window.addEventListener(MESSAGES_REMOVED, remove);
+    if (!open || composing || term.length < 2 || !conversationId) return;
+    const timer = setTimeout(() => void search(), 350);
+    return () => { clearTimeout(timer); cancelRequest(); };
+  }, [open, composing, term, conversationId, attempt, search, cancelRequest]);
+  useEffect(() => {
+    if (!open) return;
+    let timer: ReturnType<typeof setTimeout>;
+    const refresh = () => { if (!document.hidden) { clearTimeout(timer); timer = setTimeout(() => setAttempt(value => value+1), 350); } };
+    const remove = () => setPage(current => current && conversationId ? { ...current, results: current.results.filter(row => !removedMessageIds(conversationId).has(row.id)) } : current);
+    const outside = (event: PointerEvent) => { if (!root.current?.contains(event.target as Node)) close(); };
+    const denied = (event: Event) => { if ((event as CustomEvent<string>).detail === conversationId) { setPage(null); setQuery(""); close(); } };
+    window.addEventListener(CHAT_REFRESH, refresh); window.addEventListener(MESSAGES_REMOVED, remove);
+    window.addEventListener(CONVERSATION_ACCESS_LOST, denied); document.addEventListener("pointerdown", outside);
     document.addEventListener("visibilitychange", refresh);
-    const timer = window.setInterval(refresh, 12000);
-    return () => { window.removeEventListener(CHAT_REFRESH, refresh); window.removeEventListener(MESSAGES_REMOVED, remove); document.removeEventListener("visibilitychange", refresh); window.clearInterval(timer); };
-  }, [conversationId, submitted, search]);
-  return <ModalLayer onClose={onClose}><section className="creation-panel conversation-search" aria-labelledby="conversation-search-title">
-    <button className="overlay-close" aria-label="Close search" onClick={onClose}><X size={18} /></button>
-    <h2 id="conversation-search-title">{scopeLabel}</h2><p className="search-context">Chat messages in {name}</p>
-    <form role="search" aria-label="Current Chat messages" onSubmit={(event) => { event.preventDefault(); void search(); }}>
-      <label className="wizard-field"><span>Message text</span><input ref={input} autoFocus type="search" value={query} maxLength={120} minLength={2} required onKeyDown={(event) => { if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); onClose(); } }} onChange={(event) => { request.current?.abort(); setPending(false); setError(""); setPage(null); setSubmitted(""); setQuery(event.target.value); }} placeholder="Search this conversation" /></label>
-      <button className="quiet-action" disabled={pending || query.trim().length < 2}><Search size={16} />{pending ? "Searching…" : "Search"}</button>
-    </form>
-    <div className="conversation-search-results" aria-busy={pending}>
-      {error ? <p role="alert">{error}</p> : <p role="status">{pending ? "Searching messages…" : page ? page.results.length ? `${page.results.length} results${page.nextCursor ? "; more available" : ""}` : "No messages found." : "Enter at least 2 characters."}</p>}
-      {!pending && page?.results.map((result) => <Link key={result.id} href={`${href}?message=${result.id}`} className="conversation-search-result" onClick={() => {
-        onClose();
-        if (window.location.pathname === href && new URLSearchParams(window.location.search).get("message") === result.id) window.dispatchEvent(new CustomEvent(MESSAGE_LOCATION_REQUEST, { detail: { conversationId, messageId: result.id } }));
-      }} scroll={false}>
-        <span><strong>{result.author}</strong><time dateTime={result.createdAt}>{new Date(result.createdAt).toLocaleString()}</time></span><p><Highlight text={result.excerpt} query={submitted} /></p>
-      </Link>)}
-      {page?.nextCursor ? <button className="quiet-action" disabled={pending} onClick={() => void search(page.nextCursor!)}>Older results</button> : null}
+    const poll = setInterval(refresh, 15000);
+    return () => { clearTimeout(timer); clearInterval(poll); window.removeEventListener(CHAT_REFRESH, refresh); window.removeEventListener(MESSAGES_REMOVED, remove); window.removeEventListener(CONVERSATION_ACCESS_LOST, denied); document.removeEventListener("pointerdown", outside); document.removeEventListener("visibilitychange", refresh); };
+  }, [open, conversationId, close]);
+  const select = (id: string) => {
+    if (!conversationId || !href || removedMessageIds(conversationId).has(id)) return;
+    close();
+    if (document.querySelector(`[data-chat-conversation="${conversationId}"]`)) {
+      window.dispatchEvent(new CustomEvent(MESSAGE_LOCATION_REQUEST, { detail: { conversationId, messageId: id, query: term } }));
+    } else { handoff = { conversationId, query }; router.push(`${href}?message=${id}`, { scroll: false }); }
+  };
+  return <div ref={root} className={`context-search ${open ? "is-open" : ""}`} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget as Node)) close(); }}>
+    <button className="context-search-compact" aria-label={scopeLabel} aria-expanded={open} onClick={() => { setOpen(true); requestAnimationFrame(() => input.current?.focus()); }}><Search size={18} aria-hidden="true" /></button>
+    <div className="context-search-field">
+      <Search size={18} aria-hidden="true" />
+      <input ref={input} type="search" role="combobox" aria-label={scopeLabel} aria-expanded={open} aria-controls={listId} aria-autocomplete="list" aria-activedescendant={active >= 0 && page?.results[active] ? `${listId}-${page.results[active].id}` : undefined} aria-describedby={open ? helpId : undefined}
+        placeholder={scopeLabel} value={query} maxLength={120} onFocus={() => setOpen(true)} onClick={() => setOpen(true)}
+        onCompositionStart={() => { setComposing(true); request.current?.abort(); epoch.current++; setPage(null); }} onCompositionEnd={() => setComposing(false)}
+        onChange={event => { request.current?.abort(); epoch.current++; setQuery(event.target.value); setPage(null); setPending(false); setError(""); setActive(-1); setOpen(true); }}
+        onKeyDown={event => {
+          if (event.nativeEvent.isComposing || composing) return;
+          if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); close(); }
+          if (event.key === "ArrowDown" || event.key === "ArrowUp") { event.preventDefault(); setOpen(true); const length=page?.results.length ?? 0; if (length) { const next=event.key === "ArrowDown" ? (active+1)%length : active<=0 ? length-1 : active-1; setActive(next); root.current?.querySelector(`#${CSS.escape(`${listId}-${page!.results[next].id}`)}`)?.scrollIntoView({ block:"nearest" }); } }
+          if (event.key === "Enter" && open && page?.results.length) { event.preventDefault(); select(page.results[Math.max(0,active)].id); }
+        }} />
+      {query && <button aria-label="Clear message search" onClick={() => { request.current?.abort(); epoch.current++; setQuery(""); setPage(null); setError(""); setPending(false); input.current?.focus(); }}><X size={16} aria-hidden="true" /></button>}
+      <button className="context-search-close" aria-label="Close message search" onClick={close}><ChevronUp size={18} aria-hidden="true" /></button>
     </div>
-  </section></ModalLayer>;
+    {open && <section className="context-search-dropdown" aria-label="Chat search results">
+      <p id={helpId} className="context-search-scope">{conversationId ? `Chat messages in ${name}` : "Choose a chat, Room or Sandbox first. Sidebar search finds chats and Rooms by name."}</p>
+      {conversationId && <>
+        <p role={error ? "alert" : "status"}>{error || (composing ? "Finish typing to search." : term.length < 2 ? "Enter at least 2 characters." : pending || !page ? "Searching messages…" : !page.results.length ? "No messages found." : `${page.results.length} results${page.nextCursor ? " · more available" : ""}`)}</p>
+        {error && <button className="quiet-action" onClick={() => setAttempt(value => value+1)}>Retry message search</button>}
+        <div id={listId} role="listbox" aria-label="Matching messages" aria-busy={pending}>
+          {page?.results.map((result,index) => <button key={result.id} id={`${listId}-${result.id}`} role="option" aria-selected={index===active} className="conversation-search-result" onClick={() => select(result.id)}>
+            <span><strong>{result.author}</strong><time dateTime={result.createdAt}>{new Date(result.createdAt).toLocaleString()}</time></span><p><Highlight text={result.excerpt} query={term} /></p>
+          </button>)}
+        </div>
+        {page?.nextCursor && <button className="quiet-action" disabled={pending} onClick={() => void search(page.nextCursor!)}>Older results</button>}
+      </>}
+    </section>}
+  </div>;
 }

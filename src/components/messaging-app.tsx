@@ -17,6 +17,8 @@ import { deriveAttention } from "@/lib/attention";
 import { AttentionMark } from "./attention-mark";
 import { PersonAvatar, RoomAvatar, SandboxAvatar } from "./identity-avatar";
 import { activeRoomSlug, sandboxName } from "@/lib/workspace-navigation";
+import { resolveWorkspaceSurface, type WorkspaceSurface } from "@/lib/workspace-surfaces";
+import dynamic from "next/dynamic";
 import { collapseStore } from "@/lib/sidebar-state";
 import { RoomCategory } from "./room-category";
 import type { refreshWorkspaceNavigationAction } from "@/server/accounts/actions";
@@ -35,6 +37,9 @@ import { conversations, type Conversation } from "@/data/messaging-data";
 import { prototypeUser } from "@/data/prototype-user";
 import { prototypeStore } from "@/lib/prototype-store";
 import { APP_VERSION_LABEL } from "@/config/app";
+const RoomMapWorkspace = dynamic(() => import("./room-map-workspace"), {
+  loading: () => <section className="map-workspace-loading" role="status">Opening Room Map…</section>,
+});
 import {
   ProductSurface,
   type ProductWorkspace,
@@ -380,7 +385,7 @@ function AppSidebar({
   onReadingPause,
 }: {
   selected?: Conversation;
-  surface: "chat" | "hall";
+  surface: WorkspaceSurface;
   workspace?: AppWorkspace;
   onCreate: () => void;
   collapsed: boolean;
@@ -394,6 +399,20 @@ function AppSidebar({
 }) {
   const identity = useToskerIdentity();
   const user = useCurrentToskerUser() ?? prototypeUser;
+  const sidebarRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const sidebar = sidebarRef.current;
+    const nameplate = sidebar?.querySelector<HTMLElement>(".sidebar-bottom");
+    if (!sidebar || !nameplate) return;
+    const measure = () => {
+      const bottom = parseFloat(getComputedStyle(nameplate).bottom) || 0;
+      sidebar.style.setProperty("--nameplate-clearance", `${Math.ceil(nameplate.getBoundingClientRect().height + bottom + 12)}px`);
+    };
+    const observer = new ResizeObserver(measure);
+    observer.observe(nameplate);
+    measure();
+    return () => observer.disconnect();
+  }, []);
   const state = useSyncExternalStore(
     prototypeStore.subscribe,
     prototypeStore.getSnapshot,
@@ -525,7 +544,14 @@ function AppSidebar({
     ordered.push(child);
   }
   return (
-    <aside className="messenger-sidebar">
+    <aside className="messenger-sidebar" ref={sidebarRef} onFocusCapture={(event) => {
+      const list = sidebarRef.current?.querySelector<HTMLElement>(".conversation-list");
+      const nameplate = sidebarRef.current?.querySelector<HTMLElement>(".sidebar-bottom");
+      if (!list || !nameplate || !list.contains(event.target)) return;
+      const bottom = event.target.getBoundingClientRect().bottom;
+      const visibleBottom = Math.min(list.getBoundingClientRect().bottom, nameplate.getBoundingClientRect().top) - 8;
+      if (bottom > visibleBottom) list.scrollBy({ top: bottom - visibleBottom, behavior: "instant" });
+    }}>
       <div className="sidebar-brand">
         <button
           className="collapse-button has-tip"
@@ -1184,11 +1210,11 @@ function MobileNav({ friendAttention, notificationCount, chatAttention }: { frie
 
 export function MessagingApp({
   selectedSlug,
-  surface = "chat",
+  surface: requestedSurface = "chat",
   workspace,
 }: {
   selectedSlug?: string;
-  surface?: "chat" | "hall";
+  surface?: WorkspaceSurface;
   workspace?: AppWorkspace;
 }) {
   useMobileViewport();
@@ -1214,7 +1240,7 @@ export function MessagingApp({
     window.addEventListener(PROFILE_REFRESH, refresh);
     return () => { clearTimeout(pending); window.removeEventListener(PROFILE_REFRESH, refresh); };
   }, [router]);
-  useEffect(() => { queueMicrotask(() => setReadingPaused(false)); }, [selectedSlug, surface]);
+  useEffect(() => { queueMicrotask(() => setReadingPaused(false)); }, [selectedSlug, requestedSurface]);
   const [toast, setToast] = useState<NotificationActivity | null>(null);
   const seenActivity = useRef<Set<string> | null>(null);
   const activeConversationRef = useRef<string | null>(null);
@@ -1362,6 +1388,7 @@ export function MessagingApp({
         : selectedSlug && !identity
           ? conversations[0]
           : undefined));
+  const surface = resolveWorkspaceSurface(requestedSurface, selected);
   const realtime = useConversationRealtime(selected?.databaseId, identity?.userId);
   useEffect(() => {
     const denied = (event: Event) => {
@@ -1374,7 +1401,7 @@ export function MessagingApp({
     return () => window.removeEventListener(CONVERSATION_ACCESS_LOST, denied);
   }, [router, selected?.databaseId]);
   useEffect(() => { liveConnected.current = realtime.connected; }, [realtime.connected]);
-  useEffect(() => { activeConversationRef.current = surface === "hall" ? null : selected?.databaseId ?? null; }, [selected?.databaseId, surface]);
+  useEffect(() => { activeConversationRef.current = surface === "chat" ? selected?.databaseId ?? null : null; }, [selected?.databaseId, surface]);
   const attention = deriveAttention(activity, snapshot.preferences);
   const selectedPreference = snapshot.preferences.find((pref) => pref.conversationId === selected?.databaseId);
   const unreadByConversation = attention.conversations;
@@ -1423,7 +1450,7 @@ export function MessagingApp({
               hallUnread={unreadForSurface("hall")}
               unreadByConversation={unreadByConversation}
             />
-            {surface === "hall" ? (
+            {surface === "map" ? <RoomMapWorkspace key={selected.slug} /> : surface === "hall" ? (
               <HallSurface
                 connected={realtime.connected}
                 manualUnreadId={selectedPreference?.manualHallUnreadId}
@@ -1479,7 +1506,7 @@ export function MessagingApp({
         <SubroomOverlay room={parentConversation ?? selected} onClose={() => setOverlay(null)} />
       ) : null}
       {overlay === "manage" && contextRoom ? <RoomDetails slug={contextRoom.slug} onClose={() => setOverlay(null)} onInvite={() => setOverlay("invite")} onAddSubroom={contextRoom.role === "owner" ? () => setOverlay("subroom") : undefined} /> : null}
-      {toast ? <button className="activity-toast" onClick={() => { router.push(activityHref(toast)); setToast(null); }} aria-label="Open new activity"><strong>{toast.actorName ?? "Someone"}</strong><span>{toast.type === "message" ? (toast.isMention ? "mentioned you" : "sent you a message") : toast.type === "connection_request" ? "sent you a friend request" : toast.type === "connection_accepted" ? "accepted your friend request" : toast.type === "room_invitation" ? "invited you to a Room" : "updated Hall"}</span>{toast.conversationId ? <small>{toast.roomName ? `${toast.roomName}${toast.subroomId && toast.conversationTitle ? ` / ${toast.conversationTitle}` : ""}` : "Personal Chat"} · {toast.type === "message" ? "Chat" : "Hall"}</small> : null}</button> : null}
+      {toast ? <button className="activity-toast" onClick={() => { router.push(activityHref(toast)); setToast(null); }} aria-label="Open new activity"><strong>{toast.actorName ?? "Someone"}</strong><span>{toast.type === "message" ? (toast.isMention ? "mentioned you" : "sent you a message") : toast.type === "connection_request" ? "sent you a friend request" : toast.type === "connection_accepted" ? "accepted your friend request" : toast.type === "room_invitation" ? "invited you to a Room" : "updated Board"}</span>{toast.conversationId ? <small>{toast.roomName ? `${toast.roomName}${toast.subroomId && toast.conversationTitle ? ` / ${toast.conversationTitle}` : ""}` : "Personal Chat"} · {toast.type === "message" ? "Chat" : "Board"}</small> : null}</button> : null}
     </main></NamecardProvider></ToskerIdentityProvider>
   );
 }

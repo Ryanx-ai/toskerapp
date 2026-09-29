@@ -34,8 +34,8 @@ export default function LandingPage() {
         <LandingExhibit surface="Chat" caption="One Room. Your people. The conversation." description="Tokyo 2027 Chat: friends sharing travel plans, replies, and an itinerary link in a shared Room." />
       </section>
       <section className={`${styles.wrap} ${styles.shape}`} aria-labelledby="shape-title">
-        <div className={styles.shapeHead}><div><p className={styles.eyebrow}>Same people. More possibilities.</p><h2 id="shape-title">Make room for<br />what you’re doing.</h2></div><p>Keep the useful things close.<br />Hall holds the notes, plans, and<br />decisions worth keeping.</p></div>
-        <LandingExhibit surface="Hall" caption="Hall keeps the important things in view." description="Tokyo 2027 Hall bulletin board: flight details, a dinner decision, passport reminder, itinerary link, and a recorded poll result." />
+        <div className={styles.shapeHead}><div><p className={styles.eyebrow}>Same people. More possibilities.</p><h2 id="shape-title">Make room for<br />what you’re doing.</h2></div><p>Keep the useful things close.<br />Board holds the notes, plans, and<br />decisions worth keeping.</p></div>
+        <LandingExhibit surface="Board" caption="Board keeps the important things in view." description="Tokyo 2027 Board bulletin board: flight details, a dinner decision, passport reminder, itinerary link, and a recorded poll result." />
         <aside className={styles.gizmo}><Image src="/landing/map-concept.svg" alt="" width={121} height={94} /><div><p className={styles.eyebrow}>Future Gizmo concept</p><p>A shared map for the next trip.</p><small>One idea for what this Room could become. Not available yet.</small></div></aside>
       </section>
       <section className={`${styles.wrap} ${styles.community}`} aria-labelledby="community-title">

@@ -1,5 +1,6 @@
 "use client";
 import { RevealName } from "./reveal-name";
+import { hasRoomMap, type WorkspaceSurface } from "@/lib/workspace-surfaces";
 import { PersonalChatSettings } from "./personal-chat-settings";
 import { NamecardButton } from "./namecard-context";
 import { EditMessageDialog } from "./edit-message-dialog";
@@ -127,7 +128,7 @@ export function SurfaceHeader({
   onReadingPause,
 }: {
   conversation: Conversation;
-  surface: "chat" | "hall";
+  surface: WorkspaceSurface;
   onInvite?: () => void;
   onAddSubroom?: () => void;
   onManage?: () => void;
@@ -149,10 +150,11 @@ export function SurfaceHeader({
   const pref = preference ?? EMPTY_PREFERENCE;
   const changePreference = async (kind: "mute" | "unread") => {
     if (!conversation.databaseId || controlBusy) return;
+    if (kind === "unread" && surface === "map") return;
     setControlBusy(true); setControlFeedback("");
     if (kind === "unread") onReadingPause?.(true);
     try {
-      await setConversationPreferenceAction(conversation.databaseId, kind === "mute" ? { kind, muted: !pref.muted } : { kind, surface });
+      await setConversationPreferenceAction(conversation.databaseId, kind === "mute" ? { kind, muted: !pref.muted } : { kind, surface: surface === "hall" ? "hall" : "chat" });
       window.dispatchEvent(new Event(ACTIVITY_REFRESH));
       setControlsAnchor(null);
       if (kind === "unread") { router.push("/app?view=list"); }
@@ -194,9 +196,9 @@ export function SurfaceHeader({
           aria-current={surface === "hall" ? "page" : undefined}
           href={`${baseHref(conversation)}/hall`}
         >
-          Hall<AttentionMark count={hallUnread} label="new Hall activities" />
+          Board<AttentionMark count={hallUnread} label="new Board activities" />
         </Link>
-        {conversation.kind === "room" ? <span className="surface-upcoming">Map <small>Coming next</small></span> : null}
+        {identity && hasRoomMap(conversation) ? <Link className={surface === "map" ? "active" : ""} aria-current={surface === "map" ? "page" : undefined} href={`${baseHref(conversation)}/map`} prefetch={false}>Map</Link> : null}
       </nav>
       {controlsAnchor ? <InteractionPopover anchor={controlsAnchor} label="Conversation options" onClose={() => { if (!controlBusy) setControlsAnchor(null); }}><div className="room-context-menu communication-options">
         {conversation.kind === "room" && onInvite ? <button disabled={controlBusy} onClick={() => { setControlsAnchor(null); onInvite(); }}><Plus size={15} />Invite</button> : null}
@@ -204,7 +206,7 @@ export function SurfaceHeader({
         {conversation.kind === "personal" && conversation.databaseId ? <button onClick={() => { setControlsAnchor(null); setSettingsOpen(true); }}><Settings aria-hidden="true" />Chat Settings</button> : null}
         {conversation.databaseId ? <>
           <button disabled={controlBusy || pref.inheritedMute} onClick={() => void changePreference("mute")}><BellOff size={16} aria-hidden="true" />{pref.inheritedMute ? "Muted by Room" : pref.muted ? "Unmute" : "Mute"}</button>
-          <button disabled={controlBusy} onClick={() => void changePreference("unread")}><Mail size={16} aria-hidden="true" />Mark {surface === "hall" ? "Hall" : "Chat"} unread</button>
+          {surface !== "map" ? <button disabled={controlBusy} onClick={() => void changePreference("unread")}><Mail size={16} aria-hidden="true" />Mark {surface === "hall" ? "Board" : "Chat"} unread</button> : null}
         </> : null}
         {controlBusy ? <p role="status">Saving…</p> : null}{controlFeedback ? <p role="alert">{controlFeedback}</p> : null}
       </div></InteractionPopover> : null}
@@ -937,12 +939,12 @@ function PersistentHallCard({
         <MoreHorizontal size={15} />
       </button> : null}
       {open ? (
-        <InteractionPopover anchor={menuAnchor} label="Hall actions" onClose={() => { setOpen(false); setColorsOpen(false); }}><div className="message-action-list">
-          {pinned ? <button disabled={busy} onClick={() => { setOpen(false); onUnpin(); }}><PinOff aria-hidden="true" />Unpin from Hall</button> : <>
+        <InteractionPopover anchor={menuAnchor} label="Board actions" onClose={() => { setOpen(false); setColorsOpen(false); }}><div className="message-action-list">
+          {pinned ? <button disabled={busy} onClick={() => { setOpen(false); onUnpin(); }}><PinOff aria-hidden="true" />Unpin from Board</button> : <>
             {archived ? onRestore ? <button disabled={busy} onClick={() => { setOpen(false); onRestore(); }}><ArchiveRestore aria-hidden="true" />Restore</button> : null : <>
             {onEdit ? <button onClick={() => { setOpen(false); onEdit(); }}><Pencil aria-hidden="true" />Edit</button> : null}
             <button onClick={() => setColorsOpen((value) => !value)} aria-expanded={colorsOpen}><Palette aria-hidden="true" />Change color</button>
-            {colorsOpen ? <div className="hall-color-options" role="group" aria-label="Hall note colors">{hallColors.map((color) => <button key={color} className={`hall-color-choice hall-color-${color}`} aria-label={color} aria-pressed={(item.color ?? "neutral") === color} disabled={busy} onClick={() => { onColor(color); setOpen(false); }}>{color}</button>)}</div> : null}
+            {colorsOpen ? <div className="hall-color-options" role="group" aria-label="Board note colors">{hallColors.map((color) => <button key={color} className={`hall-color-choice hall-color-${color}`} aria-label={color} aria-pressed={(item.color ?? "neutral") === color} disabled={busy} onClick={() => { onColor(color); setOpen(false); }}>{color}</button>)}</div> : null}
             {onArchive ? <button disabled={busy} onClick={() => { setOpen(false); onArchive(); }}><Archive aria-hidden="true" />Archive</button> : null}
             </>}
             {onNuke ? <button className="danger" disabled={busy} onClick={() => { setOpen(false); setConfirming(true); }}><Trash2 aria-hidden="true" />Nuke</button> : null}
@@ -1015,7 +1017,7 @@ export function HallSurface({
           setLoaded(true); setHallError("");
           if (!archivedView && !readingPaused) await markConversationReadAction(conversation.databaseId!, "hall", undefined, snapshot.activityIds, manualUnreadId);
         }
-      } catch { if (active) setHallError("Hall couldn't be loaded."); }
+      } catch { if (active) setHallError("Board couldn't be loaded."); }
       finally { inFlight = false; if (pending && active) pendingTimer = window.setTimeout(refresh, 100); }
     };
     void refresh();
@@ -1031,7 +1033,7 @@ export function HallSurface({
     setHallError("");
     let changed = false;
     try { await operation(); changed = true; await refreshPersistentItems(); }
-    catch { setHallError(changed ? "Change saved. Refresh Hall to see it." : "That change couldn't be saved. Please try again."); }
+    catch { setHallError(changed ? "Change saved. Refresh Board to see it." : "That change couldn't be saved. Please try again."); }
     finally { mutating.current = false; setOperationBusy(false); window.dispatchEvent(new Event(HALL_REFRESH)); }
     return changed;
   };
@@ -1065,7 +1067,7 @@ export function HallSurface({
       setLoaded(true); setHallError("");
     } catch (error) {
       if (currentHallView.current !== archivedView) return;
-      setHallError("Hall couldn't be refreshed.");
+      setHallError("Board couldn't be refreshed.");
       throw error;
     }
   }, [conversation.databaseId, archivedView, setPersistentItems, setLoaded, setHallError]);
@@ -1094,9 +1096,9 @@ export function HallSurface({
           <h2>{archivedView ? "Archived notes" : contextual.title}</h2>
           {conversation.kind === "room" && contextual.support ? <p>{contextual.support}</p> : null}
         </div>
-        <div className="hall-view-switch" role="group" aria-label="Hall view">{[false, true].map((archived) => <button key={String(archived)} aria-pressed={archivedView === archived} disabled={operationBusy || saving} onClick={() => { if (archivedView === archived) return; currentHallView.current = archived; setArchivedView(archived); setPersistentItems([]); setLoaded(!conversation.databaseId); setHallError(""); }}>{archived ? "Archived" : "Board"}</button>)}</div>
+        <div className="hall-view-switch" role="group" aria-label="Board view">{[false, true].map((archived) => <button key={String(archived)} aria-pressed={archivedView === archived} disabled={operationBusy || saving} onClick={() => { if (archivedView === archived) return; currentHallView.current = archived; setArchivedView(archived); setPersistentItems([]); setLoaded(!conversation.databaseId); setHallError(""); }}>{archived ? "Archived" : "Board"}</button>)}</div>
       </header>
-      {!loaded && !hallError ? <p className="hall-load-status" role="status">Loading Hall…</p> : null}
+      {!loaded && !hallError ? <p className="hall-load-status" role="status">Loading Board…</p> : null}
       {loaded && archivedView && !displayedItems.length ? <p role="status">No archived notes.</p> : null}
       <div className="notice-list">
           {!archivedView ? <button className="new-hall-card" disabled={operationBusy} onClick={() => { draftNoteId.current = null; setEditingItem(null); setNoteTitle(""); setNoteBody(""); setHallError(""); setCreating(true); }}>
@@ -1146,7 +1148,7 @@ export function HallSurface({
                   else { draftNoteId.current ??= crypto.randomUUID(); await createHallNoteAction({ id: draftNoteId.current, conversationId: conversation.databaseId, title: noteTitle, body: noteBody }); }
                   saved = true;
                   setPersistentItems(await listHallItemsAction(conversation.databaseId));
-                } catch { setHallError(saved ? "Note saved. Refresh Hall to see it." : "Hall note couldn't be saved. Please try again."); if (saved) setCreating(false); setSaving(false); return; }
+                } catch { setHallError(saved ? "Note saved. Refresh Board to see it." : "Board note couldn't be saved. Please try again."); if (saved) setCreating(false); setSaving(false); return; }
               } else if (editingItem) prototypeStore.updateHallItem(conversation.slug, editingItem, { title: noteTitle, body: noteBody });
               else prototypeStore.addHallNote({ slug: conversation.slug, name: conversation.name, title: noteTitle, body: noteBody });
               setCreating(false); setNoteTitle(""); setNoteBody(""); setSaving(false);
@@ -1155,7 +1157,7 @@ export function HallSurface({
           </section>
         </ModalLayer>
       ) : null}
-      {hallError ? <p role="alert">{hallError} {conversation.databaseId ? <button className="quiet-action" disabled={operationBusy} onClick={() => void refreshPersistentItems().catch(() => undefined)}>Refresh Hall</button> : null}</p> : null}
+      {hallError ? <p role="alert">{hallError} {conversation.databaseId ? <button className="quiet-action" disabled={operationBusy} onClick={() => void refreshPersistentItems().catch(() => undefined)}>Refresh Board</button> : null}</p> : null}
       <span className="sr-only" role="status">{orderNotice}</span>
     </section>
   );

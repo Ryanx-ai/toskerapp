@@ -75,8 +75,8 @@ export const conversations: Conversation[] = [
   {
     slug: "tokyo-2027", kind: "room", name: "Tokyo 2027", initials: "東京", color: "gold", preview: "Theo: This trip is operating at peak efficiency", time: "7:53 PM", unread: 4, context: "6 people · Tokyo, Japan", tag: "TRIP",
     messages: [
-      { id: "tokyo-01", author: "Mika", initials: "MK", body: "I moved the flight details into Hall so nobody has to hunt for them again", time: "9:08 AM", color: "pink" },
-      { id: "tokyo-02", author: "Ryan", initials: "RY", body: "Heroic. I was three scrolls away from giving up", time: "9:10 AM", color: "gold", mine: true, replyTo: "Flight details are now in Hall" },
+      { id: "tokyo-01", author: "Mika", initials: "MK", body: "I moved the flight details into Board so nobody has to hunt for them again", time: "9:08 AM", color: "pink" },
+      { id: "tokyo-02", author: "Ryan", initials: "RY", body: "Heroic. I was three scrolls away from giving up", time: "9:10 AM", color: "gold", mine: true, replyTo: "Flight details are now in Board" },
       { id: "tokyo-03", author: "Theo", initials: "TH", body: "The shared itinerary is here: https://example.com/tokyo-plan", time: "9:14 AM", color: "green" },
       { id: "tokyo-04", author: "Ayu", initials: "AY", body: "Aku menemukan kedai kopi kecil dekat penginapan kita", time: "9:22 AM", color: "purple", language: "Indonesian", translation: "I found a small coffee shop near where we’re staying" },
       { id: "tokyo-05", author: "Ryan", initials: "RY", body: "Saving that for the jet-lag morning", time: "9:24 AM", color: "gold", mine: true },

@@ -36,7 +36,7 @@ async function roomForConversation(conversationId: string) {
 }
 
 export async function listHallItemsAction(conversationId: string, archived = false) {
-  if (typeof archived !== "boolean") throw new Error("Invalid Hall view.");
+  if (typeof archived !== "boolean") throw new Error("Invalid Board view.");
   const actor = await requireCurrentActor();
   const db = getDatabase();
   const scope = await hallScope(db, actor, conversationId);

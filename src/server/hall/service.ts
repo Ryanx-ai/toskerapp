@@ -21,7 +21,7 @@ export async function hallScope(db: ToskerReader, actor: AuthenticatedActor, con
       .where(and(eq(subrooms.id, conversation.subroomId), or(eq(subrooms.visibility, "everyone"), eq(subroomAccess.userId, actor.userId), membership?.role === "owner" ? eq(subrooms.visibility, "owners") : undefined))).limit(1);
     if (!access) throw new AuthorizationDeniedError("Subroom access is required.");
   }
-  // Legacy Room-only notes belong to the primary Room Hall, never a Subroom.
+  // Legacy Room-only notes belong to the primary Room Board, never a Subroom.
   return conversation.roomId && !conversation.subroomId
     ? or(eq(hallItems.conversationId, conversationId), and(isNull(hallItems.conversationId), eq(hallItems.roomId, conversation.roomId)))!
     : eq(hallItems.conversationId, conversationId);
@@ -38,11 +38,11 @@ export async function requireHallNote(db: ToskerDatabase, actor: AuthenticatedAc
   const scope = await hallScope(db, actor, conversationId);
   const [item] = await db.select({ id: hallItems.id }).from(hallItems)
     .where(and(scope, eq(hallItems.id, itemId), interactiveHallItem(conversationId), isNull(hallItems.archivedAt))).limit(1);
-  if (!item) throw new AuthorizationDeniedError("Note not found in this Hall.");
+  if (!item) throw new AuthorizationDeniedError("Note not found in this Board.");
   return item;
 }
 
-/** Reactions/comments belong to this Hall object, including a live source reference. */
+/** Reactions/comments belong to this Board object, including a live source reference. */
 function interactiveHallItem(conversationId: string) {
   return sql`(${hallItems.kind} = 'note' or (${hallItems.kind} = 'pinned_message' and exists (select 1 from messages source where source.id = ${hallItems.sourceMessageId} and source.conversation_id = ${conversationId} and source.deleted_at is null)))`;
 }
@@ -50,7 +50,7 @@ function interactiveHallItem(conversationId: string) {
 async function lockHallNote(tx: ToskerReader, actor: AuthenticatedActor, conversationId: string, itemId: string) {
   const scope = await lockHallScope(tx, actor, conversationId);
   const [item] = await tx.select({ id: hallItems.id }).from(hallItems).where(and(scope, eq(hallItems.id, itemId), interactiveHallItem(conversationId), isNull(hallItems.archivedAt))).for("update");
-  if (!item) throw new AuthorizationDeniedError("Note unavailable in this Hall.");
+  if (!item) throw new AuthorizationDeniedError("Note unavailable in this Board.");
 }
 
 export async function listHallComments(db: ToskerDatabase, actor: AuthenticatedActor, conversationId: string, itemId: string, before?: string) {
@@ -116,7 +116,7 @@ export async function moveHallItem(db: ToskerDatabase, actor: AuthenticatedActor
       .orderBy(asc(hallItems.position), asc(hallItems.createdAt), asc(hallItems.id));
     const from = items.findIndex((item) => item.id === input.itemId);
     const to = input.targetId ? items.findIndex((item) => item.id === input.targetId) : from + (input.direction === "left" ? -1 : 1);
-    if (from < 0 || (input.targetId && to < 0)) throw new AuthorizationDeniedError("Item not found in this Hall.");
+    if (from < 0 || (input.targetId && to < 0)) throw new AuthorizationDeniedError("Item not found in this Board.");
     if (to < 0 || to >= items.length || from === to) return;
     const [moved] = items.splice(from, 1);
     items.splice(to, 0, moved);

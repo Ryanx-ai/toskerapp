@@ -6,9 +6,9 @@ import { Expand, X } from "lucide-react";
 import { ModalLayer } from "@/components/modal-layer";
 import styles from "@/app/landing.module.css";
 
-export function LandingExhibit({ surface, caption, description }: { surface: "Chat" | "Hall"; caption: string; description: string }) {
+export function LandingExhibit({ surface, caption, description }: { surface: "Chat" | "Board"; caption: string; description: string }) {
   const [expanded, setExpanded] = useState(false);
-  const src = `/landing/tokyo-${surface.toLowerCase()}.webp`;
+  const src = `/landing/tokyo-${surface === "Board" ? "hall" : "chat"}.webp`;
   return <figure className={styles.figure}>
     <div className={styles.exhibit}>
       <div className={styles.toolbar}>

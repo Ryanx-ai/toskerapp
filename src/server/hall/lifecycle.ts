@@ -19,18 +19,18 @@ export async function ownsHallRoom(db: ToskerReader, actor: AuthenticatedActor, 
 export async function changeHallLifecycle(db: ToskerDatabase, actor: AuthenticatedActor, input: {
   conversationId: string; itemId: string; operation: "archive" | "restore" | "delete" | "unpin" | "color"; color?: string;
 }) {
-  if (!["archive", "restore", "delete", "unpin", "color"].includes(input.operation)) throw new Error("Invalid Hall operation.");
+  if (!["archive", "restore", "delete", "unpin", "color"].includes(input.operation)) throw new Error("Invalid Board operation.");
   await db.transaction(async (tx) => {
     const scope = await lockHallScope(tx, actor, input.conversationId);
     const [item] = await tx.select().from(hallItems).where(and(scope, eq(hallItems.id, input.itemId))).for("update");
-    if (!item) throw new AuthorizationDeniedError("Item unavailable in this Hall.");
+    if (!item) throw new AuthorizationDeniedError("Item unavailable in this Board.");
     if (input.operation === "unpin") {
       if (item.kind !== "pinned_message") throw new Error("Only a Chat reference can be unpinned.");
       // Shared-board reference only; never mutate the source Chat message.
       await tx.delete(hallItems).where(eq(hallItems.id, item.id));
       return;
     }
-    if (item.kind !== "note") throw new Error("This action requires a native Hall note.");
+    if (item.kind !== "note") throw new Error("This action requires a native Board note.");
     if (input.operation === "color") {
       if (item.archivedAt || !["neutral", "ivory", "gold", "pink", "green", "blue"].includes(input.color ?? "")) throw new Error("Invalid note color.");
       await tx.update(hallItems).set({ color: input.color!, updatedAt: new Date() }).where(eq(hallItems.id, item.id));
@@ -44,7 +44,7 @@ export async function changeHallLifecycle(db: ToskerDatabase, actor: Authenticat
 
 export async function createHallNote(db: ToskerDatabase, actor: AuthenticatedActor, input: { id: string; conversationId: string; title: string; body: string }) {
   const title = input.title.trim(), body = input.body.trim();
-  if (!/^[0-9a-f-]{36}$/i.test(input.id) || !title || title.length > 80 || body.length > 4000) throw new Error("Enter a valid Hall note.");
+  if (!/^[0-9a-f-]{36}$/i.test(input.id) || !title || title.length > 80 || body.length > 4000) throw new Error("Enter a valid Board note.");
   await db.transaction(async (tx) => {
     const scope = await lockHallScope(tx, actor, input.conversationId);
     await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${input.conversationId}))`);

@@ -6,6 +6,7 @@ import "./globals.css";
 import "./fp3-shell.css";
 import "./fp4-alignment.css";
 import "./fp5-synthesis.css";
+import "./ms73-workspace.css";
 
 const montserrat = localFont({ src: [
   { path: "./fonts/Montserrat-Regular.ttf", weight: "400", style: "normal" },

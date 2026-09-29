@@ -1,0 +1,13 @@
+/* MS7.3: the nameplate overlays the scrolling list, with measured focus clearance. */
+.map-workspace-loading { flex:1; min-height:0; display:grid; place-items:center; color:var(--text-secondary); font-size:13px; }
+.fp3-shell > .messenger-sidebar { position:relative; --nameplate-clearance:116px; }
+.fp3-shell .sidebar-bottom { position:absolute; inset:auto 8px max(8px,env(safe-area-inset-bottom)) 8px; padding:0; border:0; background:transparent; z-index:3; max-height:50%; overflow-y:auto; border-radius:14px; }
+.fp3-shell .sidebar-bottom .profile-nameplate { margin:0; padding:10px; border:1px solid var(--border); border-radius:14px; background:var(--surface); box-shadow:var(--depth-raised); }
+.fp3-shell .sidebar-bottom .app-version-marker { margin:0; padding:6px 8px; background:var(--shell-plane); border-radius:0 0 12px 12px; }
+.fp3-shell .conversation-section { flex:1; min-height:0; }
+.fp3-shell .conversation-section .conversation-list { padding-bottom:var(--nameplate-clearance); scroll-padding-bottom:var(--nameplate-clearance); scroll-padding-top:8px; }
+@media(min-width:641px) {
+  .fp3-shell.sidebar-collapsed .sidebar-bottom { inset-inline:6px; padding:0; }
+  .fp3-shell.sidebar-collapsed .sidebar-bottom .profile-nameplate { width:100%; padding:8px 0; gap:8px; }
+}
+@media(max-width:640px) { .fp3-shell.list-only .sidebar-bottom { display:block; padding:0; } }

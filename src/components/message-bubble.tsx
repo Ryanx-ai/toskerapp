@@ -77,7 +77,7 @@ export function MessageBubble({ message, grouped, onReply, onReaction, onChange,
         <button onClick={() => setPanel("emoji")}><SmilePlus size={16} />React</button>
         <button onClick={() => { onReply(message); setPanel(null); }}><Reply size={16} />Reply</button>
         <button onClick={() => void run(() => navigator.clipboard.writeText(message.body))}><Copy size={16} />Copy</button>
-        {onPin ? <button disabled={busy} onClick={() => void run(() => onPin(message))}><Pin size={16} />Pin to Hall</button> : null}
+        {onPin ? <button disabled={busy} onClick={() => void run(() => onPin(message))}><Pin size={16} />Pin to Board</button> : null}
         <DeferredControl kind="translate" text />
         {message.mine ? <><hr /><button onClick={() => { setEditing(true); setPanel(null); }}><Pencil size={16} />Edit</button><button className="danger" onClick={() => { setDeleting(true); setPanel(null); }}><Trash2 size={16} />Nuke message</button></> : null}
       </div>}
@@ -85,7 +85,7 @@ export function MessageBubble({ message, grouped, onReply, onReaction, onChange,
     {editing ? <EditMessageDialog body={message.body} onSave={(body) => onChange(message.id, body)} onClose={() => setEditing(false)} /> : null}
     {deleting ? <ModalLayer onClose={() => { if (!busy) setDeleting(false); }}><section className="creation-panel message-edit-panel" role="dialog" aria-modal="true" aria-label="Nuke message">
       <h2>Nuke message?</h2>
-      <p>This permanently removes the message from Tosker and cannot be undone. Any Hall reference is removed too.</p>
+      <p>This permanently removes the message from Tosker and cannot be undone. Any Board reference is removed too.</p>
       <div className="overlay-actions"><button ref={cancelNuke} disabled={busy} onClick={() => setDeleting(false)}>Cancel</button><button className="danger" disabled={busy} onClick={() => void run(() => onChange(message.id, undefined, true))}>{busy ? "Saving…" : "Nuke message"}</button></div>
       {error ? <p role="alert">{error}</p> : null}
     </section></ModalLayer> : null}

@@ -2,6 +2,12 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## MS7.3 Gate 2 — local foundation / provider approval gate (2026-09-29)
+
+Founder Gate 2 brief authorizes execution, superseding the historical Gate 1 stop below. **MS7.3 IN PROGRESS, not deployed or locked.** [Execution ledger](docs/MS7-3-GATE-2-EXECUTION.md): local slice A adds visible Hall→Board wording without storage/URL changes, lazy member-only parent-Room Map shell, single-primary surface contract, floating nameplate with measured scroll/focus clearance. Map provider/search/pins/routes are NOT implemented. Type/build/lint/schema/secrets pass; six-width Map and eight nameplate size/collapse checks, existing surfaces and retained A/B access pass. No new DB content or migrations. Current canonical remains `bf791df`, READY `dpl_35pSmVjb6xUsQWQNmpy5JtQqt3nM`, HTTPS200.
+
+**Before external provisioning, obtain founder direction on [the Geoapify Development evaluation request](docs/MS7-3-PROVIDER-APPROVAL.md).** No account/key/paid tier/vendor terms were provisioned or accepted. Slice B schema/service review is documented, not applied. Continue real core functionality and verification after this gate; companion Chat later; no Live tracking or auto-lock. Preserve unrelated historical handoff/inheritance and untracked Design/Art/Web/research/experiments. Never replay removed QA fixtures.
+
 ## Post-lock shell LIVE / MS7.3 Gate 1 COMPLETE — STOP (2026-09-28)
 
 Latest founder brief authorizes two ordered phases. Phase A completed: application `0e02dfeedf5d7a23215d9cf2d2a7cd1d37143579`, READY `dpl_2p1NKhzJJuX3WMZ3mR1cwo1iAdCR`, exact canonical alias/HTTP200, normal live A1440/B320 smoke. [Shell ledger](docs/MS7-2-POST-LOCK-SHELL.md) records the raised top bar / quieter tab shelf, centered/compact search, six-width four-context local production resweep and caught/fixed tablet utility collision. Source unchanged in any later docs-only closeout. MS7.1 LOCKED; MS7.2 remains LOCKED, not FP6. Development providers unchanged. Retained DB baseline unchanged; no QA content created/removed; temporary mute restored.

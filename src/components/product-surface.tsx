@@ -284,7 +284,7 @@ const notificationItems = [
     id: "demo-hall-pin",
     type: "Activity",
     icon: Pin,
-    title: "A Hall note was pinned",
+    title: "A Board note was pinned",
     context: "Flight details updated · Tokyo 2027",
     time: "1h",
     href: "/room/tokyo-2027/hall",
@@ -332,10 +332,10 @@ function Notifications({ empty = false, persistent, state = "ready" }: { empty?:
     roomSlug: item.roomSlug,
     type: item.type === "message" ? item.isMention ? "Mentions" : "Messages" : item.type.startsWith("connection") ? "Activity" : "Rooms",
     icon: item.type.startsWith("connection") ? UserPlus : Pin,
-    title: item.type === "room_invitation" ? "Room invitation" : item.type === "message" ? item.isMention ? "Mentioned you" : "New message" : item.type === "connection_request" ? "New friend request" : item.type === "connection_accepted" ? "Friend request accepted" : "New Hall note",
-    context: item.type === "room_invitation" ? `${item.actorName ?? "Someone"} invited you to ${item.roomName ?? "a Room"}` : item.type === "message" ? group.events.length > 1 ? `${item.actorName ?? "Someone"} sent you ${group.events.length} messages` : `${item.actorName ?? "Someone"} ${item.isMention ? "mentioned you" : "sent you a message"}` : item.type === "connection_request" ? `${item.actorName ?? "Someone"} sent you a friend request` : item.type === "connection_accepted" ? `${item.actorName ?? "Someone"} accepted your friend request` : `${item.actorName ?? "Someone"} added something to Hall`,
+    title: item.type === "room_invitation" ? "Room invitation" : item.type === "message" ? item.isMention ? "Mentioned you" : "New message" : item.type === "connection_request" ? "New friend request" : item.type === "connection_accepted" ? "Friend request accepted" : "New Board note",
+    context: item.type === "room_invitation" ? `${item.actorName ?? "Someone"} invited you to ${item.roomName ?? "a Room"}` : item.type === "message" ? group.events.length > 1 ? `${item.actorName ?? "Someone"} sent you ${group.events.length} messages` : `${item.actorName ?? "Someone"} ${item.isMention ? "mentioned you" : "sent you a message"}` : item.type === "connection_request" ? `${item.actorName ?? "Someone"} sent you a friend request` : item.type === "connection_accepted" ? `${item.actorName ?? "Someone"} accepted your friend request` : `${item.actorName ?? "Someone"} added something to Board`,
     time: new Date(item.createdAt).toLocaleDateString(),
-    destination: item.roomName && item.type !== "room_invitation" ? `${item.roomName}${item.subroomId && item.conversationTitle ? ` / ${item.conversationTitle}` : ""} · ${item.type === "message" ? "Chat" : "Hall"}` : "",
+    destination: item.roomName && item.type !== "room_invitation" ? `${item.roomName}${item.subroomId && item.conversationTitle ? ` / ${item.conversationTitle}` : ""} · ${item.type === "message" ? "Chat" : "Board"}` : "",
     href: notificationHref(item),
   }); });
   const source = identity ? realItems : notificationItems.map((item) => ({ ...item, eventIds: [] as string[], invitationId: null, invitationStatus: null, roomSlug: null }));

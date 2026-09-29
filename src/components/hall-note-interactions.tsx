@@ -65,8 +65,8 @@ export function HallNoteInteractions({ conversationId, item, onChanged }: {
     <div className="hall-note-context">
       {imagePath ? <Image className="hall-note-image" src={imagePath} alt={item.imageAlt || item.title || "Note photo"} width={640} height={480} sizes="(max-width: 640px) 90vw, 320px" /> : null}
       <div className="hall-object-actions">
-        <div className="hall-reactions" aria-label="Hall reactions">
-          <button aria-label={item.kind === "pinned_message" ? "React to Hall reference" : "React to note"} disabled={busy} onClick={(event) => setPicker({ anchor: event.currentTarget })}><SmilePlus size={16} /></button>
+        <div className="hall-reactions" aria-label="Board reactions">
+          <button aria-label={item.kind === "pinned_message" ? "React to Board reference" : "React to note"} disabled={busy} onClick={(event) => setPicker({ anchor: event.currentTarget })}><SmilePlus size={16} /></button>
           {HALL_REACTIONS.filter(({ key }) => item.reactions?.some((entry) => entry.reaction === key && entry.count > 0)).map(({ key, emoji, label }) => {
             const value = item.reactions?.find((entry) => entry.reaction === key);
             return <button key={key} disabled={busy} aria-label={`${label}, ${value?.count ?? 0} reactions`} aria-pressed={value?.mine ?? false} onClick={() => void react(key, !value?.mine)}><span aria-hidden="true">{emoji}</span><span>{value?.count ?? 0}</span></button>;
@@ -107,7 +107,7 @@ export function HallNoteInteractions({ conversationId, item, onChanged }: {
         </form>
       </section> : null}
       {error ? <p className="hall-inline-error" role="alert">{error}</p> : null}
-      {picker ? <InteractionPopover anchor={picker.anchor} label="Hall reaction" onClose={() => setPicker(null)}><EmojiPicker onClose={() => setPicker(null)} choices={picker.commentId ? undefined : HALL_REACTIONS.map(({ emoji, label }) => [emoji, label] as const)} onPick={(emoji) => {
+      {picker ? <InteractionPopover anchor={picker.anchor} label="Board reaction" onClose={() => setPicker(null)}><EmojiPicker onClose={() => setPicker(null)} choices={picker.commentId ? undefined : HALL_REACTIONS.map(({ emoji, label }) => [emoji, label] as const)} onPick={(emoji) => {
         if (picker.commentId) {
           const comment = page.comments.find((entry) => entry.id === picker.commentId);
           void reactToComment(picker.commentId, emoji, !comment?.reactions.find((entry) => entry.emoji === emoji)?.mine);

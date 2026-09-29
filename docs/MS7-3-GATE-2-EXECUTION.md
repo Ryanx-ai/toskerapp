@@ -1,6 +1,6 @@
 # MS7.3 Gate 2 — execution ledger
 
-**2026-09-30 integrated update:** [release ledger](MS7-3-RELEASE.md) supersedes the historical slice-A statuses below. Shared Map/cards/routes and bounded Search cleanup pass local engineering acceptance; canonical release/live smoke next, then Founder Walk stop. Not locked.
+**2026-09-30 integrated update:** [release ledger](MS7-3-RELEASE.md) supersedes historical slice-A statuses below. Shared Map/cards/routes and bounded Search cleanup pass local acceptance; canonical application `fab1a7b` is READY and live A/B smoke passed. STOP FOR FOUNDER WALK. Not locked.
 
 2026-09-29 · **IN PROGRESS — local slice A checkpoint; not deployed, not locked.**
 

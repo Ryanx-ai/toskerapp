@@ -1,5 +1,7 @@
 # MS7.3 — Development provider decision and credential gate
 
+**2026-09-30 release verification:** canonical application `fab1a7b` READY; actual browser Map and server Singapore search/explicit confirmation passed on `toskerapp.vercel.app`. Final server-secret scan465source/39client-worker bundles passed. Dashboard reread Sep30:20requests/16credits,3000daily allowance; provider explicitly notes asynchronous statistics aggregation. [Release ledger](MS7-3-RELEASE.md) records live smoke and Founder Walk stop. All historical Development-only/pending-canonical instructions below are superseded only by the explicit bounded approval recorded here, not permanent production-provider certification.
+
 ## Bounded canonical configuration — founder approval, 2026-09-29
 
 Founder explicitly approved assigning the existing separate credentials to Vercel Production for `pangea6/tosker.app`, canonical `toskerapp.vercel.app`, solely for MS7.3 founder review. Both assignments succeeded through CLI stdin with output suppressed: `GEOAPIFY_SEARCH_KEY` is a Production **Secret**; `NEXT_PUBLIC_GEOAPIFY_MAP_KEY` is Production **Config** (intentionally public Map renderer key). Metadata confirms separate Development assignments remain; no Preview assignment was added. Local Development files were not overwritten. No account, key, paid resource, billing or plan change.

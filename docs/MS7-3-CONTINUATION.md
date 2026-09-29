@@ -2,7 +2,7 @@
 
 ## Superseding integrated checkpoint — 2026-09-30
 
-Map/core A/B and post-Map Search acceptance are now complete locally. See [release ledger](MS7-3-RELEASE.md) for final evidence, founder-authorized canonical environment configuration, retained Founder Review Room and six deleted disposables. Earlier pending statuses below are historical. Canonical/live release remains the next gate; MS7.3 is not locked.
+Map/core A/B and post-Map Search acceptance are complete, canonical application `fab1a7b` is READY and live A/B smoke passed. See [release ledger](MS7-3-RELEASE.md) for evidence, approved canonical environment configuration, retained Founder Review Room and six deleted disposables. Earlier pending statuses below are historical. STOP FOR FOUNDER WALK; MS7.3 is not locked.
 
 ## Authority and recovery — 2026-09-29
 

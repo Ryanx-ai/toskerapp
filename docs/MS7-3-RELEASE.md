@@ -1,8 +1,12 @@
 # MS7.3 — integrated founder-review release
 
-## Engineering checkpoint — 2026-09-30
+## LIVE — Founder Walk gate — 2026-09-30
 
-Local engineering acceptance passed. Canonical deployment/live smoke are still pending in this checkpoint. **MS7.3 is not locked. Stop for Founder Walk after live acceptance; do not start MS7.4 or Live.** This ledger supersedes the incomplete slice statuses in the earlier Gate 2/continuation reports.
+Local engineering acceptance and canonical A/B smoke passed. Application commit **`fab1a7b7a61a91b8d175d6a9105c7b94c1bcda47`**, Vercel Production **READY** deployment **`dpl_B4S4YQow7UZCpeLwUapurt4SQ9rT`** (`tosker-krkoju4ds-pangea6.vercel.app`), exact `toskerapp.vercel.app` alias and HTTPS200 verified. A later documentation-only closeout may redeploy identical application source. **STOP FOR FOUNDER WALK. MS7.3 is not locked; do not start MS7.4 or Live.** This ledger supersedes incomplete slice statuses in the earlier Gate 2/continuation reports.
+
+Live smoke used normal Clerk sign-in for retained isolated A/B, not an auth bypass or founder identity. Actual browser basemap/attribution and server Singapore lookup passed; result list did not auto-select/save; explicit Marina Bay Sands preview and confirmation returned its existing canonical UUID without duplicate cards. Shared Stop toggle reached B and was restored, both reloaded the same two IDs. Existing Map+Chat companion contextual search jumped without replacing the map; mobile390 Map/Places, Board checklist and same canonical Chat passed. Fresh Chat performed no Map/provider resource work. No browser errors; deployment error/fatal/5xx log queries each returned zero entries. This is bounded smoke, not long-term monitoring certification; external drains/alerts were not provisioned or certified.
+
+Final pre-deployment secret scan: **465 source/owned files +39 generated client/worker bundles, PASS**, server credential included, no credentials printed. Provider dashboard reread Sep30 showed20requests/16credits,3000daily allowance,14geocoding/6tile requests. Its own explanation confirms asynchronous aggregation; this is an observed lagging total, not an exact real-time consumption claim. No quota/plan/billing/restriction weakening. Final live database audit retains the same counts and zero integrity violations recorded below.
 
 ### Delivered scope
 
@@ -39,6 +43,6 @@ Deleted whole exact-owned disposables: `ms73-qa-07148c6b`, `ms73-qa-5f5557a1`, `
 
 Final retained baseline:8users/profiles/Sandboxes,5Rooms,8memberships,5Personal conversations,30messages,10Board notes,2pins,3capabilities,6accepted connections,36notifications. All existing integrity counters zero. Delta from pre-MS7.3 is the one review Room and safe QA content/notifications. Founder identity, profile, Sandbox, Personal Chats and unrelated Rooms were not repurposed for testing.
 
-### Release procedure / outstanding gate
+### Release closeout / outstanding gate
 
-Scope the commit to MS7.3 code/tests/reports and only the new handoff section. Preserve unrelated Design/Art/Web/inheritance/research/experiments WIP. Push without force; deploy exact committed source to the approved canonical Production target. Verify READY/alias/SHA, HTTPS, actual live A/B Map/search/preview/shared state and errors. Then record deployment evidence and **STOP FOR FOUNDER WALK**, not milestone lock or MS15 production certification.
+Application commit/push and exact canonical release completed without force. Only MS7.3 code/tests/reports and the new handoff section were staged; unrelated Design/Art/Web/inheritance/research/experiments WIP remains untouched. The deployment skill kept release verification tied to target/alias/source metadata and a bounded runtime-error scan. UX guidance kept Search to the founder's anchored-search/context-jump contract rather than a new navigation system. **STOP FOR FOUNDER WALK**, not milestone lock or MS15 production certification.

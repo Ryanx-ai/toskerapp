@@ -2,11 +2,11 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
-## MS7.3 integrated engineering gate — 2026-09-30
+## MS7.3 LIVE — STOP FOR FOUNDER WALK — 2026-09-30
 
-Read [MS7.3 release ledger](docs/MS7-3-RELEASE.md) first. Shared Map/cards/routes, optional existing Chat companion and post-Map Search cleanup pass local A/B, six-width, failure/revocation and regression gates. Two forward migrations0020/0021 applied;22historical hashes/catalog match. Founder explicitly approved bounded Geoapify canonical Production assignments and exact canonical browser Referer restriction; Development remains separate, Free plan/no billing/no permanent provider commitment. Server credential scan passes. Earlier basemap-only statuses below are historical.
+Read [MS7.3 release ledger](docs/MS7-3-RELEASE.md) first. Application `fab1a7b` is pushed and canonical READY `dpl_B4S4YQow7UZCpeLwUapurt4SQ9rT`, exact alias/HTTPS200; later docs-only closeout may redeploy identical source. Shared Map/cards/routes, optional existing Chat companion and post-Map Search cleanup pass local A/B, six-width, failure/revocation and regression gates. Live normal A/B basemap/SG search/explicit confirmation, canonical duplicate prevention, shared Stop/restoration/reload, Map+Chat search, mobile Map/Places, Board and fresh Chat isolation pass; browser/error/fatal/5xx scans clean. Two forward migrations0020/0021 applied;22historical hashes/catalog match. Founder-approved bounded Geoapify canonical Production configuration; Development separate, Free plan/no billing/no permanent provider commitment. Final server-secret scan465source/39bundles passes. Earlier basemap-only statuses below are historical.
 
-ONE retained **MS7.3 Founder Review — Singapore Trip**, slug `ms73-founder-review-904a9dea`, includes exact-resolved founderTID8V3X7P1 plus isolated A/B. Safe2places/2routes/Chat/Board content; NEVER auto-clean it. All6exact-owned disposable fixtures deleted; receipt inventory in `docs/MS7-3-QA-FIXTURES.json`. Canonical deployment/live smoke still pending this engineering checkpoint. Continue exact-source release then STOP FOR FOUNDER WALK; no automatic MS7.3 lock, MS7.4 or Live. Preserve unrelated handoff/inheritance/Design/Art/Web/research/experiments WIP; never replay historical fixture creation or cleanup.
+ONE retained **MS7.3 Founder Review — Singapore Trip**, slug `ms73-founder-review-904a9dea`, includes exact-resolved founderTID8V3X7P1 plus isolated A/B. Safe2places/2routes/Chat/Board content; NEVER auto-clean it. All6exact-owned disposable fixtures deleted; receipt inventory in `docs/MS7-3-QA-FIXTURES.json`. **STOP FOR FOUNDER WALK; no automatic MS7.3 lock, MS7.4 or Live.** Preserve unrelated handoff/inheritance/Design/Art/Web/research/experiments WIP; never replay historical fixture creation or cleanup.
 
 ## MS7.3 Gate 2 — real basemap verified locally (2026-09-29)
 

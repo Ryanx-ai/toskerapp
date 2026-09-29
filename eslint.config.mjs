@@ -11,6 +11,7 @@ const eslintConfig = defineConfig([
     ".next/**",
     "out/**",
     "build/**",
+    "public/maplibre/**", // Generated upstream SDK assets, verified against the pinned package.
     "next-env.d.ts",
   ]),
 ]);

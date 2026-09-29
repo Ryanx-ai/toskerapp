@@ -17,6 +17,7 @@ async function fit(s) {
 }
 if (process.argv[2] === 'map') {
   await open(a, room + '/map', `!!document.querySelector('[aria-label="Room Map"]')`);
+  await until(a, `document.querySelector('[data-map-state]')?.dataset.mapState==='ready'`, 'approved real basemap', 30000);
   for (const width of [320, 390, 430, 768, 1440, 1728]) {
     await run(a, 'set', 'viewport', String(width), width < 641 ? '844' : '1000');
     await fit(a);
@@ -29,8 +30,9 @@ if (process.argv[2] === 'map') {
     console.log('PASS Map layout', JSON.stringify(bounds));
   }
   const providers = await ev(a, `performance.getEntriesByType('resource').filter(e=>/geoapify|mapbox|maplibre|tile.openstreetmap/.test(e.name)).map(e=>new URL(e.name).hostname)`);
-  assert.deepEqual(providers, [], 'no unapproved provider request');
-  console.log('BROWSER_ERRORS', JSON.stringify(await run(a, 'errors')));
+  assert(providers.includes('maps.geoapify.com'), 'approved provider connected');
+  assert(providers.every(host => ['maps.geoapify.com','localhost'].includes(host)), 'no unexpected map provider');
+  assert.equal((await run(a, 'errors')).errors?.length ?? 0, 0, 'inspect browser errors only with credential redaction');
 }
 if (process.argv[2] === 'surfaces') {
   await run(a, 'set', 'viewport', '1440', '1000');

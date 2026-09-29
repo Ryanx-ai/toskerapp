@@ -40,3 +40,5 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+# Generated from the exact pinned package by predev/prebuild; no vendored SDK copy.
+/public/maplibre/

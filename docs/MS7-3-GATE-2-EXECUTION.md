@@ -8,7 +8,7 @@ Authority: founder's `TOSKER_MS7_3_GATE2_MAP_EXECUTION.pdf` and “lfg codex! MS
 
 Recovered main and fetched origin: `bf791dfcc9cd7f7729d9dbcc9aae5ffc0969e12e`, 0/0 divergence. Canonical `dpl_35pSmVjb6xUsQWQNmpy5JtQqt3nM`, READY, exact same SHA and `toskerapp.vercel.app` alias, HTTPS 200. Source checkpoint underneath the docs-only commit is `0e02dfeedf5d7a23215d9cf2d2a7cd1d37143579`.
 
-Confirmed defaults: one parent-Room Map, all current members collaborate, ordered places canonical, reversible archive, MapLibre/Geoapify only a conditional Development candidate, core Map/cards before companion Chat. Gate 2 adds route sets, private overlay visibility, straight/geodesic planning lines and previewed local distance suggestions. These are not road navigation or provider route optimization. Live remains prime-only; do not enable device location or six-second telemetry.
+Confirmed defaults: one parent-Room Map, all current members collaborate, ordered places canonical, reversible archive, MapLibre renderer and replaceable provider boundary, core Map/cards before companion Chat. Founder subsequently selected **Geoapify Free for bounded MS7.3 Development evaluation**, not permanent production use. Gate 2 adds route sets, private overlay visibility, straight/geodesic planning lines and previewed local distance suggestions. These are not road navigation or provider route optimization. Live remains prime-only; do not enable device location or six-second telemetry.
 
 Five supplied Dashboard PDFs were rendered and visually read. Adopted Map-dominant area, cards below and optional later Chat rail—not screenshot colors, placeholder white Board, imaginary routes or unlicensed photography. Discord nameplate reference supplies overlay/scroll behavior, not branding.
 
@@ -39,6 +39,8 @@ Evidence: `/Users/ryanc/.codex/artifacts/tosker-ms73-20260929/` contains source-
 
 ## Slice B schema/service review — design only, not applied
 
+The additional real-basemap slice below is now verified locally. This schema/service section still describes the next unapplied work; no trip tables or saves exist yet.
+
 Reviewed current Room membership authority and lifecycle serialization. Existing removal takes the Room row lock; new mutations must take that same lock **before** reauthorizing membership, not rely on a page-level check. Reads must check current membership and return a consistent revisioned snapshot. Nothing below has been generated/applied or claimed tested yet.
 
 | Object | Proposed authority and constraints |
@@ -54,8 +56,29 @@ Service contract before DDL: normalize/validate input → lock parent Room → c
 
 Required tests still outstanding: A/B simultaneous add/order/archive, changed-payload retry, cross-Room ID injection, removal-vs-write, receipt replay after removal, rollback and lost response, stale snapshot recovery, route/archive/restore references, bounded reads/no N+1. Provider fields and attribution need the evaluation gate below before finalizing durable card storage. This review is not release proof.
 
-## Stop / next step
+## Founder provider approval / credential handoff — 2026-09-29
 
-[Provider approval request](MS7-3-PROVIDER-APPROVAL.md) records the required account/key, budget/overage risk, rights, attribution, privacy and origin restrictions before external provisioning. No Terms accepted, account created or provider call made.
+[Provider decision report](MS7-3-PROVIDER-APPROVAL.md) records the stopped LocationIQ comparison, official-source findings, imperfect Singapore demo cases, durable-field rights, privacy/attribution, quotas and restrictions. Founder reports creating Geoapify `tosker` Free project/key; Codex created neither and made no billing change. Anonymous-demo evidence is not configured-provider smoke. Selection is reversible at MS7.6; MapLibre remains the renderer.
 
-On founder approval: finish schema/service implementation and forward-migration proof; evaluate provider coverage/rights; implement real search/direct-pin/cards, route sets/ghosts/archive, planning line and local Quick order; realtime/auth race tests; responsive/accessibility proof; optional existing-Chat companion only after core proof. Then full regression → scoped commit/push → exact canonical SHA/READY/HTTP → live A/B smoke → **founder review, not auto-lock**. Local slice A must not be mistaken for a complete Gate 2 release.
+Recovery confirms source checkpoint `a2f5b20`. Founder saved `GEOAPIFY_SEARCH_KEY` in linked Vercel Development. Secure pull into ignored `.env.development.local` (0600) preserved existing `.env.local` and local-only secrets. No public Geoapify variable. Actual-key smoke completed once: 8 Singapore-filtered/bias forward + 2 manually chosen reverse requests, HTTP200 throughout, no retry, estimated 10 credits. Known postal failure (018953 → Museum) persists; reverse responses give context, not exact pin identity. All selected fields/provenance and exact references recorded in sanitized evidence linked from the report. Retain clicked coordinates rather than snapping to reverse result coordinates. Account dashboard usage/restrictions remain unverified.
+
+The initial server-only handoff ended without app/schema/deployment changes. Its browser-key gate is now resolved by the founder's next message and the verified slice below. Do not repeat provisioning. Preview/Production remain unconfigured, server egress controls unverified. Final regression → scoped commit/push → exact canonical SHA/READY/HTTP → live A/B smoke → **founder review, not auto-lock**. This is not a complete Gate 2 release.
+
+## Provider / real-basemap slice — local acceptance 2026-09-29
+
+Founder confirmed 3,000-credit daily Free allowance and saved the separate browser key. Screenshot shows11credits across the selected Aug29–Sep29 period, not a fresh final usage reading. Secure repull preserved all local secrets and exact server credential; exact public variable name verified, values distinct. Three style tests: localhost3000 and127.0.0.1:3000 return200; unapproved example origin returns401. CORS `*` is not the access-control proof. No Preview/Production keys, paid resources or billing changes. Internal500/day ceiling remains.
+
+Implemented pinned `maplibre-gl@6.11.2`, provider-neutral browser configuration boundary with Geoapify Development style, lazy SDK only inside the existing Map surface, exact same-origin generated worker/shared files plus upstream license. The documented MapLibre6/Next worker integration is necessary: first browser render exposed a missing-worker failure despite successful build/style response; copying both runtime files via prebuild/predev and explicit `setWorkerUrl` fixed actual tile rendering. Generated assets are ignored by Git/lint, included in secret scanning, and byte-compared against installed package. Only generated public `/maplibre/` assets bypass auth middleware; Room page/member guards unchanged.
+
+Map has stable loading geometry, sanitized failure, renderer/listener/ResizeObserver disposal,20-second initial timeout, max2explicit retries, no retry/poll loop or device geolocation. Keyboard pan,44px zoom controls and Singapore reset; source attribution always expanded and not duplicated. Label colors inherit existing Tosker text/surface tokens. Actual provider attribution remains in the style; required credits are verified in the rendered browser. Map/toolbar/cards inherit existing fonts, shell planes and spacing; workspace scroll preserves cards on short displays. Search/save remain visibly unavailable until shared-plan services exist—no fake pins, saved data or route claims.
+
+Verification:
+
+- TypeScript, optimized build (explicitly loaded Development env for local production-mode build), source/provider guards and diff check pass. Lint:0errors, only pre-existing unused `eq` warning. Production dependency audit:0vulnerabilities; overall install reported4moderate development-tool findings, no force-upgrade applied.
+- Six real-map screenshots320/390/430/768/1440/1728 visually reviewed; no horizontal page overflow, single Map primary,44px controls, visible Geoapify/OpenMapTiles/OpenStreetMap credits.320x568 scroll reaches entire Location Cards region. Keyboard pan/reset with reduced-motion preference exercised.
+- Actual retained A and B use normal Clerk Development sign-in and load shared-Room basemap. Unknown Room returns404 without map requests. Existing membership service not changed; full trip mutation authorization/race proofs still belong to next slices.
+- Fresh existing Chat and Board loads make0provider/MapLibre-worker resource requests. Browser-only injected map fetch failure removes renderer; restoring fetch then explicit retry returns to the real map. No page errors on these checks. Initial network-route test did not inject a failure and was not counted as proof; browser fetch injection supplied the actual failure evidence.
+- One initial test command collided with a legacy helper's `layout` branch and timed out before any mutation; new basemap-prefixed arguments avoid those branches. No fixtures/messages/Room state created or deleted.
+- Secret scan passes438source/owned files and38client/generated-worker bundles, including Geoapify server key. No credential text in screenshots/logs/source. Stats capture during one later page lifecycle recorded22provider resources; this is not a complete account-wide bill/delta. No routing, optimization, live location, background provider polling or extra geocoding smoke.
+
+Evidence: existing artifact directory, `basemap-{width}.png`, `basemap-failure.png`, `basemap-short-scroll.png`. Repeatable read-only tests: `verify-ms73-map-provider.ts`, `browser-ms73-basemap.mjs basemap-layout|basemap-isolation|basemap-failure` with `AGENT_BROWSER_BIN` and `MS73_CAPTURES`. The layout/failure modes expect the real Map already open in `ms73-local-a`; use normal login, not an auth bypass. Next: reviewed forward-only schema/services, then real server search and confirmation/saved-place slice. No push/canonical deployment or milestone lock yet.

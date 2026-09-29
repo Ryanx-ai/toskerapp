@@ -9,8 +9,91 @@ import {
   timestamp,
   uniqueIndex,
   uuid,
+  doublePrecision,
+  check,
+  foreignKey,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
+
+// Durable bounded provider counters; no queries, coordinates or response data.
+export const mapProviderUsage = pgTable("map_provider_usage", {
+  scope: text("scope").primaryKey(),
+  window: text("window").notNull(),
+  used: integer("used").notNull(),
+  lastAt: timestamp("last_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+// Parent-Room owned trip state. Membership remains room_memberships.
+export const tripPlans = pgTable("trip_plans", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  roomId: uuid("room_id").notNull().references(() => rooms.id, { onDelete: "cascade" }),
+  revision: integer("revision").default(0).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, t => [uniqueIndex("trip_plans_room_unique").on(t.roomId), check("trip_plans_revision_valid", sql`${t.revision} >= 0`)]);
+
+export const tripPlaces = pgTable("trip_places", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  planId: uuid("plan_id").notNull().references(() => tripPlans.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  note: text("note").default("").notNull(),
+  latitude: doublePrecision("latitude").notNull(),
+  longitude: doublePrecision("longitude").notNull(),
+  source: text("source").notNull(),
+  provider: text("provider"),
+  providerId: text("provider_id"),
+  address: text("address").default("").notNull(),
+  attribution: text("attribution").default("").notNull(),
+  license: text("license").default("").notNull(),
+  archivedAt: timestamp("archived_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, t => [
+  uniqueIndex("trip_places_plan_id_unique").on(t.planId, t.id),
+  uniqueIndex("trip_places_provider_unique").on(t.planId, t.provider, t.providerId),
+  check("trip_places_latitude_valid", sql`${t.latitude} >= -90 and ${t.latitude} <= 90`),
+  check("trip_places_longitude_valid", sql`${t.longitude} >= -180 and ${t.longitude} <= 180`),
+  check("trip_places_text_valid", sql`length(${t.title}) between 1 and 120 and length(${t.note}) <= 1000 and length(${t.address}) <= 400 and length(${t.attribution}) <= 500 and length(${t.license}) <= 120`),
+  check("trip_places_source_valid", sql`${t.source} in ('search', 'pin')`),
+]);
+
+export const tripRoutes = pgTable("trip_routes", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  planId: uuid("plan_id").notNull().references(() => tripPlans.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  color: text("color").default("gold").notNull(),
+  archivedAt: timestamp("archived_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, t => [
+  uniqueIndex("trip_routes_plan_id_unique").on(t.planId, t.id),
+  check("trip_routes_name_valid", sql`length(${t.name}) between 1 and 60`),
+  check("trip_routes_color_valid", sql`${t.color} in ('gold', 'rose', 'sage', 'sky', 'iris')`),
+]);
+
+export const tripRoutePlaces = pgTable("trip_route_places", {
+  planId: uuid("plan_id").notNull(),
+  routeId: uuid("route_id").notNull(),
+  placeId: uuid("place_id").notNull(),
+  position: integer("position").notNull(),
+  isStop: boolean("is_stop").default(true).notNull(),
+}, t => [
+  primaryKey({ columns: [t.routeId, t.placeId] }),
+  foreignKey({ name: "trip_route_places_route_fk", columns: [t.planId, t.routeId], foreignColumns: [tripRoutes.planId, tripRoutes.id] }).onDelete("cascade"),
+  foreignKey({ name: "trip_route_places_place_fk", columns: [t.planId, t.placeId], foreignColumns: [tripPlaces.planId, tripPlaces.id] }).onDelete("cascade"),
+  index("trip_route_places_plan_idx").on(t.planId),
+  check("trip_route_places_position_valid", sql`${t.position} >= 0 and ${t.position} < 200`),
+]);
+
+export const tripMutationReceipts = pgTable("trip_mutation_receipts", {
+  planId: uuid("plan_id").notNull().references(() => tripPlans.id, { onDelete: "cascade" }),
+  actorId: uuid("actor_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  requestId: uuid("request_id").notNull(),
+  payloadHash: text("payload_hash").notNull(),
+  revision: integer("revision").notNull(),
+  resultId: uuid("result_id"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, t => [primaryKey({ columns: [t.planId, t.actorId, t.requestId] })]);
 
 const timestamps = {
   createdAt: timestamp("created_at", { withTimezone: true })

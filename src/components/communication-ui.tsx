@@ -126,6 +126,8 @@ export function SurfaceHeader({
   unreadByConversation,
   preference,
   onReadingPause,
+  chatCompanionOpen,
+  onToggleChatCompanion,
 }: {
   conversation: Conversation;
   surface: WorkspaceSurface;
@@ -137,6 +139,8 @@ export function SurfaceHeader({
   unreadByConversation?: Readonly<Record<string, number>>;
   preference?: ConversationPreference;
   onReadingPause?: (paused: boolean) => void;
+  chatCompanionOpen?: boolean;
+  onToggleChatCompanion?: () => void;
 }) {
   const user = useCurrentToskerUser() ?? prototypeUser;
   const identity = useToskerIdentity();
@@ -199,6 +203,7 @@ export function SurfaceHeader({
           Board<AttentionMark count={hallUnread} label="new Board activities" />
         </Link>
         {identity && hasRoomMap(conversation) ? <Link className={surface === "map" ? "active" : ""} aria-current={surface === "map" ? "page" : undefined} href={`${baseHref(conversation)}/map`} prefetch={false}>Map</Link> : null}
+        {onToggleChatCompanion && <button className="chat-companion-toggle" aria-pressed={!!chatCompanionOpen} onClick={onToggleChatCompanion}>{chatCompanionOpen ? "Hide Chat" : "Open Chat alongside"}</button>}
       </nav>
       {controlsAnchor ? <InteractionPopover anchor={controlsAnchor} label="Conversation options" onClose={() => { if (!controlBusy) setControlsAnchor(null); }}><div className="room-context-menu communication-options">
         {conversation.kind === "room" && onInvite ? <button disabled={controlBusy} onClick={() => { setControlsAnchor(null); onInvite(); }}><Plus size={15} />Invite</button> : null}

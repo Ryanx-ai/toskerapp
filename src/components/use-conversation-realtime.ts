@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useEffectEvent, useRef, useState } from "react";
 import { communicationTiming, deliveryTrace } from "@/lib/communication-performance";
 import { PROFILE_CHANGED, PROFILE_REFRESH } from "@/lib/realtime-contract";
+import { TRIP_CHANGED, TRIP_REFRESH } from "@/lib/realtime-contract";
 import { conversationChannel, typingChannel, userChannel, MESSAGE_CHANGED, TYPING_CHANGED, TYPING_TTL, USER_ACTIVITY, ACTIVITY_REFRESH, CHAT_REFRESH, HALL_REFRESH, CONVERSATION_ACCESS_LOST } from "@/lib/realtime-contract";
 
 /** One workspace transport; demos never request a token or connect. */
@@ -42,6 +43,9 @@ export function useConversationRealtime(conversationId: string | undefined, user
       const updateHealth = () => { if (!disposed) setConnected(realtime.connection.state === "connected" && feed.state === "attached" && (!channel || channel.state === "attached")); };
       feed.on(updateHealth); channel?.on(updateHealth);
       const refreshActivity = () => { if (!disposed) window.dispatchEvent(new Event(ACTIVITY_REFRESH)); };
+      const refreshTrip = () => { if (!disposed) window.dispatchEvent(new Event(TRIP_REFRESH)); };
+      void channel?.subscribe(TRIP_CHANGED, refreshTrip).then(refreshTrip).catch(() => undefined);
+      channel?.on("attached", refreshTrip);
       void feed.subscribe(PROFILE_CHANGED, () => {
         if (disposed) return;
         refreshActivity();

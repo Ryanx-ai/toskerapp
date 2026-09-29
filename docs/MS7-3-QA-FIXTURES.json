@@ -1,0 +1,17 @@
+{
+  "run": "ms73-20260929",
+  "founderTid": "8V3X7P1",
+  "retained": [{
+    "run": "ms73-20260929",
+    "id": "53bc3b0c-2895-4dca-b873-1400833b93ad",
+    "slug": "ms73-founder-review-904a9dea",
+    "name": "MS7.3 Founder Review — Singapore Trip",
+    "ownerId": "0ee1e5a5-6d7a-4541-a6ca-ca69788997ef",
+    "createdAt": "2026-09-29T09:58:13.313Z",
+    "conversationId": "235ecc73-4084-4720-a107-162e7e46d671",
+    "retained": true,
+    "purpose": "Retained A/B Map + Location Cards + Routes + Board + Chat Founder Walk"
+  }],
+  "activeDisposableReceipt": "MS7-3-STRESS-FIXTURE.json",
+  "deletedDisposableSlugs": ["ms73-qa-07148c6b", "ms73-qa-5f5557a1", "ms73-qa-9aacd278", "ms73-qa-dc29faba"]
+}

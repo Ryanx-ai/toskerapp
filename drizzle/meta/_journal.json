@@ -141,6 +141,20 @@
       "when": 1790273550432,
       "tag": "0019_ms72_fp2_customization",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1790671862629,
+      "tag": "0020_ms73_trip_plan",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1790674783689,
+      "tag": "0021_ms73_provider_budget",
+      "breakpoints": true
     }
   ]
 }

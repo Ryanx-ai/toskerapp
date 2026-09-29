@@ -43,6 +43,17 @@ const indexes = await sql`
   where n.nspname='public'`;
 const normalize = (value) => String(value ?? "").replace(/::[\w\s]+(?=[),]|$)/g, "").replace(/"|\bpublic\./g, "").replace(/[\s()]/g, "").toLowerCase();
 const names = (values) => values.map((value) => value.name).sort();
+// PostgreSQL deparses CHECK IN as = ANY(ARRAY), removes the owning-table
+// qualifier, and quotes negative float constants. Canonicalize those exact
+// equivalent forms only; constraint names/types/column sets remain strict.
+function normalizeConstraint(value, table, type) {
+  if (type !== "c") return normalize(value);
+  const expanded = String(value).replace(/::text(?=\])/g, "").replace(/(length\((?:"?\w+"?\.)?"?\w+"?\))\s+between\s+(\d+)\s+and\s+(\d+)/gi, "$1 >= $2 and $1 <= $3");
+  return normalize(expanded)
+    .replaceAll(`${table}.`, "")
+    .replace(/'(-?\d+(?:\.\d+)?)'/g, "$1")
+    .replace(/=anyarray\[([^\]]+)\]/g, "in$1");
+}
 assert.deepEqual([...new Set(columns.map((column) => column.table_name))].sort(), Object.values(snapshot.tables).map((table) => table.name).sort(), "Table set");
 assert.deepEqual(names(enums), names(Object.values(snapshot.enums)), "Enum set");
 for (const expected of Object.values(snapshot.enums)) {
@@ -69,7 +80,7 @@ for (const table of Object.values(snapshot.tables)) {
   for (const constraint of expectedConstraints) {
     const value = actualConstraints.find((entry) => entry.name === constraint.name);
     assert.equal(value.type, constraint.type);
-    assert.equal(normalize(value.definition), normalize(constraint.definition), `Constraint ${constraint.name}`);
+    assert.equal(normalizeConstraint(value.definition, table.name, constraint.type), normalizeConstraint(constraint.definition, table.name, constraint.type), `Constraint ${constraint.name}`);
   }
   for (const index of Object.values(table.indexes)) {
     const value = indexes.find((entry) => entry.table_name === table.name && entry.name === index.name);

@@ -7,6 +7,14 @@ import { eq } from "drizzle-orm";
 import { getDatabase } from "@/server/db/client";
 import { conversationParticipants } from "@/server/db/schema";
 import type { DeliveryTrace } from "@/lib/communication-performance";
+import { TRIP_CHANGED } from "@/lib/realtime-contract";
+
+/** Existing authorized Room conversation channel; no new membership/transport. */
+export async function publishTripChanged(conversationId: string) {
+  if (!process.env.ABLY_API_KEY) return;
+  try { await getRealtimeServer().channels.get(conversationChannel(conversationId)).publish({ id: randomUUID(), name: TRIP_CHANGED, data: { version: 1 } }); }
+  catch { console.warn("[realtime] Trip signal unavailable; canonical reconciliation retained."); }
+}
 
 let client: Rest | undefined;
 

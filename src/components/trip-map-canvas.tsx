@@ -1,19 +1,24 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { Map as MapIcon, RotateCcw } from "lucide-react";
-import type { Map as MapInstance } from "maplibre-gl";
+import type { Map as MapInstance, Marker, GeoJSONSource } from "maplibre-gl";
+import type { PlaceCandidate, TripPlace, TripRoute } from "@/lib/trip-contract";
 import { getBrowserMapProvider, SINGAPORE_CENTER } from "@/lib/maps/browser-provider";
 import "maplibre-gl/dist/maplibre-gl.css";
 import styles from "./room-map-workspace.module.css";
 
 type Status = "loading" | "ready" | "unavailable" | "failed";
+type PlanningRoute = TripRoute & { ghost: boolean; places: (TripPlace & { isStop: boolean })[] };
 
-export default function TripMapCanvas() {
+export default function TripMapCanvas({ places, routes, candidate, selectedId, onSelect, onSelectGhost, pinMode, onPin }: { places: TripPlace[]; routes: PlanningRoute[]; candidate: PlaceCandidate | null; selectedId: string | null; onSelect(id: string): void; onSelectGhost(routeId: string, id: string): void; pinMode: boolean; onPin(latitude: number, longitude: number): void }) {
   const container = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapInstance | null>(null);
   const [status, setStatus] = useState<Status>("loading");
   const [attempt, setAttempt] = useState(0);
+  const selected = useEffectEvent((id: string) => onSelect(id));
+  const selectedGhost = useEffectEvent((routeId: string, id: string) => onSelectGhost(routeId, id));
+  const clicked = useEffectEvent((latitude: number, longitude: number) => { if (pinMode) onPin(latitude, longitude); });
 
   useEffect(() => {
     let disposed = false;
@@ -62,6 +67,7 @@ export default function TripMapCanvas() {
           attributionControl: { compact: false },
         });
         mapRef.current = instance;
+        instance.on("click", event => { if (!(event.originalEvent.target as Element)?.closest("button")) clicked(event.lngLat.lat, event.lngLat.lng); });
         instance.on("error", fail);
         instance.on("webglcontextlost", fail);
         instance.once("load", () => {
@@ -84,6 +90,68 @@ export default function TripMapCanvas() {
     })();
     return () => { disposed = true; disposeMap(); };
   }, [attempt]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (status !== "ready" || !map) return;
+    let disposed = false;
+    const markers: Marker[] = [];
+    void import("maplibre-gl").then(({ Marker }) => {
+      if (disposed) return;
+      const activeColor = routes.find(r => !r.ghost)?.color ?? "gold";
+      const activeIds = new Set(places.map(p => p.id));
+      routes.filter(r => r.ghost).forEach(route => route.places.forEach((place,index) => {
+        if (activeIds.has(place.id)) return;
+        const button = document.createElement("button"); button.type = "button";
+        button.className = `${styles.pin} ${styles.ghostPin}`; button.dataset.routeColor = route.color;
+        button.textContent = String(index+1); button.setAttribute("aria-label", `Ghost ${route.name}, place ${index+1}: ${place.title}. Make route active`);
+        button.addEventListener("click", e => { e.stopPropagation(); selectedGhost(route.id, place.id); });
+        markers.push(new Marker({ element: button, anchor: "center" }).setLngLat([place.longitude,place.latitude]).addTo(map));
+      }));
+      places.forEach((place, index) => {
+        const button = document.createElement("button"); button.type = "button";
+        button.className = `${styles.pin} ${place.id === selectedId ? styles.selectedPin : ""}`;
+        button.dataset.routeColor = activeColor;
+        button.textContent = String(index + 1);
+        button.setAttribute("aria-label", `Select place ${index + 1}: ${place.title}`);
+        button.setAttribute("aria-pressed", String(place.id === selectedId));
+        button.addEventListener("click", event => { event.stopPropagation(); selected(place.id); });
+        markers.push(new Marker({ element: button, anchor: "center" }).setLngLat([place.longitude, place.latitude]).addTo(map));
+      });
+      if (candidate) {
+        const element = document.createElement("span"); element.className = `${styles.pin} ${styles.candidatePin}`;
+        element.textContent = "+"; element.setAttribute("aria-label", "Unsaved preview pin");
+        markers.push(new Marker({ element, anchor: "center" }).setLngLat([candidate.longitude, candidate.latitude]).addTo(map));
+      }
+    });
+    return () => { disposed = true; markers.forEach(marker => marker.remove()); };
+  }, [status, places, routes, candidate, selectedId]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (status !== "ready" || !map || !container.current) return;
+    const tokens = getComputedStyle(container.current);
+    const data: GeoJSON.FeatureCollection<GeoJSON.LineString> = { type: "FeatureCollection", features: routes.flatMap(route => {
+      const stops = route.places.filter(p => p.isStop);
+      return stops.length < 2 ? [] : [{ type: "Feature" as const, properties: { name: route.name, ghost: route.ghost, color: tokens.getPropertyValue(`--trip-${route.color}`).trim() }, geometry: { type: "LineString" as const, coordinates: stops.map(p => [p.longitude,p.latitude]) } }];
+    }) };
+    const source = map.getSource("tosker-planning") as GeoJSONSource | undefined;
+    if (source) source.setData(data);
+    else {
+      map.addSource("tosker-planning", { type: "geojson", data });
+      map.addLayer({ id: "tosker-planning-ghost", type: "line", source: "tosker-planning", filter: ["==",["get","ghost"],true], paint: { "line-color": ["get","color"], "line-width": 3, "line-opacity": .6, "line-dasharray": [2,3] } });
+      map.addLayer({ id: "tosker-planning-active", type: "line", source: "tosker-planning", filter: ["==",["get","ghost"],false], paint: { "line-color": ["get","color"], "line-width": 3, "line-opacity": .9 } });
+    }
+  }, [status, routes]);
+
+  useEffect(() => {
+    if (status !== "ready") return;
+    const point = candidate ?? places.find(place => place.id === selectedId);
+    if (point) mapRef.current?.jumpTo({ center: [point.longitude, point.latitude], zoom: Math.max(14, mapRef.current.getZoom()) });
+    // Camera reacts only to this viewer's selection, never a peer's snapshot.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [candidate, selectedId, status]);
+  useEffect(() => { const canvas = mapRef.current?.getCanvas(); if (canvas) canvas.style.cursor = pinMode ? "crosshair" : ""; }, [pinMode, status]);
 
   return <div className={styles.canvasRegion} data-map-state={status}>
     <div ref={container} className={styles.canvas} />

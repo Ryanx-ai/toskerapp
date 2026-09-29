@@ -11,3 +11,21 @@
   .fp3-shell.sidebar-collapsed .sidebar-bottom .profile-nameplate { width:100%; padding:8px 0; gap:8px; }
 }
 @media(max-width:640px) { .fp3-shell.list-only .sidebar-bottom { display:block; padding:0; } }
+/* A single existing ChatSurface is mounted beside the planning surface, never a new chat model. */
+.planning-workspace { display:flex; flex:1; min-height:0; min-width:0; overflow:hidden; }
+.fp3-shell .working-surface > .planning-workspace { overflow:hidden; }
+.planning-primary { display:flex; flex-direction:column; flex:1; min-width:0; min-height:0; overflow:hidden; }
+.planning-primary > .hall-surface { flex:1; min-height:0; width:100%; }
+.planning-chat { display:flex; flex-direction:column; flex:0 0 clamp(320px,25vw,400px); min-height:0; min-width:0; border-left:1px solid var(--border); }
+.planning-chat-label { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:8px 16px; background:var(--shell-plane); border-bottom:1px solid var(--border); font-size:13px; }
+.planning-chat-label button { min-height:44px; border:0; border-radius:var(--control-radius); background:transparent; color:var(--text-secondary); font:inherit; cursor:pointer; }
+.planning-chat > .conversation-surface { flex:1; min-height:0; height:auto; display:flex; flex-direction:column; overflow:hidden; }
+.planning-chat .message-scroll { flex:1; min-height:0; padding:16px; overflow:auto; }
+.planning-chat .composer-wrap { flex:none; width:100%; padding:8px; }
+.planning-chat .message-row { max-width:94%; }
+.planning-chat .message-author { flex-wrap:wrap; }
+.planning-chat .conversation-empty { max-width:100%; padding:20px; }
+.planning-chat .conversation-empty h2 { font-size:26px; }
+.conversation-header .surface-tabs .chat-companion-toggle { margin-left:auto; padding-inline:12px; min-height:44px; font-size:12px; color:var(--text-secondary); }
+.conversation-header .surface-tabs .chat-companion-toggle[aria-pressed="true"] { color:var(--text-primary); background:var(--surface-hover); border-radius:var(--control-radius); }
+@media(max-width:1099px) { .planning-chat,.chat-companion-toggle { display:none; } }

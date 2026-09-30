@@ -49,6 +49,7 @@ if(process.argv[2]==='fp2-roads-location') {
   await run(a,'set','viewport','1440','960');
   const ids=await ev(a,'[...document.querySelectorAll("[data-place-id]")].map(e=>e.dataset.placeId)');
   for(const mode of ['walk','drive']) {
+    if(mode==='drive') await new Promise(resolve=>setTimeout(resolve,6000)); // Respect the existing five-second provider cooldown.
     await run(a,'select','select[aria-label="Travel mode"]',mode);await button(a,'Refresh roads');
     await until(a,`document.body.textContent.includes(${JSON.stringify((mode==='walk'?'Walking':'Driving')+' preview · not navigation')})`,'real '+mode+' geometry',45000);
     await run(a,'screenshot',out+'/real-'+mode+'.png');

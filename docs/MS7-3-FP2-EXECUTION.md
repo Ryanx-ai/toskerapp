@@ -1,6 +1,6 @@
 # MS7.3 FP2 execution
 
-Status: in progress, local execution; MS7.3 unlocked, MS7.4 unstarted.
+Status: LIVE, bounded canonical acceptance passed. STOP FOR FOUNDER WALK. MS7.3 unlocked; MS7.4 unstarted. No production certification.
 
 ## Authority / recovery
 
@@ -26,9 +26,9 @@ Preserve unrelated historical handoff/inheritance/art/design/research/experiment
 - Share Route is a truthful deferred affordance in FP2, pending cross-context reference/authorization/import design. No messages/links or fake success.
 - Imagery: current adapter persists no image field. Geoapify Place Details documents optional `wiki_and_media.image`, but a returned URL alone does not establish per-image display/storage rights. Keep intentional neutral placeholders, no scraper/hotlink/per-card provider requests; licensing/procurement remains MS7.6. Source: https://apidocs.geoapify.com/docs/place-details/ (checked2026-09-30).
 
-## Gates / evidence
+## Gates / evidence (chronological local record)
 
-Implementation complete locally; integrated acceptance in progress. No FP2 deployment or final acceptance claimed.
+The following records the local gate progression before deployment; the canonical closeout below is the final status.
 
 - Forward migration0023 applied; all24 historical hashes and latest catalog pass:32tables,217columns,106constraints,15enums. Existing data retained.
 - New service suite passes A/B/founder comments, server author/time, bounds, exact request replay/payload mismatch, stable canonical names, membership-loss read/write denial and Nuke cascade. Isolated two-user Personal plan passes both participants, unrelated/founder denial, accepted-relationship loss, participant loss, Room-ID injection denial and conversation deletion cascade. Temporary server QA users removed by exact ownership; no real Clerk accounts created.
@@ -58,6 +58,22 @@ Pre-deployment retained-room report:
 
 All three include exact-resolved founder TID8V3X7P1. No unrelated membership or founder profile/Personal/Sandbox/settings data changed. No production-provider certification; no billing/key restrictions/quota changes.
 
+## Canonical closeout — 2026-09-30
+
+- Normal push of three scoped commits; application acceptance SHA `f30125749c2476ddd8b8e4aff493baf2aa00f5ba`. Vercel `dpl_4R6KCSndt9XikqNsURUkj6XAvEjT` READY, exact SHA, `toskerapp.vercel.app` alias, root's normal307→200 redirect verified. This closeout is a documentation/QA-harness follow-up; application code remains that accepted build.
+- Production and Development metadata reverified both existing distinct server/browser variable names, with no values printed. No Preview assignment, environment/key/restriction/billing/plan/quota mutation. Final exact/encoded server credential scan covers505source/owned files and40client/worker bundles.
+- Canonical normal Clerk A/B login, shared comments/realtime/multiline/Enter/reload, private deselection and truthful deferred Share passed. QA sessions required normal sign-in refresh on later full navigations; no auth bypass was used. This Development-session friction is recorded rather than claimed as production authentication certification.
+- Canonical actual Walk/Drive provider geometry passed. The immediate second request correctly hit the existing five-second cooldown; a single later explicit retry succeeded. Harness now respects six seconds between mode calculations. Free limits unchanged. Local controlled-outage proof hides roads without deleting cards; no automatic provider retry.
+- Canonical contextual Chat search kept Map/renderer and same companion; draft survived Board/Live/Map; reduced-motion check and real Singapore results→private preview→Cancel passed with no automatic save. Normal browser B read its Personal Map at revision0 without writes.
+- Retained Founder Review ownership receipt revalidated by exact Room ID/slug/name/owner/creation time and exact founder TID membership. Added only two clearly labeled safe A/B comments to its existing Marina Bay Sands card. Founder server-side read passed; existing place fields, routes and memberships identical. Live comments and390/1440 Map captures verified. No founder profile, Sandbox, Personal Chat, legitimate message, Board item or setting was altered.
+- `ms73-qa-f8db14b5` exact-owned cleanup applied after live acceptance; synthetic Room/trip/comments removed through cascade, founder membership removed only with that disposable Room. Receipt remains historical evidence, NOT authority to target any other Room. All other new service fixtures and temporary server QA actors were already cleaned.
+- Retained for Founder Walk: `ms73-founder-review-904a9dea` (primary review Room; NEVER automatically delete) and `ms73-qa-bfff9475` (prior founder contribution; preserve). Both retain founder8V3X7P1. No other current FP2 disposable fixture remains.
+- Bounded runtime sample returned50entries with no error-labelled entries; not a global zero-error claim. Local source/data/test/build checks and unrelated-WIP preservation remain as above.
+
+Evidence captures: `/tmp/tosker-ms73-fp2-fixed/` — final compact comment/Namecard images, six-width Map/Places, all-surface checks, real modes/outage/local position, `live-founder-comments.png`, `live-founder-map.png`, `live-mobile-map.png`, `live-drive.png`. Temporary local images are not durable source artifacts; this ledger records the gates.
+
+Bounded deferrals: external Share Route (honest deferred UI, no generated link), licensed per-place imagery (neutral placeholders), continuous/shared location, real calls/media, navigation/ETA, production-provider commitment. MS7.6 reassesses provider/imagery rights/cost. MS7.3 remains unlocked pending Founder Walk; MS7.4 has not started.
+
 ## Fonts, imagery and Share boundary
 
 Inter4.1 official release `https://github.com/rsms/inter/releases/download/v4.1/Inter-4.1.zip`, unmodified variable WOFF2 bundled locally with original SIL OFL1.1 copyright/license in `src/app/fonts/inter-source/LICENSE.txt`. Mermaid display remains. Legacy UI token aliases Inter to avoid inconsistent partial font replacement. No external font network request.
@@ -68,4 +84,4 @@ Share route remains explicitly deferred; no message/link is generated. Future st
 
 ## FP2 fixture receipt
 
-`ms73-qa-f8db14b5` (`docs/MS7-3-FP2-BROWSER-FIXTURE.json`): A/B browser comments, routing and UI acceptance; founder exact TID included. Disposable after live acceptance only if exact ownership/content checks pass. Final Founder Walk remains `ms73-founder-review-904a9dea`. The older `ms73-qa-bfff9475` remains preserved because it contains a founder contribution.
+`ms73-qa-f8db14b5` (`docs/MS7-3-FP2-BROWSER-FIXTURE.json`): historical A/B browser comments, routing and UI acceptance fixture; founder exact TID was included. Deleted after live acceptance and exact ownership/content checks. Final Founder Walk remains `ms73-founder-review-904a9dea`. The older `ms73-qa-bfff9475` remains preserved because it contains a founder contribution.

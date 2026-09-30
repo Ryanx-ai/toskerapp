@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useEffectEvent, useRef, useState } from "react";
-import { Map as MapIcon, RotateCcw } from "lucide-react";
+import { Map as MapIcon, RotateCcw, Maximize } from "lucide-react";
 import type { Map as MapInstance, Marker, GeoJSONSource } from "maplibre-gl";
 import type { PlaceCandidate, TripPlace, TripRoute } from "@/lib/trip-contract";
+import { roadKey, type RoadGeometry, type RoadMode } from "@/lib/maps/road-contract";
 import { getBrowserMapProvider, SINGAPORE_CENTER } from "@/lib/maps/browser-provider";
 import "maplibre-gl/dist/maplibre-gl.css";
 import styles from "./room-map-workspace.module.css";
@@ -11,7 +12,7 @@ import styles from "./room-map-workspace.module.css";
 type Status = "loading" | "ready" | "unavailable" | "failed";
 type PlanningRoute = TripRoute & { ghost: boolean; places: (TripPlace & { isStop: boolean })[] };
 
-export default function TripMapCanvas({ places, routes, snapshotReady, candidate, selectedId, onSelect, onSelectGhost, pinMode, onPin }: { places: TripPlace[]; routes: PlanningRoute[]; snapshotReady: boolean; candidate: PlaceCandidate | null; selectedId: string | null; onSelect(id: string): void; onSelectGhost(routeId: string, id: string): void; pinMode: boolean; onPin(latitude: number, longitude: number): void }) {
+export default function TripMapCanvas({ places, hiddenIds, activeVisible, routes, roads, roadMode, snapshotReady, candidate, selectedId, onSelect, onSelectGhost, pinMode, onPin }: { places: TripPlace[]; hiddenIds: string[]; activeVisible: boolean; routes: PlanningRoute[]; roads: Record<string,RoadGeometry>; roadMode: RoadMode; snapshotReady: boolean; candidate: PlaceCandidate | null; selectedId: string | null; onSelect(id: string): void; onSelectGhost(routeId: string, id: string): void; pinMode: boolean; onPin(latitude: number, longitude: number): void }) {
   const container = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapInstance | null>(null);
   const initialCamera = useRef(false);
@@ -112,21 +113,22 @@ export default function TripMapCanvas({ places, routes, snapshotReady, candidate
     void import("maplibre-gl").then(({ Marker }) => {
       if (disposed) return;
       const activeColor = routes.find(r => !r.ghost)?.color ?? "gold";
-      const activeIds = new Set(places.map(p => p.id));
+      const activeIds = new Set(activeVisible ? places.map(p => p.id) : []);
       routes.filter(r => r.ghost).forEach(route => route.places.forEach((place,index) => {
-        if (activeIds.has(place.id)) return;
+        if (activeIds.has(place.id) || hiddenIds.includes(place.id)) return;
         const button = document.createElement("button"); button.type = "button";
-        button.className = `${styles.pin} ${styles.ghostPin}`; button.dataset.routeColor = route.color;
-        button.textContent = String(index+1); button.setAttribute("aria-label", `Ghost ${route.name}, place ${index+1}: ${place.title}. Make route active`);
+        button.className = `${styles.pin} ${styles.ghostPin} ${place.starred ? styles.starredPin : ""}`; button.dataset.routeColor = route.color;
+        button.textContent = `${place.starred ? "★" : "◌"}${index+1}`; button.setAttribute("aria-label", `Ghost ${route.name}, ${place.starred ? "starred " : ""}place ${index+1}: ${place.title}. Make route active`);
         button.addEventListener("click", e => { e.stopPropagation(); selectedGhost(route.id, place.id); });
         markers.push(new Marker({ element: button, anchor: "center" }).setLngLat([place.longitude,place.latitude]).addTo(map));
       }));
       places.forEach((place, index) => {
+        if (!activeVisible || hiddenIds.includes(place.id)) return;
         const button = document.createElement("button"); button.type = "button";
-        button.className = `${styles.pin} ${place.id === selectedId ? styles.selectedPin : ""}`;
+        button.className = `${styles.pin} ${place.id === selectedId ? styles.selectedPin : ""} ${place.starred ? styles.starredPin : ""}`;
         button.dataset.routeColor = activeColor;
-        button.textContent = String(index + 1);
-        button.setAttribute("aria-label", `Select place ${index + 1}: ${place.title}`);
+        button.textContent = `${place.starred ? "★" : ""}${index + 1}`;
+        button.setAttribute("aria-label", `Select ${place.starred ? "starred " : ""}place ${index + 1}: ${place.title}`);
         button.setAttribute("aria-pressed", String(place.id === selectedId));
         button.addEventListener("click", event => { event.stopPropagation(); selected(place.id); });
         markers.push(new Marker({ element: button, anchor: "center" }).setLngLat([place.longitude, place.latitude]).addTo(map));
@@ -138,24 +140,28 @@ export default function TripMapCanvas({ places, routes, snapshotReady, candidate
       }
     });
     return () => { disposed = true; markers.forEach(marker => marker.remove()); };
-  }, [status, places, routes, candidate, selectedId]);
+  }, [status, places, routes, candidate, selectedId, hiddenIds, activeVisible]);
 
   useEffect(() => {
     const map = mapRef.current;
     if (status !== "ready" || !map || !container.current) return;
     const tokens = getComputedStyle(container.current);
     const data: GeoJSON.FeatureCollection<GeoJSON.LineString> = { type: "FeatureCollection", features: routes.flatMap(route => {
-      const stops = route.places.filter(p => p.isStop);
-      return stops.length < 2 ? [] : [{ type: "Feature" as const, properties: { name: route.name, ghost: route.ghost, color: tokens.getPropertyValue(`--trip-${route.color}`).trim() }, geometry: { type: "LineString" as const, coordinates: stops.map(p => [p.longitude,p.latitude]) } }];
+      // Every saved route card is a planned stop. Eye suppresses adjacent visual segments only.
+      return route.places.slice(1).flatMap((place,index) => {
+        const previous = route.places[index];
+        const road = roads[route.id], current = road?.key === roadKey(route.places,roadMode);
+        return hiddenIds.includes(place.id) || hiddenIds.includes(previous.id) ? [] : [{ type: "Feature" as const, properties: { name: route.name, ghost: route.ghost, color: tokens.getPropertyValue(`--trip-${route.color}`).trim() }, geometry: { type: "LineString" as const, coordinates: current ? road.segments[index] : [[previous.longitude,previous.latitude],[place.longitude,place.latitude]] } }];
+      });
     }) };
     const source = map.getSource("tosker-planning") as GeoJSONSource | undefined;
     if (source) source.setData(data);
     else {
       map.addSource("tosker-planning", { type: "geojson", data });
-      map.addLayer({ id: "tosker-planning-ghost", type: "line", source: "tosker-planning", filter: ["==",["get","ghost"],true], paint: { "line-color": ["get","color"], "line-width": 3, "line-opacity": .6, "line-dasharray": [2,3] } });
+      map.addLayer({ id: "tosker-planning-ghost", type: "line", source: "tosker-planning", filter: ["==",["get","ghost"],true], paint: { "line-color": ["get","color"], "line-width": 3, "line-opacity": .5 } });
       map.addLayer({ id: "tosker-planning-active", type: "line", source: "tosker-planning", filter: ["==",["get","ghost"],false], paint: { "line-color": ["get","color"], "line-width": 3, "line-opacity": .9 } });
     }
-  }, [status, routes]);
+  }, [status, routes, hiddenIds, roads, roadMode]);
 
   useEffect(() => {
     if (status !== "ready") return;
@@ -168,7 +174,7 @@ export default function TripMapCanvas({ places, routes, snapshotReady, candidate
 
   return <div className={styles.canvasRegion} data-map-state={status}>
     <div ref={container} className={styles.canvas} />
-    {status === "ready" && <div className={styles.cameraControls}><button type="button" className={styles.resetMap} onClick={() => mapRef.current?.jumpTo({ center: SINGAPORE_CENTER, zoom: 11, bearing: 0, pitch: 0 })}><RotateCcw size={16} aria-hidden="true" />Singapore</button>{places.length > 0 && <button type="button" className={styles.resetMap} onClick={fitTrip}>Fit trip</button>}</div>}
+    {status === "ready" && <div className={styles.cameraControls}><button type="button" className={styles.resetMap} aria-label="Reset map to Singapore" title="Singapore" onClick={() => mapRef.current?.jumpTo({ center: SINGAPORE_CENTER, zoom: 11, bearing: 0, pitch: 0 })}><RotateCcw size={16} aria-hidden="true" /></button>{places.length > 0 && <button type="button" className={styles.resetMap} aria-label="Fit trip" title="Fit trip" onClick={fitTrip}><Maximize size={16} aria-hidden="true" /></button>}</div>}
     <p className={styles.mapStatus} role="status">{status === "ready" ? "Map ready. No live location is shared." : status === "loading" ? "Loading Singapore map…" : ""}</p>
     {status !== "ready" && <div className={styles.emptyMap}>
       <MapIcon size={36} strokeWidth={1.25} aria-hidden="true" />

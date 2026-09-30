@@ -1,0 +1,47 @@
+import "server-only";
+import { eq, sql } from "drizzle-orm";
+import type { ToskerDatabase } from "@/server/db/client";
+import { mapProviderUsage } from "@/server/db/schema";
+import { PlaceProviderError } from "./provider";
+import { roadKey, supportedRoadPoints, type RoadMode, type RoadPoint, type RoadGeometry } from "@/lib/maps/road-contract";
+
+export type RoadProvider = { route(points: RoadPoint[], mode: RoadMode, signal: AbortSignal): Promise<RoadGeometry> };
+/** Conservative reservation: two credits per leg, 60/day, 3 explicit calculations/minute per actor. */
+export async function reserveRoadRequest(db: ToskerDatabase, actorId: string, count: number) {
+  if (count < 2 || count > 8) throw new PlaceProviderError("unavailable", "Road preview supports 2–8 Singapore places.");
+  await db.transaction(async tx => {
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended('tosker-ms73-geocoding-budget', 0))`);
+    const now=new Date();
+    for(const b of [{scope:"geoapify:roads:day",window:now.toISOString().slice(0,10),limit:60,cost:2*(count-1),gap:1500},{scope:`geoapify:roads:actor:${actorId}`,window:now.toISOString().slice(0,16),limit:3,cost:1,gap:5000}]){
+      const [old]=await tx.select().from(mapProviderUsage).where(eq(mapProviderUsage.scope,b.scope));
+      const used=old?.window===b.window ? old.used : 0;
+      if(used+b.cost>b.limit || (old && now.getTime()-old.lastAt.getTime()<b.gap))throw new PlaceProviderError("rate","Road preview paused within the Development allowance. Try later; your trip is unchanged.");
+      await tx.insert(mapProviderUsage).values({scope:b.scope,window:b.window,used:used+b.cost,lastAt:now}).onConflictDoUpdate({target:mapProviderUsage.scope,set:{window:b.window,used:used+b.cost,lastAt:now}});
+    }
+  });
+}
+
+/** Replaceable adapter; no provider response bodies, request URLs or coordinates are logged. */
+export function getRoadProvider():RoadProvider {
+  return { async route(points,mode,signal) {
+    if(!supportedRoadPoints(points) || !["drive","walk"].includes(mode))throw new PlaceProviderError("unavailable","Road preview supports 2–8 Singapore places.");
+    const key=process.env.GEOAPIFY_SEARCH_KEY;
+    if(!key)throw new PlaceProviderError("unavailable","Road preview is not configured.");
+    const url=new URL("https://api.geoapify.com/v1/routing");
+    url.search=new URLSearchParams({waypoints:points.map(p=>`${p.latitude},${p.longitude}`).join("|"),mode,format:"geojson",apiKey:key}).toString();
+    // No optimization, avoid areas, elevation, navigation instructions or live traffic.
+    try {
+      const response=await fetch(url,{signal:AbortSignal.any([signal,AbortSignal.timeout(12000)]),cache:"no-store",redirect:"error"});
+      if(response.status===429)throw new PlaceProviderError("rate","Road preview allowance reached. Try later.");
+      if(!response.ok)throw new Error();
+      const raw=await response.text();if(raw.length>1_500_000)throw new Error();
+      const geometry=JSON.parse(raw)?.features?.[0]?.geometry;
+      const segments=geometry?.type==="MultiLineString" ? geometry.coordinates : geometry?.type==="LineString" && points.length===2 ? [geometry.coordinates] : null;
+      if(!Array.isArray(segments)||segments.length!==points.length-1)throw new Error();
+      let coordinates=0;
+      for(const segment of segments){if(!Array.isArray(segment)||segment.length<2)throw new Error();for(const point of segment){if(!Array.isArray(point)||point.length<2||!Number.isFinite(point[0])||!Number.isFinite(point[1])||Math.abs(point[0])>180||Math.abs(point[1])>90)throw new Error();coordinates++;}}
+      if(coordinates>30000)throw new Error();
+      return {key:roadKey(points,mode),mode,segments:segments.map(segment=>segment.map((p:number[])=>[p[0],p[1]])),attribution:"Geoapify · © OpenStreetMap contributors (ODbL)"};
+    } catch(error){if(error instanceof PlaceProviderError)throw error;throw new PlaceProviderError("unavailable","Road preview could not finish. Your saved places and order are unchanged.");}
+  }};
+}

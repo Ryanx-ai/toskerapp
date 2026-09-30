@@ -8,7 +8,7 @@ import { rooms, tripPlans, tripPlaces, tripRoutes, tripRoutePlaces } from "../sr
 import { readTrip, mutateTrip, TripError } from "../src/server/trips/service";
 import { grantRoomMembership, withdrawRoomMember } from "../src/server/rooms/lifecycle";
 import { cleanupQaFixture, createQaFixture, resolveQaActors, type QaFixture } from "./lib/ms73-fixtures";
-const db = getDatabase(), receipt = "docs/MS7-3-STRESS-FIXTURE.json";
+const db = getDatabase(), receipt = process.env.MS73_STRESS_RECEIPT ?? "docs/MS7-3-STRESS-FIXTURE.json";
 async function main() {
   const { a,b,founder } = await resolveQaActors(db);
   if (process.argv[2] === "--create") {

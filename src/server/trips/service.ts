@@ -2,9 +2,9 @@ import "server-only";
 import { createHash } from "node:crypto";
 import { and, asc, count, eq, sql } from "drizzle-orm";
 import type { AuthenticatedActor } from "@/server/auth/actor";
-import { AuthorizationDeniedError, requireRoomMember } from "@/server/auth/authorize";
-import type { ToskerDatabase, ToskerTransaction } from "@/server/db/client";
-import { rooms, tripPlans, tripPlaces, tripRoutes, tripRoutePlaces, tripMutationReceipts } from "@/server/db/schema";
+import type { ToskerDatabase } from "@/server/db/client";
+import { tripPlans, tripPlaces, tripRoutes, tripRoutePlaces, tripMutationReceipts } from "@/server/db/schema";
+import { lockTripScope, tripScopeWhere } from "./scope";
 import { TRIP_COLORS, TRIP_LIMITS, type PlaceCandidate, type TripColor, type TripFailureCode, type TripMutation, type TripSnapshot } from "@/lib/trip-contract";
 import { isConversationId } from "@/lib/realtime-contract";
 
@@ -29,12 +29,18 @@ export function validateCandidate(value: PlaceCandidate): PlaceCandidate {
 }
 function normalize(input: TripMutation): TripMutation {
   if (!input || !Number.isSafeInteger(input.expectedRevision) || input.expectedRevision < 0 || !input.command) return invalid();
-  const base = { roomSlug: text(input.roomSlug, 100), requestId: uuid(input.requestId), expectedRevision: input.expectedRevision };
+  const base = { roomSlug: text(input.roomSlug, 150), requestId: uuid(input.requestId), expectedRevision: input.expectedRevision };
   const c = input.command;
   switch (c.type) {
     case "add": return { ...base, command: { type: c.type, candidate: validateCandidate(c.candidate), routeId: c.routeId === null ? null : uuid(c.routeId) } };
     case "edit-place": return { ...base, command: { type: c.type, placeId: uuid(c.placeId), title: text(c.title, 120), note: text(c.note, 1000, true) } };
     case "archive-place": return { ...base, command: { type: c.type, placeId: uuid(c.placeId), archived: flag(c.archived) } };
+    case "star-place": return { ...base, command: { type: c.type, placeId: uuid(c.placeId), starred: flag(c.starred) } };
+    case "nuke-place": return { ...base, command: { type: c.type, placeId: uuid(c.placeId) } };
+    case "order-routes": {
+      if (!Array.isArray(c.routeIds) || c.routeIds.length > TRIP_LIMITS.routes || new Set(c.routeIds).size !== c.routeIds.length) return invalid();
+      return { ...base, command: { type: c.type, routeIds: c.routeIds.map(uuid) } };
+    }
     case "create-route": return { ...base, command: { type: c.type, name: text(c.name, 60), color: color(c.color) } };
     case "edit-route": return { ...base, command: { type: c.type, routeId: uuid(c.routeId), name: text(c.name, 60), color: color(c.color) } };
     case "archive-route": return { ...base, command: { type: c.type, routeId: uuid(c.routeId), archived: flag(c.archived) } };
@@ -48,24 +54,17 @@ function normalize(input: TripMutation): TripMutation {
   }
 }
 
-/** Same parent Room lock as membership withdrawal. Never authorize from cached page props. */
-async function lockScope(tx: ToskerTransaction, actor: AuthenticatedActor, slug: string, mode: "share" | "update") {
-  const [room] = await tx.select({ id: rooms.id }).from(rooms).where(eq(rooms.slug, slug)).for(mode);
-  if (!room) throw new AuthorizationDeniedError("Room unavailable.");
-  await requireRoomMember(tx, actor, room.id);
-  return room.id;
-}
 export async function readTrip(db: ToskerDatabase, actor: AuthenticatedActor, slug: string): Promise<TripSnapshot> {
-  text(slug, 100);
+  text(slug, 150);
   return db.transaction(async tx => {
-    const roomId = await lockScope(tx, actor, slug, "share");
-    const [plan] = await tx.select().from(tripPlans).where(eq(tripPlans.roomId, roomId));
+    const scope = await lockTripScope(tx, actor, slug, "share");
+    const [plan] = await tx.select().from(tripPlans).where(tripScopeWhere(scope));
     if (!plan) return { revision: 0, places: [], routes: [], memberships: [] };
     const places = await tx.select().from(tripPlaces).where(eq(tripPlaces.planId, plan.id)).orderBy(asc(tripPlaces.createdAt), asc(tripPlaces.id)).limit(TRIP_LIMITS.places);
-    const routes = await tx.select().from(tripRoutes).where(eq(tripRoutes.planId, plan.id)).orderBy(asc(tripRoutes.createdAt), asc(tripRoutes.id)).limit(TRIP_LIMITS.routes);
+    const routes = await tx.select().from(tripRoutes).where(eq(tripRoutes.planId, plan.id)).orderBy(asc(tripRoutes.position), asc(tripRoutes.createdAt), asc(tripRoutes.id)).limit(TRIP_LIMITS.routes);
     const memberships = await tx.select({ routeId: tripRoutePlaces.routeId, placeId: tripRoutePlaces.placeId, position: tripRoutePlaces.position, isStop: tripRoutePlaces.isStop }).from(tripRoutePlaces).where(eq(tripRoutePlaces.planId, plan.id)).limit(TRIP_LIMITS.places * TRIP_LIMITS.routes);
     return { revision: plan.revision,
-      places: places.map(p => ({ id: p.id, title: p.title, note: p.note, latitude: p.latitude, longitude: p.longitude, source: p.source as "search" | "pin", provider: p.provider, providerId: p.providerId, address: p.address, attribution: p.attribution, license: p.license, archived: !!p.archivedAt })),
+      places: places.map(p => ({ id: p.id, title: p.title, note: p.note, starred: p.starred, latitude: p.latitude, longitude: p.longitude, source: p.source as "search" | "pin", provider: p.provider, providerId: p.providerId, address: p.address, attribution: p.attribution, license: p.license, archived: !!p.archivedAt })),
       routes: routes.map(r => ({ id: r.id, name: r.name, color: r.color as TripColor, archived: !!r.archivedAt })), memberships };
   });
 }
@@ -74,11 +73,11 @@ export async function mutateTrip(db: ToskerDatabase, actor: AuthenticatedActor, 
   const input = normalize(raw);
   const payloadHash = createHash("sha256").update(JSON.stringify(input)).digest("hex");
   return db.transaction(async tx => {
-    const roomId = await lockScope(tx, actor, input.roomSlug, "update");
-    let [plan] = await tx.select().from(tripPlans).where(eq(tripPlans.roomId, roomId));
+    const scope = await lockTripScope(tx, actor, input.roomSlug, "update");
+    let [plan] = await tx.select().from(tripPlans).where(tripScopeWhere(scope));
     if (!plan) {
       if (input.expectedRevision !== 0) throw new TripError("conflict", "The trip changed. Review its latest state before trying again.");
-      [plan] = await tx.insert(tripPlans).values({ roomId }).returning();
+      [plan] = await tx.insert(tripPlans).values({ roomId: scope.roomId, subroomId: scope.subroomId }).returning();
     }
     const [receipt] = await tx.select().from(tripMutationReceipts).where(and(eq(tripMutationReceipts.planId, plan.id), eq(tripMutationReceipts.actorId, actor.userId), eq(tripMutationReceipts.requestId, input.requestId)));
     if (receipt) {
@@ -97,7 +96,7 @@ export async function mutateTrip(db: ToskerDatabase, actor: AuthenticatedActor, 
     const makeRoute = async (name: string, routeColor: TripColor) => {
       const [{ n }] = await tx.select({ n: count() }).from(tripRoutes).where(eq(tripRoutes.planId, plan.id));
       if (n >= TRIP_LIMITS.routes) throw new TripError("limit", "Up to 12 routes, including archived routes, fit in this Development trip.");
-      const [r] = await tx.insert(tripRoutes).values({ planId: plan.id, name, color: routeColor }).returning(); return r;
+      const [r] = await tx.insert(tripRoutes).values({ planId: plan.id, name, color: routeColor, position: n }).returning(); return r;
     };
     const members = (routeId: string) => tx.select().from(tripRoutePlaces).where(and(eq(tripRoutePlaces.planId, plan.id), eq(tripRoutePlaces.routeId, routeId))).orderBy(asc(tripRoutePlaces.position), asc(tripRoutePlaces.placeId));
     const include = async (routeId: string, placeId: string) => {
@@ -126,6 +125,23 @@ export async function mutateTrip(db: ToskerDatabase, actor: AuthenticatedActor, 
     } else if (c.type === "edit-place" || c.type === "archive-place") {
       await requirePlace(c.placeId);
       await tx.update(tripPlaces).set(c.type === "edit-place" ? { title: c.title, note: c.note, updatedAt: new Date() } : { archivedAt: c.archived ? new Date() : null, updatedAt: new Date() }).where(placeScope(c.placeId)); resultId = c.placeId;
+    } else if (c.type === "star-place") {
+      await requirePlace(c.placeId);
+      await tx.update(tripPlaces).set({ starred: c.starred, updatedAt: new Date() }).where(placeScope(c.placeId)); resultId = c.placeId;
+    } else if (c.type === "nuke-place") {
+      await requirePlace(c.placeId);
+      const affected = await tx.select({ routeId: tripRoutePlaces.routeId }).from(tripRoutePlaces).where(and(eq(tripRoutePlaces.planId, plan.id), eq(tripRoutePlaces.placeId, c.placeId)));
+      // Composite FKs remove every membership atomically; receipts contain no place content.
+      await tx.delete(tripPlaces).where(placeScope(c.placeId));
+      for (const { routeId } of affected) {
+        const rows = await members(routeId);
+        if (rows.length) await tx.update(tripRoutePlaces).set({ position: sql`case ${sql.join(rows.map((row,index) => sql`when ${tripRoutePlaces.placeId} = ${row.placeId}::uuid then ${index}::int`), sql` `)} end` }).where(and(eq(tripRoutePlaces.planId, plan.id), eq(tripRoutePlaces.routeId, routeId)));
+      }
+      resultId = c.placeId;
+    } else if (c.type === "order-routes") {
+      const rows = await tx.select({ id: tripRoutes.id }).from(tripRoutes).where(eq(tripRoutes.planId, plan.id));
+      if (rows.length !== c.routeIds.length || rows.some(r => !c.routeIds.includes(r.id))) return invalid();
+      if (rows.length) await tx.update(tripRoutes).set({ position: sql`case ${sql.join(c.routeIds.map((id,index) => sql`when ${tripRoutes.id} = ${id}::uuid then ${index}::int`), sql` `)} end`, updatedAt: new Date() }).where(eq(tripRoutes.planId, plan.id));
     } else if (c.type === "create-route") {
       resultId = (await makeRoute(c.name, c.color)).id;
     } else if (c.type === "edit-route" || c.type === "archive-route") {

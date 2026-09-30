@@ -1,0 +1,45 @@
+/* FP1 keeps the existing Tosker palette and identity banner; composition only. */
+.modal-layer .contextual-namecard { display:grid; grid-template-columns:minmax(300px,1fr) minmax(240px,1.15fr); width:min(880px,calc(100vw - 48px)); padding:0; isolation:isolate; }
+.modal-layer .contextual-namecard > .namecard-banner { grid-column:2; grid-row:1 / span 3; height:auto; min-height:400px; margin:0; border-radius:0; }
+.contextual-namecard .namecard-content { grid-column:1; grid-row:1; min-width:0; padding:32px; }
+.contextual-namecard .avatar-large { margin-top:0; }
+.contextual-namecard .namecard-change-photo { margin-top:0; }
+.contextual-namecard > :is(h2,p) { margin:28px; }
+.contextual-namecard .namecard-actions { gap:8px; }
+.viewer-appearance .conversation-header .surface-tabs { gap:8px; padding-block:8px; align-items:center; }
+.viewer-appearance .conversation-header .surface-tabs :is(a,button) { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:44px; padding:10px 14px; border:1px solid transparent; border-radius:12px; background:transparent; color:var(--text-secondary); font:600 13px/1.4 var(--font-montserrat),sans-serif; cursor:pointer; }
+.viewer-appearance .conversation-header .surface-tabs :is(a,button).active { background:var(--surface-hover); color:var(--text-primary); border-color:var(--border); }
+.viewer-appearance .conversation-header .surface-tabs a.active::after { display:none; }
+.viewer-appearance .conversation-header .surface-tabs :is(a,button):hover { background:var(--surface-hover); }
+.planning-workspace { gap:12px; border:0; background:transparent; }
+.planning-chat { border:1px solid var(--border); border-radius:20px; overflow:hidden; background:var(--surface-soft); }
+.live-preview { flex:1; min-height:0; overflow:auto; padding:clamp(20px,4vw,48px); border:1px solid var(--border); border-radius:20px; background:var(--surface-soft); }
+.live-preview header { max-width:560px; }
+.live-preview h2 { margin:16px 0; font:36px/1.15 var(--font-mermaid),serif; }
+.live-preview p { color:var(--text-secondary); font-size:13px; line-height:1.65; }
+.live-preview-badge { display:inline-block; border:1px solid var(--border); border-radius:999px; padding:6px 12px; color:var(--ui-highlight); font-size:12px; }
+.live-preview-people { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; margin:32px 0; }
+.live-preview-person { display:flex; flex-direction:column; align-items:center; gap:10px; padding:32px 12px; border:1px solid var(--border); border-radius:16px; background:var(--surface); text-align:center; }
+.live-preview-person > span { display:grid; place-items:center; width:64px; height:64px; border-radius:50%; background:var(--surface-hover); color:var(--ui-highlight); font-weight:600; }
+.live-preview-person strong { font-size:13px; }
+.live-preview-person small { font-size:11px; color:var(--text-secondary); }
+.live-preview-controls { display:flex; flex-wrap:wrap; justify-content:center; gap:12px; }
+.live-preview-controls button { display:flex; align-items:center; gap:8px; min-height:44px; padding:12px 16px; border:1px solid var(--border); border-radius:12px; background:var(--surface); color:var(--text-primary); cursor:pointer; }
+.live-preview-controls button[aria-pressed="true"] { background:var(--surface-hover); outline:1px solid var(--ui-highlight); }
+.live-preview-status { text-align:center; }
+@media(max-width:767px) {
+  .modal-layer .contextual-namecard { display:flex; flex-direction:column; width:100%; max-height:calc(100dvh - 24px); }
+  .modal-layer .contextual-namecard > .namecard-banner { order:-1; min-height:100px; height:100px; flex-shrink:0; }
+  .contextual-namecard .namecard-content { padding:0 24px 24px; }
+  .contextual-namecard .avatar-large { margin-top:-32px; width:72px; height:72px; }
+  .contextual-namecard .namecard-change-photo { margin-top:-32px; width:72px; height:72px; }
+  .viewer-appearance .conversation-header .surface-tabs { gap:4px; padding-inline:12px; }
+  .viewer-appearance .conversation-header .surface-tabs :is(a,button) { gap:6px; padding-inline:10px; font-size:12px; }
+  .live-preview-people { grid-template-columns:1fr; }
+  .live-preview-person { padding:20px; }
+}
+@media(max-width:360px) {
+  .viewer-appearance .conversation-header .surface-tabs { gap:2px; padding-inline:8px; }
+  .viewer-appearance .conversation-header .surface-tabs :is(a,button) { gap:4px; padding-inline:7px; font-size:11px; }
+  .viewer-appearance .conversation-header .surface-tabs svg { width:14px; height:14px; }
+}

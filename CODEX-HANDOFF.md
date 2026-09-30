@@ -2,6 +2,12 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## MS7.3 FP1 — local acceptance complete, canonical gate pending — 2026-09-30
+
+Read [FP1 execution ledger](docs/MS7-3-FP1-EXECUTION.md) and [provider/Share/Search decisions](docs/MS7-3-FP1-PROVIDER-AND-SHARING.md) first. Founder FP1 brief supersedes the older release below: horizontal Namecards, Map/Board/synthetic Live/Chat tabs, default desktop companion, compact cards/routes, private Eye/shared Star/safe Nuke, endpoint-preserving Quick order, independent Subroom maps and explicit bounded road preview. No real Live/media, Personal Map, external Share, new billing or permanent provider commitment. Local optimized build, A/B collaboration/retry/permissions, six-width/short-landscape visual checks, migration23/catalog and server-secret/client-bundle scans pass. Canonical deployment/live smoke still pending at this checkpoint.
+
+Keep `ms73-founder-review-904a9dea` with founderTID8V3X7P1 forever for Founder Walk; do not overwrite founder contributions. `ms73-qa-bfff9475` is the only current disposable, retained through canonical A/B smoke then exact-owned cleanup. Other FP1 fixtures deleted; receipts must not be replayed. Preserve unrelated Design/Art/Web/inheritance/research/experiments WIP. After canonical verification **STOP FOR FOUNDER WALK; MS7.3 unlocked, MS7.4 unstarted**.
+
 ## MS7.3 LIVE — STOP FOR FOUNDER WALK — 2026-09-30
 
 Read [MS7.3 release ledger](docs/MS7-3-RELEASE.md) first. Application `fab1a7b` is pushed and canonical READY `dpl_B4S4YQow7UZCpeLwUapurt4SQ9rT`, exact alias/HTTPS200; later docs-only closeout may redeploy identical source. Shared Map/cards/routes, optional existing Chat companion and post-Map Search cleanup pass local A/B, six-width, failure/revocation and regression gates. Live normal A/B basemap/SG search/explicit confirmation, canonical duplicate prevention, shared Stop/restoration/reload, Map+Chat search, mobile Map/Places, Board and fresh Chat isolation pass; browser/error/fatal/5xx scans clean. Two forward migrations0020/0021 applied;22historical hashes/catalog match. Founder-approved bounded Geoapify canonical Production configuration; Development separate, Free plan/no billing/no permanent provider commitment. Final server-secret scan465source/39bundles passes. Earlier basemap-only statuses below are historical.

@@ -1,4 +1,4 @@
-.workspace { --trip-gold:var(--brand-gold); --trip-rose:#d9a1b8; --trip-sage:#9ebcaf; --trip-sky:#9fc5d6; --trip-iris:#beb1df; display:flex; flex:1; flex-direction:column; gap:16px; padding:var(--workspace-inset); min-width:0; min-height:0; overflow:auto; }
+.workspace { --trip-gold:var(--brand-gold); --trip-rose:#d9a1b8; --trip-sage:#9ebcaf; --trip-sky:#9fc5d6; --trip-iris:#beb1df; display:flex; flex:1; flex-direction:column; gap:12px; padding:0; min-width:0; min-height:0; overflow:auto; }
 .mapPlane { flex:none; display:flex; flex-direction:column; min-width:0; border:1px solid var(--border); border-radius:16px; background:var(--shell-plane); overflow:hidden; }
 .canvasRegion { position:relative; min-width:0; height:clamp(240px,28vh,400px); isolation:isolate; }
 .canvas { position:absolute; inset:0; }
@@ -123,5 +123,63 @@
 .stripControls button { padding:10px; min-width:44px; }
 .cardStrip { align-items:flex-start; }
 .workspace .cardStrip:focus-visible { outline:2px solid var(--brand-gold); outline-offset:2px; }
+/* FP1: two purposeful modules, rather than a scrolling stack of nested cards. */
+.mapPlane { flex:1 0 260px; min-height:260px; overflow:visible; }
+.canvasRegion { flex:1; height:auto; min-height:190px; overflow:hidden; border-radius:16px 16px 0 0; }
+.searchPanel { position:relative; border:0; border-top:1px solid var(--border); border-radius:0 0 16px 16px; }
+.searchPanel .toolbar { padding:8px 12px; gap:8px; flex-wrap:nowrap; }
+.search { max-width:480px; background:var(--surface); }
+.attribution { margin:0; padding:0 12px 6px; font-size:9px; }
+.results { position:absolute; z-index:5; bottom:100%; inset-inline:8px; margin:0 0 4px; padding:8px; max-height:min(320px,45dvh); background:var(--surface); border:1px solid var(--border); border-radius:12px; box-shadow:var(--depth-raised); }
+.preview { position:relative; display:block; margin:0; max-width:520px; padding:28px; }
+.preview > div { margin-block:16px; }
+.cards { padding:12px; flex:0 0 auto; min-height:236px; }
+.routes { padding:0; }
+.routesBar { display:flex; gap:8px; align-items:center; }
+.routesBar > .actions { flex-wrap:nowrap; gap:4px; }
+.routesBar > .actions .control { width:44px; padding:8px; background:transparent; }
+.routeStrip { flex:1; min-width:0; align-items:center; gap:8px; padding:2px; }
+.routeTab { display:flex; align-items:center; flex:none; max-width:240px; border:1px solid transparent; border-radius:12px; background:var(--surface); }
+.routeTab[data-active="true"] { border-color:var(--route-color); background:var(--surface-hover); }
+.routeTab button,.newRoute { display:flex; align-items:center; gap:8px; min-width:0; min-height:44px; border:0; background:transparent; color:var(--text-primary); padding:8px 10px; font:600 12px/1.4 var(--font-montserrat),sans-serif; }
+.routeTab button:first-child { max-width:180px; }
+.routeTab button:last-child { width:36px; padding:8px; flex:none; }
+.routeTab button :global(.reveal-name) { min-width:0; }
+.newRoute { white-space:nowrap; color:var(--text-secondary); }
+.cardStrip { align-items:stretch; gap:12px; padding:10px 2px 6px; }
+.placeCard { position:relative; flex-basis:208px; height:158px; padding:0; gap:0; overflow:hidden; background:var(--surface-hover); border-radius:12px; content-visibility:auto; contain-intrinsic-size:208px 158px; }
+.placeCard[draggable="true"] { cursor:grab; }
+.selectedCard { border-color:var(--route-color); box-shadow:inset 0 0 0 1px var(--route-color); }
+.cardSelect { display:block; padding:0; height:100%; min-height:0; overflow:hidden; }
+.cardVisual { display:flex; justify-content:center; align-items:center; width:100%; height:68px; color:var(--route-color); background:linear-gradient(135deg,color-mix(in srgb,var(--route-color) 18%,var(--surface)),var(--shell-plane)); }
+.cardVisual svg { opacity:.65; }
+.cardInfo { display:block; padding:12px; }
+.cardTitle { display:flex; align-items:center; gap:8px; min-width:0; }
+.cardTitle strong { min-width:0; flex:1; font-size:12px; color:var(--text-primary); }
+.ordinal { flex:none; width:22px; height:22px; border-radius:6px; background:var(--route-color,var(--brand-gold)); font-size:11px; }
+.cardAddress { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; margin-top:8px; font-size:11px; line-height:1.4; color:var(--text-secondary); }
+.cardMore { position:absolute; right:4px; top:4px; display:grid; place-items:center; width:36px; height:36px; border:1px solid var(--border); border-radius:10px; background:var(--shell-plane); color:var(--text-primary); }
+.cardIndicators { position:absolute; left:10px; top:10px; display:flex; gap:6px; color:var(--route-color); }
+.cardIndicators span { display:grid; place-items:center; min-width:24px; height:24px; border-radius:6px; background:var(--shell-plane); }
+.cardMenu { min-width:210px; max-width:100%; }
+.cardMenu > button { display:flex; align-items:center; gap:10px; min-height:44px; padding:10px 12px; border:0; border-radius:10px; background:transparent; color:var(--text-primary); font:inherit; font-size:13px; text-align:left; cursor:pointer; }
+.cardMenu > button:hover { background:var(--surface-hover); }
+.cardMenu > button:disabled { opacity:.5; cursor:not-allowed; }
+.cardMenu fieldset { max-height:180px; overflow:auto; }
+.placeDialog { width:min(520px,calc(100vw - 24px)); padding:28px; }
+.placeDialog h2 { padding-right:40px; overflow-wrap:anywhere; }
+.placeDialog p { font-size:13px; line-height:1.65; overflow-wrap:anywhere; }
+.placeDialog :is(button,input,select,textarea):focus-visible,.cardMenu button:focus-visible { outline:2px solid var(--ui-highlight); outline-offset:2px; }
+.placeDialog :is(input,select,textarea) { background:var(--surface); color:var(--text-primary); border:1px solid var(--border); border-radius:10px; padding:12px; font:inherit; }
+.placeDialog button:disabled { opacity:.5; cursor:not-allowed; }
+.libraryState { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; font-size:12px; }
+.ghostPin { border-style:solid; border-radius:12px; opacity:.5; }
+.starredPin { border:4px double var(--shell-plane); border-radius:12px; }
+.proposal { padding:0; border:0; }
+.roadTools { display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding:0 12px 8px; }
+.roadTools select { min-height:36px; padding:6px 10px; font-size:11px; }
+.roadTools .control { min-height:36px; padding:6px 10px; font-size:11px; }
+.roadTools > span { flex:1; min-width:120px; color:var(--text-secondary); font-size:10px; line-height:1.5; }
+@media(pointer:coarse) { .cardMore { width:44px; height:44px; } .routeTab button:last-child { width:44px; } .roadTools select,.roadTools .control { min-height:44px; } }
 @media(max-width:640px) { .workspace { flex:1; min-height:0; overflow:auto; padding:12px; gap:12px; } .canvasRegion { height:360px; } .state { padding:12px; font-size:11px; } .emptyMap { padding:24px 16px; } .toolbar { padding:12px; gap:10px; } .cards { padding:16px; } }
 @media(max-width:768px) { .mobileViews { display:flex; gap:8px; } .mobileViews button { flex:1; } .mobileMapHidden { display:none; } .preview { align-items:stretch; flex-direction:column; gap:12px; padding:16px; } .cardStrip { flex-direction:column; overflow-x:visible; align-items:stretch; } .placeCard { flex:auto; width:100%; } .cardSelect { min-height:100px; } .search { max-width:none; } .stripControls { display:none; } }

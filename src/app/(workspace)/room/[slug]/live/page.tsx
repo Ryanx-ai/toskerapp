@@ -1,0 +1,11 @@
+import { auth } from "@clerk/nextjs/server";
+import { notFound } from "next/navigation";
+import { MessagingApp } from "@/components/messaging-app";
+import { canAccessRoom } from "@/server/auth/routes";
+
+export default async function RoomLivePreviewPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const { userId } = await auth();
+  if (!userId || !(await canAccessRoom(userId, slug))) notFound();
+  return <MessagingApp selectedSlug={slug} surface="live" />;
+}

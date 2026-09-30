@@ -62,6 +62,7 @@ import {
   Plus,
   ArrowUp,
   ChevronDown,
+  Map as MapIcon, LayoutDashboard, Radio,
   Smile,
   UsersRound,
   X,
@@ -154,7 +155,7 @@ export function SurfaceHeader({
   const pref = preference ?? EMPTY_PREFERENCE;
   const changePreference = async (kind: "mute" | "unread") => {
     if (!conversation.databaseId || controlBusy) return;
-    if (kind === "unread" && surface === "map") return;
+    if (kind === "unread" && (surface === "map" || surface === "live")) return;
     setControlBusy(true); setControlFeedback("");
     if (kind === "unread") onReadingPause?.(true);
     try {
@@ -188,22 +189,16 @@ export function SurfaceHeader({
       </div>
       </div>
       <nav className="surface-tabs" aria-label="Space surfaces">
-        <Link
-          className={surface === "chat" ? "active" : ""}
-          aria-current={surface === "chat" ? "page" : undefined}
-          href={baseHref(conversation)}
-        >
-          Chat<AttentionMark count={chatUnread} label="new messages" />
-        </Link>
+        {identity && hasRoomMap(conversation) ? <Link className={surface === "map" ? "active" : ""} aria-current={surface === "map" ? "page" : undefined} href={surface === "map" ? `${baseHref(conversation)}?surface=chat` : `${baseHref(conversation)}/map`} prefetch={false}><MapIcon size={16} aria-hidden="true" />Map</Link> : null}
         <Link
           className={surface === "hall" ? "active" : ""}
           aria-current={surface === "hall" ? "page" : undefined}
-          href={`${baseHref(conversation)}/hall`}
+          href={surface === "hall" ? `${baseHref(conversation)}?surface=chat` : `${baseHref(conversation)}/hall`}
         >
-          Board<AttentionMark count={hallUnread} label="new Board activities" />
+          <LayoutDashboard size={16} aria-hidden="true" />Board<AttentionMark count={hallUnread} label="new Board activities" />
         </Link>
-        {identity && hasRoomMap(conversation) ? <Link className={surface === "map" ? "active" : ""} aria-current={surface === "map" ? "page" : undefined} href={`${baseHref(conversation)}/map`} prefetch={false}>Map</Link> : null}
-        {onToggleChatCompanion && <button className="chat-companion-toggle" aria-pressed={!!chatCompanionOpen} onClick={onToggleChatCompanion}>{chatCompanionOpen ? "Hide Chat" : "Open Chat alongside"}</button>}
+        {identity && hasRoomMap(conversation) ? <Link className={surface === "live" ? "active" : ""} aria-current={surface === "live" ? "page" : undefined} href={surface === "live" ? `${baseHref(conversation)}?surface=chat` : `${baseHref(conversation)}/live`} prefetch={false}><Radio size={16} aria-hidden="true" />Live</Link> : null}
+        {onToggleChatCompanion ? <button className={chatCompanionOpen ? "active" : ""} aria-pressed={!!chatCompanionOpen} onClick={onToggleChatCompanion}><MessageCircle size={16} aria-hidden="true" />Chat<AttentionMark count={chatUnread} label="new messages" /></button> : <Link className={surface === "chat" ? "active" : ""} aria-current={surface === "chat" ? "page" : undefined} href={`${baseHref(conversation)}?surface=chat`}><MessageCircle size={16} aria-hidden="true" />Chat<AttentionMark count={chatUnread} label="new messages" /></Link>}
       </nav>
       {controlsAnchor ? <InteractionPopover anchor={controlsAnchor} label="Conversation options" onClose={() => { if (!controlBusy) setControlsAnchor(null); }}><div className="room-context-menu communication-options">
         {conversation.kind === "room" && onInvite ? <button disabled={controlBusy} onClick={() => { setControlsAnchor(null); onInvite(); }}><Plus size={15} />Invite</button> : null}
@@ -211,7 +206,7 @@ export function SurfaceHeader({
         {conversation.kind === "personal" && conversation.databaseId ? <button onClick={() => { setControlsAnchor(null); setSettingsOpen(true); }}><Settings aria-hidden="true" />Chat Settings</button> : null}
         {conversation.databaseId ? <>
           <button disabled={controlBusy || pref.inheritedMute} onClick={() => void changePreference("mute")}><BellOff size={16} aria-hidden="true" />{pref.inheritedMute ? "Muted by Room" : pref.muted ? "Unmute" : "Mute"}</button>
-          {surface !== "map" ? <button disabled={controlBusy} onClick={() => void changePreference("unread")}><Mail size={16} aria-hidden="true" />Mark {surface === "hall" ? "Board" : "Chat"} unread</button> : null}
+          {surface !== "map" && surface !== "live" ? <button disabled={controlBusy} onClick={() => void changePreference("unread")}><Mail size={16} aria-hidden="true" />Mark {surface === "hall" ? "Board" : "Chat"} unread</button> : null}
         </> : null}
         {controlBusy ? <p role="status">Saving…</p> : null}{controlFeedback ? <p role="alert">{controlFeedback}</p> : null}
       </div></InteractionPopover> : null}
@@ -325,7 +320,6 @@ function Composer({
           <button aria-label="Add emoji" onClick={(event) => setEmojiAnchor(event.currentTarget)}>
             <Smile size={17} />
           </button>
-          <DeferredControl kind="schedule" />
         </div>
         <textarea
           ref={inputRef}

@@ -1,10 +1,9 @@
 "use server";
-import { and, eq } from "drizzle-orm";
 import { getDatabase } from "@/server/db/client";
 import { requireCurrentActor } from "@/server/auth/clerk";
 import { AuthenticationRequiredError } from "@/server/auth/actor";
 import { AuthorizationDeniedError } from "@/server/auth/authorize";
-import { conversations, rooms } from "@/server/db/schema";
+import { authorizeTripScope } from "./scope";
 import { publishTripChanged } from "@/server/realtime/provider";
 import { verifyCandidate } from "@/server/maps/candidate-token";
 import { mutateTrip, readTrip, TripError } from "./service";
@@ -21,8 +20,8 @@ export async function mutateTripAction(input: { roomSlug: string; expectedRevisi
     if (!input || JSON.stringify(input).length > 16000) throw new TripError("invalid", "This change is too large.");
     const command = input.command.type === "add" ? { type: "add" as const, candidate: verifyCandidate(input.command.token, actor.userId, input.roomSlug), routeId: input.command.routeId } : input.command;
     const value = await mutateTrip(db, actor, { ...input, command });
-    const [chat] = await db.select({ id: conversations.id }).from(conversations).innerJoin(rooms, eq(rooms.id, conversations.roomId)).where(and(eq(rooms.slug, input.roomSlug), eq(conversations.isPrimary, true))).limit(1);
-    if (chat) await publishTripChanged(chat.id);
+    const scope = await authorizeTripScope(db, actor, input.roomSlug);
+    await publishTripChanged(scope.conversationId);
     return { ok: true, value };
   } catch (error) { return failure(error); }
 }

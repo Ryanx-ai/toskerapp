@@ -1,5 +1,7 @@
 "use client";
 import { ContextSearch } from "./context-search";
+import LivePreview from "./live-preview";
+import { useChatCompanion } from "./use-chat-companion";
 import { useConversationRealtime } from "./use-conversation-realtime";
 import { NicknameDialog } from "./nickname-editor";
 import { NamecardProvider } from "./namecard-dialog";
@@ -1244,7 +1246,6 @@ export function MessagingApp({
   const activity = snapshot.activity;
   const [activityFailure, setActivityFailure] = useState<string | null>(null);
   const [readingPaused, setReadingPaused] = useState(false);
-  const [companionConversation, setCompanionConversation] = useState<string | null>(null);
   const companionWidth = useSyncExternalStore(companionSubscribe, companionSnapshot, companionServer);
   useEffect(() => {
     let pending: ReturnType<typeof setTimeout> | undefined;
@@ -1401,14 +1402,14 @@ export function MessagingApp({
           ? conversations[0]
           : undefined));
   const surface = resolveWorkspaceSurface(requestedSurface, selected);
+  const [companionEnabled, toggleCompanion] = useChatCompanion(identity?.userId, selected?.databaseId);
   const canCompanion = Boolean(companionWidth && selected && hasRoomMap(selected) && selected.databaseId && surface !== "chat");
-  const companionOpen = canCompanion && companionConversation === selected?.databaseId;
+  const companionOpen = canCompanion && companionEnabled;
   const realtime = useConversationRealtime(selected?.databaseId, identity?.userId);
   useEffect(() => {
     const denied = (event: Event) => {
       if ((event as CustomEvent<string>).detail !== selected?.databaseId) return;
       setOverlay(null);
-      setCompanionConversation(null);
       window.dispatchEvent(new Event(ACTIVITY_REFRESH));
       router.replace("/app");
     };
@@ -1465,10 +1466,10 @@ export function MessagingApp({
               hallUnread={unreadForSurface("hall")}
               unreadByConversation={unreadByConversation}
               chatCompanionOpen={companionOpen}
-              onToggleChatCompanion={canCompanion ? () => setCompanionConversation(companionOpen ? null : selected.databaseId ?? null) : undefined}
+              onToggleChatCompanion={canCompanion ? toggleCompanion : undefined}
             />
             {surface !== "chat" ? <div className={`planning-workspace ${companionOpen ? "with-chat" : ""}`}><div className="planning-primary">
-            {surface === "map" ? <RoomMapWorkspace key={selected.slug} roomSlug={selected.slug} conversationId={selected.databaseId ?? ""} /> : (
+            {surface === "map" ? <RoomMapWorkspace key={selected.slug} roomSlug={selected.slug} conversationId={selected.databaseId ?? ""} /> : surface === "live" ? <LivePreview key={selected.slug} /> : (
               <HallSurface
                 connected={realtime.connected}
                 manualUnreadId={selectedPreference?.manualHallUnreadId}
@@ -1478,7 +1479,7 @@ export function MessagingApp({
                 empty={Boolean(identity) || Boolean(prototypeRoom && !canonical)}
               />
             )}
-            </div>{companionOpen && <aside className="planning-chat" aria-label="Room Chat companion"><div className="planning-chat-label"><span>Room Chat</span><button onClick={() => setCompanionConversation(null)}>Close companion</button></div><ChatSurface key={selected.slug} conversation={selected} realtime={realtime} manualUnreadId={selectedPreference?.manualChatUnreadId} readingPaused={readingPaused} /></aside>}</div> : (
+            </div>{companionOpen && <aside className="planning-chat" aria-label="Room Chat companion"><ChatSurface key={selected.slug} conversation={selected} realtime={realtime} manualUnreadId={selectedPreference?.manualChatUnreadId} readingPaused={readingPaused} /></aside>}</div> : (
               <ChatSurface key={selected.slug} conversation={selected} realtime={realtime} manualUnreadId={selectedPreference?.manualChatUnreadId} readingPaused={readingPaused} />
             )}
           </NamecardRoomContext.Provider>

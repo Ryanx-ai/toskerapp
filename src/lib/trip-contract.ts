@@ -5,7 +5,7 @@ export type PlaceCandidate = {
   title: string; latitude: number; longitude: number; source: "search" | "pin";
   provider: string | null; providerId: string | null; address: string; attribution: string; license: string;
 };
-export type TripPlace = PlaceCandidate & { id: string; note: string; archived: boolean };
+export type TripPlace = PlaceCandidate & { id: string; note: string; archived: boolean; starred?: boolean };
 export type TripRoute = { id: string; name: string; color: TripColor; archived: boolean };
 export type TripMembership = { routeId: string; placeId: string; position: number; isStop: boolean };
 export type TripSnapshot = { revision: number; places: TripPlace[]; routes: TripRoute[]; memberships: TripMembership[] };
@@ -13,6 +13,9 @@ export type TripCommand =
   | { type: "add"; candidate: PlaceCandidate; routeId: string | null }
   | { type: "edit-place"; placeId: string; title: string; note: string }
   | { type: "archive-place"; placeId: string; archived: boolean }
+  | { type: "star-place"; placeId: string; starred: boolean }
+  | { type: "nuke-place"; placeId: string }
+  | { type: "order-routes"; routeIds: string[] }
   | { type: "create-route"; name: string; color: TripColor }
   | { type: "edit-route"; routeId: string; name: string; color: TripColor }
   | { type: "archive-route"; routeId: string; archived: boolean }
@@ -37,10 +40,10 @@ export function mergeVisibleOrder(plan: TripSnapshot, routeId: string, visibleId
 }
 
 /** Deterministic nearest-neighbour suggestion only. Not road routing/optimization. */
-export function quickOrder(places: Pick<TripPlace, "id" | "latitude" | "longitude">[], startId: string) {
+export function quickOrder(places: Pick<TripPlace, "id" | "latitude" | "longitude">[], startId = places[0]?.id, endId = places.at(-1)?.id) {
   const start = places.find(p => p.id === startId);
   if (!start) return [];
-  const remaining = places.filter(p => p.id !== startId), order = [start.id];
+  const remaining = places.filter(p => p.id !== startId && p.id !== endId), order = [start.id];
   let current = start;
   const distance = (p: typeof start) => {
     const rad = Math.PI / 180;
@@ -51,5 +54,6 @@ export function quickOrder(places: Pick<TripPlace, "id" | "latitude" | "longitud
     remaining.sort((a, b) => distance(a) - distance(b) || a.id.localeCompare(b.id));
     current = remaining.shift()!; order.push(current.id);
   }
+  if (endId && endId !== startId && places.some(p => p.id === endId)) order.push(endId);
   return order;
 }

@@ -23,20 +23,22 @@ export const mapProviderUsage = pgTable("map_provider_usage", {
   lastAt: timestamp("last_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-// Parent-Room owned trip state. Membership remains room_memberships.
+// Room or independently authorized Subroom trip state; never a Personal map.
 export const tripPlans = pgTable("trip_plans", {
   id: uuid("id").defaultRandom().primaryKey(),
   roomId: uuid("room_id").notNull().references(() => rooms.id, { onDelete: "cascade" }),
+  subroomId: uuid("subroom_id").references(() => subrooms.id, { onDelete: "cascade" }),
   revision: integer("revision").default(0).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
-}, t => [uniqueIndex("trip_plans_room_unique").on(t.roomId), check("trip_plans_revision_valid", sql`${t.revision} >= 0`)]);
+}, t => [uniqueIndex("trip_plans_room_unique").on(t.roomId).where(sql`${t.subroomId} is null`), uniqueIndex("trip_plans_subroom_unique").on(t.subroomId), check("trip_plans_revision_valid", sql`${t.revision} >= 0`)]);
 
 export const tripPlaces = pgTable("trip_places", {
   id: uuid("id").defaultRandom().primaryKey(),
   planId: uuid("plan_id").notNull().references(() => tripPlans.id, { onDelete: "cascade" }),
   title: text("title").notNull(),
   note: text("note").default("").notNull(),
+  starred: boolean("starred").default(false).notNull(),
   latitude: doublePrecision("latitude").notNull(),
   longitude: doublePrecision("longitude").notNull(),
   source: text("source").notNull(),
@@ -62,6 +64,7 @@ export const tripRoutes = pgTable("trip_routes", {
   planId: uuid("plan_id").notNull().references(() => tripPlans.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   color: text("color").default("gold").notNull(),
+  position: integer("position").default(0).notNull(),
   archivedAt: timestamp("archived_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),

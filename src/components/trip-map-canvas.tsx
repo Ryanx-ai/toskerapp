@@ -4,15 +4,17 @@ import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { Map as MapIcon, RotateCcw, Maximize } from "lucide-react";
 import type { Map as MapInstance, Marker, GeoJSONSource } from "maplibre-gl";
 import type { PlaceCandidate, TripPlace, TripRoute } from "@/lib/trip-contract";
-import { roadKey, type RoadGeometry, type RoadMode } from "@/lib/maps/road-contract";
+import { type RoadGeometry, type RoadMode } from "@/lib/maps/road-contract";
+import { routeLegPresentation } from "@/lib/maps/route-presentation";
 import { getBrowserMapProvider, SINGAPORE_CENTER } from "@/lib/maps/browser-provider";
 import "maplibre-gl/dist/maplibre-gl.css";
 import styles from "./room-map-workspace.module.css";
+import type { LocalMapLocation } from "./use-local-map-location";
 
 type Status = "loading" | "ready" | "unavailable" | "failed";
 type PlanningRoute = TripRoute & { ghost: boolean; places: (TripPlace & { isStop: boolean })[] };
 
-export default function TripMapCanvas({ places, hiddenIds, activeVisible, routes, roads, roadMode, snapshotReady, candidate, selectedId, onSelect, onSelectGhost, pinMode, onPin }: { places: TripPlace[]; hiddenIds: string[]; activeVisible: boolean; routes: PlanningRoute[]; roads: Record<string,RoadGeometry>; roadMode: RoadMode; snapshotReady: boolean; candidate: PlaceCandidate | null; selectedId: string | null; onSelect(id: string): void; onSelectGhost(routeId: string, id: string): void; pinMode: boolean; onPin(latitude: number, longitude: number): void }) {
+export default function TripMapCanvas({ places, hiddenIds, activeVisible, routes, roads, roadMode, roadEnabled, localLocation, onDeselect, snapshotReady, candidate, selectedId, onSelect, onSelectGhost, pinMode, onPin }: { places: TripPlace[]; hiddenIds: string[]; activeVisible: boolean; routes: PlanningRoute[]; roads: Record<string,RoadGeometry>; roadMode: RoadMode; roadEnabled: boolean; localLocation: LocalMapLocation | null; onDeselect(): void; snapshotReady: boolean; candidate: PlaceCandidate | null; selectedId: string | null; onSelect(id: string): void; onSelectGhost(routeId: string, id: string): void; pinMode: boolean; onPin(latitude: number, longitude: number): void }) {
   const container = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapInstance | null>(null);
   const initialCamera = useRef(false);
@@ -20,7 +22,7 @@ export default function TripMapCanvas({ places, hiddenIds, activeVisible, routes
   const [attempt, setAttempt] = useState(0);
   const selected = useEffectEvent((id: string) => onSelect(id));
   const selectedGhost = useEffectEvent((routeId: string, id: string) => onSelectGhost(routeId, id));
-  const clicked = useEffectEvent((latitude: number, longitude: number) => { if (pinMode) onPin(latitude, longitude); });
+  const clicked = useEffectEvent((latitude: number, longitude: number) => { if (pinMode) onPin(latitude, longitude); else onDeselect(); });
   const fitTrip = () => {
     if (!places.length || !mapRef.current) return;
     const lons = places.map(p => p.longitude), lats = places.map(p => p.latitude);
@@ -150,18 +152,32 @@ export default function TripMapCanvas({ places, hiddenIds, activeVisible, routes
       // Every saved route card is a planned stop. Eye suppresses adjacent visual segments only.
       return route.places.slice(1).flatMap((place,index) => {
         const previous = route.places[index];
-        const road = roads[route.id], current = road?.key === roadKey(route.places,roadMode);
-        return hiddenIds.includes(place.id) || hiddenIds.includes(previous.id) ? [] : [{ type: "Feature" as const, properties: { name: route.name, ghost: route.ghost, color: tokens.getPropertyValue(`--trip-${route.color}`).trim() }, geometry: { type: "LineString" as const, coordinates: current ? road.segments[index] : [[previous.longitude,previous.latitude],[place.longitude,place.latitude]] } }];
+        const leg = routeLegPresentation(route.places,index,selectedId,route.ghost,roadEnabled,roadMode,roads[route.id]);
+        return !leg || hiddenIds.includes(place.id) || hiddenIds.includes(previous.id) ? [] : [{ type: "Feature" as const, properties: { name: route.name, ghost: route.ghost, opacity: leg.opacity, width: leg.width, color: tokens.getPropertyValue(`--trip-${route.color}`).trim() }, geometry: { type: "LineString" as const, coordinates: leg.coordinates } }];
       });
     }) };
     const source = map.getSource("tosker-planning") as GeoJSONSource | undefined;
     if (source) source.setData(data);
     else {
       map.addSource("tosker-planning", { type: "geojson", data });
-      map.addLayer({ id: "tosker-planning-ghost", type: "line", source: "tosker-planning", filter: ["==",["get","ghost"],true], paint: { "line-color": ["get","color"], "line-width": 3, "line-opacity": .5 } });
-      map.addLayer({ id: "tosker-planning-active", type: "line", source: "tosker-planning", filter: ["==",["get","ghost"],false], paint: { "line-color": ["get","color"], "line-width": 3, "line-opacity": .9 } });
+      map.addLayer({ id: "tosker-planning-ghost", type: "line", source: "tosker-planning", filter: ["==",["get","ghost"],true], paint: { "line-color": ["get","color"], "line-width": 2, "line-dasharray": [3,2], "line-opacity": ["get","opacity"] } });
+      map.addLayer({ id: "tosker-planning-active", type: "line", source: "tosker-planning", filter: ["==",["get","ghost"],false], paint: { "line-color": ["get","color"], "line-width": ["get","width"], "line-opacity": ["get","opacity"] } });
     }
-  }, [status, routes, hiddenIds, roads, roadMode]);
+  }, [status, routes, hiddenIds, roads, roadMode, roadEnabled, selectedId]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || status !== "ready" || !localLocation) return;
+    let disposed = false, marker: Marker | undefined;
+    void import("maplibre-gl").then(({ Marker }) => {
+      if (disposed) return;
+      const element = document.createElement("span"); element.className = styles.localLocation;
+      element.setAttribute("role", "img"); element.setAttribute("aria-label", `Your location, accuracy about ${Math.round(localLocation.accuracy)} metres. Visible only to you.`);
+      marker = new Marker({ element }).setLngLat([localLocation.longitude, localLocation.latitude]).addTo(map);
+      map.jumpTo({ center: [localLocation.longitude, localLocation.latitude], zoom: 14 });
+    });
+    return () => { disposed = true; marker?.remove(); };
+  }, [localLocation, status]);
 
   useEffect(() => {
     if (status !== "ready") return;

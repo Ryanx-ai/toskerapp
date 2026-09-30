@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { MoreHorizontal, Plus, Eye, EyeOff, Pencil, Palette, Archive, ArrowLeft, ArrowRight, Share2, X, ArrowDownUp } from "lucide-react";
+import { MoreHorizontal, Plus, Eye, EyeOff, Pencil, Palette, Archive, ArrowLeft, ArrowRight, Share2, X, Sparkles } from "lucide-react";
 import { TRIP_COLORS, orderedRoutePlaces, quickOrder, mergeVisibleOrder, type TripColor, type TripCommand, type TripSnapshot } from "@/lib/trip-contract";
 import { InteractionPopover } from "./interaction-popover";
 import { ModalLayer } from "./modal-layer";
@@ -37,14 +37,17 @@ export default function TripRouteControls({ plan, activeId, ghosts, hiddenRoutes
       </div>)}
       <button className={styles.newRoute} disabled={disabled || plan.routes.length >= 12} onClick={() => setEditing({ id:null,name:`Day ${plan.routes.length+1}`,color:TRIP_COLORS[plan.routes.length % TRIP_COLORS.length],revision:plan.revision })}><Plus size={16} aria-hidden="true" />Route</button>
     </div><div className={styles.actions}>
-      <button className={styles.control} disabled={disabled || places.length < 3} aria-label="Quick order" title="Quick order" onClick={() => { if (route) setProposal({ routeId:route.id,revision:plan.revision,before:fullOrder,after:mergeVisibleOrder(plan,route.id,quickOrder(places)) }); }}><ArrowDownUp size={16} aria-hidden="true" /></button>
-      <button className={styles.control} aria-label="Trip options" aria-haspopup="dialog" aria-expanded={!!menu && menu.id === null} onClick={e => setMenu({ anchor:e.currentTarget,id:null })}><MoreHorizontal size={18} aria-hidden="true" /></button>
+      <button className={styles.control} disabled={disabled || places.length < 3} aria-label="Quick order" title="Quick order · distance suggestion, not AI" onClick={() => { if (route) setProposal({ routeId:route.id,revision:plan.revision,before:fullOrder,after:mergeVisibleOrder(plan,route.id,quickOrder(places)) }); }}><Sparkles size={16} aria-hidden="true" /></button>
+      <button className={styles.control} aria-label="Share route" title="Share route · deferred" onClick={() => setShare(true)}><Share2 size={18} aria-hidden="true" /></button>
     </div></div>
+    {!visible.length && (plan.routes.length > 0 || plan.places.length > 0) && <button className="quiet-action" onClick={e => setMenu({ anchor:e.currentTarget, id:null })}>Recover saved places and routes</button>}
     {menu && <InteractionPopover anchor={menu.anchor} onClose={() => setMenu(null)} label={menuRoute ? `Route actions for ${menuRoute.name}` : "Trip options"}><div className={styles.cardMenu}>
       {menuRoute ? <>
         <button disabled={disabled} onClick={editRoute}><Pencil size={16} aria-hidden="true" />Rename</button>
         <button onClick={() => ghost(menuRoute.id)}>{(menuRoute.id === activeId ? !hiddenRoutes.includes(menuRoute.id) : ghosts.includes(menuRoute.id)) ? <Eye size={16} aria-hidden="true" /> : <EyeOff size={16} aria-hidden="true" />}{(menuRoute.id === activeId ? !hiddenRoutes.includes(menuRoute.id) : ghosts.includes(menuRoute.id)) ? "Hide" : "Show"}</button>
         <button disabled={disabled} onClick={editRoute}><Palette size={16} aria-hidden="true" />Change color</button>
+        <button onClick={() => { showLibrary(); setMenu(null); }}>Saved places</button><button onClick={() => { showArchive(); setMenu(null); }}>Archived places</button>
+        {plan.routes.filter(r=>r.archived).map(r=><button key={r.id} disabled={disabled} onClick={async()=>{if(await change({type:"archive-route",routeId:r.id,archived:false})){activate(r.id);setMenu(null);}}}>Restore {r.name}</button>)}
         <button disabled={disabled || visible[0]?.id === menuRoute.id} onClick={() => { const i=visible.findIndex(r=>r.id===menuRoute.id); if(i>0)move(menuRoute.id,visible[i-1].id); }}><ArrowLeft size={16} aria-hidden="true" />Move earlier</button>
         <button disabled={disabled || visible.at(-1)?.id === menuRoute.id} onClick={() => { const i=visible.findIndex(r=>r.id===menuRoute.id); if(i<visible.length-1)move(menuRoute.id,visible[i+1].id); }}><ArrowRight size={16} aria-hidden="true" />Move later</button>
         <button onClick={() => {setMenu(null);setShare(true);}}><Share2 size={16} aria-hidden="true" />Share · deferred</button>

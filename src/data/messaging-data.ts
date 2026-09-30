@@ -26,6 +26,7 @@ export type Message = {
 };
 
 export type Conversation = {
+  mapAvailable?: boolean;
   identitySeed?: string;
   avatarUrl?: string | null;
   databaseId?: string;

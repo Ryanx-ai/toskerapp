@@ -180,6 +180,34 @@
 .roadTools select { min-height:36px; padding:6px 10px; font-size:11px; }
 .roadTools .control { min-height:36px; padding:6px 10px; font-size:11px; }
 .roadTools > span { flex:1; min-width:120px; color:var(--text-secondary); font-size:10px; line-height:1.5; }
+.workspace .toolbar { display:flex; flex-wrap:wrap; gap:8px; padding:10px 12px; }
+.workspace .toolbar .search { flex:1 1 180px; width:auto; max-width:none; min-width:120px; }
+.workspace .toolbar .control { flex:0 0 auto; min-height:40px; padding:8px 10px; font-size:12px; }
+.workspace .searchPanel > .helper { margin:0; padding:0 12px 8px; font-size:11px; }
+.workspace .placeCard { height:190px; min-height:190px; }
+.workspace .cardSelect { height:150px; min-height:150px; }
+.workspace .cardVisual { height:62px; }
+.workspace .cardInfo { padding:10px 12px; }
+.cardActions { display:flex; justify-content:space-between; align-items:center; padding:0 6px; height:40px; }
+.cardActions button { display:flex; align-items:center; justify-content:center; gap:6px; min-width:36px; min-height:36px; background:transparent; border:0; border-radius:8px; color:var(--text-secondary); font:500 11px var(--font-inter),sans-serif; cursor:pointer; }
+.cardActions button:hover { background:var(--surface-hover); color:var(--text-primary); }
+.cardActions button:focus-visible { outline:2px solid var(--ui-highlight); outline-offset:-2px; }
+.commentSheet { width:min(460px,calc(100vw - 24px)); padding:24px; max-height:85dvh; overflow:auto; }
+.commentSheet.commentSheet.commentSheet > h2 { margin:0; padding-right:40px; font:600 18px/1.4 var(--font-inter),sans-serif; }
+.commentSheet.commentSheet > .commentPlace { margin:6px 0 16px; color:var(--text-secondary); font-size:12px; padding-right:30px; overflow-wrap:anywhere; }
+.commentList { display:flex; flex-direction:column; gap:12px; max-height:42dvh; overflow:auto; overscroll-behavior:contain; }
+.commentList article { padding:12px; border-radius:12px; background:var(--surface); border:1px solid var(--border); }
+.commentList header { display:flex; align-items:center; justify-content:space-between; gap:12px; font-size:12px; }
+.commentList time { flex:none; font-size:10px; color:var(--text-secondary); }
+.commentList p { margin:8px 0 0; white-space:pre-wrap; overflow-wrap:anywhere; font-size:13px; line-height:1.5; }
+.commentForm { display:flex; align-items:flex-end; gap:8px; margin-top:16px; }
+.commentForm textarea { resize:vertical; flex:1; min-width:0; min-height:64px; max-height:180px; border:1px solid var(--border); border-radius:12px; background:var(--surface); color:var(--text-primary); font:400 14px/1.5 var(--font-inter),sans-serif; padding:10px; }
+.commentForm button { min-width:44px; min-height:44px; padding:10px; }
+.localLocation { display:block; width:18px; height:18px; border-radius:50%; background:var(--action-secondary); border:3px solid var(--text-primary); box-shadow:0 0 0 8px color-mix(in srgb,var(--action-secondary) 20%,transparent); }
+.ghostPin { opacity:.45; border-style:dashed; }
+@media (pointer:coarse) { .cardActions button,.workspace .toolbar .control { min-height:44px; min-width:44px; } .workspace .placeCard { height:198px; min-height:198px; } .cardActions { height:48px; } }
+@media (max-width:1100px) { .locationLabel { display:none; } }
+@media (max-width:640px) { .workspace .toolbar .search { flex-basis:100%; } .commentForm textarea { font-size:16px; } }
 @media(pointer:coarse) { .cardMore { width:44px; height:44px; } .routeTab button:last-child { width:44px; } .roadTools select,.roadTools .control { min-height:44px; } }
 @media(max-width:640px) { .workspace { flex:1; min-height:0; overflow:auto; padding:12px; gap:12px; } .canvasRegion { height:360px; } .state { padding:12px; font-size:11px; } .emptyMap { padding:24px 16px; } .toolbar { padding:12px; gap:10px; } .cards { padding:16px; } }
 @media(max-width:768px) { .mobileViews { display:flex; gap:8px; } .mobileViews button { flex:1; } .mobileMapHidden { display:none; } .preview { align-items:stretch; flex-direction:column; gap:12px; padding:16px; } .cardStrip { flex-direction:column; overflow-x:visible; align-items:stretch; } .placeCard { flex:auto; width:100%; } .cardSelect { min-height:100px; } .search { max-width:none; } .stripControls { display:none; } }

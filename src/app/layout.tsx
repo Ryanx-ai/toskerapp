@@ -9,17 +9,14 @@ import "./fp5-synthesis.css";
 import "./ms73-workspace.css";
 import "./ms73-search.css";
 import "./ms73-fp1.css";
+import "./ms73-fp2.css";
 
-const montserrat = localFont({ src: [
-  { path: "./fonts/Montserrat-Regular.ttf", weight: "400", style: "normal" },
-  { path: "./fonts/Montserrat-Medium.ttf", weight: "500", style: "normal" },
-  { path: "./fonts/Montserrat-SemiBold.ttf", weight: "600", style: "normal" },
-  { path: "./fonts/Montserrat-Bold.ttf", weight: "700", style: "normal" },
-], variable: "--font-montserrat", display: "swap" });
+// Official Inter 4.1, bundled under SIL OFL; no external font request.
+const inter = localFont({ src: "./fonts/InterVariable.woff2", weight: "100 900", style: "normal", variable: "--font-inter", display: "swap" });
 const mermaid = localFont({ src: "./fonts/Mermaid1001.ttf", variable: "--font-mermaid", display: "swap", adjustFontFallback: "Times New Roman" });
 
 export const metadata: Metadata = { title: { default: "Tosker", template: "%s · Tosker" }, description: "A shared digital room for the things people do together." };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en" className={`${montserrat.variable} ${mermaid.variable}`}><body><ClerkProvider allowedRedirectOrigins={AUTH_REDIRECT_ORIGINS}>{children}</ClerkProvider></body></html>;
+  return <html lang="en" className={`${inter.variable} ${mermaid.variable}`}><body><ClerkProvider allowedRedirectOrigins={AUTH_REDIRECT_ORIGINS}>{children}</ClerkProvider></body></html>;
 }

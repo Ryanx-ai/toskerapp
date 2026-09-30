@@ -1,0 +1,40 @@
+/* FP2: dense UI typography; Mermaid display and brand identity remain intact. */
+html { --font-montserrat: var(--font-inter); --ui-gap: 8px; }
+body { font-family: var(--font-inter), system-ui, sans-serif; }
+.vertical-ellipsis { transform: rotate(90deg); }
+.viewer-appearance .conversation-header { gap: 0; padding: 0; }
+.viewer-appearance .conversation-header .conversation-topbar {
+  display: flex; align-items: center; gap: 12px; min-height: 76px;
+  padding: 12px 16px; border-radius: inherit; box-shadow: none;
+}
+.conversation-header .core-header-controls { flex: 0 0 auto; margin: 0; }
+.conversation-header .header-identity-zone { flex: 0 1 290px; min-width: 100px; gap: 10px; }
+.conversation-header .header-identity-zone .avatar-large { width: 34px; height: 34px; min-width: 34px; }
+.conversation-header .active-copy { min-width: 0; }
+.conversation-header .active-copy h2, .conversation-header .room-context-trigger { font-size: 13px; line-height: 1.4; }
+.conversation-header .header-presence, .conversation-header .header-context { font-size: 11px; line-height: 1.5; }
+.conversation-header .context-search { flex: 1 1 200px; min-width: 120px; max-width: 360px; margin: 0; }
+.viewer-appearance .conversation-header .surface-tabs {
+  flex: 0 0 auto; display: flex; align-items: center; gap: 4px; margin: 0 0 0 auto;
+  padding: 0; min-height: 44px; border: 0; background: transparent; width: auto;
+}
+.viewer-appearance .conversation-header .surface-tabs > a, .viewer-appearance .conversation-header .surface-tabs > button {
+  display: inline-flex; gap: 6px; justify-content: center; align-items: center;
+  min-height: 44px; min-width: 44px; padding: 8px 10px; font-size: 12px; line-height: 1.2;
+}
+.conversation-header .surface-tabs > :last-child { margin-left: 0; }
+.sidebar-conversation .conversation-name { font-size: 13px; }
+.communication-options button, .room-context-menu button, .room-context-menu a { line-height: 1.4; }
+@media (max-width: 1200px) {
+  .viewer-appearance .conversation-header .conversation-topbar { flex-wrap: wrap; gap: 8px; padding: 10px 12px; }
+  .conversation-header .header-identity-zone { flex: 1 1 140px; }
+  .conversation-header .context-search { flex: 1 1 180px; }
+  .viewer-appearance .conversation-header .surface-tabs { flex-basis: 100%; margin: 0; justify-content: flex-end; }
+}
+@media (max-width: 640px) {
+  .viewer-appearance .conversation-header .conversation-topbar { padding: 8px; gap: 6px; }
+  .conversation-header .header-identity-zone { min-width: 0; flex: 1 1 0; }
+  .conversation-header .context-search { flex: 0 0 44px; min-width:44px; max-width:44px; }
+  .viewer-appearance .conversation-header .surface-tabs { justify-content: space-between; gap: 2px; }
+  .viewer-appearance .conversation-header .surface-tabs > a, .viewer-appearance .conversation-header .surface-tabs > button { flex: 1; padding-inline: 7px; }
+}

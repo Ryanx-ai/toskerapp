@@ -169,6 +169,9 @@ export function SurfaceHeader({
   return (
     <header className="conversation-header">
       <div className="conversation-topbar">
+      <div className="core-header-controls">
+        {conversation.databaseId || onManage ? <button className="action-icon" aria-label="Conversation options" title="Conversation options" aria-expanded={Boolean(controlsAnchor)} onClick={(event) => { setControlFeedback(""); setControlsAnchor(event.currentTarget); }}><MoreHorizontal className="vertical-ellipsis" size={17} /></button> : null}
+      </div>
       <div className="header-identity-zone">
         <Link href="/app?view=list" className="mobile-back" aria-label="Back">
           <ArrowLeft size={18} />
@@ -184,10 +187,6 @@ export function SurfaceHeader({
         </div>
       </div>
       <ContextSearch context={conversation.databaseId ? { id: conversation.databaseId, name: titleOf(conversation, user.displayName), href: baseHref(conversation), kind: conversation.kind, subroom: conversation.tag === "SUBROOM" } : undefined} />
-      <div className="core-header-controls">
-        {conversation.databaseId || onManage ? <button className="action-icon" aria-label="Conversation options" title="Conversation options" aria-expanded={Boolean(controlsAnchor)} onClick={(event) => { setControlFeedback(""); setControlsAnchor(event.currentTarget); }}><MoreHorizontal size={17} /></button> : null}
-      </div>
-      </div>
       <nav className="surface-tabs" aria-label="Space surfaces">
         {identity && hasRoomMap(conversation) ? <Link className={surface === "map" ? "active" : ""} aria-current={surface === "map" ? "page" : undefined} href={surface === "map" ? `${baseHref(conversation)}?surface=chat` : `${baseHref(conversation)}/map`} prefetch={false}><MapIcon size={16} aria-hidden="true" />Map</Link> : null}
         <Link
@@ -200,6 +199,7 @@ export function SurfaceHeader({
         {identity && hasRoomMap(conversation) ? <Link className={surface === "live" ? "active" : ""} aria-current={surface === "live" ? "page" : undefined} href={surface === "live" ? `${baseHref(conversation)}?surface=chat` : `${baseHref(conversation)}/live`} prefetch={false}><Radio size={16} aria-hidden="true" />Live</Link> : null}
         {onToggleChatCompanion ? <button className={chatCompanionOpen ? "active" : ""} aria-pressed={!!chatCompanionOpen} onClick={onToggleChatCompanion}><MessageCircle size={16} aria-hidden="true" />Chat<AttentionMark count={chatUnread} label="new messages" /></button> : <Link className={surface === "chat" ? "active" : ""} aria-current={surface === "chat" ? "page" : undefined} href={`${baseHref(conversation)}?surface=chat`}><MessageCircle size={16} aria-hidden="true" />Chat<AttentionMark count={chatUnread} label="new messages" /></Link>}
       </nav>
+      </div>
       {controlsAnchor ? <InteractionPopover anchor={controlsAnchor} label="Conversation options" onClose={() => { if (!controlBusy) setControlsAnchor(null); }}><div className="room-context-menu communication-options">
         {conversation.kind === "room" && onInvite ? <button disabled={controlBusy} onClick={() => { setControlsAnchor(null); onInvite(); }}><Plus size={15} />Invite</button> : null}
         {onManage ? <button disabled={controlBusy} onClick={() => { setControlsAnchor(null); onManage(); }}><UsersRound size={15} />Room Settings</button> : null}

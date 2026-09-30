@@ -8,6 +8,7 @@ export async function readPersonalNavigation(db: ToskerReader, viewerId: string)
   const rows = await db.select({
     conversationId: conversations.id, displayName: profiles.displayName, username: profiles.username, tid: users.tid,
     presenceStatus: projectedProfileStatus(viewerId), userId: users.id, avatarUrl: profiles.avatarUrl,
+    mapAvailable: sql<boolean>`(${conversations.roomId} is null and ${conversations.subroomId} is null and (select count(*) from conversation_participants map_members where map_members.conversation_id = ${conversations.id}) = 2 and exists(select 1 from connections map_connection where map_connection.pair_key = ${conversations.directKey} and map_connection.status = 'accepted' and ((map_connection.requester_id = ${viewerId} and map_connection.addressee_id = ${users.id}) or (map_connection.addressee_id = ${viewerId} and map_connection.requester_id = ${users.id}))))`,
     nickname: sql<string | null>`(select n.nickname from connection_nicknames n join connections c on c.id = n.connection_id
       where c.status = 'accepted' and n.user_id = ${viewerId} and ((c.requester_id = ${viewerId} and c.addressee_id = ${users.id}) or (c.addressee_id = ${viewerId} and c.requester_id = ${users.id})) limit 1)`,
   }).from(conversations).innerJoin(conversationParticipants, eq(conversationParticipants.conversationId, conversations.id))

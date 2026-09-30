@@ -59,6 +59,7 @@ export type CanonicalIdentity = {
     subrooms: Array<{ id: string; name: string; visibility: "everyone" | "selected" | "owners"; conversationId: string }>;
   }>;
   personalConversations: Array<{
+    mapAvailable?: boolean;
     userId: string;
     avatarUrl: string | null;
     conversationId: string;

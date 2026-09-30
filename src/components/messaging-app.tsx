@@ -1343,6 +1343,7 @@ export function MessagingApp({
         }
       : serverChat
       ? {
+          mapAvailable: serverChat.mapAvailable,
           slug: serverChat.slug,
           identitySeed: serverChat.userId,
           avatarUrl: serverChat.avatarUrl,
@@ -1469,7 +1470,7 @@ export function MessagingApp({
               onToggleChatCompanion={canCompanion ? toggleCompanion : undefined}
             />
             {surface !== "chat" ? <div className={`planning-workspace ${companionOpen ? "with-chat" : ""}`}><div className="planning-primary">
-            {surface === "map" ? <RoomMapWorkspace key={selected.slug} roomSlug={selected.slug} conversationId={selected.databaseId ?? ""} /> : surface === "live" ? <LivePreview key={selected.slug} /> : (
+            {surface === "map" ? <RoomMapWorkspace key={selected.slug} roomSlug={selected.kind === "personal" ? `personal--${selected.databaseId}` : selected.slug} conversationId={selected.databaseId ?? ""} /> : surface === "live" ? <LivePreview key={selected.slug} /> : (
               <HallSurface
                 connected={realtime.connected}
                 manualUnreadId={selectedPreference?.manualHallUnreadId}

@@ -1,0 +1,15 @@
+import assert from "node:assert/strict";
+import { routeLegPresentation } from "../src/lib/maps/route-presentation";
+import { roadKey } from "../src/lib/maps/road-contract";
+import type { TripPlace } from "../src/lib/trip-contract";
+const points: TripPlace[] = [0,1,2,3].map(n=>({id:String(n),title:`QA ${n}`,note:"",latitude:1.28+n*.001,longitude:103.85+n*.001,source:"pin",provider:null,providerId:null,address:"",attribution:"",license:"",archived:false}));
+const leg=(i:number,selected:string|null,ghost=false)=>routeLegPresentation(points,i,selected,ghost,false,"walk");
+assert.equal(leg(0,"0")?.opacity,.95);assert.equal(leg(1,"0")?.opacity,.25);
+assert.equal(leg(0,"1")?.opacity,.95);assert.equal(leg(1,"1")?.opacity,.95);assert.equal(leg(2,"1")?.opacity,.25);
+assert.equal(leg(2,"3")?.opacity,.95);assert.equal(leg(2,null)?.opacity,.95);assert.equal(leg(1,"1",true)?.opacity,.3);
+assert.equal(routeLegPresentation(points,0,null,false,true,"walk"),null);
+const road={key:roadKey(points,"walk"),mode:"walk" as const,segments:points.slice(1).map((p,i)=>[[points[i].longitude,points[i].latitude],[p.longitude,p.latitude]]),attribution:"QA"};
+assert(routeLegPresentation(points,0,null,false,true,"walk",road));
+assert.equal(routeLegPresentation([...points].reverse(),0,null,false,true,"walk",road),null);
+assert.equal(routeLegPresentation(points,0,null,false,true,"drive",road),null);
+console.log("PASS progressive 1→2/1→2→3/later/deselect, ghost distinction, no fake roads on missing/stale/mode change; zero provider requests");

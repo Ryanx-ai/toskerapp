@@ -34,6 +34,13 @@ async function main() {
   await assert.rejects(() => readTripComments(db, b, f.slug, placeId), AuthorizationDeniedError);
   await assert.rejects(() => change({ type: "comment", placeId, body: "Denied" }, b), AuthorizationDeniedError);
   await db.insert(roomMemberships).values({ roomId: f.id, userId: b.userId, role: "member" });
+  const [ownedPlan] = await db.select().from(tripPlans).where(eq(tripPlans.roomId, f.id));
+  await db.insert(tripComments).values(Array.from({ length:198 }, (_,i) => ({ planId:ownedPlan.id, placeId, authorId:a.userId, body:`Bounded QA comment ${i}` })));
+  const newest = await readTripComments(db,b,f.slug,placeId);
+  assert.equal(newest.comments.length,30); assert(newest.hasMore);
+  const older = await readTripComments(db,b,f.slug,placeId,newest.comments[0].id);
+  assert.equal(older.comments.length,30); assert(!older.comments.some(c=>newest.comments.some(n=>n.id===c.id)));
+  await assert.rejects(()=>change({type:"comment",placeId,body:"Over limit"}),e=>e instanceof TripError&&e.code==="limit");
   await change({ type: "nuke-place", placeId }, b);
   assert.equal((await db.select().from(tripComments).where(eq(tripComments.placeId, placeId))).length, 0);
   await assert.rejects(() => readTripComments(db, a, f.slug, placeId));

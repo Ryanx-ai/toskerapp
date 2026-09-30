@@ -13,6 +13,8 @@ for (const [index, context] of contexts.entries()) {
 assert.equal(hasRoomMap({ ...room, slug: "trip--child" }), true);
 assert.equal(hasRoomMap({ ...room, tag: "SUBROOM" }), true);
 assert.equal(resolveWorkspaceSurface("map"), "chat");
+assert.equal(hasRoomMap({ kind: "personal", slug: "chat-id", mapAvailable: true }), true);
+assert.equal(resolveWorkspaceSurface("live", { kind: "personal", slug: "chat-id", mapAvailable: true }), "live");
 
 const header = readFileSync("src/components/communication-ui.tsx", "utf8");
 assert(header.includes('`${baseHref(conversation)}/hall`'), "Board retains old URLs");

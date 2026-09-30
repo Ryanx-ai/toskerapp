@@ -1,5 +1,7 @@
 # MS7.3 — integrated founder-review release
 
+**Superseded by the [MS7.3 FP1 live execution ledger](MS7-3-FP1-EXECUTION.md).** The release below is historical. FP1 application `896eef2` is canonical with bounded road previews and synthetic Live only; MS7.3 remains unlocked. See the FP1 ledger for current acceptance evidence and the additional QA Room preserved after a founder contribution blocked cleanup.
+
 ## LIVE — Founder Walk gate — 2026-09-30
 
 Local engineering acceptance and canonical A/B smoke passed. Application commit **`fab1a7b7a61a91b8d175d6a9105c7b94c1bcda47`**, Vercel Production **READY** deployment **`dpl_B4S4YQow7UZCpeLwUapurt4SQ9rT`** (`tosker-krkoju4ds-pangea6.vercel.app`), exact `toskerapp.vercel.app` alias and HTTPS200 verified. A later documentation-only closeout may redeploy identical application source. **STOP FOR FOUNDER WALK. MS7.3 is not locked; do not start MS7.4 or Live.** This ledger supersedes incomplete slice statuses in the earlier Gate 2/continuation reports.

@@ -2,11 +2,11 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
-## MS7.3 FP1 — local acceptance complete, canonical gate pending — 2026-09-30
+## MS7.3 FP1 LIVE — STOP FOR FOUNDER WALK — 2026-09-30
 
-Read [FP1 execution ledger](docs/MS7-3-FP1-EXECUTION.md) and [provider/Share/Search decisions](docs/MS7-3-FP1-PROVIDER-AND-SHARING.md) first. Founder FP1 brief supersedes the older release below: horizontal Namecards, Map/Board/synthetic Live/Chat tabs, default desktop companion, compact cards/routes, private Eye/shared Star/safe Nuke, endpoint-preserving Quick order, independent Subroom maps and explicit bounded road preview. No real Live/media, Personal Map, external Share, new billing or permanent provider commitment. Local optimized build, A/B collaboration/retry/permissions, six-width/short-landscape visual checks, migration23/catalog and server-secret/client-bundle scans pass. Canonical deployment/live smoke still pending at this checkpoint.
+Read [FP1 execution ledger](docs/MS7-3-FP1-EXECUTION.md) and [provider/Share/Search decisions](docs/MS7-3-FP1-PROVIDER-AND-SHARING.md) first. Application `896eef2`, canonical READY `dpl_z7W3BheHKfy7qqU1MtKHZ7qnAocr`, exact SHA/alias/HTTPS verified; later docs/test-only closeout may redeploy identical application source. Horizontal Namecards, Map/Board/synthetic Live/Chat, default desktop companion, compact cards/routes, private Eye/shared Star/safe Nuke, endpoint-preserving Quick order, independent Subroom maps and explicit bounded roads pass local regression, A/B/retry/permissions, six-width/short-landscape and canonical live smoke. Migration23/catalog,488source+40bundle secret scan and integrity audit pass; live browsers/error/fatal logs clear. No real media, Personal Map, external Share, billing or permanent provider commitment.
 
-Keep `ms73-founder-review-904a9dea` with founderTID8V3X7P1 forever for Founder Walk; do not overwrite founder contributions. `ms73-qa-bfff9475` is the only current disposable, retained through canonical A/B smoke then exact-owned cleanup. Other FP1 fixtures deleted; receipts must not be replayed. Preserve unrelated Design/Art/Web/inheritance/research/experiments WIP. After canonical verification **STOP FOR FOUNDER WALK; MS7.3 unlocked, MS7.4 unstarted**.
+Keep `ms73-founder-review-904a9dea` with founderTID8V3X7P1 for Founder Walk; never auto-clean or overwrite founder contributions. Also preserve `ms73-qa-bfff9475`: cleanup correctly STOPPED on one founder-authored Chat message; whole Room/membership retained pending explicit founder disposition. Other FP1 fixtures deleted; receipts must not be replayed. Final audit6Rooms/11memberships, zero integrity violations. Preserve unrelated Design/Art/Web/inheritance/research/experiments WIP. **STOP FOR FOUNDER WALK; MS7.3 unlocked, MS7.4 unstarted**.
 
 ## MS7.3 LIVE — STOP FOR FOUNDER WALK — 2026-09-30
 

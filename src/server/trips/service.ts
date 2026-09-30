@@ -3,7 +3,8 @@ import { createHash } from "node:crypto";
 import { and, asc, count, eq, sql } from "drizzle-orm";
 import type { AuthenticatedActor } from "@/server/auth/actor";
 import type { ToskerDatabase } from "@/server/db/client";
-import { tripPlans, tripPlaces, tripRoutes, tripRoutePlaces, tripMutationReceipts } from "@/server/db/schema";
+import { tripPlans, tripPlaces, tripRoutes, tripRoutePlaces, tripMutationReceipts, tripComments, profiles } from "@/server/db/schema";
+import { contextualName, conversationRoomId } from "@/server/profiles/context-name";
 import { lockTripScope, tripScopeWhere } from "./scope";
 import { TRIP_COLORS, TRIP_LIMITS, type PlaceCandidate, type TripColor, type TripFailureCode, type TripMutation, type TripSnapshot } from "@/lib/trip-contract";
 import { isConversationId } from "@/lib/realtime-contract";
@@ -34,6 +35,7 @@ function normalize(input: TripMutation): TripMutation {
   switch (c.type) {
     case "add": return { ...base, command: { type: c.type, candidate: validateCandidate(c.candidate), routeId: c.routeId === null ? null : uuid(c.routeId) } };
     case "edit-place": return { ...base, command: { type: c.type, placeId: uuid(c.placeId), title: text(c.title, 120), note: text(c.note, 1000, true) } };
+    case "comment": return { ...base, command: { type: c.type, placeId: uuid(c.placeId), body: text(c.body, 1000) } };
     case "archive-place": return { ...base, command: { type: c.type, placeId: uuid(c.placeId), archived: flag(c.archived) } };
     case "star-place": return { ...base, command: { type: c.type, placeId: uuid(c.placeId), starred: flag(c.starred) } };
     case "nuke-place": return { ...base, command: { type: c.type, placeId: uuid(c.placeId) } };
@@ -63,8 +65,10 @@ export async function readTrip(db: ToskerDatabase, actor: AuthenticatedActor, sl
     const places = await tx.select().from(tripPlaces).where(eq(tripPlaces.planId, plan.id)).orderBy(asc(tripPlaces.createdAt), asc(tripPlaces.id)).limit(TRIP_LIMITS.places);
     const routes = await tx.select().from(tripRoutes).where(eq(tripRoutes.planId, plan.id)).orderBy(asc(tripRoutes.position), asc(tripRoutes.createdAt), asc(tripRoutes.id)).limit(TRIP_LIMITS.routes);
     const memberships = await tx.select({ routeId: tripRoutePlaces.routeId, placeId: tripRoutePlaces.placeId, position: tripRoutePlaces.position, isStop: tripRoutePlaces.isStop }).from(tripRoutePlaces).where(eq(tripRoutePlaces.planId, plan.id)).limit(TRIP_LIMITS.places * TRIP_LIMITS.routes);
+    const counts = await tx.select({ id: tripComments.placeId, n: count() }).from(tripComments).where(eq(tripComments.planId, plan.id)).groupBy(tripComments.placeId);
+    const commentCounts = new Map(counts.map(row => [row.id, row.n]));
     return { revision: plan.revision,
-      places: places.map(p => ({ id: p.id, title: p.title, note: p.note, starred: p.starred, latitude: p.latitude, longitude: p.longitude, source: p.source as "search" | "pin", provider: p.provider, providerId: p.providerId, address: p.address, attribution: p.attribution, license: p.license, archived: !!p.archivedAt })),
+      places: places.map(p => ({ id: p.id, title: p.title, note: p.note, starred: p.starred, commentCount: commentCounts.get(p.id) ?? 0, latitude: p.latitude, longitude: p.longitude, source: p.source as "search" | "pin", provider: p.provider, providerId: p.providerId, address: p.address, attribution: p.attribution, license: p.license, archived: !!p.archivedAt })),
       routes: routes.map(r => ({ id: r.id, name: r.name, color: r.color as TripColor, archived: !!r.archivedAt })), memberships };
   });
 }
@@ -77,7 +81,7 @@ export async function mutateTrip(db: ToskerDatabase, actor: AuthenticatedActor, 
     let [plan] = await tx.select().from(tripPlans).where(tripScopeWhere(scope));
     if (!plan) {
       if (input.expectedRevision !== 0) throw new TripError("conflict", "The trip changed. Review its latest state before trying again.");
-      [plan] = await tx.insert(tripPlans).values({ roomId: scope.roomId, subroomId: scope.subroomId }).returning();
+      [plan] = await tx.insert(tripPlans).values({ roomId: scope.roomId, subroomId: scope.subroomId, personalConversationId: scope.personalConversationId }).returning();
     }
     const [receipt] = await tx.select().from(tripMutationReceipts).where(and(eq(tripMutationReceipts.planId, plan.id), eq(tripMutationReceipts.actorId, actor.userId), eq(tripMutationReceipts.requestId, input.requestId)));
     if (receipt) {
@@ -122,9 +126,16 @@ export async function mutateTrip(db: ToskerDatabase, actor: AuthenticatedActor, 
         routeId = existing.find(r => !r.archivedAt)?.id ?? (await makeRoute("Day 1", "gold")).id;
       }
       await include(routeId, resultId);
+    } else if (c.type === "comment") {
+      const p = await requirePlace(c.placeId); if (p.archivedAt) return invalid();
+      const [{ n }] = await tx.select({ n: count() }).from(tripComments).where(eq(tripComments.placeId, p.id));
+      if (n >= 200) throw new TripError("limit", "This place reached its 200-comment Development limit.");
+      const [created] = await tx.insert(tripComments).values({ planId: plan.id, placeId: p.id, authorId: actor.userId, body: c.body }).returning({ id: tripComments.id });
+      resultId = created.id;
     } else if (c.type === "edit-place" || c.type === "archive-place") {
-      await requirePlace(c.placeId);
-      await tx.update(tripPlaces).set(c.type === "edit-place" ? { title: c.title, note: c.note, updatedAt: new Date() } : { archivedAt: c.archived ? new Date() : null, updatedAt: new Date() }).where(placeScope(c.placeId)); resultId = c.placeId;
+      const p = await requirePlace(c.placeId);
+      if (c.type === "edit-place" && c.title !== p.title) throw new TripError("invalid", "Place names stay canonical. Add your context in a note or comment.");
+      await tx.update(tripPlaces).set(c.type === "edit-place" ? { note: c.note, updatedAt: new Date() } : { archivedAt: c.archived ? new Date() : null, updatedAt: new Date() }).where(placeScope(c.placeId)); resultId = c.placeId;
     } else if (c.type === "star-place") {
       await requirePlace(c.placeId);
       await tx.update(tripPlaces).set({ starred: c.starred, updatedAt: new Date() }).where(placeScope(c.placeId)); resultId = c.placeId;
@@ -175,5 +186,22 @@ export async function mutateTrip(db: ToskerDatabase, actor: AuthenticatedActor, 
     await tx.update(tripPlans).set({ revision, updatedAt: new Date() }).where(eq(tripPlans.id, plan.id));
     await tx.insert(tripMutationReceipts).values({ planId: plan.id, actorId: actor.userId, requestId: input.requestId, payloadHash, revision, resultId });
     return { revision, resultId, replayed: false };
+  });
+}
+
+/** Paginated content is fetched only for the open, currently authorized place. */
+export async function readTripComments(db: ToskerDatabase, actor: AuthenticatedActor, scopeKey: string, placeId: string, before?: string) {
+  uuid(placeId); if (before) uuid(before);
+  return db.transaction(async tx => {
+    const scope = await lockTripScope(tx, actor, scopeKey, "share");
+    const [plan] = await tx.select({ id: tripPlans.id }).from(tripPlans).where(tripScopeWhere(scope));
+    if (!plan) return invalid();
+    const [place] = await tx.select({ id: tripPlaces.id }).from(tripPlaces).where(and(eq(tripPlaces.planId, plan.id), eq(tripPlaces.id, placeId)));
+    if (!place) throw new TripError("invalid", "This place is no longer available.");
+    const rows = await tx.select({ id: tripComments.id, body: tripComments.body, authorId: tripComments.authorId, author: contextualName(actor.userId, conversationRoomId(scope.conversationId), sql`${profiles.userId}`, sql`${profiles.displayName}`), createdAt: tripComments.createdAt })
+      .from(tripComments).innerJoin(profiles, eq(profiles.userId, tripComments.authorId))
+      .where(and(eq(tripComments.planId, plan.id), eq(tripComments.placeId, placeId), before ? sql`(${tripComments.createdAt}, ${tripComments.id}) < (select created_at, id from trip_comments where id = ${before}::uuid and place_id = ${placeId}::uuid)` : undefined))
+      .orderBy(sql`${tripComments.createdAt} desc`, sql`${tripComments.id} desc`).limit(31);
+    return { hasMore: rows.length > 30, comments: rows.slice(0, 30).reverse().map(row => ({ ...row, createdAt: row.createdAt.toISOString() })) };
   });
 }

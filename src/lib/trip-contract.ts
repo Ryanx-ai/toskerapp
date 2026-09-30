@@ -5,13 +5,16 @@ export type PlaceCandidate = {
   title: string; latitude: number; longitude: number; source: "search" | "pin";
   provider: string | null; providerId: string | null; address: string; attribution: string; license: string;
 };
-export type TripPlace = PlaceCandidate & { id: string; note: string; archived: boolean; starred?: boolean };
+export type TripPlace = PlaceCandidate & { id: string; note: string; archived: boolean; starred?: boolean; commentCount?: number };
+export type TripComment = { id: string; body: string; authorId: string; author: string; createdAt: string };
+export type TripCommentPage = { comments: TripComment[]; hasMore: boolean };
 export type TripRoute = { id: string; name: string; color: TripColor; archived: boolean };
 export type TripMembership = { routeId: string; placeId: string; position: number; isStop: boolean };
 export type TripSnapshot = { revision: number; places: TripPlace[]; routes: TripRoute[]; memberships: TripMembership[] };
 export type TripCommand =
   | { type: "add"; candidate: PlaceCandidate; routeId: string | null }
   | { type: "edit-place"; placeId: string; title: string; note: string }
+  | { type: "comment"; placeId: string; body: string }
   | { type: "archive-place"; placeId: string; archived: boolean }
   | { type: "star-place"; placeId: string; starred: boolean }
   | { type: "nuke-place"; placeId: string }

@@ -6,7 +6,7 @@ import { AuthorizationDeniedError } from "@/server/auth/authorize";
 import { authorizeTripScope } from "./scope";
 import { publishTripChanged } from "@/server/realtime/provider";
 import { verifyCandidate } from "@/server/maps/candidate-token";
-import { mutateTrip, readTrip, TripError } from "./service";
+import { mutateTrip, readTrip, readTripComments, TripError } from "./service";
 import type { TripCommand, TripResult, TripSnapshot } from "@/lib/trip-contract";
 
 export async function readTripAction(roomSlug: string): Promise<TripResult<TripSnapshot>> {
@@ -14,6 +14,10 @@ export async function readTripAction(roomSlug: string): Promise<TripResult<TripS
   catch (error) { return failure(error); }
 }
 type ClientCommand = Exclude<TripCommand, { type: "add" }> | { type: "add"; token: string; routeId: string | null };
+export async function readTripCommentsAction(scope: string, placeId: string, before?: string) {
+  try { return { ok: true as const, value: await readTripComments(getDatabase(), await requireCurrentActor(), scope, placeId, before) }; }
+  catch (error) { return failure(error); }
+}
 export async function mutateTripAction(input: { roomSlug: string; expectedRevision: number; requestId: string; command: ClientCommand }): Promise<TripResult<{ revision: number; resultId: string | null; replayed: boolean }>> {
   try {
     const actor = await requireCurrentActor(), db = getDatabase();
@@ -26,7 +30,7 @@ export async function mutateTripAction(input: { roomSlug: string; expectedRevisi
   } catch (error) { return failure(error); }
 }
 function failure(error: unknown): { ok: false; code: "denied" | "conflict" | "invalid" | "limit" | "retry-mismatch" | "unavailable"; message: string } {
-  if (error instanceof AuthenticationRequiredError || error instanceof AuthorizationDeniedError) return { ok: false, code: "denied", message: "Your Room access is no longer available." };
+  if (error instanceof AuthenticationRequiredError || error instanceof AuthorizationDeniedError) return { ok: false, code: "denied", message: "Your access to this trip is no longer available." };
   if (error instanceof TripError) return { ok: false, code: error.code, message: error.message };
   return { ok: false, code: "unavailable", message: "The trip could not be confirmed. Retry the same change or reload its saved state." };
 }

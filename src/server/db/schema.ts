@@ -23,15 +23,16 @@ export const mapProviderUsage = pgTable("map_provider_usage", {
   lastAt: timestamp("last_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-// Room or independently authorized Subroom trip state; never a Personal map.
+// Exactly one owner context: Room/Subroom OR Personal conversation, never shared IDs.
 export const tripPlans = pgTable("trip_plans", {
   id: uuid("id").defaultRandom().primaryKey(),
-  roomId: uuid("room_id").notNull().references(() => rooms.id, { onDelete: "cascade" }),
+  roomId: uuid("room_id").references(() => rooms.id, { onDelete: "cascade" }),
   subroomId: uuid("subroom_id").references(() => subrooms.id, { onDelete: "cascade" }),
+  personalConversationId: uuid("personal_conversation_id").references(() => conversations.id, { onDelete: "cascade" }),
   revision: integer("revision").default(0).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
-}, t => [uniqueIndex("trip_plans_room_unique").on(t.roomId).where(sql`${t.subroomId} is null`), uniqueIndex("trip_plans_subroom_unique").on(t.subroomId), check("trip_plans_revision_valid", sql`${t.revision} >= 0`)]);
+}, t => [uniqueIndex("trip_plans_room_unique").on(t.roomId).where(sql`${t.subroomId} is null`), uniqueIndex("trip_plans_subroom_unique").on(t.subroomId), uniqueIndex("trip_plans_personal_unique").on(t.personalConversationId), check("trip_plans_context_valid", sql`(${t.roomId} is not null and ${t.personalConversationId} is null) or (${t.roomId} is null and ${t.subroomId} is null and ${t.personalConversationId} is not null)`), check("trip_plans_revision_valid", sql`${t.revision} >= 0`)]);
 
 export const tripPlaces = pgTable("trip_places", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -58,6 +59,15 @@ export const tripPlaces = pgTable("trip_places", {
   check("trip_places_text_valid", sql`length(${t.title}) between 1 and 120 and length(${t.note}) <= 1000 and length(${t.address}) <= 400 and length(${t.attribution}) <= 500 and length(${t.license}) <= 120`),
   check("trip_places_source_valid", sql`${t.source} in ('search', 'pin')`),
 ]);
+
+export const tripComments = pgTable("trip_comments", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  planId: uuid("plan_id").notNull(),
+  placeId: uuid("place_id").notNull(),
+  authorId: uuid("author_id").notNull().references(() => users.id, { onDelete: "restrict" }),
+  body: text("body").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, t => [foreignKey({ name: "trip_comments_place_fk", columns: [t.planId, t.placeId], foreignColumns: [tripPlaces.planId, tripPlaces.id] }).onDelete("cascade"), index("trip_comments_place_idx").on(t.placeId, t.createdAt, t.id), check("trip_comments_body_valid", sql`length(${t.body}) between 1 and 1000`)]);
 
 export const tripRoutes = pgTable("trip_routes", {
   id: uuid("id").defaultRandom().primaryKey(),

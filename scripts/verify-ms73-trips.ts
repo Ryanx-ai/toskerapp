@@ -66,7 +66,7 @@ async function main() {
   await call({ type: "archive-place", placeId: first, archived: false }, b);
   assert(!(await snapshot()).places.find(p => p.id === first)?.archived);
   assert.equal((await snapshot()).memberships.filter(m => m.placeId === first).length, 2, "Archive preserves both route memberships");
-  await call({ type: "edit-place", placeId: first, title: "QA edited by B", note: "Safe shared note" }, b);
+  await call({ type: "edit-place", placeId: first, title: (await snapshot()).places.find(p => p.id === first)!.title, note: "Safe shared note" }, b);
   assert.equal((await snapshot()).places.find(p => p.id === first)?.note, "Safe shared note");
   await call({ type: "stop", routeId: route, placeId: first, isStop: false });
   assert.equal((await snapshot()).memberships.find(m => m.placeId === first && m.routeId === route)?.isStop, false);
@@ -86,7 +86,7 @@ async function main() {
   const proposal = quickOrder((await snapshot()).places, first); assert.equal(proposal[0], first); assert.equal(new Set(proposal).size, ids.length); assert.deepEqual(proposal, quickOrder((await snapshot()).places, first));
   console.log("PASS archive/restore, edits, Stop state, cross-Room injection, rollback and deterministic suggestion.");
   // Actual current-member withdrawal service; production revocation boundary retained.
-  const bReceiptInput = { roomSlug: slug, requestId: randomUUID(), expectedRevision: (await snapshot()).revision, command: { type: "edit-place" as const, placeId: first, title: "QA before withdrawal", note: "" } };
+  const bReceiptInput = { roomSlug: slug, requestId: randomUUID(), expectedRevision: (await snapshot()).revision, command: { type: "edit-place" as const, placeId: first, title: (await snapshot()).places.find(p => p.id === first)!.title, note: "" } };
   await mutateTrip(db, b, bReceiptInput);
   await withdrawRoomMember(db, a, fixture.id, b.userId);
   await assert.rejects(() => readTrip(db, b, slug), AuthorizationDeniedError);

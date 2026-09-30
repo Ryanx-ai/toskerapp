@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import type { AuthenticatedActor } from "../../src/server/auth/actor";
 import type { ToskerDatabase, ToskerTransaction } from "../../src/server/db/client";
-import { users, profiles, rooms, roomMemberships, conversations, conversationParticipants, messages, hallItems, tripPlans, tripMutationReceipts } from "../../src/server/db/schema";
+import { users, profiles, rooms, roomMemberships, conversations, conversationParticipants, messages, hallItems, tripPlans, tripMutationReceipts, tripComments } from "../../src/server/db/schema";
 
 export const FOUNDER_TID = "8V3X7P1";
 export const MS73_RUN = "ms73-20260929";
@@ -63,6 +63,8 @@ async function inspectOwned(tx: ToskerTransaction, fixture: QaFixture) {
   assert([...authored, ...board].every(row => [actors.a.userId, actors.b.userId].includes(row.authorId)), "STOP: non-QA authored content; manual review required");
   const tripEdits = await tx.select({ actorId: tripMutationReceipts.actorId }).from(tripMutationReceipts).innerJoin(tripPlans, eq(tripPlans.id, tripMutationReceipts.planId)).where(eq(tripPlans.roomId, room.id));
   assert(tripEdits.every(row => [actors.a.userId, actors.b.userId].includes(row.actorId)), "STOP: non-QA Map contribution; manual review required");
+  const comments = await tx.select({ authorId: tripComments.authorId }).from(tripComments).innerJoin(tripPlans, eq(tripPlans.id, tripComments.planId)).where(eq(tripPlans.roomId, room.id));
+  assert(comments.every(row => [actors.a.userId, actors.b.userId].includes(row.authorId)), "STOP: non-QA location comment; manual review required");
   return { room, members, actors };
 }
 

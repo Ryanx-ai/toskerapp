@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { and, asc, count, eq, sql } from "drizzle-orm";
 import type { AuthenticatedActor } from "@/server/auth/actor";
 import type { ToskerDatabase } from "@/server/db/client";
-import { tripPlans, tripPlaces, tripRoutes, tripRoutePlaces, tripMutationReceipts, tripComments, profiles } from "@/server/db/schema";
+import { tripPlans, tripPlaces, tripRoutes, tripMutationReceipts, tripComments, profiles } from "@/server/db/schema";
 import { contextualName, conversationRoomId } from "@/server/profiles/context-name";
 import { lockTripScope, tripScopeWhere } from "./scope";
 import { TRIP_COLORS, TRIP_LIMITS, type PlaceCandidate, type TripColor, type TripFailureCode, type TripMutation, type TripSnapshot } from "@/lib/trip-contract";
@@ -46,6 +46,7 @@ function normalize(input: TripMutation): TripMutation {
     case "create-route": return { ...base, command: { type: c.type, name: text(c.name, 60), color: color(c.color) } };
     case "edit-route": return { ...base, command: { type: c.type, routeId: uuid(c.routeId), name: text(c.name, 60), color: color(c.color) } };
     case "archive-route": return { ...base, command: { type: c.type, routeId: uuid(c.routeId), archived: flag(c.archived) } };
+    case "nuke-route": return { ...base, command: { type: c.type, routeId: uuid(c.routeId) } };
     case "membership": return { ...base, command: { type: c.type, routeId: uuid(c.routeId), placeId: uuid(c.placeId), included: flag(c.included) } };
     case "stop": return { ...base, command: { type: c.type, routeId: uuid(c.routeId), placeId: uuid(c.placeId), isStop: flag(c.isStop) } };
     case "order": {
@@ -64,7 +65,7 @@ export async function readTrip(db: ToskerDatabase, actor: AuthenticatedActor, sl
     if (!plan) return { revision: 0, places: [], routes: [], memberships: [] };
     const places = await tx.select().from(tripPlaces).where(eq(tripPlaces.planId, plan.id)).orderBy(asc(tripPlaces.createdAt), asc(tripPlaces.id)).limit(TRIP_LIMITS.places);
     const routes = await tx.select().from(tripRoutes).where(eq(tripRoutes.planId, plan.id)).orderBy(asc(tripRoutes.position), asc(tripRoutes.createdAt), asc(tripRoutes.id)).limit(TRIP_LIMITS.routes);
-    const memberships = await tx.select({ routeId: tripRoutePlaces.routeId, placeId: tripRoutePlaces.placeId, position: tripRoutePlaces.position, isStop: tripRoutePlaces.isStop }).from(tripRoutePlaces).where(eq(tripRoutePlaces.planId, plan.id)).limit(TRIP_LIMITS.places * TRIP_LIMITS.routes);
+    const memberships = places.map(p => ({ routeId:p.routeId,placeId:p.id,position:p.position,isStop:p.isStop }));
     const counts = await tx.select({ id: tripComments.placeId, n: count() }).from(tripComments).where(eq(tripComments.planId, plan.id)).groupBy(tripComments.placeId);
     const commentCounts = new Map(counts.map(row => [row.id, row.n]));
     return { revision: plan.revision,
@@ -77,6 +78,8 @@ export async function mutateTrip(db: ToskerDatabase, actor: AuthenticatedActor, 
   const input = normalize(raw);
   const payloadHash = createHash("sha256").update(JSON.stringify(input)).digest("hex");
   return db.transaction(async tx => {
+    // Cutover compatibility marker, never an authorization substitute. Scope is still locked below.
+    await tx.execute(sql`select set_config('tosker.trip_protocol','3',true)`);
     const scope = await lockTripScope(tx, actor, input.roomSlug, "update");
     let [plan] = await tx.select().from(tripPlans).where(tripScopeWhere(scope));
     if (!plan) {
@@ -102,30 +105,23 @@ export async function mutateTrip(db: ToskerDatabase, actor: AuthenticatedActor, 
       if (n >= TRIP_LIMITS.routes) throw new TripError("limit", "Up to 12 routes, including archived routes, fit in this Development trip.");
       const [r] = await tx.insert(tripRoutes).values({ planId: plan.id, name, color: routeColor, position: n }).returning(); return r;
     };
-    const members = (routeId: string) => tx.select().from(tripRoutePlaces).where(and(eq(tripRoutePlaces.planId, plan.id), eq(tripRoutePlaces.routeId, routeId))).orderBy(asc(tripRoutePlaces.position), asc(tripRoutePlaces.placeId));
-    const include = async (routeId: string, placeId: string) => {
-      const rows = await members(routeId);
-      if (rows.some(r => r.placeId === placeId)) return;
-      if (rows.length >= TRIP_LIMITS.places) throw new TripError("limit", "This route is full.");
-      await tx.insert(tripRoutePlaces).values({ planId: plan.id, routeId, placeId, position: rows.length });
+    const members = (routeId: string) => tx.select().from(tripPlaces).where(and(eq(tripPlaces.planId, plan.id), eq(tripPlaces.routeId, routeId))).orderBy(asc(tripPlaces.position), asc(tripPlaces.id));
+    const orderCards = async (routeId:string,ids:string[]) => {
+      if(ids.length)await tx.update(tripPlaces).set({position:sql`case ${sql.join(ids.map((id,index)=>sql`when ${tripPlaces.id} = ${id}::uuid then ${index}::int`),sql` `)} end`}).where(and(eq(tripPlaces.planId,plan.id),eq(tripPlaces.routeId,routeId)));
     };
     if (c.type === "add") {
       const p = c.candidate;
+      if(!c.routeId)throw new TripError("invalid","Create or select a route before adding a location.");
+      await requireRoute(c.routeId);
       const all = await tx.select().from(tripPlaces).where(eq(tripPlaces.planId, plan.id)).limit(TRIP_LIMITS.places);
-      const duplicate = all.find(existing => (p.providerId && p.provider && existing.providerId === p.providerId && existing.provider === p.provider) || (Math.abs(existing.latitude - p.latitude) < 0.000001 && Math.abs(existing.longitude - p.longitude) < 0.000001));
-      if (duplicate?.archivedAt) throw new TripError("invalid", "This place is already archived in the trip. Restore it from Archived places.");
+      const routeCards=all.filter(existing=>existing.routeId===c.routeId);
+      const duplicate = routeCards.find(existing => (p.providerId && p.provider && existing.providerId === p.providerId && existing.provider === p.provider) || (Math.abs(existing.latitude - p.latitude) < 0.000001 && Math.abs(existing.longitude - p.longitude) < 0.000001));
+      if (duplicate?.archivedAt) throw new TripError("invalid", "This location is archived in this route. Restore it from Archived locations.");
       if (duplicate) resultId = duplicate.id;
       else {
         if (all.length >= TRIP_LIMITS.places) throw new TripError("limit", "Up to 200 places, including archived places, fit in this Development trip.");
-        const [created] = await tx.insert(tripPlaces).values({ planId: plan.id, ...p }).returning({ id: tripPlaces.id }); resultId = created.id;
+        const [created] = await tx.insert(tripPlaces).values({ planId: plan.id, routeId:c.routeId, position:routeCards.length, ...p }).returning({ id: tripPlaces.id }); resultId = created.id;
       }
-      let routeId = c.routeId;
-      if (routeId) await requireRoute(routeId);
-      else {
-        const existing = await tx.select().from(tripRoutes).where(eq(tripRoutes.planId, plan.id)).orderBy(asc(tripRoutes.createdAt)).limit(TRIP_LIMITS.routes);
-        routeId = existing.find(r => !r.archivedAt)?.id ?? (await makeRoute("Day 1", "gold")).id;
-      }
-      await include(routeId, resultId);
     } else if (c.type === "comment") {
       const p = await requirePlace(c.placeId); if (p.archivedAt) return invalid();
       const [{ n }] = await tx.select({ n: count() }).from(tripComments).where(eq(tripComments.placeId, p.id));
@@ -140,15 +136,17 @@ export async function mutateTrip(db: ToskerDatabase, actor: AuthenticatedActor, 
       await requirePlace(c.placeId);
       await tx.update(tripPlaces).set({ starred: c.starred, updatedAt: new Date() }).where(placeScope(c.placeId)); resultId = c.placeId;
     } else if (c.type === "nuke-place") {
-      await requirePlace(c.placeId);
-      const affected = await tx.select({ routeId: tripRoutePlaces.routeId }).from(tripRoutePlaces).where(and(eq(tripRoutePlaces.planId, plan.id), eq(tripRoutePlaces.placeId, c.placeId)));
-      // Composite FKs remove every membership atomically; receipts contain no place content.
+      const place=await requirePlace(c.placeId);
       await tx.delete(tripPlaces).where(placeScope(c.placeId));
-      for (const { routeId } of affected) {
-        const rows = await members(routeId);
-        if (rows.length) await tx.update(tripRoutePlaces).set({ position: sql`case ${sql.join(rows.map((row,index) => sql`when ${tripRoutePlaces.placeId} = ${row.placeId}::uuid then ${index}::int`), sql` `)} end` }).where(and(eq(tripRoutePlaces.planId, plan.id), eq(tripRoutePlaces.routeId, routeId)));
-      }
+      await orderCards(place.routeId,(await members(place.routeId)).map(p=>p.id));
       resultId = c.placeId;
+    } else if(c.type === "nuke-route") {
+      await requireRoute(c.routeId,true);
+      // Route -> owned cards -> comments. Same-provider cards in other routes are independent.
+      await tx.delete(tripRoutes).where(routeScope(c.routeId));
+      const survivors=await tx.select().from(tripRoutes).where(eq(tripRoutes.planId,plan.id)).orderBy(asc(tripRoutes.position),asc(tripRoutes.createdAt),asc(tripRoutes.id));
+      if(survivors.length)await tx.update(tripRoutes).set({position:sql`case ${sql.join(survivors.map((r,i)=>sql`when ${tripRoutes.id} = ${r.id}::uuid then ${i}::int`),sql` `)} end`}).where(eq(tripRoutes.planId,plan.id));
+      resultId=c.routeId;
     } else if (c.type === "order-routes") {
       const rows = await tx.select({ id: tripRoutes.id }).from(tripRoutes).where(eq(tripRoutes.planId, plan.id));
       if (rows.length !== c.routeIds.length || rows.some(r => !c.routeIds.includes(r.id))) return invalid();
@@ -163,21 +161,16 @@ export async function mutateTrip(db: ToskerDatabase, actor: AuthenticatedActor, 
       if (c.type === "order") {
         const rows = await members(c.routeId);
         // Include archived memberships too: archive/restore never silently discards order.
-        if (rows.length !== c.placeIds.length || rows.some(r => !c.placeIds.includes(r.placeId))) return invalid();
+        if (rows.length !== c.placeIds.length || rows.some(r => !c.placeIds.includes(r.id))) return invalid();
         // One bounded UPDATE, not N round trips per drag.
-        if (rows.length) await tx.update(tripRoutePlaces).set({ position: sql`case ${sql.join(c.placeIds.map((id, index) => sql`when ${tripRoutePlaces.placeId} = ${id}::uuid then ${index}::int`), sql` `)} end` }).where(and(eq(tripRoutePlaces.planId, plan.id), eq(tripRoutePlaces.routeId, c.routeId)));
+        await orderCards(c.routeId,c.placeIds);
       } else {
-        const p = await requirePlace(c.placeId); if (p.archivedAt) return invalid();
-        const where = and(eq(tripRoutePlaces.planId, plan.id), eq(tripRoutePlaces.routeId, c.routeId), eq(tripRoutePlaces.placeId, c.placeId));
+        const p = await requirePlace(c.placeId); if (p.archivedAt || p.routeId!==c.routeId) return invalid();
         if (c.type === "membership") {
-          if (c.included) await include(c.routeId, c.placeId);
-          else {
-            await tx.delete(tripRoutePlaces).where(where);
-            const rows = await members(c.routeId);
-            if (rows.length) await tx.update(tripRoutePlaces).set({ position: sql`case ${sql.join(rows.map((row, index) => sql`when ${tripRoutePlaces.placeId} = ${row.placeId}::uuid then ${index}::int`), sql` `)} end` }).where(and(eq(tripRoutePlaces.planId, plan.id), eq(tripRoutePlaces.routeId, c.routeId)));
-          }
+          // Legacy exact receipts replay above; new many-to-many writes are not supported.
+          return invalid();
         } else {
-          const updated = await tx.update(tripRoutePlaces).set({ isStop: c.isStop }).where(where).returning(); if (!updated.length) return invalid();
+          await tx.update(tripPlaces).set({ isStop:c.isStop }).where(placeScope(c.placeId));
         }
       }
       resultId = c.routeId;

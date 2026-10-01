@@ -2,9 +2,9 @@
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { getDatabase } from "../src/server/db/client";
-import { rooms, tripPlans, tripPlaces, tripRoutes, tripRoutePlaces } from "../src/server/db/schema";
+import { rooms, tripPlans, tripPlaces, tripRoutes } from "../src/server/db/schema";
 import { readTrip, mutateTrip, TripError } from "../src/server/trips/service";
 import { grantRoomMembership, withdrawRoomMember } from "../src/server/rooms/lifecycle";
 import { cleanupQaFixture, createQaFixture, resolveQaActors, type QaFixture } from "./lib/ms73-fixtures";
@@ -16,13 +16,13 @@ async function main() {
     const fixture = await createQaFixture(db, "200 synthetic places, responsive and live revocation proof");
     console.log("Ownership receipt (retain for explicit dry-run cleanup):", JSON.stringify(fixture));
     await db.transaction(async tx => {
+      await tx.execute(sql`select set_config('tosker.trip_protocol','3',true)`);
       const [room] = await tx.select().from(rooms).where(eq(rooms.id, fixture.id)).for("update");
       assert(room.ownerId === a.userId && room.slug === fixture.slug);
       const [plan] = await tx.insert(tripPlans).values({ roomId: fixture.id, revision: 1 }).returning();
       const [route] = await tx.insert(tripRoutes).values({ planId: plan.id, name: "200-place QA", color: "sage" }).returning();
       const places = Array.from({ length: 200 }, (_,i) => ({ id: randomUUID(), planId: plan.id, title: `QA ${String(i+1).padStart(3,"0")} — synthetic planning point`, note: i === 199 ? "Long safe QA note: " + "planning example ".repeat(45) : "Synthetic QA only, not a real venue", latitude: 1.30+Math.floor(i/20)*.001, longitude: 103.82+(i%20)*.001, source: "pin" }));
-      await tx.insert(tripPlaces).values(places);
-      await tx.insert(tripRoutePlaces).values(places.map((p,position) => ({ planId: plan.id, routeId: route.id, placeId: p.id, position })));
+      await tx.insert(tripPlaces).values(places.map((p,position)=>({...p,routeId:route.id,position})));
     });
     const begin = performance.now(), snapshot = await readTrip(db,a,fixture.slug);
     assert.equal(snapshot.places.length,200); assert.equal(snapshot.memberships.length,200);

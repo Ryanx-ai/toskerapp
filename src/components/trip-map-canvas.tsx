@@ -4,7 +4,7 @@ import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { Map as MapIcon, RotateCcw, Maximize } from "lucide-react";
 import type { Map as MapInstance, Marker, GeoJSONSource } from "maplibre-gl";
 import type { PlaceCandidate, TripPlace, TripRoute } from "@/lib/trip-contract";
-import { type RoadGeometry, type RoadMode } from "@/lib/maps/road-contract";
+import { routeBounds, type RoadGeometry, type RoadMode } from "@/lib/maps/road-contract";
 import { routeLegPresentation } from "@/lib/maps/route-presentation";
 import { getBrowserMapProvider, SINGAPORE_CENTER } from "@/lib/maps/browser-provider";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -14,7 +14,7 @@ import type { LocalMapLocation } from "./use-local-map-location";
 type Status = "loading" | "ready" | "unavailable" | "failed";
 type PlanningRoute = TripRoute & { ghost: boolean; places: (TripPlace & { isStop: boolean })[] };
 
-export default function TripMapCanvas({ places, hiddenIds, activeVisible, routes, roads, roadMode, roadEnabled, localLocation, onDeselect, snapshotReady, candidate, selectedId, onSelect, onSelectGhost, pinMode, onPin }: { places: TripPlace[]; hiddenIds: string[]; activeVisible: boolean; routes: PlanningRoute[]; roads: Record<string,RoadGeometry>; roadMode: RoadMode; roadEnabled: boolean; localLocation: LocalMapLocation | null; onDeselect(): void; snapshotReady: boolean; candidate: PlaceCandidate | null; selectedId: string | null; onSelect(id: string): void; onSelectGhost(routeId: string, id: string): void; pinMode: boolean; onPin(latitude: number, longitude: number): void }) {
+export default function TripMapCanvas({ places, roadFit = 0, hiddenIds, activeVisible, routes, roads, roadMode, roadEnabled, localLocation, onDeselect, snapshotReady, candidate, selectedId, onSelect, onSelectGhost, pinMode, onPin }: { places: TripPlace[]; roadFit?: number; hiddenIds: string[]; activeVisible: boolean; routes: PlanningRoute[]; roads: Record<string,RoadGeometry>; roadMode: RoadMode; roadEnabled: boolean; localLocation: LocalMapLocation | null; onDeselect(): void; snapshotReady: boolean; candidate: PlaceCandidate | null; selectedId: string | null; onSelect(id: string): void; onSelectGhost(routeId: string, id: string): void; pinMode: boolean; onPin(latitude: number, longitude: number): void }) {
   const container = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapInstance | null>(null);
   const initialCamera = useRef(false);
@@ -25,10 +25,12 @@ export default function TripMapCanvas({ places, hiddenIds, activeVisible, routes
   const clicked = useEffectEvent((latitude: number, longitude: number) => { if (pinMode) onPin(latitude, longitude); else onDeselect(); });
   const fitTrip = () => {
     if (!places.length || !mapRef.current) return;
-    const lons = places.map(p => p.longitude), lats = places.map(p => p.latitude);
-    mapRef.current.fitBounds([[Math.min(...lons),Math.min(...lats)],[Math.max(...lons),Math.max(...lats)]], { padding: 64, maxZoom: 14, duration: 0 });
+    const active=routes.find(r=>!r.ghost),road=active?roads[active.id]:undefined;
+    const bounds=routeBounds(places,roadEnabled&&road?.mode===roadMode?road:undefined);
+    if(bounds)mapRef.current.fitBounds(bounds, { padding: Math.min(64, Math.max(24,(container.current?.clientWidth??320)/8)), maxZoom: 14, duration: 0 });
   };
   const fitInitialTrip = useEffectEvent(fitTrip);
+  useEffect(() => { if(roadFit && status==="ready")fitInitialTrip(); }, [roadFit,status]);
   useEffect(() => {
     if (!snapshotReady || status !== "ready" || initialCamera.current) return;
     initialCamera.current = true; fitInitialTrip();

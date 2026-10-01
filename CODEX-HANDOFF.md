@@ -2,6 +2,10 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## MS7.3 FP3 ACTIVE — full execution authorized — 2026-10-01
+
+Latest founder directs full FP3 through canonical without further proceed approvals; supersedes historical STOP below. Read the active top sections of `docs/MS7-3-FP3-EXECUTION.md`. Search checkpoint `f103fc7` is local. Routing and route-ownership implementation passed optimized build and rollback-only backfill/lifecycle rehearsal. Public migration NOT yet applied at this checkpoint; canonical still FP2. Next: finish pre-cutover checks, apply guarded migration 0024 with exact backup, actual concurrent/browser acceptance, secret/env gates, coherent normal push and exact canonical/live evidence. No FP4 implementation; MS7.3 unlocked. Preserve Founder Review and founder-content Rooms and unrelated WIP. Never blindly rerun fixture seed/create or old migrations.
+
 ## MS7.3 FP3 — ownership migration STOP / local recovery checkpoint — 2026-10-01
 
 Read [FP3 execution/restart ledger](docs/MS7-3-FP3-EXECUTION.md) and [ownership migration gate](docs/MS7-3-FP3-OWNERSHIP-GATE.md) first. Recovered HEAD/fetched origin/canonical `51df11d5a919b7aefb6ef9c685b2fadfc58bf4fa`, READY `dpl_H1eeHbTU8VgPvBLCDrr8Jg3EY3Tz`, exact canonical alias. Founder approved six-page FP3 + save-state gates, then superseded Route Nuke semantics: Route owns separate cards, Nuke cascades only those cards/comments. Actual schema is plan-owned deduplicated places with many-to-many Routes; read-only inventory confirms3shared place rows and2shared comments. Correct ownership requires material migration/backfill/cutover, so STOP gate applies. No FP3 app changes, migrations, provider calls, fixtures, cleanup, push or deployment. FP2 remains live; MS7.3 unlocked; MS7.4 unstarted.

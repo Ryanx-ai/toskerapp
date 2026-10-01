@@ -22,12 +22,20 @@ export type TripCommand =
   | { type: "create-route"; name: string; color: TripColor }
   | { type: "edit-route"; routeId: string; name: string; color: TripColor }
   | { type: "archive-route"; routeId: string; archived: boolean }
+  | { type: "nuke-route"; routeId: string }
   | { type: "membership"; routeId: string; placeId: string; included: boolean }
   | { type: "stop"; routeId: string; placeId: string; isStop: boolean }
   | { type: "order"; routeId: string; placeIds: string[] };
 export type TripMutation = { roomSlug: string; requestId: string; expectedRevision: number; command: TripCommand };
 export type TripFailureCode = "denied" | "conflict" | "invalid" | "limit" | "retry-mismatch" | "unavailable";
 export type TripResult<T> = { ok: true; value: T } | { ok: false; code: TripFailureCode; message: string };
+
+export function recoverActiveRoute(previous:TripRoute[],current:TripRoute[],activeId:string|null) {
+  const visible=current.filter(r=>!r.archived);
+  if(visible.some(r=>r.id===activeId))return activeId;
+  const index=previous.findIndex(r=>r.id===activeId),ids=new Set(visible.map(r=>r.id));
+  return (index<0?undefined:previous.slice(index+1).find(r=>ids.has(r.id))?.id) ?? (index<0?undefined:previous.slice(0,index).reverse().find(r=>ids.has(r.id))?.id) ?? visible[0]?.id ?? null;
+}
 
 export function orderedRoutePlaces(snapshot: TripSnapshot, routeId: string) {
   const places = new Map(snapshot.places.filter(p => !p.archived).map(p => [p.id, p]));

@@ -7,6 +7,8 @@ import { messages } from "../src/server/db/schema";
 import { readMessageHistory } from "../src/server/conversations/history";
 import { searchConversation } from "../src/server/conversations/search";
 import { createQaFixture, cleanupQaFixture, resolveQaActors, type QaFixture } from "./lib/ms73-fixtures";
+import { readTrip,mutateTrip } from "../src/server/trips/service";
+import type { TripCommand } from "../src/lib/trip-contract";
 const db=getDatabase(),path="docs/MS7-3-FP3-FIXTURE.json";
 async function main(){
   const {a,b,founder}=await resolveQaActors(db);
@@ -21,6 +23,18 @@ async function main(){
   }
   const f=JSON.parse(readFileSync(path,"utf8")) as QaFixture;
   assert.equal(f.purpose,"FP3 Chat search, Singapore roads and route-owned lifecycle acceptance");
+  if(process.argv[2]==="--seed-map"){
+    await cleanupQaFixture(db,f,false);
+    assert.equal((await readTrip(db,a,f.slug)).routes.length,0,"No overwrite or duplicate seed");
+    const change=async(command:TripCommand)=>mutateTrip(db,a,{roomSlug:f.slug,requestId:randomUUID(),expectedRevision:(await readTrip(db,a,f.slug)).revision,command});
+    for(const name of ["FP3 public QA route","FP3 disposable route"]){
+      const routeId=(await change({type:"create-route",name,color:name.includes("disposable")?"sky":"gold"})).resultId!;
+      for(const [title,latitude,longitude] of [["QA western point",1.3045,103.7739],["QA Bayfront point",1.2836965,103.8607226],["QA eastern point",1.305948,103.929666]] as const){
+        await change({type:"add",routeId,candidate:{title,latitude,longitude,source:"pin",provider:null,providerId:null,address:"Synthetic public QA point; not a verified venue",attribution:"",license:""}});
+      }
+    }
+    console.log("PASS exact-owned A/B/founder fixture: two independent three-card routes, no provider call");return;
+  }
   assert(["--inspect","--cleanup-apply"].includes(process.argv[2]));
   console.log(await cleanupQaFixture(db,f,process.argv[2]==="--cleanup-apply"));
 }

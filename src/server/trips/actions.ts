@@ -18,10 +18,11 @@ export async function readTripCommentsAction(scope: string, placeId: string, bef
   try { return { ok: true as const, value: await readTripComments(getDatabase(), await requireCurrentActor(), scope, placeId, before) }; }
   catch (error) { return failure(error); }
 }
-export async function mutateTripAction(input: { roomSlug: string; expectedRevision: number; requestId: string; command: ClientCommand }): Promise<TripResult<{ revision: number; resultId: string | null; replayed: boolean }>> {
+export async function mutateTripAction(input: { protocol: 3; roomSlug: string; expectedRevision: number; requestId: string; command: ClientCommand }): Promise<TripResult<{ revision: number; resultId: string | null; replayed: boolean }>> {
   try {
     const actor = await requireCurrentActor(), db = getDatabase();
     if (!input || JSON.stringify(input).length > 16000) throw new TripError("invalid", "This change is too large.");
+    if(input.protocol!==3)throw new TripError("invalid","Map was updated. Reload before making changes.");
     const command = input.command.type === "add" ? { type: "add" as const, candidate: verifyCandidate(input.command.token, actor.userId, input.roomSlug), routeId: input.command.routeId } : input.command;
     const value = await mutateTrip(db, actor, { ...input, command });
     const scope = await authorizeTripScope(db, actor, input.roomSlug);

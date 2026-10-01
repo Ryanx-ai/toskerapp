@@ -39,6 +39,7 @@ if(process.argv[2]==="fp3-search-layout") {
     await query("orchid");
     assert(await ev(a,"document.documentElement.scrollWidth<=innerWidth+1"));
     assert(await ev(a,"(()=>{const r=document.querySelector('.context-search-dropdown').getBoundingClientRect();return r.left>=0&&r.right<=innerWidth+1&&r.top>=0&&r.bottom<=innerHeight})()"));
+    assert(await ev(a,"document.querySelector('.context-search-dropdown').getBoundingClientRect().top>document.querySelector('.context-search-field').getBoundingClientRect().bottom"),"Results must never cover focused search field");
     await run(a,"screenshot",`/tmp/tosker-fp3-search-${width}.png`);await run(a,"press","Escape");
     console.log("PASS search bounds/no page overflow/compact escape",width);
   }

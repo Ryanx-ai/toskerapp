@@ -3,7 +3,8 @@ import { eq, sql } from "drizzle-orm";
 import type { ToskerDatabase } from "@/server/db/client";
 import { mapProviderUsage } from "@/server/db/schema";
 import { PlaceProviderError } from "./provider";
-import { roadKey, supportedRoadPoints, type RoadMode, type RoadPoint, type RoadGeometry } from "@/lib/maps/road-contract";
+import { supportedRoadPoints, type RoadMode, type RoadPoint, type RoadGeometry } from "@/lib/maps/road-contract";
+import { projectRoad } from "./road-projection";
 
 export type RoadProvider = { route(points: RoadPoint[], mode: RoadMode, signal: AbortSignal): Promise<RoadGeometry> };
 /** Conservative reservation: two credits per leg, 60/day, 3 explicit calculations/minute per actor. */
@@ -28,20 +29,15 @@ export function getRoadProvider():RoadProvider {
     const key=process.env.GEOAPIFY_SEARCH_KEY;
     if(!key)throw new PlaceProviderError("unavailable","Road preview is not configured.");
     const url=new URL("https://api.geoapify.com/v1/routing");
-    url.search=new URLSearchParams({waypoints:points.map(p=>`${p.latitude},${p.longitude}`).join("|"),mode,format:"geojson",apiKey:key}).toString();
-    // No optimization, avoid areas, elevation, navigation instructions or live traffic.
+    url.search=new URLSearchParams({waypoints:points.map(p=>`${p.latitude},${p.longitude}`).join("|"),mode,format:"geojson",units:"metric",details:"route_details",apiKey:key}).toString();
+    // Road names use the same response and existing two-credit/leg reservation.
+    // No optimization, elevation, navigation execution or live traffic.
     try {
       const response=await fetch(url,{signal:AbortSignal.any([signal,AbortSignal.timeout(12000)]),cache:"no-store",redirect:"error"});
       if(response.status===429)throw new PlaceProviderError("rate","Road preview allowance reached. Try later.");
       if(!response.ok)throw new Error();
       const raw=await response.text();if(raw.length>1_500_000)throw new Error();
-      const geometry=JSON.parse(raw)?.features?.[0]?.geometry;
-      const segments=geometry?.type==="MultiLineString" ? geometry.coordinates : geometry?.type==="LineString" && points.length===2 ? [geometry.coordinates] : null;
-      if(!Array.isArray(segments)||segments.length!==points.length-1)throw new Error();
-      let coordinates=0;
-      for(const segment of segments){if(!Array.isArray(segment)||segment.length<2)throw new Error();for(const point of segment){if(!Array.isArray(point)||point.length<2||!Number.isFinite(point[0])||!Number.isFinite(point[1])||Math.abs(point[0])>180||Math.abs(point[1])>90)throw new Error();coordinates++;}}
-      if(coordinates>30000)throw new Error();
-      return {key:roadKey(points,mode),mode,segments:segments.map(segment=>segment.map((p:number[])=>[p[0],p[1]])),attribution:"Geoapify · © OpenStreetMap contributors (ODbL)"};
+      return projectRoad(JSON.parse(raw),points,mode);
     } catch(error){if(error instanceof PlaceProviderError)throw error;throw new PlaceProviderError("unavailable","Road preview could not finish. Your saved places and order are unchanged.");}
   }};
 }

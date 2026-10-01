@@ -37,6 +37,9 @@ export const tripPlans = pgTable("trip_plans", {
 export const tripPlaces = pgTable("trip_places", {
   id: uuid("id").defaultRandom().primaryKey(),
   planId: uuid("plan_id").notNull().references(() => tripPlans.id, { onDelete: "cascade" }),
+  routeId: uuid("route_id").notNull(),
+  position: integer("position").default(0).notNull(),
+  isStop: boolean("is_stop").default(true).notNull(),
   title: text("title").notNull(),
   note: text("note").default("").notNull(),
   starred: boolean("starred").default(false).notNull(),
@@ -53,7 +56,9 @@ export const tripPlaces = pgTable("trip_places", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 }, t => [
   uniqueIndex("trip_places_plan_id_unique").on(t.planId, t.id),
-  uniqueIndex("trip_places_provider_unique").on(t.planId, t.provider, t.providerId),
+  uniqueIndex("trip_places_route_provider_unique").on(t.routeId, t.provider, t.providerId),
+  foreignKey({ name: "trip_places_route_owner_fk", columns: [t.planId,t.routeId], foreignColumns: [tripRoutes.planId,tripRoutes.id] }).onDelete("cascade"),
+  check("trip_places_position_valid", sql`${t.position} >= 0 and ${t.position} < 200`),
   check("trip_places_latitude_valid", sql`${t.latitude} >= -90 and ${t.latitude} <= 90`),
   check("trip_places_longitude_valid", sql`${t.longitude} >= -180 and ${t.longitude} <= 180`),
   check("trip_places_text_valid", sql`length(${t.title}) between 1 and 120 and length(${t.note}) <= 1000 and length(${t.address}) <= 400 and length(${t.attribution}) <= 500 and length(${t.license}) <= 120`),

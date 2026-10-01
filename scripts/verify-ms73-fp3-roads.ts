@@ -1,0 +1,15 @@
+import assert from "node:assert/strict";
+import { projectRoad } from "../src/server/maps/road-projection";
+import { roadKey,routeBounds,roadDistance,roadDuration } from "../src/lib/maps/road-contract";
+const points=[{id:"west",latitude:1.31,longitude:103.76},{id:"central",latitude:1.2837,longitude:103.8607},{id:"east",latitude:1.303,longitude:103.912}];
+const segments=[[[103.76,1.31],[103.8,1.32],[103.8607,1.2837]],[[103.8607,1.2837],[103.9,1.32],[103.912,1.303]]];
+const raw={features:[{geometry:{type:"MultiLineString",coordinates:segments},properties:{distance:22000,distance_units:"meters",time:2100,legs:[{steps:[{name:"Public test road A",distance:200},{name:"Public test road B",distance:9000}]},{steps:[{name:"Public test road B",distance:3000},{name:"Public test road C",distance:6000},{name:"",distance:10}]}],private:"excluded"}}]};
+const road=projectRoad(raw,points,"drive");
+assert.equal(road.estimate?.metres,22000);assert.equal(road.estimate?.seconds,2100);assert.equal(road.estimate?.guidance.length,3);assert.equal(road.estimate?.guidance[1].metres,12000);
+assert(!JSON.stringify(road).includes("excluded"));assert.equal(roadDistance(22000),"22.0 km");assert.equal(roadDuration(2100),"~35 min");
+assert.deepEqual(routeBounds(points,road),[[103.76,1.2837],[103.912,1.32]]);
+assert.deepEqual(routeBounds(points,{...road,key:roadKey([...points].reverse(),"drive")}),[[103.76,1.2837],[103.912,1.31]]);
+assert.equal(projectRoad({features:[{geometry:raw.features[0].geometry,properties:{...raw.features[0].properties,distance_units:"miles"}}]},points,"walk").estimate,undefined);
+assert.throws(()=>projectRoad({features:[{geometry:{type:"MultiLineString",coordinates:[[[1.31,103.76],[1.32,103.8]],segments[1]]}}]},points,"drive"));
+assert.throws(()=>projectRoad({features:[{geometry:{type:"MultiLineString",coordinates:[[[103.76,1.31],[0,0]],segments[1]]}}]},points,"drive"));
+console.log("PASS metric totals, bounded provider-name summaries, no unrelated fields, coordinate order/outlier rejection, fit current detours and exclude stale geometry; no network");

@@ -6,6 +6,7 @@
 .fp3-road-guidance summary { cursor:pointer; min-height:32px; display:list-item; padding-block:8px; }
 .fp3-road-guidance ul { display:flex; flex-wrap:wrap; gap:8px; padding:0; margin:4px 0 8px; list-style:none; }
 .fp3-road-guidance li { padding:6px 10px; border:1px solid var(--border); border-radius:var(--control-radius); overflow-wrap:anywhere; }
+.fp3-road-guidance { padding-inline:12px; }
 .conversation-surface { display:flex; flex-direction:column; }
 .conversation-surface > .message-scroll { flex:1; min-height:0; }
 .chat-search-bar { flex:none; position:relative; z-index:35; padding:8px 12px; min-height:60px; }

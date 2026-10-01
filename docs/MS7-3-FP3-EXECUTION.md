@@ -1,5 +1,25 @@
 # MS7.3 FP3 execution / recovery ledger
 
+## Machine-restart recovery checkpoint — 2026-10-02
+
+Read the complete founder restart/final-release directive. Recovered HEAD `ffe8a1456f7c95c3fdbda782ec03280da15d4822`; fetched origin remains `51df11d5a919b7aefb6ef9c685b2fadfc58bf4fa`, 0 remote-only / 3 local commits. Canonical remains FP2 READY `dpl_H1eeHbTU8VgPvBLCDrr8Jg3EY3Tz`, Production, exact canonical alias. No push/redeploy yet. All committed FP3 implementation and intended uncommitted additions survived: migration-progress ledger, post-cutover invariant audit, browser acceptance cases and 12px guidance inset. Unrelated Design/Art/Web WIP remains excluded.
+
+Read-only recovery passed all 25 historical hashes, full schema catalog, zero route/card orphans, zero mirror mismatches/duplicate positions, all seven cutover triggers enabled, unique founder resolution and both protected Room memberships. Integrity baseline: 8 users/profiles/Sandboxes, 7 Rooms/14 memberships, 114 messages, 12 Board notes/2 pins; no listed violations. Backup and mapping remain mode 0600; backup SHA256 matches the recorded value. DO NOT reapply migration or restore/backfill.
+
+Only current disposable FP3 browser fixture survives: `ms73-qa-e3f706b3`, exact receipt verified, cleanup dry-run safe, founder included. Its second route was already Nuked; first route has three safe synthetic cards and 80 search messages. Actual lifecycle fixture was already cleaned; no partial extra QA accounts/Rooms remain. Protected Founder Review and founder-content Room remain untouched. No local Next/agent-browser processes survived; temporary screenshots were cleared. These are runtime losses, not application failures.
+
+Bounded TypeScript/integrity checks pass. Previously evidenced migration/lifecycle/race/Drive/Walk/guidance/Nuke tests remain valid because their implementation is unchanged. Search resilience stopped before restart at Escape focus after clicking Retry (test expected compact-trigger restoration); investigate/fix only that bounded issue. Remaining: fresh authenticated A/B runtime, search resilience/history, explicit search Add and Pin confirmation, six widths/reduced motion, final integrated build/lint/type/catalog/invariants/secret scan, exact cleanup review, scoped commit/normal push, canonical exact SHA/READY/alias/HTTP200 and bounded live smoke, cleanup/final docs/STOP. No FP4/Share/MS7.4/palette work.
+
+## Active execution — migration committed, release acceptance underway
+
+Local implementation checkpoint `ffe8a14`. Migration 0024 committed atomically on 2026-10-01 after rollback-only rehearsals and pre-cutover gates. All 25 migration hashes and catalog match: 32 tables / 220 columns / 108 constraints / 15 enums. Verified backup: `.git/fp3-recovery/before-74280326-248f-4608-8c52-97809b3d4d48.json`, SHA256 `d665154cd61520bc0895ddc677f6a0425bbd9ecd358470bb569b3e37db7d4568`; mapping alongside it. These contain retained data, mode 0600, ignored and never to be committed/uploaded. No old migration replay. Old FP2 Map writes now fail closed pending FP3 canonical.
+
+Actual concurrent lifecycle suite passed and its exact-owned Room `ms73-qa-629f9586` was deleted with QA-only contents. Founder profile unchanged. Retained Founder Review/protected founder-content Rooms and memberships verified. Post-cutover inventory has zero shared/unassigned cards; existing fields/comments preserved. Disposable browser fixture `ms73-qa-e3f706b3` now has independent test routes; A/B browser Route Nuke cancel/confirm, peer realtime, route fallback, reload and preservation of surviving route cards passed. Real Drive/Walk, estimates, named roads, current-order geometry, Fit trip and controlled outage passed. Search mobile overlay fixed and verified all six widths; compact/companion history search passes Map/Board/Live without remounting canvas. Screenshots showed one guidance inset mismatch, corrected before final build.
+
+Production environment metadata confirms existing separate `NEXT_PUBLIC_GEOAPIFY_MAP_KEY` Config and `GEOAPIFY_SEARCH_KEY` Secret. No settings, restrictions, billing or plan changed. Development keys remain in separate ignored `.env.development.local`, loaded via the existing dotenv workflow for build/server and scans. A first candidate-test invocation without that file correctly reported missing configuration; credential-loaded candidate tests passed. A scan overlapping an active rebuild hit a removed build artifact and was rerun after completion: PASS 522 source/owned files +40 bundles, including exact server Geoapify secret. No credential values printed.
+
+Continue remaining browser resilience/explicit candidate and pin/six-width tests, final gates, commit/push and exact canonical/live acceptance. Canonical has NOT yet been claimed. FP4 deferred; MS7.3 unlocked.
+
 ## Active execution — checkpoint B/C, 2026-10-01
 
 This section supersedes historical STOP/pending statements below. Founder directs complete FP3 through canonical, without further proceed approvals. FP4 remains ledger-only.

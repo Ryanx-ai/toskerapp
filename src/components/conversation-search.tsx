@@ -67,13 +67,20 @@ export function ConversationSearch({ conversationId, name, href, scopeLabel, com
     const refresh = () => { if (!document.hidden) { clearTimeout(timer); timer = setTimeout(() => setAttempt(value => value+1), 350); } };
     const remove = () => setPage(current => current && conversationId ? { ...current, results: current.results.filter(row => !removedMessageIds(conversationId).has(row.id)) } : current);
     const outside = (event: PointerEvent) => { if (!root.current?.contains(event.target as Node)) close(); };
+    const escape = (event: KeyboardEvent) => {
+      // A successful retry unmounts its button, leaving focus on body.
+      if (event.key !== "Escape" || event.defaultPrevented || event.isComposing || composing || (document.activeElement !== document.body && !root.current?.contains(document.activeElement))) return;
+      event.preventDefault(); close();
+      requestAnimationFrame(() => { if (trigger.current?.checkVisibility()) trigger.current.focus(); });
+    };
     const denied = (event: Event) => { if ((event as CustomEvent<string>).detail === conversationId) { setPage(null); setQuery(""); close(); } };
     window.addEventListener(CHAT_REFRESH, refresh); window.addEventListener(MESSAGES_REMOVED, remove);
     window.addEventListener(CONVERSATION_ACCESS_LOST, denied); document.addEventListener("pointerdown", outside);
+    document.addEventListener("keydown", escape);
     document.addEventListener("visibilitychange", refresh);
     const poll = setInterval(refresh, 15000);
-    return () => { clearTimeout(timer); clearInterval(poll); window.removeEventListener(CHAT_REFRESH, refresh); window.removeEventListener(MESSAGES_REMOVED, remove); window.removeEventListener(CONVERSATION_ACCESS_LOST, denied); document.removeEventListener("pointerdown", outside); document.removeEventListener("visibilitychange", refresh); };
-  }, [open, conversationId, close]);
+    return () => { clearTimeout(timer); clearInterval(poll); window.removeEventListener(CHAT_REFRESH, refresh); window.removeEventListener(MESSAGES_REMOVED, remove); window.removeEventListener(CONVERSATION_ACCESS_LOST, denied); document.removeEventListener("pointerdown", outside); document.removeEventListener("keydown", escape); document.removeEventListener("visibilitychange", refresh); };
+  }, [open, conversationId, close, composing]);
   const select = (id: string) => {
     if (!conversationId || !href || removedMessageIds(conversationId).has(id)) return;
     dismiss();
@@ -81,7 +88,7 @@ export function ConversationSearch({ conversationId, name, href, scopeLabel, com
       window.dispatchEvent(new CustomEvent(MESSAGE_LOCATION_REQUEST, { detail: { conversationId, messageId: id, query: term } }));
     } else { handoff = { conversationId, query }; router.push(`${href}?message=${id}`, { scroll: false }); }
   };
-  return <div ref={root} className={`context-search ${compact ? "is-compact" : ""} ${open ? "is-open" : ""}`} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget as Node)) close(); }}>
+  return <div ref={root} className={`context-search ${compact ? "is-compact" : ""} ${open ? "is-open" : ""}`} onKeyDown={event => { if (event.key === "Escape" && !event.nativeEvent.isComposing && !composing) { event.preventDefault(); event.stopPropagation(); dismiss(); } }} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget as Node)) close(); }}>
     <button ref={trigger} className="context-search-compact" aria-label={scopeLabel} aria-expanded={open} onClick={() => { setOpen(true); requestAnimationFrame(() => input.current?.focus()); }}><Search size={18} aria-hidden="true" /></button>
     <div className="context-search-field">
       <Search size={18} aria-hidden="true" />

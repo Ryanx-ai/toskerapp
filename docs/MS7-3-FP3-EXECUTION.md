@@ -1,5 +1,19 @@
 # MS7.3 FP3 execution / recovery ledger
 
+## Final local release gate — 2026-10-02
+
+Recovery checkpoint `0d80b53` saved before remaining execution. A fresh read-only comparison verified every retained migrated field/comment, original route and all 78 pre-migration retry receipts against the mode-0600 backup. No migration replay, restore or duplicate backfill occurred.
+
+Remaining local acceptance is green. Normal A/B sign-in; compact and companion Chat search, canonical old-message jump with surrounding history; Map/Board/Live preserved; IME deferral; failed search clears old results; explicit Retry; Escape/Clear and focus restoration; no geographic calls from Chat search. Fixed the bounded Escape case after successful Retry unmounted its focused button. Browser acceptance now waits for direct-pin reverse-context resolution instead of confusing the immediate provisional preview with a resolved result.
+
+Explicit geographic confirmation passed: deliberate second Marina Bay Sands result, preview coordinates and Add required; peer sees the new card and reload retains it. Persisted search coordinates 1.2856255,103.8610678 match selection. Direct pin preview/Confirm, A/B and reload pass; clicked 1.2872987765550192,103.85943701691916 remains that point (database longitude serialization differs by ~1e-14 degrees; verified within 1e-12 degree tolerance, not a snap). Reverse address is context only and provider place identity remains null. No automatic first-result save.
+
+Search and Map/cards pass 320/390/430/768/1440/1728 without page overflow; mobile result overlay/input separation, compact collapse, keyboard and reduced motion pass. Mobile Map/Places and desktop screenshots inspected. Prior unchanged real Drive/Walk/provider geometry/estimates/names/Fit/outage/Nuke evidence remains valid; no unnecessary local provider rerun. Actual UI final-route Nuke now also passes: A/B empty state, no leftover cards/markers, Add disabled, no implicit route, reload still empty. Only then explicitly reseeded the same exact-owned disposable Room with two three-card routes for bounded canonical smoke.
+
+Full TypeScript, lint and optimized credential-loaded build passed (only pre-existing unused `eq` warning in `scripts/cleanup-fp4-qa.ts`). Server-secret scan passed 522 source/owned files +40 generated bundles. Post-cutover ownership/mirror/order and seven guard/projection triggers pass. Canonical and localhost browser-origin probes returned 200; unrelated origin 401, restrictions unchanged. Development and Production assignment metadata checked separately; server credential stays Secret and browser key stays Config, no Preview/billing/plan changes. Final catalog/invariants/scan/diff recheck precedes normal push.
+
+Before deployment fixture inventory: retained `ms73-founder-review-904a9dea` (Founder Walk; preserve); protected `ms73-qa-bfff9475` (founder-authored content; preserve); disposable `ms73-qa-e3f706b3` (80 search messages and bounded routes, founder included, exact-owned cleanup dry-run safe; delete only after canonical smoke). Actual lifecycle fixture `ms73-qa-629f9586` already deleted safely; rollback-only rehearsal fixtures never persisted. No other partial FP3 fixture/account remains. Canonical deployment/live smoke are next, not yet claimed by this section.
+
 ## Machine-restart recovery checkpoint — 2026-10-02
 
 Read the complete founder restart/final-release directive. Recovered HEAD `ffe8a1456f7c95c3fdbda782ec03280da15d4822`; fetched origin remains `51df11d5a919b7aefb6ef9c685b2fadfc58bf4fa`, 0 remote-only / 3 local commits. Canonical remains FP2 READY `dpl_H1eeHbTU8VgPvBLCDrr8Jg3EY3Tz`, Production, exact canonical alias. No push/redeploy yet. All committed FP3 implementation and intended uncommitted additions survived: migration-progress ledger, post-cutover invariant audit, browser acceptance cases and 12px guidance inset. Unrelated Design/Art/Web WIP remains excluded.

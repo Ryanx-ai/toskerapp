@@ -39,10 +39,14 @@ if(process.argv[2]==="fp3-confirm"){
  assert(await ev(a,`document.querySelector('[aria-label="Place preview"]').textContent.includes(${JSON.stringify(chosen.latitude.toFixed(5)+", "+chosen.longitude.toFixed(5))})`));
  assert.equal(await ev(a,"document.querySelectorAll('[data-place-id]').length"),initial);
  await button(a,"Add to trip");await until(b,`document.querySelectorAll('[data-place-id]').length===${initial+1}`,"explicit candidate saved for B",45000);
+ await until(a,"!document.querySelector('[aria-label=\"Place preview\"]')","Add acknowledged");
+ await button(a,`Place actions for ${chosen.title}`);await button(a,"Get info");
+ assert(await ev(a,`document.querySelector('dialog[open]').textContent.includes(${JSON.stringify(chosen.latitude.toFixed(5)+", "+chosen.longitude.toFixed(5))})`));
+ await run(a,"press","Escape");console.log("PASS selected candidate matches persisted card details",JSON.stringify(chosen));
  await button(a,"Pin");
  const point=await ev(a,"(()=>{const r=document.querySelector('.maplibregl-canvas').getBoundingClientRect();return {x:Math.round(r.left+r.width*.45),y:Math.round(r.top+r.height*.4)}})()");
  await run(a,"mouse","move",String(point.x),String(point.y));await run(a,"mouse","down");await run(a,"mouse","up");
- await until(a,"!!document.querySelector('[aria-label=\"Place preview\"]')","direct pin preview",30000);
+ await until(a,"window.__fp3PlaceInput?.kind==='pin'&&!!document.querySelector('[aria-label=\"Place preview\"]')&&[...document.querySelectorAll('button')].some(e=>e.textContent==='Confirm pin'&&!e.disabled)","resolved direct pin preview",30000);
  const pin=await ev(a,"(()=>{const p=window.__fp3PlaceReply.candidates[0].candidate,i=window.__fp3PlaceInput;return {latitude:p.latitude,longitude:p.longitude,clickedLat:i.latitude,clickedLon:i.longitude,providerId:p.providerId}})()");
  assert.equal(pin.latitude,pin.clickedLat);assert.equal(pin.longitude,pin.clickedLon);assert.equal(pin.providerId,null);
  assert.equal(await ev(a,"document.querySelectorAll('[data-place-id]').length"),initial+1);
@@ -91,6 +95,25 @@ if(process.argv[2]==="fp3-map-layout"){
   console.log("PASS Map/cards reduced-motion width",width);
  }
  await run(a,"set","viewport","1440","960");
+}
+if(process.argv[2]==="fp3-empty"){
+ for(const s of[a,b]){await run(s,"set","viewport","1440","960");await run(s,"open",base+"/map");await mapReady(s);}
+ assert.equal(await ev(a,"document.querySelectorAll('[aria-label^=\"Route actions for\"]').length"),1,"Only final owned QA route");
+ await button(a,"Route actions for FP3 public QA route");await button(a,"Nuke route");await button(a,"Nuke route");
+ for(const s of[a,b]){
+  await until(s,"document.body.textContent.includes('Create a route to begin')","last route empty",45000);
+  assert.equal(await ev(s,"document.querySelectorAll('[data-place-id]').length"),0);
+  assert(await ev(s,"document.querySelector('[aria-label=\"Search places\"]').disabled"));
+  assert.equal(await ev(s,"document.querySelectorAll('.maplibregl-marker').length"),0);
+ }
+ await run(b,"reload");await mapReady(b);assert(await ev(b,"document.body.textContent.includes('Create a route to begin')"));
+ console.log("PASS final Route Nuke yields honest empty state, no cards/pins/implicit route, disabled add, A/B and reload");
+}
+if(process.argv[2]==="fp3-founder-readonly"){
+ await run(a,"set","viewport","1440","960");await run(a,"open",origin+"/room/ms73-founder-review-904a9dea/map");await mapReady(a);
+ assert(await ev(a,"document.querySelectorAll('[data-place-id]').length>0&&!!document.querySelector('.planning-chat .chat-search-bar')"));
+ await run(a,"screenshot","/tmp/tosker-fp3-founder-live.png");
+ console.log("PASS retained Founder Review Map + Chat renders, no shared content changed");
 }
 if(process.argv[2]==="fp3-search") {
   await run(a,"set","viewport","1440","900");await run(a,"open",base+"?surface=chat");await ready();

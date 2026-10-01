@@ -2,6 +2,10 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## MS7.3 FP3 LOCAL ACCEPTANCE GREEN — canonical next — 2026-10-02
+
+Restart checkpoint `0d80b53`; migration remains applied, all 25 hashes/catalog and retained backup comparison verified. Remaining search/explicit Add/direct Pin/six-width/reduced-motion/last-route-empty gates passed; exact server-secret scan 522 source +40 bundles passed. Bounded Escape-after-Retry fix included; no new feature or FP4 work. Read top `docs/MS7-3-FP3-EXECUTION.md` before release. Next normal scoped commit/push → exact Vercel Production SHA/READY/canonical HTTP200 → bounded live A/B smoke → exact disposable cleanup/final recovery docs/STOP. Preserve both protected founder Rooms. Do not claim canonical until verified; MS7.3 remains unlocked and MS7.4 unstarted.
+
 ## MS7.3 FP3 RESTART RECOVERED — release mode — 2026-10-02
 
 Full restart directive read. HEAD `ffe8a14`, intended uncommitted tests/audit/guidance inset survived; DB migration 0024 remains applied, all 25 hashes/catalog/invariants pass, backup checksum intact. DO NOT reapply/restore/backfill. Canonical/origin still FP2 `51df11d`, READY `dpl_H1eeHbTU8VgPvBLCDrr8Jg3EY3Tz`. Local servers/browsers and temporary screenshots lost; restart runtime only. See top recovery section of `docs/MS7-3-FP3-EXECUTION.md` for remaining gates and recovered search Escape/retry test failure. Retained review/protected Rooms safe; only exact-owned browser fixture `ms73-qa-e3f706b3` remains disposable. Complete remaining acceptance → scoped commit/push → exact canonical/live smoke → cleanup/STOP. No further proceed approval, no FP4/MS7.4 or auto-lock. Preserve unrelated WIP.

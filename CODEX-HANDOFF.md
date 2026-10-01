@@ -2,6 +2,12 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## MS7.3 FP3 LIVE — STOP FOR FOUNDER STRESS TEST — 2026-10-02
+
+Read top `docs/MS7-3-FP3-EXECUTION.md`. Application `64ebaa3d37f0de52a7423a3e204633593e2ec5a5` pushed normally; canonical READY Production `dpl_ggrZXbZjCG9EC5RhYui5xNU69fxL`, exact SHA/alias/HTTP200 verified. Later docs-only closeout may redeploy identical application source. Bounded live A/B Chat/history/search, Map+Chat, explicit geographic Add/direct Pin, Drive/Walk geometry/estimates/guidance/fit, Route Nuke/reconciliation/reload pass. Search IME/failure/retry/Escape, six widths/reduced motion, full build/type/lint pass. 25 migration hashes/catalog; lossless route-card/comment split, retry preservation; final invariants and local522+40/canonical20asset secret scans clean; live browser/error/fatal/5xx scans clean.
+
+Restart recovered without reapplying/restoring migration. Backup/mapping mode0600 ignored `.git/fp3-recovery`, checksum in ledger. Exact-owned disposable `ms73-qa-e3f706b3` deleted after safe dry-run; no partial FP3 fixture remains. Preserve Founder Review `ms73-founder-review-904a9dea` and protected founder-content `ms73-qa-bfff9475`, both with exact founderTID8V3X7P1. Final6Rooms/11memberships/34messages; Map3plans/7routes/15ownedcards/4comments/78receipts, no listed integrity violations. Never reuse deleted receipts. Preserve unrelated WIP. **STOP: MS7.3 unlocked, MS7.4 unstarted, FP4 Map Pins primed but UNIMPLEMENTED. Await founder stress test.**
+
 ## MS7.3 FP3 LOCAL ACCEPTANCE GREEN — canonical next — 2026-10-02
 
 Restart checkpoint `0d80b53`; migration remains applied, all 25 hashes/catalog and retained backup comparison verified. Remaining search/explicit Add/direct Pin/six-width/reduced-motion/last-route-empty gates passed; exact server-secret scan 522 source +40 bundles passed. Bounded Escape-after-Retry fix included; no new feature or FP4 work. Read top `docs/MS7-3-FP3-EXECUTION.md` before release. Next normal scoped commit/push → exact Vercel Production SHA/READY/canonical HTTP200 → bounded live A/B smoke → exact disposable cleanup/final recovery docs/STOP. Preserve both protected founder Rooms. Do not claim canonical until verified; MS7.3 remains unlocked and MS7.4 unstarted.

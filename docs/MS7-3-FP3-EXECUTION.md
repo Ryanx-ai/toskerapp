@@ -1,5 +1,26 @@
 # MS7.3 FP3 execution / recovery ledger
 
+## FP3 CANONICAL VERIFIED — STOP FOR FOUNDER STRESS TEST — 2026-10-02
+
+Application SHA **`64ebaa3d37f0de52a7423a3e204633593e2ec5a5`**, normal push to main. Vercel **`dpl_ggrZXbZjCG9EC5RhYui5xNU69fxL`**, READY, Production, Git source matches exactly, canonical alias `toskerapp.vercel.app`; normal `/` → `/app` redirect ends HTTP 200. A later documentation-only closeout commit may rebuild identical application source; resolve latest release/docs SHA from Git and verify its deployment metadata. Do not mistake that for an application change.
+
+Bounded canonical normal A/B smoke PASS: historical Chat result jump; compact Escape/Clear; Chat-owned companion search preserves Map/Board/Live; actual Drive 26.1 km/~24 min and Walk 22.7 km/~5 h 58 min, provider geometry in saved order, four bounded road/path names, fit; controlled outage removes estimates without card mutation; Route Nuke cancel/confirm, peer removal/active fallback/reload; deliberate second geographic result → preview → Add, persisted Get info coordinates match; direct map click → preview → Confirm retains clicked coordinates independently of reverse context; peer/reload persistence. Founder Review Map + Chat opened read-only and screenshot inspected. No founder review content edited.
+
+Security PASS: final local exact/encoded server-secret scan 522 source/owned files +40 client/worker bundles; separately fetched 20 canonical application JavaScript assets and scanned in the local process, never sending server values to a browser. Both live QA browsers reported zero exceptions. Deployment-scoped error/fatal/5xx log scan clean. Production and Development separate assignments preserved, browser Config/server Secret; origin checks canonical200/localhost200/unrelated401. Geoapify Free/no paid resources/no billing changes/no permanent production commitment. MapLibre and replaceable provider boundary intact. Provider totals remain bounded by existing server budgets; no assertion of a fresh account-wide dashboard total, which includes separate tile usage.
+
+Cleanup completed after exact ownership/content dry-run: deleted ONLY `ms73-qa-e3f706b3`, its 80 safe QA messages and disposable Map state, including founder membership only with that owned Room. No in-app undo for this disposable deletion; never reuse its receipt or seed it again. Actual lifecycle fixture had already been safely deleted; rehearsal fixtures rolled back. No retained legitimate content removed. Final integrity: 8 users/profiles/Sandboxes; 6 Rooms/11 memberships; 5 Personal conversations; 34 messages; 12 Board notes/2 pins; 6 accepted connections; 48 notifications; zero listed integrity violations. Final Map inventory: 3 plans, 7 routes, **15 independently owned cards**, 15 projection rows, **4 preserved comments**, **78 original receipts**; zero shared/orphan cards, mirror mismatches or duplicate positions; seven cutover triggers enabled. Migration count **25**, exact hashes/catalog verified, no replay/restore. Verified pre-cutover backup + deterministic mapping remain ignored mode0600 in `.git/fp3-recovery`.
+
+Retained for founder inspection (exact founder TID8V3X7P1 membership verified):
+
+| Room | Purpose / disposition |
+|---|---|
+| `ms73-founder-review-904a9dea` — MS7.3 Founder Review — Singapore Trip | Final Founder Walk Map/Location Cards/Routes/Chat/Board, available after canonical; NEVER auto-clean |
+| `ms73-qa-bfff9475` | Older QA with founder-authored content; preserved whole, not disposable |
+
+All substantive gates are green. Search resilience, six widths and reduced motion are recorded below. One pre-existing lint warning remains unrelated. QA browser/server teardown follows closeout metadata verification. Unrelated Design/Art/Web/inheritance/research/experiments WIP preserved, unstaged.
+
+**END STATE:** MS7.1 LOCKED; MS7.2 LOCKED; MS7.3 FP3 FOUNDER-REVIEW BUILD LIVE; MS7.3 NOT LOCKED; MS7.4 NOT STARTED. Recovery saved. STOP and await founder stress test. FP4 Map Pins remain primed but UNIMPLEMENTED: Favourite/Want to go/Been here/Saved + Add to Route; persistence/shared-private/auth/duplicate audit required before schema work. Share Route, navigation/live traffic/live location, palette/MS8 and permanent provider selection remain deferred. No next-milestone execution is authorized by this closeout.
+
 ## Final local release gate — 2026-10-02
 
 Recovery checkpoint `0d80b53` saved before remaining execution. A fresh read-only comparison verified every retained migrated field/comment, original route and all 78 pre-migration retry receipts against the mode-0600 backup. No migration replay, restore or duplicate backfill occurred.

@@ -16,7 +16,7 @@ function Highlight({ text, query }: { text: string; query: string }) {
   return start < 0 ? <>{text}</> : <>{text.slice(0, start)}<mark>{text.slice(start, start + query.length)}</mark>{text.slice(start + query.length)}</>;
 }
 
-export function ConversationSearch({ conversationId, name, href, scopeLabel }: { conversationId?: string; name?: string; href?: string; scopeLabel: string }) {
+export function ConversationSearch({ conversationId, name, href, scopeLabel, compact = false }: { conversationId?: string; name?: string; href?: string; scopeLabel: string; compact?: boolean }) {
   const router = useRouter();
   const [query, setQuery] = useState(() => handoff && handoff.conversationId === conversationId ? handoff.query : "");
   const [open, setOpen] = useState(false), [composing, setComposing] = useState(false);
@@ -24,10 +24,17 @@ export function ConversationSearch({ conversationId, name, href, scopeLabel }: {
   const [pending, setPending] = useState(false), [error, setError] = useState("");
   const [attempt, setAttempt] = useState(0), [active, setActive] = useState(-1);
   const input = useRef<HTMLInputElement>(null), root = useRef<HTMLDivElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
   const request = useRef<AbortController | null>(null), epoch = useRef(0);
   const listId = useId(), helpId = useId();
   const term = query.trim();
   const close = useCallback(() => { request.current?.abort(); epoch.current++; setPending(false); setOpen(false); setActive(-1); }, []);
+  const dismiss = () => {
+    close();
+    requestAnimationFrame(() => {
+      if (trigger.current?.checkVisibility()) trigger.current.focus();
+    });
+  };
   const cancelRequest = useCallback(() => { request.current?.abort(); epoch.current++; }, []);
   useEffect(() => { handoff = null; return cancelRequest; }, [cancelRequest]);
   const search = useCallback(async (before?: string) => {
@@ -69,13 +76,13 @@ export function ConversationSearch({ conversationId, name, href, scopeLabel }: {
   }, [open, conversationId, close]);
   const select = (id: string) => {
     if (!conversationId || !href || removedMessageIds(conversationId).has(id)) return;
-    close();
+    dismiss();
     if (document.querySelector(`[data-chat-conversation="${conversationId}"]`)) {
       window.dispatchEvent(new CustomEvent(MESSAGE_LOCATION_REQUEST, { detail: { conversationId, messageId: id, query: term } }));
     } else { handoff = { conversationId, query }; router.push(`${href}?message=${id}`, { scroll: false }); }
   };
-  return <div ref={root} className={`context-search ${open ? "is-open" : ""}`} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget as Node)) close(); }}>
-    <button className="context-search-compact" aria-label={scopeLabel} aria-expanded={open} onClick={() => { setOpen(true); requestAnimationFrame(() => input.current?.focus()); }}><Search size={18} aria-hidden="true" /></button>
+  return <div ref={root} className={`context-search ${compact ? "is-compact" : ""} ${open ? "is-open" : ""}`} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget as Node)) close(); }}>
+    <button ref={trigger} className="context-search-compact" aria-label={scopeLabel} aria-expanded={open} onClick={() => { setOpen(true); requestAnimationFrame(() => input.current?.focus()); }}><Search size={18} aria-hidden="true" /></button>
     <div className="context-search-field">
       <Search size={18} aria-hidden="true" />
       <input ref={input} type="search" role="combobox" aria-label={scopeLabel} aria-expanded={open} aria-controls={listId} aria-autocomplete="list" aria-activedescendant={active >= 0 && page?.results[active] ? `${listId}-${page.results[active].id}` : undefined} aria-describedby={open ? helpId : undefined}
@@ -84,12 +91,12 @@ export function ConversationSearch({ conversationId, name, href, scopeLabel }: {
         onChange={event => { request.current?.abort(); epoch.current++; setQuery(event.target.value); setPage(null); setPending(false); setError(""); setActive(-1); setOpen(true); }}
         onKeyDown={event => {
           if (event.nativeEvent.isComposing || composing) return;
-          if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); close(); }
+          if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); dismiss(); }
           if (event.key === "ArrowDown" || event.key === "ArrowUp") { event.preventDefault(); setOpen(true); const length=page?.results.length ?? 0; if (length) { const next=event.key === "ArrowDown" ? (active+1)%length : active<=0 ? length-1 : active-1; setActive(next); root.current?.querySelector(`#${CSS.escape(`${listId}-${page!.results[next].id}`)}`)?.scrollIntoView({ block:"nearest" }); } }
           if (event.key === "Enter" && open && page?.results.length) { event.preventDefault(); select(page.results[Math.max(0,active)].id); }
         }} />
-      {query && <button aria-label="Clear message search" onClick={() => { request.current?.abort(); epoch.current++; setQuery(""); setPage(null); setError(""); setPending(false); input.current?.focus(); }}><X size={16} aria-hidden="true" /></button>}
-      <button className="context-search-close" aria-label="Close message search" onClick={close}><ChevronUp size={18} aria-hidden="true" /></button>
+      {query && <button aria-label="Clear message search" onClick={() => { request.current?.abort(); epoch.current++; setQuery(""); setPage(null); setError(""); setPending(false); if (compact) dismiss(); else input.current?.focus(); }}><X size={16} aria-hidden="true" /></button>}
+      <button className="context-search-close" aria-label="Close message search" onClick={dismiss}><ChevronUp size={18} aria-hidden="true" /></button>
     </div>
     {open && <section className="context-search-dropdown" aria-label="Chat search results">
       <p id={helpId} className="context-search-scope">{conversationId ? `Chat messages in ${name}` : "Choose a chat, Room or Sandbox first. Sidebar search finds chats and Rooms by name."}</p>

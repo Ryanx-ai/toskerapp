@@ -1480,7 +1480,7 @@ export function MessagingApp({
                 empty={Boolean(identity) || Boolean(prototypeRoom && !canonical)}
               />
             )}
-            </div>{companionOpen && <aside className="planning-chat" aria-label="Room Chat companion"><ChatSurface key={selected.slug} conversation={selected} realtime={realtime} manualUnreadId={selectedPreference?.manualChatUnreadId} readingPaused={readingPaused} /></aside>}</div> : (
+            </div>{companionOpen && <aside className="planning-chat" aria-label="Room Chat companion"><ChatSurface companion key={selected.slug} conversation={selected} realtime={realtime} manualUnreadId={selectedPreference?.manualChatUnreadId} readingPaused={readingPaused} /></aside>}</div> : (
               <ChatSurface key={selected.slug} conversation={selected} realtime={realtime} manualUnreadId={selectedPreference?.manualChatUnreadId} readingPaused={readingPaused} />
             )}
           </NamecardRoomContext.Provider>

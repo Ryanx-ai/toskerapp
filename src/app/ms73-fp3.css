@@ -1,0 +1,19 @@
+/* FP3: the existing contextual search belongs to its Chat surface. */
+.conversation-surface { display:flex; flex-direction:column; }
+.conversation-surface > .message-scroll { flex:1; min-height:0; }
+.chat-search-bar { flex:none; position:relative; z-index:35; padding:8px 12px; min-height:60px; }
+.chat-search-bar .context-search { position:relative; grid-area:auto; width:100%; max-width:480px; min-width:0; }
+.chat-search-bar .context-search-field { display:flex; position:static; min-height:44px; padding:0 8px; }
+.chat-search-bar .context-search-field input { font-size:13px; }
+.chat-search-bar .context-search-field button { width:44px; min-height:44px; }
+.chat-search-bar .context-search-compact { display:none; width:44px; height:44px; border:1px solid var(--border); border-radius:var(--control-radius); background:var(--surface); }
+.chat-search-bar .is-compact:not(.is-open) .context-search-compact { display:grid; }
+.chat-search-bar .is-compact:not(.is-open) .context-search-field { display:none; }
+.chat-search-bar .is-compact .context-search-close { display:grid; }
+.chat-search-bar .context-search-dropdown { top:calc(100% + 8px); left:0; right:auto; transform:none; width:100%; max-height:min(420px,50dvh); }
+.chat-search-bar .conversation-search-result > span { display:flex; flex-wrap:wrap; gap:4px 8px; }
+.chat-search-bar .conversation-search-result :is(strong,p) { overflow-wrap:anywhere; }
+@media (max-width:640px) {
+  .chat-search-bar { padding:8px 12px; }
+  .chat-search-bar .context-search-field input { font-size:16px; }
+}

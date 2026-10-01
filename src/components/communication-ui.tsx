@@ -186,7 +186,6 @@ export function SurfaceHeader({
           {conversation.kind === "room" && conversation.context ? <span className="header-context" title={parentRoom ? conversation.name : conversation.context}>{parentRoom ? conversation.name : conversation.context}</span> : null}
         </div>
       </div>
-      <ContextSearch context={conversation.databaseId ? { id: conversation.databaseId, name: titleOf(conversation, user.displayName), href: baseHref(conversation), kind: conversation.kind, subroom: conversation.tag === "SUBROOM" } : undefined} />
       <nav className="surface-tabs" aria-label="Space surfaces">
         {identity && hasRoomMap(conversation) ? <Link className={surface === "map" ? "active" : ""} aria-current={surface === "map" ? "page" : undefined} href={surface === "map" ? `${baseHref(conversation)}?surface=chat` : `${baseHref(conversation)}/map`} prefetch={false}><MapIcon size={16} aria-hidden="true" />Map</Link> : null}
         <Link
@@ -384,7 +383,7 @@ function displayMessages(persisted: HistoryPage["messages"]): Message[] {
   }));
 }
 
-export function ChatSurface({ conversation, realtime, manualUnreadId, readingPaused = false }: { conversation: Conversation; realtime: ReturnType<typeof useConversationRealtime>; manualUnreadId?: string | null; readingPaused?: boolean }) {
+export function ChatSurface({ conversation, realtime, manualUnreadId, readingPaused = false, companion = false }: { conversation: Conversation; realtime: ReturnType<typeof useConversationRealtime>; manualUnreadId?: string | null; readingPaused?: boolean; companion?: boolean }) {
   const router = useRouter();
   const conversationHref = baseHref(conversation);
   const urlMessage = useSearchParams().get("message");
@@ -732,6 +731,9 @@ export function ChatSurface({ conversation, realtime, manualUnreadId, readingPau
   };
   return (
     <section className="conversation-surface art-layer-ready" data-chat-conversation={conversation.databaseId} data-realtime={conversation.databaseId ? connected ? "connected" : "reconnecting" : undefined}>
+      <div className="chat-search-bar">
+        <ContextSearch compact={!companion} context={conversation.databaseId ? { id: conversation.databaseId, name: titleOf(conversation, user.displayName), href: baseHref(conversation), kind: conversation.kind, subroom: conversation.tag === "SUBROOM" } : undefined} />
+      </div>
       <span className="sr-only" role="status">{targetNotice}</span>
       <div
         ref={scrollRef}

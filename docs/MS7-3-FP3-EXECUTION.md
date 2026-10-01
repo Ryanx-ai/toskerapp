@@ -1,5 +1,17 @@
 # MS7.3 FP3 execution / recovery ledger
 
+## Active execution — checkpoint A, 2026-10-01
+
+Founder approved the documented migration proposal with “proceed”, then explicitly directed full FP3 execution through canonical deployment without further proceed approvals. This supersedes the historical STOP below. The lossless shared-card/comment copy policy in the ownership proposal is accepted; FP4 remains documentation only.
+
+Search is now owned by the mounted Chat surface: full field above desktop companion, compact expanding control in singular Chat. Existing authorized search, request cancellation, IME and canonical history-jump controller retained. No header duplicate or generic modal.
+
+Passed: TypeScript, targeted component lint, optimized build; real browser compact expansion, Escape/Clear collapse, old-message jump with surrounding history; Map/Board/Live companion search preserves its planning surface and renderer; 320/390/430/768/1440/1728 search bounds and zero page overflow. Screenshots inspected at 320 and 1440. More resilience/A/B/security regression remains in final gates.
+
+Created exact-owned disposable `ms73-qa-e3f706b3` with A/B and server-resolved founder TID 8V3X7P1; receipt `MS7-3-FP3-FIXTURE.json`. Eighty safe QA messages support historical search. Retained Founder Review and founder-content Rooms remain untouched. No DDL, provider configuration, push or deployment yet.
+
+Restart: recover this local checkpoint, continue B (bounded route quality/guidance/camera), C (approved ownership migration and lifecycle), D (full release gates), then normal push/canonical/live acceptance. Do not stop for another proceed approval. Do not claim canonical until exact release evidence is recorded. Historical recovery follows for audit.
+
 ## Current state — 2026-10-01 (Asia/Singapore)
 
 **STOP at the ownership-migration gate. No FP3 application implementation, migration, push or deployment.**

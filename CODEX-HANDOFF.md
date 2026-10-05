@@ -2,6 +2,10 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP4A PUBLIC CUTOVER APPLIED — release pending — 2026-10-05
+
+Forward migration0025 applied atomically after repeated rollback rehearsal and final local build/browser/secret gates. DO NOT replay, restore or backfill0024/0025. Backup `.git/fp4a-recovery/before-b1696ae8-c19b-4850-aab4-31dead33af2f.json`, mode0600, SHA256 `a31db383dee2c2472a6151bc6e28ff47a622e7e6fc16e771915836193702ce08`; retained16cards/4comments/84receipts preserved at cutover. Old protocol3Map writes are guarded until FP4A deploy. Local implementation/checkpoints `ddb7bf1`→`ea04d8f`→`7bf1743`. Next validate26hashes/catalog, normal push/canonical exact SHA/live A/B. No FP4B until green. Read top release ledger for disposable fixture and4remaining daily road credits; never reset quota. Local browser still points to shadow copy, not public. Preserve unrelated WIP and founder data.
+
 ## MS7.3 FP4A ACTIVE — isolated local acceptance — 2026-10-05
 
 Founder now authorizes TWO bounded eight-hour sprints, superseding historical STOP below. Read top `docs/MS7-3-FP4-NEXT-DEPLOYMENT.md`. FP4A starts 09:07 UTC, target deadline17:07 UTC; FP4B may start only after FP4A canonical/live green. Local refinement implementation has passed contract tests, rollback migration/lifecycle rehearsal, targeted lint/typecheck and production build. Browser startup/sign-in surface clean. Full A/B/responsive/security/regression acceptance still pending; NO release acceptance claimed.

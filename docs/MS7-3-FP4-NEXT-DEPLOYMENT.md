@@ -2,6 +2,10 @@
 
 ## ACTIVE — two bounded sprints authorized — 2026-10-05
 
+### PUBLIC CUTOVER APPLIED — canonical deployment pending
+
+Forward0025 applied once, atomically, after final optimized Development build/typecheck, browser startup/temporary-notice verification,531source+40bundle exact server-secret scan and Drizzle check passed. Backup `.git/fp4a-recovery/before-b1696ae8-c19b-4850-aab4-31dead33af2f.json` is0600; round-trip preservation verified; SHA256 `a31db383dee2c2472a6151bc6e28ff47a622e7e6fc16e771915836193702ce08`. All original columns/identities/comments/receipts unchanged; onlyfalse Skip/defaultslot0locks added. DO NOT replay or restore0024/0025. Old protocol3Map writes deliberately guarded until new canonical. Hash/catalog and post-cutover ownership verification precede normal push and exact canonical/live smoke. No FP4B yet.
+
 ### Local checkpoint — 11:12 UTC
 
 ### Acceptance progress — still local, public unchanged

@@ -2,6 +2,14 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP4A CANONICAL VERIFIED — FP4B authorization received — 2026-10-05
+
+FP4A exact pushed release `eadc1cf84f117c1f74f079cdc20c1591244039a6`, READY Production `dpl_566jmRSFkQxHmfW5Q9QDmjQyqEp2`, canonical `toskerapp.vercel.app`, HTTP200. Live normal A/B locks/confirmed movement/shared Skip+restore/private Eye/Walk/Drive/tray/reload pass. Browser exceptions0, deployment error/fatal/5xx scan empty,20canonical JS assets exact server-secret scan clean. All26migration hashes/catalog and ownership pass; new protocol4 authoritative. Retained Founder Review read-only rendering pass. Full execution evidence in top `docs/MS7-3-FP4-NEXT-DEPLOYMENT.md`.
+
+Latest founder FP4B directive fully read: `/Users/ryanc/.codex/attachments/84770389-66dd-4cfd-8b9d-3a4abad68ec1/Pasted text.txt`. Requires exact FP4A cleanup/save/recovery before FP4B. Disposable `ms73-qa-7020333f` deleted after fresh ownership dry-run;80safe messages/two public QA cards removed only with owned Room, founder membership removed only with that disposable Room. Protected `ms73-founder-review-904a9dea` and `ms73-qa-bfff9475` preserved. Exact shadow schema cleanup is receipt/dependency guarded; do not replay its receipt or old fixture setup. Final backup remains ignored0600. Routing60/day budget exhausted by legitimate smoke; do not reset/increase it. FP4B must use stored/synthetic licensed-place proof as appropriate, no road-provider requirement expansion.
+
+Next save local closeout checkpoint, reverify exact canonical SHA and begin FP4B eight-hour clock/audit. No FP4B schema/code yet. Mandatory B1–B6 checkpoints, source-owned Pins + authorized Sandbox references, personal suppression, revocation/privacy, Add-to-Route independence, full A/B/responsive/security/release gates. Final stop after FP4B canonical for founder+Jenn; no auto-lock/MS7.4/MS8/pings unless core done with meaningful capacity. Preserve unrelated WIP.
+
 ## FP4A PUBLIC CUTOVER APPLIED — release pending — 2026-10-05
 
 Forward migration0025 applied atomically after repeated rollback rehearsal and final local build/browser/secret gates. DO NOT replay, restore or backfill0024/0025. Backup `.git/fp4a-recovery/before-b1696ae8-c19b-4850-aab4-31dead33af2f.json`, mode0600, SHA256 `a31db383dee2c2472a6151bc6e28ff47a622e7e6fc16e771915836193702ce08`; retained16cards/4comments/84receipts preserved at cutover. Old protocol3Map writes are guarded until FP4A deploy. Local implementation/checkpoints `ddb7bf1`→`ea04d8f`→`7bf1743`. Next validate26hashes/catalog, normal push/canonical exact SHA/live A/B. No FP4B until green. Read top release ledger for disposable fixture and4remaining daily road credits; never reset quota. Local browser still points to shadow copy, not public. Preserve unrelated WIP and founder data.

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import {run,ev,until,button as clickButton} from "./browser-fp2.mjs";
-const a="ms73-fp4a-a",b="ms73-fp4a-b",origin=process.env.FP4A_ORIGIN??"http://localhost:3000",slug=process.env.FP4A_SLUG??"ms73-qa-7020333f";
+const a=process.env.FP4A_A??"ms73-fp4a-a",b=process.env.FP4A_B??"ms73-fp4a-b",origin=process.env.FP4A_ORIGIN??"http://localhost:3000",slug=process.env.FP4A_SLUG??"ms73-qa-7020333f";
 const q=JSON.stringify;
 async function button(s,name){await until(s,`[...document.querySelectorAll('button')].some(e=>e.checkVisibility()&&!e.disabled&&(e.getAttribute('aria-label')||e.textContent).trim()===${q(name)})`,`enabled ${name}`);return clickButton(s,name);}
 const cards="[...document.querySelectorAll('[data-place-id]')].map(e=>({id:e.dataset.placeId,name:e.querySelector('strong')?.textContent,hidden:e.dataset.hidden,star:e.dataset.starred,locked:!!e.querySelector('[aria-label*=locked]'),skipped:!!e.querySelector('[aria-label^=Skipped]')}))";
@@ -76,4 +76,15 @@ if(process.argv[2]==="fp4a-road-resilience"){
  await run(a,"select","[aria-label='Travel mode']","drive");assert(!await ev(a,"!!document.querySelector('[aria-label=\"Walking route estimate\"]')"));await until(a,"!!document.querySelector('[aria-label=\"Driving route estimate\"]')","mode change",70000);
  await run(a,"select","[aria-label='Travel mode']","planning");const last=await ev(a,"window.__fp4MockCalls.length");await run(a,"select","[aria-label='Travel mode']","walk");await run(a,"select","[aria-label='Travel mode']","drive");await run(a,"select","[aria-label='Travel mode']","planning");assert.equal(await ev(a,"window.__fp4MockCalls.length"),last);
  await ev(a,"window.fetch=window.__fp4OriginalFetch");console.log("PASS controlled outage clears geometry, explicit retry, mode invalidation, debounce cancellation and on-map expanded estimate bounds; no provider calls");
+}
+if(process.argv[2]==="fp4a-live"){
+ for(const s of[a,b]){await run(s,"set","viewport","1440","960");await until(s,"document.querySelector('[data-map-state]')?.dataset.mapState==='ready'&&document.querySelectorAll('[data-place-id]').length===2","canonical two-card Map",45000);}
+ await menu(a,"Checkpoint 2");await button(a,"Lock position 2");await until(b,`${cards}[1].locked`,"live peer lock");await button(a,"Reposition checkpoint");await run(a,"find","label","Latitude","fill","1.2869");await button(a,"Save position");await until(a,"!document.querySelector('dialog[open]')","live movement confirmation");
+ await menu(b,"Checkpoint 2");await button(b,"Get info");assert((await ev(b,"document.querySelector('dialog').textContent")).includes("1.28690"));await button(b,"Close place details");
+ await button(a,"Hide Checkpoint 2 from my map");assert.equal((await ev(b,cards))[1].hidden,"false");
+ await menu(a,"Checkpoint 2");await button(a,"Skip in route");await until(b,`${cards}[1].skipped`,"live shared Skip");await close(a);await menu(b,"Checkpoint 2");await button(b,"Include in route");await until(a,`!${cards}[1].skipped`,"live restore");await close(b);await button(a,"Show Checkpoint 2 on my map");
+ for(const[s,mode]of[[a,"walk"],[b,"drive"]]){await observeRoads(s);await run(s,"select","[aria-label='Travel mode']",mode);await until(s,`window.__fp4Roads.some(r=>r.status===200&&r.mode===${q(mode)})`,"live bounded road",45000);assert.equal(JSON.parse((await ev(s,"window.__fp4Roads.at(-1)")).key).length,3);await button(s,"Fit trip");await run(s,"screenshot",`/tmp/fp4a-canonical-${mode}.png`);await run(s,"select","[aria-label='Travel mode']","planning");}
+ await button(a,"Collapse Location Cards");assert(!await ev(a,"document.querySelector('[aria-label=\"Route locations\"]').checkVisibility()"));await button(a,"Expand Location Cards");
+ await run(b,"reload");await until(b,`${cards}.length===2&&${cards}[1].locked`,"canonical reload");assert.equal((await ev(b,cards))[1].skipped,false);
+ for(const s of[a,b])assert.deepEqual(await run(s,"errors"),{errors:[]});console.log("PASS canonical A/B Map, shared lock/move/Skip+restore, private Eye, Walk/Drive, tray/reload and clean browser errors");
 }

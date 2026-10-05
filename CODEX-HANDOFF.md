@@ -2,6 +2,12 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP4B TIMEBOX STOP — local recovery checkpoint, NOT released — 2026-10-05 22:39 UTC
+
+Read `docs/MS7-3-FP4B-EXECUTION.md` first. Original eight-hour window began14:19UTC and ended22:19UTC; clock recovered at22:39UTC after discontinuities. Implementation/deployment stopped; only safe recovery recording follows. B1–B4 service checkpoints committed through7c532de; integrated UI is saved as an INCOMPLETE B5 checkpoint, not accepted B5/B6. No FP4B push/deployment. Canonical rechecked READY Production `eadc1cf84f117c1f74f079cdc20c1591244039a6`, `dpl_566jmRSFkQxHmfW5Q9QDmjQyqEp2`, alias `toskerapp.vercel.app` remains FP4A.
+
+Public migration0026 IS APPLIED:27history rows, three additive Pin tables. DO NOT replay/drop/restore. Backup and exact hash are in the FP4B ledger. Preserve disposable resumable QA Room `ms73-qa-6896cd50` (A/B + exact-resolved founder8V3X7P1), its Pin/private hide/Route2 state and ignored receipt; ownership dry-run passed at stop, no cleanup performed. Protected Founder Review and founder-content Rooms untouched; representative FP4B Founder Review Pins still pending. Browser sessions expired during acceptance; reauthenticate normal QA only. Latest optimized build/type/lint/catalog and service boundary tests passed, but remaining responsive/access-loss/reconnect/keyboard/reduced-motion/browser Pin-Nuke/live-release gates prevent release. Recover exact local checkpoint and obtain a bounded time extension before more implementation/acceptance. MS7.3 remains unlocked; MS7.4/MS8 not started. Preserve unrelated dirty design/art/web/inheritance work.
+
 ## FP4A CANONICAL VERIFIED — FP4B authorization received — 2026-10-05
 
 FP4A exact pushed release `eadc1cf84f117c1f74f079cdc20c1591244039a6`, READY Production `dpl_566jmRSFkQxHmfW5Q9QDmjQyqEp2`, canonical `toskerapp.vercel.app`, HTTP200. Live normal A/B locks/confirmed movement/shared Skip+restore/private Eye/Walk/Drive/tray/reload pass. Browser exceptions0, deployment error/fatal/5xx scan empty,20canonical JS assets exact server-secret scan clean. All26migration hashes/catalog and ownership pass; new protocol4 authoritative. Retained Founder Review read-only rendering pass. Full execution evidence in top `docs/MS7-3-FP4-NEXT-DEPLOYMENT.md`.

@@ -1,4 +1,26 @@
 .workspace { --trip-gold:var(--brand-gold); --trip-rose:#d9a1b8; --trip-sage:#9ebcaf; --trip-sky:#9fc5d6; --trip-iris:#beb1df; display:flex; flex:1; flex-direction:column; gap:12px; padding:0; min-width:0; min-height:0; overflow:auto; }
+.pinMemory { flex:none; min-width:0; padding:8px 16px; border:1px solid var(--border); border-radius:var(--control-radius); background:var(--shell-plane); }
+.pinMemory summary { min-height:44px; padding:12px 0; cursor:pointer; font-size:13px; font-weight:600; }
+.pinMemory .helper { padding:0; }
+.pinList { display:flex; gap:8px; overflow-x:auto; list-style:none; margin:0; padding:4px 2px 12px; }
+.pinList li { flex:0 0 220px; min-width:0; }
+.pinChip { width:100%; min-height:64px; display:flex; align-items:center; gap:12px; padding:12px; border:1px solid var(--border); border-radius:var(--control-radius); background:var(--surface-hover); color:var(--text-primary); text-align:left; font:inherit; }
+.pinChip > span:first-child { flex:none; font-size:22px; color:var(--brand-gold); }
+.pinChip > span:last-child { min-width:0; }
+.pinChip strong,.pinChip small { display:block; overflow-wrap:anywhere; }
+.pinChip strong { font-size:12px; line-height:1.5; }
+.pinChip small { font-size:11px; line-height:1.5; margin-top:4px; color:var(--text-secondary); }
+.memoryMarker { display:flex; align-items:center; justify-content:center; width:44px; height:44px; border:2px solid var(--brand-gold); border-radius:12px 12px 12px 2px; background:var(--shell-plane); color:var(--brand-gold); font:700 23px/1 sans-serif; box-shadow:0 2px 8px #0008; }
+.pinPreviewActions { display:flex; flex-direction:column; gap:8px; min-width:180px; }
+.pinStatePicker { display:flex; flex-direction:column; gap:8px; min-width:0; font-size:12px; color:var(--text-secondary); }
+.pinStatePicker select { width:100%; max-width:100%; }
+.pinDialog .actions { margin:12px 0; }
+.pinDialog .cardDetails summary { width:fit-content; min-width:88px; min-height:44px; padding:10px 12px; white-space:nowrap; }
+.pinProvenance { border-block:1px solid var(--border); margin:16px 0; padding:8px 0; color:var(--text-secondary); }
+.pinRouteTarget { padding:12px; border:1px solid var(--border); border-radius:var(--control-radius); }
+.pinRouteTarget label { display:flex; flex-direction:column; gap:8px; font-size:12px; }
+.pinRouteTarget select { min-width:0; max-width:100%; width:100%; }
+@media(max-width:480px) { .pinDialog { padding:20px; } .pinPreviewActions { width:100%; min-width:0; } }
 .mapPlane { flex:none; display:flex; flex-direction:column; min-width:0; border:1px solid var(--border); border-radius:16px; background:var(--shell-plane); overflow:hidden; }
 .canvasRegion { position:relative; min-width:0; height:clamp(240px,28vh,400px); isolation:isolate; }
 .canvas { position:absolute; inset:0; }

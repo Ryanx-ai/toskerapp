@@ -5,9 +5,9 @@ import { hasRoomMap, resolveWorkspaceSurface, type WorkspaceSurface } from "../s
 const room = { kind: "room", slug: "trip", tag: "TRIP" };
 const contexts = [room, { ...room, tag: undefined }, { ...room, slug: "trip--child", tag: "SUBROOM" }, { kind: "personal", slug: "chat-id" }, { kind: "my-room", slug: "my-room" }];
 for (const [index, context] of contexts.entries()) {
-  assert.equal(hasRoomMap(context), index < 3);
+  assert.equal(hasRoomMap(context), index < 3 || index === 4);
   for (const surface of ["chat", "hall", "map", "live"] satisfies WorkspaceSurface[]) {
-    assert.equal(resolveWorkspaceSurface(surface, context), (surface === "map" || surface === "live") && index > 2 ? "chat" : surface);
+    assert.equal(resolveWorkspaceSurface(surface, context), ((surface === "map" || surface === "live") && index === 3) || (surface === "live" && index === 4) ? "chat" : surface);
   }
 }
 assert.equal(hasRoomMap({ ...room, slug: "trip--child" }), true);

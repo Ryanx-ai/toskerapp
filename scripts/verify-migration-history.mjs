@@ -50,7 +50,8 @@ const names = (values) => values.map((value) => value.name).sort();
 // equivalent forms only; constraint names/types/column sets remain strict.
 function normalizeConstraint(value, table, type) {
   if (type !== "c") return normalize(value);
-  const expanded = String(value).replace(/::text(?=\])/g, "").replace(/(length\((?:"?\w+"?\.)?"?\w+"?\))\s+between\s+(\d+)\s+and\s+(\d+)/gi, "$1 >= $2 and $1 <= $3");
+  const expanded = String(value).replace(/::text(?=\])/g, "").replace(/(length\((?:"?\w+"?\.)?"?\w+"?\))\s+between\s+(\d+)\s+and\s+(\d+)/gi, "$1 >= $2 and $1 <= $3")
+    .replace(/((?:"?\w+"?\.)?"?(?:latitude|longitude)"?)\s+between\s+(-?\d+)\s+and\s+(-?\d+)/gi,"$1 >= $2 and $1 <= $3");
   return normalize(expanded)
     .replaceAll(`${table}.`, "")
     .replace(/'(-?\d+(?:\.\d+)?)'/g, "$1")

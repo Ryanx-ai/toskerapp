@@ -4,7 +4,7 @@ export const MAP_PIN_STATES = [
   { key: "favourite", label: "Favourite", icon: "♥" },
   { key: "want-to-go", label: "Want to go", icon: "⚑" },
   { key: "been-here", label: "Been here", icon: "✓" },
-  { key: "saved", label: "Saved", icon: "⌖" },
+  { key: "saved", label: "Saved", icon: "📍" },
 ] as const;
 export type MapPinState = typeof MAP_PIN_STATES[number]["key"];
 export type MapPin = PlaceCandidate & {

@@ -10,11 +10,12 @@ import { getBrowserMapProvider, SINGAPORE_CENTER } from "@/lib/maps/browser-prov
 import "maplibre-gl/dist/maplibre-gl.css";
 import styles from "./room-map-workspace.module.css";
 import type { LocalMapLocation } from "./use-local-map-location";
+import { pinState, type MapPin } from "@/lib/map-pin-contract";
 
 type Status = "loading" | "ready" | "unavailable" | "failed";
 type PlanningRoute = TripRoute & { ghost: boolean; places: (TripPlace & { isStop: boolean })[] };
 
-export default function TripMapCanvas({ places, canMove, onMove, estimate, roadFit = 0, hiddenIds, activeVisible, routes, roads, roadMode, roadEnabled, localLocation, onDeselect, snapshotReady, candidate, selectedId, onSelect, onSelectGhost, pinMode, onPin }: { places: TripPlace[]; canMove:boolean; onMove(id:string,latitude:number,longitude:number):void; estimate?:RoadGeometry; roadFit?: number; hiddenIds: string[]; activeVisible: boolean; routes: PlanningRoute[]; roads: Record<string,RoadGeometry>; roadMode: RoadMode; roadEnabled: boolean; localLocation: LocalMapLocation | null; onDeselect(): void; snapshotReady: boolean; candidate: PlaceCandidate | null; selectedId: string | null; onSelect(id: string): void; onSelectGhost(routeId: string, id: string): void; pinMode: boolean; onPin(latitude: number, longitude: number): void }) {
+export default function TripMapCanvas({ mapPins, selectedPinId, onSelectPin, places, canMove, onMove, estimate, roadFit = 0, hiddenIds, activeVisible, routes, roads, roadMode, roadEnabled, localLocation, onDeselect, snapshotReady, candidate, selectedId, onSelect, onSelectGhost, pinMode, onPin }: { mapPins:MapPin[];selectedPinId:string|null;onSelectPin(id:string):void;places: TripPlace[]; canMove:boolean; onMove(id:string,latitude:number,longitude:number):void; estimate?:RoadGeometry; roadFit?: number; hiddenIds: string[]; activeVisible: boolean; routes: PlanningRoute[]; roads: Record<string,RoadGeometry>; roadMode: RoadMode; roadEnabled: boolean; localLocation: LocalMapLocation | null; onDeselect(): void; snapshotReady: boolean; candidate: PlaceCandidate | null; selectedId: string | null; onSelect(id: string): void; onSelectGhost(routeId: string, id: string): void; pinMode: boolean; onPin(latitude: number, longitude: number): void }) {
   const container = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapInstance | null>(null);
   const initialCamera = useRef(false);
@@ -23,12 +24,13 @@ export default function TripMapCanvas({ places, canMove, onMove, estimate, roadF
   const estimateRef=useRef<HTMLDetailsElement>(null);
   const moved=useEffectEvent(onMove);
   const selected = useEffectEvent((id: string) => onSelect(id));
+  const selectedMemory = useEffectEvent((id:string)=>onSelectPin(id));
   const selectedGhost = useEffectEvent((routeId: string, id: string) => onSelectGhost(routeId, id));
   const clicked = useEffectEvent((latitude: number, longitude: number) => { if (pinMode) onPin(latitude, longitude); else onDeselect(); });
   const fitTrip = () => {
-    if (!places.length || !mapRef.current) return;
+    if ((!places.length && !mapPins.length) || !mapRef.current) return;
     const active=routes.find(r=>!r.ghost),road=active?roads[active.id]:undefined;
-    const bounds=routeBounds(places.filter(p=>!p.skipped),roadEnabled&&road?.mode===roadMode?road:undefined);
+    const bounds=routeBounds([...places.filter(p=>!p.skipped),...mapPins],roadEnabled&&road?.mode===roadMode?road:undefined);
     if(bounds)mapRef.current.fitBounds(bounds, { padding: Math.min(64, Math.max(24,(container.current?.clientWidth??320)/8)), maxZoom: 14, duration: 0 });
   };
   const fitInitialTrip = useEffectEvent(fitTrip);
@@ -150,6 +152,23 @@ export default function TripMapCanvas({ places, canMove, onMove, estimate, roadF
     return () => { disposed = true; markers.forEach(marker => marker.remove()); };
   }, [status, places, routes, candidate, selectedId, hiddenIds, activeVisible, canMove, pinMode]);
 
+  useEffect(()=>{
+    const map=mapRef.current;if(status!=="ready"||!map)return;
+    let disposed=false;const markers:Marker[]=[];
+    void import("maplibre-gl").then(({Marker})=>{
+      if(disposed)return;
+      for(const pin of mapPins){
+        const button=document.createElement("button"),state=pinState(pin.state);button.type="button";
+        button.className=`${styles.memoryMarker} ${pin.id===selectedPinId?styles.selectedPin:""}`;
+        button.textContent=state.icon;button.setAttribute("aria-label",`${state.label} Map Pin: ${pin.title}`);button.setAttribute("aria-pressed",String(pin.id===selectedPinId));
+        button.addEventListener("click",event=>{event.stopPropagation();selectedMemory(pin.id);});
+        // Above/right of a co-located numbered Route marker so both remain selectable.
+        markers.push(new Marker({element:button,anchor:"bottom-left",offset:[16,-16]}).setLngLat([pin.longitude,pin.latitude]).addTo(map));
+      }
+    });
+    return()=>{disposed=true;markers.forEach(m=>m.remove());};
+  },[mapPins,selectedPinId,status]);
+
   useEffect(() => {
     const map = mapRef.current;
     if (status !== "ready" || !map || !container.current) return;
@@ -214,7 +233,7 @@ export default function TripMapCanvas({ places, canMove, onMove, estimate, roadF
   return <div className={styles.canvasRegion} data-map-state={status}>
     <div ref={container} className={styles.canvas} />
     {status==="ready"&&activeVisible&&estimate?.estimate&&<details ref={estimateRef} className={styles.routeEstimate} aria-label={`${estimate.mode==="walk"?"Walking":"Driving"} route estimate`}><summary>{roadDuration(estimate.estimate.seconds)} · {roadDistance(estimate.estimate.metres)}</summary><div><p>Estimate · no live traffic or navigation</p>{estimate.estimate.guidance.length>0&&<ul>{estimate.estimate.guidance.map(step=><li key={step.name}>{step.name} · {roadDistance(step.metres)}</li>)}</ul>}<small>{estimate.attribution}</small></div></details>}
-    {status === "ready" && <div className={styles.cameraControls}><button type="button" className={styles.resetMap} aria-label="Reset map to Singapore" title="Singapore" onClick={() => mapRef.current?.jumpTo({ center: SINGAPORE_CENTER, zoom: 11, bearing: 0, pitch: 0 })}><RotateCcw size={16} aria-hidden="true" /></button>{places.length > 0 && <button type="button" className={styles.resetMap} aria-label="Fit trip" title="Fit trip" onClick={fitTrip}><Maximize size={16} aria-hidden="true" /></button>}</div>}
+    {status === "ready" && <div className={styles.cameraControls}><button type="button" className={styles.resetMap} aria-label="Reset map to Singapore" title="Singapore" onClick={() => mapRef.current?.jumpTo({ center: SINGAPORE_CENTER, zoom: 11, bearing: 0, pitch: 0 })}><RotateCcw size={16} aria-hidden="true" /></button>{(places.length > 0 || mapPins.length > 0) && <button type="button" className={styles.resetMap} aria-label={places.length?"Fit trip":"Fit Pins"} title="Fit visible places" onClick={fitTrip}><Maximize size={16} aria-hidden="true" /></button>}</div>}
     <p className={styles.mapStatus} role="status">{status === "ready" ? "Map ready. No live location is shared." : status === "loading" ? "Loading Singapore map…" : ""}</p>
     {status !== "ready" && <div className={styles.emptyMap}>
       <MapIcon size={36} strokeWidth={1.25} aria-hidden="true" />

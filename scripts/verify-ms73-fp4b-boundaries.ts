@@ -1,0 +1,34 @@
+import assert from "node:assert/strict";
+import {createHash,randomUUID} from "node:crypto";
+import {and,eq,sql} from "drizzle-orm";
+import {getDatabase,type ToskerDatabase} from "../src/server/db/client";
+import {mapPins,mapPinPreferences,users,profiles,conversations,invites} from "../src/server/db/schema";
+import {readPins,mutatePin} from "../src/server/map-pins/service";
+import {AuthorizationDeniedError} from "../src/server/auth/authorize";
+import {createQaFixture,resolveQaActors} from "./lib/ms73-fixtures";
+const db=getDatabase(),rollback=new Error("rollback"),timer=setTimeout(()=>{console.error("STOP boundary test timeout; no acceptance");process.exit(1);},180000);
+db.$client.on("error",()=>{console.error("STOP boundary connection lost; no acceptance");process.exit(1);});
+async function main(){try{await db.transaction(async tx=>{
+  const d=tx as unknown as ToskerDatabase,{a,b}=await resolveQaActors(tx),fixture=await createQaFixture(d,"FP4B rollback pagination and forged identity boundaries");
+  await tx.execute(sql`set local statement_timeout='20s'`);
+  const p={title:"Bounded QA ".repeat(10).slice(0,120),latitude:1.3,longitude:103.8,source:"pin" as const,provider:null,providerId:null,address:"Synthetic only",attribution:"",license:""};
+  const values=Array.from({length:200},(_,i)=>({...p,conversationId:fixture.conversationId,creatorId:a.userId,state:"saved",placeKey:createHash("sha256").update(`qa-${i}`).digest("hex")}));
+  await tx.insert(mapPins).values(values);
+  const first=await readPins(d,a,fixture.slug);assert.equal(first.pins.length,100);assert(first.next);
+  const second=await readPins(d,a,fixture.slug,first.next);assert.equal(second.pins.length,100);assert.equal(second.next,null);assert.equal(new Set([...first.pins,...second.pins].map(p=>p.id)).size,200);
+  await assert.rejects(()=>mutatePin(d,a,{scope:fixture.slug,requestId:randomUUID(),command:{type:"create",candidate:{...p,latitude:1.32},state:"saved"}}),/200 Pins/);
+  await assert.rejects(()=>tx.transaction(async nested=>{await nested.update(mapPins).set({state:"automatic-visit"}).where(eq(mapPins.id,first.pins[0].id));}));
+  const id=first.pins[0].id;
+  await mutatePin(d,a,{scope:fixture.slug,requestId:randomUUID(),command:{type:"hide",pinId:id,expectedRevision:1,expectedPreferenceRevision:0,hidden:true,userId:b.userId} as never});
+  const prefs=await tx.select().from(mapPinPreferences).where(eq(mapPinPreferences.pinId,id));assert.equal(prefs.length,1);assert.equal(prefs[0].userId,a.userId);
+  const [sandbox]=await tx.select().from(conversations).where(and(eq(conversations.kind,"sandbox"),eq(conversations.ownerId,a.userId)));
+  await assert.rejects(()=>readPins(d,b,`sandbox--${sandbox.id}`),AuthorizationDeniedError);
+  const uid=randomUUID();await tx.insert(users).values({id:uid,authProvider:"qa",authSubject:uid,tid:`QA${uid}`});await tx.insert(profiles).values({userId:uid,username:`qa-${uid}`,displayName:"Isolated pending QA"});
+  await tx.insert(invites).values({kind:"direct",roomId:fixture.id,inviterId:a.userId,recipientUserId:uid,tokenHash:randomUUID(),status:"pending"});
+  const outsider={userId:uid,authProvider:"qa",authSubject:uid};
+  await assert.rejects(()=>readPins(d,outsider,fixture.slug),AuthorizationDeniedError);
+  await assert.rejects(()=>mutatePin(d,outsider,{scope:fixture.slug,requestId:randomUUID(),command:{type:"nuke",pinId:id,expectedRevision:1}}),AuthorizationDeniedError);
+  console.log("PASS bounded200/100-page cursor without duplicates, full precision ordering, DB state constraint, forged preference actor ignored, cross-Sandbox denial, actual pending Room invite grants no Pin access");
+  throw rollback;
+});}catch(e){if(e!==rollback)throw e;}console.log("PASS boundary fixtures rolled back; no retained changes");}
+main().catch(e=>{console.error(JSON.stringify({failure:"boundaries not accepted",kind:e instanceof Error?e.name:"unknown",code:e?.cause?.code??e?.code??null,message:e instanceof assert.AssertionError?e.message.split("\n")[0]:undefined}));process.exitCode=1;}).finally(async()=>{await db.$client.end();clearTimeout(timer);});

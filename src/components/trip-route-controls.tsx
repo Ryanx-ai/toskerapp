@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MoreHorizontal, Plus, Eye, EyeOff, Pencil, Palette, Archive, ArrowLeft, ArrowRight, Share2, X, Sparkles, Trash2 } from "lucide-react";
 import { TRIP_COLORS, orderedRoutePlaces, lockedQuickOrder, type TripColor, type TripCommand, type TripSnapshot } from "@/lib/trip-contract";
 import { InteractionPopover } from "./interaction-popover";
@@ -14,6 +14,7 @@ export default function TripRouteControls({ plan, activeId, ghosts, hiddenRoutes
   const [editing, setEditing] = useState<{ id: string | null; name: string; color: TripColor; revision: number } | null>(null);
   const [proposal, setProposal] = useState<{ routeId: string; revision: number; before: string[]; after: string[] } | null>(null);
   const [notice, setNotice] = useState("");
+  useEffect(()=>{if(!notice)return;const timer=setTimeout(()=>setNotice(""),4000);return()=>clearTimeout(timer);},[notice]);
   const [menu, setMenu] = useState<{ anchor: HTMLElement; id: string | null } | null>(null), [share, setShare] = useState(false);
   const route = plan.routes.find(r => r.id === activeId && !r.archived);
   const visible = plan.routes.filter(r => !r.archived);

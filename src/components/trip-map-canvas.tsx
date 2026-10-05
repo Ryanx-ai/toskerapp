@@ -200,13 +200,15 @@ export default function TripMapCanvas({ places, canMove, onMove, estimate, roadF
     const points=estimate.segments.flat(),anchor=points[Math.floor(points.length/2)];if(!anchor)return;
     const position=()=>{
       const canvas=map.getContainer(),point=map.project([anchor[0],anchor[1]]);
-      const half=Math.min(100,canvas.clientWidth/2-12),x=Math.max(half+8,Math.min(canvas.clientWidth-half-8,point.x));
+      const half=element.offsetWidth/2,x=Math.max(half+8,Math.min(canvas.clientWidth-half-8,point.x));
+      const detail=element.querySelector<HTMLElement>("div");
+      if(detail)detail.style.maxHeight=`${Math.max(40,Math.min(140,canvas.clientHeight-110))}px`;
       let y=point.y-54;
       if(places.some(p=>{const q=map.project([p.longitude,p.latitude]);return Math.abs(q.x-x)<half+24&&Math.abs(q.y-y)<40;}))y=point.y+60;
-      y=Math.max(64,Math.min(canvas.clientHeight-74,y));
+      y=Math.max(8,Math.min(canvas.clientHeight-element.offsetHeight-30,Math.max(64,y)));
       element.style.left=`${x}px`;element.style.top=`${y}px`;
     };
-    position();map.on("move",position);map.on("resize",position);return()=>{map.off("move",position);map.off("resize",position);};
+    position();const observer=new ResizeObserver(position);observer.observe(element);map.on("move",position);map.on("resize",position);return()=>{observer.disconnect();map.off("move",position);map.off("resize",position);};
   },[estimate,status,places]);
 
   return <div className={styles.canvasRegion} data-map-state={status}>

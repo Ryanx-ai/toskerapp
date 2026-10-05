@@ -122,7 +122,14 @@ export default function TripWorkspace({ roomSlug, conversationId }: { roomSlug: 
         else { setError(result.message); if (result.code !== "unavailable") setPending(null); await load(); }
         return;
       }
-      setPending(null); await load();
+      // A background read may already be in flight. Await our own post-write
+      // snapshot before re-enabling revision-bound editors, not just a queued read.
+      const refreshed = await readTripAction(roomSlug);
+      if (!alive.current || accessDenied.current) return;
+      if (refreshed.ok) setPlan(previous => !previous || refreshed.value.revision >= previous.revision ? refreshed.value : previous);
+      else if (refreshed.code === "denied") { deny(); return; }
+      else { setError(refreshed.message); return; }
+      setPending(null);
       if (input.command.type === "add") { setPreview(null); setResults([]); setQuery(""); setSearched(false); setSelectedId(result.value.resultId); setNotice("Added to this shared trip."); }
       else { setNotice(""); if (input.command.type === "nuke-place") setSelectedId(null); }
       return result.value;

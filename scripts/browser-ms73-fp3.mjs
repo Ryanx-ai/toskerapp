@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { run, ev, until, button } from "./browser-fp2.mjs";
-const fixture=JSON.parse(readFileSync("docs/MS7-3-FP3-FIXTURE.json","utf8"));
+const fixture=JSON.parse(readFileSync(process.env.FP3_FIXTURE??"docs/MS7-3-FP3-FIXTURE.json","utf8"));
 const origin=process.env.FP3_ORIGIN??"http://localhost:3000", a=process.env.FP3_A??"ms73-fp3-a";
 const b=process.env.FP3_B??"ms73-fp3-b";
 const base=`${origin}/room/${fixture.slug}`, input=".chat-search-bar input", results=".chat-search-bar [role=option]";

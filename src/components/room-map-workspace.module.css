@@ -208,6 +208,7 @@
 .checkpointPin { border-radius:12px 12px 12px 3px; border-style:double; }
 .skippedPin { background:var(--shell-plane); color:var(--route-color); border:2px dashed var(--route-color); }
 .trayToggle { float:right; display:inline-flex; align-items:center; justify-content:center; gap:4px; min-height:44px; padding:8px; margin-left:8px; border:1px solid var(--border); border-radius:var(--control-radius); background:transparent; color:var(--text-secondary); font:600 11px/1.4 var(--font-montserrat),sans-serif; }
+.cards > .routes { display:flow-root; }
 .routeEstimate { position:absolute; z-index:3; left:50%; top:64px; transform:translateX(-50%); width:max-content; max-width:min(260px,calc(100% - 24px)); border:1px solid var(--border); border-radius:var(--control-radius); background:var(--shell-plane); color:var(--text-primary); box-shadow:var(--depth-raised); font-size:12px; }
 .routeEstimate summary { cursor:pointer; min-height:44px; padding:12px 14px; white-space:nowrap; font-weight:600; }
 .routeEstimate > div { padding:0 14px 12px; max-height:140px; overflow:auto; }
@@ -216,7 +217,9 @@
 .workspace .toolbar .search { flex:0 1 60%; margin-right:auto; }
 .workspace .toolbar .control { min-height:44px; }
 @media(min-width:769px) {
-  .workspace .mapPlane { flex:1 1 0; }
+  .workspace .mapPlane { flex:1 0 auto; min-height:min-content; }
+  .workspace .toolbar { flex-wrap:nowrap; }
+  .workspace .toolbar .search { flex:1 1 120px; max-width:60%; }
   .workspace .cards { flex:0 0 clamp(260px,32dvh,300px); min-height:260px; }
   .workspace[data-tray-collapsed="true"] .cards { flex:0 0 auto; min-height:68px; }
   .workspace[data-tray-collapsed="true"] .cards :is(.cardStrip,.cardsEmpty,.libraryState) { display:none; }

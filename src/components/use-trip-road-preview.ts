@@ -8,7 +8,7 @@ export function useTripRoadPreview(scope:string,routeId:string|null,points:RoadP
   const [roads,setRoads]=useState<Record<string,RoadGeometry>>({});
   const [pendingKey,setPendingKey]=useState<string|null>(null),[failure,setFailure]=useState<{key:string;message:string}|null>(null);
   const [attempt,setAttempt]=useState(0),[fit,setFit]=useState<{routeId:string;key:string;sequence:number}|null>(null);
-  const attempts=useRef<number[]>([]),generation=useRef(0),lastChoice=useRef("");
+  const attempts=useRef<number[]>([]),generation=useRef(0),lastChoice=useRef(""),lastCompleted=useRef(0);
   const denied=useEffectEvent(onDenied);
   const requestKey=`${scope}:${routeId}:${key}`;
   useEffect(()=>{
@@ -17,7 +17,7 @@ export function useTripRoadPreview(scope:string,routeId:string|null,points:RoadP
     if(!eligible||!routeId)return;
     // Match the conservative server actor limit: >=5s gap, <=3 attempts per rolling minute.
     const now=Date.now();attempts.current=attempts.current.filter(t=>now-t<60000);
-    const delay=Math.max(650,(attempts.current.at(-1)??0)+5200-now,attempts.current.length>=3?attempts.current[attempts.current.length-3]+61000-now:0);
+    const delay=Math.max(650,Math.max(attempts.current.at(-1)??0,lastCompleted.current)+5500-now,attempts.current.length>=3?attempts.current[attempts.current.length-3]+61000-now:0);
     const timer=setTimeout(async()=>{
       if(controller.signal.aborted)return;
       attempts.current.push(Date.now());setPendingKey(requestKey);setFailure(null);
@@ -30,7 +30,7 @@ export function useTripRoadPreview(scope:string,routeId:string|null,points:RoadP
         setRoads(previous=>({...previous,[routeId]:data.geometry}));
         if(shouldFit)setFit(previous=>({routeId,key,sequence:(previous?.sequence??0)+1}));
       }catch(error){if(!controller.signal.aborted&&generation.current===epoch){setRoads(previous=>{const next={...previous};delete next[routeId];return next;});setFailure({key:requestKey,message:error instanceof Error&&error.name!=="TypeError"?error.message:"Road preview could not finish. Your trip is saved; retry when ready."});}}
-      finally{if(!controller.signal.aborted&&generation.current===epoch)setPendingKey(null);}
+      finally{lastCompleted.current=Date.now();if(!controller.signal.aborted&&generation.current===epoch)setPendingKey(null);}
     },delay);
     return()=>{clearTimeout(timer);controller.abort();};
   },[scope,routeId,key,mode,enabled,eligible,requestKey,attempt]);

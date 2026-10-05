@@ -1,0 +1,124 @@
+/** Rollback-only schema + real service checks. No retained founder/account mutation. */
+import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
+import { and, eq, sql } from "drizzle-orm";
+import { readMigrationFiles } from "drizzle-orm/migrator";
+import { getDatabase, type ToskerDatabase } from "../src/server/db/client";
+import { conversations, conversationParticipants, users, profiles, connections, mapPins, mapPinPreferences, mapPinReceipts, subrooms, subroomAccess, roomMemberships } from "../src/server/db/schema";
+import { mutatePin, readPins, pinAudience } from "../src/server/map-pins/service";
+import type { PinCommand } from "../src/lib/map-pin-contract";
+import type { AuthenticatedActor } from "../src/server/auth/actor";
+import { createQaFixture, resolveQaActors } from "./lib/ms73-fixtures";
+const db = getDatabase(), rollback = new Error("expected rollback");
+const candidate = {title:"Safe QA Marina Bay Sands",latitude:1.2834,longitude:103.8607,source:"search" as const,provider:"qa",providerId:"fp4b-mbs",address:"Synthetic QA only",attribution:"QA",license:"QA"};
+async function main() {
+  const stage = process.argv[2] ?? "--crud"; assert(["--crud","--lifecycle","--independence"].includes(stage));
+  const before = await db.execute(sql`select count(*)::int as n from rooms`);
+  try { await db.transaction(async tx => {
+    const pending = await tx.execute(sql`select to_regclass('public.map_pins') as pins`);
+    if (!pending.rows[0].pins) for (const statement of readMigrationFiles({migrationsFolder:"drizzle"})[26].sql) await tx.execute(sql.raw(statement));
+    const testDb = tx as unknown as ToskerDatabase;
+    const {a,b,founder} = await resolveQaActors(tx);
+    const fixture = await createQaFixture(testDb,"FP4B rollback-only authorization and lifecycle");
+    const read = (actor=a,scope=fixture.slug) => readPins(testDb,actor,scope);
+    const change = (command:PinCommand,actor=a,scope=fixture.slug,requestId=randomUUID()) => mutatePin(testDb,actor,{scope,command,requestId});
+    const firstRequest = randomUUID();
+    const created = await change({type:"create",candidate,state:"want-to-go"},a,fixture.slug,firstRequest);
+    assert((await change({type:"create",candidate,state:"want-to-go"},a,fixture.slug,firstRequest)).replayed);
+    await assert.rejects(()=>change({type:"create",candidate,state:"saved"},a,fixture.slug,firstRequest),/retry/i);
+    assert.equal((await change({type:"create",candidate,state:"favourite"},b)).resultId,created.resultId);
+    assert.equal((await read(b)).pins.length,1); assert.equal((await read(b)).pins[0].state,"want-to-go");
+    assert.equal((await read(founder)).pins[0].id,created.resultId);
+    await change({type:"state",pinId:created.resultId,expectedRevision:1,state:"been-here"},b);
+    assert.equal((await read()).pins[0].revision,2);
+    await assert.rejects(()=>change({type:"state",pinId:created.resultId,expectedRevision:1,state:"saved"}),/changed/);
+    await assert.rejects(()=>change({type:"nuke",pinId:randomUUID(),expectedRevision:1}));
+    const manual = await change({type:"create",candidate:{...candidate,source:"pin",provider:null,providerId:null,title:"Checkpoint",latitude:1.31},state:"saved"});
+    assert.equal((await read()).pins.find(p=>p.id===manual.resultId)?.title,"Checkpoint 1");
+    const nukeRequest = randomUUID();
+    await change({type:"nuke",pinId:manual.resultId,expectedRevision:1},a,fixture.slug,nukeRequest);
+    assert((await change({type:"nuke",pinId:manual.resultId,expectedRevision:1},a,fixture.slug,nukeRequest)).replayed);
+    assert(!(await read(b)).pins.some(p=>p.id===manual.resultId));
+    console.log("PASS B2 source CRUD, founder inclusion, canonical state/revision, provider dedupe, named manual Pin, idempotent create/Nuke and stale/forged rejection");
+    if (stage === "--crud") throw rollback;
+
+    const sandbox = async(actor:AuthenticatedActor) => {
+      const [c] = await tx.select().from(conversations).where(and(eq(conversations.kind,"sandbox"),eq(conversations.ownerId,actor.userId)));
+      assert(c); return `sandbox--${c.id}`;
+    };
+    const sa = await sandbox(a), sb = await sandbox(b);
+    assert((await read(a,sa)).pins.some(p=>p.id===created.resultId));
+    assert((await read(b,sb)).pins.some(p=>p.id===created.resultId));
+    assert.equal((await read(a,sa)).pins.find(p=>p.id===created.resultId)?.contextName,fixture.name);
+    await change({type:"hide",pinId:created.resultId,expectedRevision:2,expectedPreferenceRevision:0,hidden:true});
+    assert(!(await read(a,sa)).pins.some(p=>p.id===created.resultId));
+    assert((await read(b,sb)).pins.some(p=>p.id===created.resultId));
+    assert((await read()).pins.find(p=>p.id===created.resultId)?.hidden);
+    await assert.rejects(()=>change({type:"hide",pinId:created.resultId,expectedRevision:2,expectedPreferenceRevision:0,hidden:false}),/visibility changed/);
+    await change({type:"state",pinId:created.resultId,expectedRevision:2,state:"favourite"},b);
+    assert(!(await read(a,sa)).pins.some(p=>p.id===created.resultId));
+    await change({type:"hide",pinId:created.resultId,expectedRevision:3,expectedPreferenceRevision:1,hidden:false});
+    assert.equal((await read(a,sa)).pins.find(p=>p.id===created.resultId)?.state,"favourite");
+    const privatePin = await change({type:"create",candidate,state:"saved"},a,sa);
+    assert(!(await read(b,sb)).pins.some(p=>p.id===privatePin.resultId));
+    await assert.rejects(()=>read(b,sa));
+    await assert.rejects(()=>change({type:"nuke",pinId:privatePin.resultId,expectedRevision:1},b,sa));
+
+    const uid = randomUUID();
+    await tx.insert(users).values({id:uid,authProvider:"qa",authSubject:uid,tid:`QA${uid}`});
+    await tx.insert(profiles).values({userId:uid,displayName:"FP4B isolated unrelated",username:`fp4b-${uid}`});
+    const outsider:AuthenticatedActor = {userId:uid,authProvider:"qa",authSubject:uid};
+    const [own] = await tx.insert(conversations).values({kind:"sandbox",ownerId:uid,title:"Isolated QA"}).returning();
+    await assert.rejects(()=>read(outsider));
+    await assert.rejects(()=>change({type:"state",pinId:created.resultId,expectedRevision:3,state:"saved"},outsider));
+    assert.equal((await read(outsider,`sandbox--${own.id}`)).pins.length,0);
+    const [child] = await tx.insert(subrooms).values({roomId:fixture.id,name:"Private QA child",visibility:"selected",createdBy:a.userId}).returning();
+    await tx.insert(subroomAccess).values([a,founder].map(actor=>({subroomId:child.id,userId:actor.userId})));
+    const [childChat] = await tx.insert(conversations).values({kind:"room",roomId:fixture.id,subroomId:child.id,title:child.name}).returning();
+    await tx.insert(conversationParticipants).values([a,founder].map(actor=>({conversationId:childChat.id,userId:actor.userId})));
+    const childScope = `${fixture.slug}--${child.id}`;
+    const childPin = await change({type:"create",candidate,state:"want-to-go"},a,childScope);
+    await assert.rejects(()=>read(b,childScope));
+    assert(!(await read(b,sb)).pins.some(p=>p.id===childPin.resultId));
+    assert((await read(a,sa)).pins.some(p=>p.id===childPin.resultId));
+    assert((await read(founder,childScope)).pins.some(p=>p.id===childPin.resultId));
+    await tx.delete(subroomAccess).where(and(eq(subroomAccess.subroomId,child.id),eq(subroomAccess.userId,a.userId)));
+    await assert.rejects(()=>read(a,childScope));
+    assert(!(await read(a,sa)).pins.some(p=>p.id===childPin.resultId));
+    assert((await read(founder,childScope)).pins.some(p=>p.id===childPin.resultId));
+
+    const pair = [a.userId,uid].sort().join(":");
+    const [personal] = await tx.insert(conversations).values({kind:"personal",directKey:pair,title:"Owned QA Personal"}).returning();
+    await tx.insert(conversationParticipants).values([a.userId,uid].map(userId=>({conversationId:personal.id,userId})));
+    const [connection] = await tx.insert(connections).values({requesterId:a.userId,addresseeId:uid,pairKey:pair,status:"pending"}).returning();
+    const personalScope = `personal--${personal.id}`;
+    await assert.rejects(()=>change({type:"create",candidate,state:"saved"},a,personalScope));
+    await tx.update(connections).set({status:"accepted"}).where(eq(connections.id,connection.id));
+    const personalPin = await change({type:"create",candidate,state:"saved"},a,personalScope);
+    assert((await read(outsider,personalScope)).pins.some(p=>p.id===personalPin.resultId));
+    await assert.rejects(()=>read(b,personalScope));
+    await tx.delete(connections).where(eq(connections.id,connection.id));
+    await assert.rejects(()=>read(a,personalScope));
+    assert(!(await read(a,sa)).pins.some(p=>p.id===personalPin.resultId));
+    assert.equal((await read(outsider,`sandbox--${own.id}`)).pins.length,0);
+    assert.equal((await tx.select().from(mapPins).where(eq(mapPins.id,personalPin.resultId))).length,1);
+
+    await tx.delete(roomMemberships).where(and(eq(roomMemberships.roomId,fixture.id),eq(roomMemberships.userId,b.userId)));
+    // A stale conversation participant row must not confer source/projection access.
+    await assert.rejects(()=>read(b));
+    assert(!(await read(b,sb)).pins.some(p=>p.id===created.resultId));
+    assert(!(await pinAudience(testDb,a,fixture.slug)).userIds.includes(b.userId));
+    await assert.rejects(()=>change({type:"nuke",pinId:created.resultId,expectedRevision:3},b));
+    await change({type:"nuke",pinId:created.resultId,expectedRevision:3});
+    assert(!(await read(a,sa)).pins.some(p=>p.id===created.resultId));
+    assert.equal((await tx.select().from(mapPinPreferences).where(eq(mapPinPreferences.pinId,created.resultId))).length,0);
+    await tx.delete(conversations).where(eq(conversations.id,childChat.id));
+    assert.equal((await tx.select().from(mapPins).where(eq(mapPins.id,childPin.resultId))).length,0);
+    assert.equal((await tx.select().from(mapPinReceipts).where(eq(mapPinReceipts.conversationId,childChat.id))).length,0);
+    console.log("PASS B3 Sandbox private/social views, durable private hide/restore, state propagation, Room removal, selected Subroom loss, exact Personal pair/pending/revoked connection, content-light audience, source cascade and no stale provenance");
+    throw rollback;
+  }); } catch (e) { if (e !== rollback) throw e; }
+  assert.deepEqual((await db.execute(sql`select count(*)::int as n from rooms`)).rows,before.rows);
+  console.log("PASS all schema/fixture/service changes rolled back; retained founder state untouched");
+}
+main().catch(e=>{console.error(JSON.stringify({failure:"FP4B rollback-only checks failed",message:e instanceof assert.AssertionError?e.message.split("\n")[0]:e instanceof Error?e.name:undefined,code:e?.cause?.code??e?.code??null}));process.exitCode=1;}).finally(()=>db.$client.end());

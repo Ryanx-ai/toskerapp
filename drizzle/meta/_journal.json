@@ -183,6 +183,13 @@
       "when": 1791191770112,
       "tag": "0025_ms73_fp4a_route_refinement",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1791210830148,
+      "tag": "0026_ms73_fp4b_map_pins",
+      "breakpoints": true
     }
   ]
 }

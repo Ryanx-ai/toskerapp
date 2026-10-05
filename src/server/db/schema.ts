@@ -23,6 +23,54 @@ export const mapProviderUsage = pgTable("map_provider_usage", {
   lastAt: timestamp("last_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
+// A source conversation owns the canonical Pin; Sandbox memories are authorized views.
+// Intentionally no relation to trip_places/routes: their lifecycles are independent.
+export const mapPins = pgTable("map_pins", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  conversationId: uuid("conversation_id").notNull().references(() => conversations.id, { onDelete: "cascade" }),
+  creatorId: uuid("creator_id").notNull().references(() => users.id, { onDelete: "restrict" }),
+  placeKey: text("place_key").notNull(),
+  state: text("state").notNull(),
+  revision: integer("revision").default(1).notNull(),
+  title: text("title").notNull(),
+  latitude: doublePrecision("latitude").notNull(),
+  longitude: doublePrecision("longitude").notNull(),
+  source: text("source").notNull(),
+  provider: text("provider"),
+  providerId: text("provider_id"),
+  address: text("address").default("").notNull(),
+  attribution: text("attribution").default("").notNull(),
+  license: text("license").default("").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, t => [
+  uniqueIndex("map_pins_context_place_unique").on(t.conversationId, t.placeKey),
+  index("map_pins_order_idx").on(t.createdAt, t.id),
+  check("map_pins_state_valid", sql`${t.state} in ('favourite','want-to-go','been-here','saved')`),
+  check("map_pins_revision_valid", sql`${t.revision} > 0`),
+  check("map_pins_coordinates_valid", sql`${t.latitude} between -90 and 90 and ${t.longitude} between -180 and 180`),
+  check("map_pins_source_valid", sql`${t.source} in ('search','pin')`),
+  check("map_pins_text_valid", sql`length(${t.title}) between 1 and 120 and length(${t.address}) <= 400 and length(${t.attribution}) <= 500 and length(${t.license}) <= 120 and length(${t.placeKey}) = 64 and (${t.provider} is null or length(${t.provider}) <= 40) and (${t.providerId} is null or length(${t.providerId}) <= 1024)`),
+]);
+
+export const mapPinPreferences = pgTable("map_pin_preferences", {
+  pinId: uuid("pin_id").notNull().references(() => mapPins.id, { onDelete: "cascade" }),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  hidden: boolean("hidden").default(false).notNull(),
+  revision: integer("revision").default(1).notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, t => [primaryKey({ columns: [t.pinId,t.userId] }), index("map_pin_preferences_user_idx").on(t.userId), check("map_pin_preferences_revision_valid", sql`${t.revision} > 0`)]);
+
+// Survives Pin deletion to make a lost Nuke response safely replayable, without payload data.
+export const mapPinReceipts = pgTable("map_pin_receipts", {
+  conversationId: uuid("conversation_id").notNull().references(() => conversations.id, { onDelete: "cascade" }),
+  actorId: uuid("actor_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  requestId: uuid("request_id").notNull(),
+  payloadHash: text("payload_hash").notNull(),
+  resultId: uuid("result_id").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, t => [primaryKey({ columns: [t.conversationId,t.actorId,t.requestId] }), check("map_pin_receipts_hash_valid", sql`length(${t.payloadHash}) = 64`)]);
+
 // Exactly one owner context: Room/Subroom OR Personal conversation, never shared IDs.
 export const tripPlans = pgTable("trip_plans", {
   id: uuid("id").defaultRandom().primaryKey(),

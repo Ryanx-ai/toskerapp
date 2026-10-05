@@ -1,5 +1,42 @@
 # MS7.3 FP4 — approved Map Pin prime / next-deployment marker
 
+## 2026-10-05 — canonical recovered; execution-time STOP gate
+
+Authoritative new brief: `/Users/ryanc/Desktop/TOSKER_MS7_3_FP4_MAP_REFINEMENT_MAP_PINS_EXECUTION.pdf`, all six pages extracted and visually inspected, including Founder Walk references. Founder authorizes automatic execution only within its time gate. Section 00 requires a checkpoint and STOP before implementation when the audit reveals an 8+ hour architecture wave. This section supersedes the historical post-playtest waiting status below, but does not waive that new gate.
+
+**Estimate reported before implementation: best case 8–10 hours; realistic 12–16 hours, including acceptance and canonical deployment, excluding optional multiplayer pings. STOP applies.** No FP4 application/schema implementation, migration, fixture creation, provider request, environment change, push or deployment was performed. Only read-only recovery and this local documentation checkpoint were authorized at the reached gate. FP3 remains canonical; MS7.3 unlocked; MS7.4 not started.
+
+### Fresh recovery evidence
+
+- Fetched origin successfully; local HEAD and `origin/main` both `7578c26d5fb422570f82ad3034aebfc59da4e4ae` before this checkpoint.
+- Canonical alias `toskerapp.vercel.app` resolves to READY Production deployment `dpl_8ji8nVx968cvBVKXobDxLifaNX33`, exact release/docs SHA `7578c26d5fb422570f82ad3034aebfc59da4e4ae`; final HTTPS `/app` response 200.
+- Application baseline `64ebaa3d37f0de52a7423a3e204633593e2ec5a5`: no source difference through release/docs SHA in `src`, `drizzle`, `public`, `package.json` or `package-lock.json`.
+- Read-only migration verification: all 25 historical hashes pass; live catalog matches latest snapshot (32 tables, 220 columns, 108 constraints, 15 enums). Migration 0024 remains applied; do not reapply, restore or backfill it.
+- Read-only post-cutover audit: required route ownership, one-card/one-route mirror, unique order positions and seven enabled cutover triggers pass. Current inventory: 3 plans, 7 routes, **16 cards / 16 route memberships**, 4 comments, **84 mutation receipts**; zero shared/unassigned cards. These counts differ from the FP3 closeout and must be preserved, not reset to historical QA counts.
+- Exact founder TID `8V3X7P1` uniquely resolves. Both retained Rooms verified: `ms73-founder-review-904a9dea` and protected founder-content Room `ms73-qa-bfff9475`. No membership/content changes or cleanup.
+- General integrity audit passes: 8 users/profiles/Sandboxes, 6 Rooms/11 memberships, 5 Personal conversations, 34 messages, 12 Board notes/2 pins, 6 accepted connections, 48 notifications; zero listed integrity violations.
+- Existing unrelated handoff/inheritance/design/art/website/research/experiment WIP preserved and excluded from this checkpoint.
+
+### Scope audit driving the estimate
+
+1. **Canonical Map Pins and Sandbox projections are new architecture**, not additional Route Card flags. Current `trip_plans` supports Room/Subroom or Personal contexts; `lockTripScope` has no Sandbox Map scope. No canonical Map Pin/projection tables exist. Source-backed authorization must be checked on projection reads and after revocation, without leaking private context names. Independent deletion, personal projection suppression, archive behavior, same-place provenance, retries and concurrent state changes require explicit contracts and tests before schema work.
+2. **Quick Order locks and manual repositioning need shared server mutations.** Current heuristic fixes first and last points, has Undo, and lacks persisted position locks. Existing card mutations do not support coordinate movement. The new implementation must preserve identity/comments/star/order, reconcile A/B, invalidate derived geometry, and provide keyboard alternatives. Locks must be defined as positions versus card attachment deliberately rather than guessed.
+3. **Hide currently is viewer-private presentation only.** `trip-workspace.tsx` stores hidden IDs in user/context-keyed sessionStorage; `/api/trips/[slug]/roads` receives route ID/mode and routes all non-archived cards. Hidden IDs never reach the routing calculation. New exclusion semantics must be documented deliberately; do not silently turn private visibility into a shared edit or trust client-supplied coordinates. Eligibility, request keys, post-provider reauthorization and stale-response checks must agree.
+4. **Automatic routing changes the request lifecycle.** Current mode switching clears geometry and requires explicit Refresh. Coalescing, cancellation, cooldown/quota handling, reliable recovery, deliberate drag commit, estimate anchoring and explicit-versus-peer camera behavior must be verified together, including failures and reconnects.
+5. **UI and release validation are material work.** Tray preservation, toolbar reflow, distinct pin/checkpoint markers, state/provenance actions, six widths plus short landscape, focus/keyboard/reduced motion and full cross-context A/B lifecycle tests must precede build/secrets/migration/DB gates, deployment and live smoke.
+
+Realistic planning allocation (not a commitment or completed work): Map Pin model/authorization/projections/migration safety 4–5h; route locks/checkpoints/Hide/automatic routing 3–4h; compact UI and bounded style research 1–2h; integrated A/B/responsive/regression, repair allowance and release/live smoke 4–5h. Total 12–16h. Best case 8–10h assumes no migration/auth/provider or browser-regression surprises. Parallel execution is not assumed or authorized.
+
+### Resume boundary
+
+Founder must explicitly authorize a larger execution window or a reduced release scope before implementation. Do not silently split and ship a subset under the original 4–7h expectation. Re-read the six-page brief and recover Git/canonical/live data again at resume; do not reuse deleted FP3 fixtures. Resolve lifecycle/Hide/lock contracts, then follow forward-migration backup → rollback-only isolated rehearsal → hash/catalog/auth/lifecycle verification → checkpoint → guarded cutover. Every new collaborative fixture includes exact-resolved founder TID where permitted; preserve both protected Rooms and all founder content. Save coherent validated slices.
+
+Pings are prime-only unless core work comfortably fits an explicitly approved budget. Official MapLibre/Geoapify style research and any licensed bounded prototype remain pending, not claimed complete. Live coordination and email notifications remain deferred: future Live design must cover consent/start-stop/cadence/staleness/accuracy/revocation/retention/reconnect/mobile-background; future email design must cover preferences/immediate-digest-off/online suppression/dedup/unsubscribe/deliverability/async delivery/procurement. No Share Route, paid resources, palette/art redesign or permanent provider approval.
+
+No FP4 deployment or acceptance is claimed. Await founder direction on the time/scope gate.
+
+## Historical prime — preserved context
+
 Founder approved 2026-10-01 for implementation **after founder playtest**. **NOT STARTED. Not part of FP3.** Do not interrupt or expand FP3; do not implement without the post-playtest continuation. This is no authorization for MS7.4, MS8, paid resources or provider commitment.
 
 ## Target

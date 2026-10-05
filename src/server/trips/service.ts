@@ -6,7 +6,7 @@ import type { ToskerDatabase } from "@/server/db/client";
 import { tripPlans, tripPlaces, tripRoutes, tripMutationReceipts, tripComments, profiles } from "@/server/db/schema";
 import { contextualName, conversationRoomId } from "@/server/profiles/context-name";
 import { lockTripScope, tripScopeWhere } from "./scope";
-import { TRIP_COLORS, TRIP_LIMITS, type PlaceCandidate, type TripColor, type TripFailureCode, type TripMutation, type TripSnapshot } from "@/lib/trip-contract";
+import { TRIP_COLORS, TRIP_LIMITS, nextCheckpointName, isCoordinatePinTitle, type PlaceCandidate, type TripColor, type TripFailureCode, type TripMutation, type TripSnapshot } from "@/lib/trip-contract";
 import { isConversationId } from "@/lib/realtime-contract";
 
 export class TripError extends Error {
@@ -38,6 +38,15 @@ function normalize(input: TripMutation): TripMutation {
     case "comment": return { ...base, command: { type: c.type, placeId: uuid(c.placeId), body: text(c.body, 1000) } };
     case "archive-place": return { ...base, command: { type: c.type, placeId: uuid(c.placeId), archived: flag(c.archived) } };
     case "star-place": return { ...base, command: { type: c.type, placeId: uuid(c.placeId), starred: flag(c.starred) } };
+    case "skip-place": return { ...base, command: { type: c.type, placeId: uuid(c.placeId), skipped: flag(c.skipped) } };
+    case "lock-position": {
+      if (!Number.isSafeInteger(c.position) || c.position < 0 || c.position >= TRIP_LIMITS.places) return invalid();
+      return { ...base, command: { type: c.type, routeId: uuid(c.routeId), position: c.position, locked: flag(c.locked) } };
+    }
+    case "move-checkpoint": {
+      if (!Number.isFinite(c.latitude) || !Number.isFinite(c.longitude) || Math.abs(c.latitude) > 90 || Math.abs(c.longitude) > 180) return invalid();
+      return { ...base, command: { type: c.type, placeId: uuid(c.placeId), latitude: c.latitude, longitude: c.longitude } };
+    }
     case "nuke-place": return { ...base, command: { type: c.type, placeId: uuid(c.placeId) } };
     case "order-routes": {
       if (!Array.isArray(c.routeIds) || c.routeIds.length > TRIP_LIMITS.routes || new Set(c.routeIds).size !== c.routeIds.length) return invalid();
@@ -69,8 +78,8 @@ export async function readTrip(db: ToskerDatabase, actor: AuthenticatedActor, sl
     const counts = await tx.select({ id: tripComments.placeId, n: count() }).from(tripComments).where(eq(tripComments.planId, plan.id)).groupBy(tripComments.placeId);
     const commentCounts = new Map(counts.map(row => [row.id, row.n]));
     return { revision: plan.revision,
-      places: places.map(p => ({ id: p.id, title: p.title, note: p.note, starred: p.starred, commentCount: commentCounts.get(p.id) ?? 0, latitude: p.latitude, longitude: p.longitude, source: p.source as "search" | "pin", provider: p.provider, providerId: p.providerId, address: p.address, attribution: p.attribution, license: p.license, archived: !!p.archivedAt })),
-      routes: routes.map(r => ({ id: r.id, name: r.name, color: r.color as TripColor, archived: !!r.archivedAt })), memberships };
+      places: places.map(p => ({ id: p.id, title: p.title, note: p.note, starred: p.starred, skipped: p.skipped, commentCount: commentCounts.get(p.id) ?? 0, latitude: p.latitude, longitude: p.longitude, source: p.source as "search" | "pin", provider: p.provider, providerId: p.providerId, address: p.address, attribution: p.attribution, license: p.license, archived: !!p.archivedAt })),
+      routes: routes.map(r => ({ id: r.id, name: r.name, color: r.color as TripColor, archived: !!r.archivedAt, lockedPositions: r.lockedPositions })), memberships };
   });
 }
 
@@ -79,7 +88,7 @@ export async function mutateTrip(db: ToskerDatabase, actor: AuthenticatedActor, 
   const payloadHash = createHash("sha256").update(JSON.stringify(input)).digest("hex");
   return db.transaction(async tx => {
     // Cutover compatibility marker, never an authorization substitute. Scope is still locked below.
-    await tx.execute(sql`select set_config('tosker.trip_protocol','3',true)`);
+    await tx.execute(sql`select set_config('tosker.trip_protocol','4',true)`);
     const scope = await lockTripScope(tx, actor, input.roomSlug, "update");
     let [plan] = await tx.select().from(tripPlans).where(tripScopeWhere(scope));
     if (!plan) {
@@ -120,7 +129,8 @@ export async function mutateTrip(db: ToskerDatabase, actor: AuthenticatedActor, 
       if (duplicate) resultId = duplicate.id;
       else {
         if (all.length >= TRIP_LIMITS.places) throw new TripError("limit", "Up to 200 places, including archived places, fit in this Development trip.");
-        const [created] = await tx.insert(tripPlaces).values({ planId: plan.id, routeId:c.routeId, position:routeCards.length, ...p }).returning({ id: tripPlaces.id }); resultId = created.id;
+        const title = p.source === "pin" && isCoordinatePinTitle(p.title) ? nextCheckpointName(routeCards) : p.title;
+        const [created] = await tx.insert(tripPlaces).values({ planId: plan.id, routeId:c.routeId, position:routeCards.length, ...p, title }).returning({ id: tripPlaces.id }); resultId = created.id;
       }
     } else if (c.type === "comment") {
       const p = await requirePlace(c.placeId); if (p.archivedAt) return invalid();
@@ -135,10 +145,28 @@ export async function mutateTrip(db: ToskerDatabase, actor: AuthenticatedActor, 
     } else if (c.type === "star-place") {
       await requirePlace(c.placeId);
       await tx.update(tripPlaces).set({ starred: c.starred, updatedAt: new Date() }).where(placeScope(c.placeId)); resultId = c.placeId;
+    } else if (c.type === "skip-place") {
+      const p = await requirePlace(c.placeId); if (p.archivedAt) return invalid();
+      await requireRoute(p.routeId);
+      await tx.update(tripPlaces).set({ skipped: c.skipped, updatedAt: new Date() }).where(placeScope(p.id)); resultId=p.id;
+    } else if (c.type === "move-checkpoint") {
+      const p = await requirePlace(c.placeId); if (p.archivedAt || p.source !== "pin" || p.providerId) return invalid();
+      await requireRoute(p.routeId);
+      const peers = await members(p.routeId);
+      if (peers.some(q => q.id !== p.id && Math.abs(q.latitude-c.latitude)<0.000001 && Math.abs(q.longitude-c.longitude)<0.000001)) throw new TripError("invalid", "Another location already occupies this point in the route.");
+      // Address belonged to the old coordinate. Never carry it across a manual move.
+      await tx.update(tripPlaces).set({ latitude:c.latitude, longitude:c.longitude, address:"", updatedAt:new Date() }).where(placeScope(p.id)); resultId=p.id;
+    } else if (c.type === "lock-position") {
+      const r = await requireRoute(c.routeId), cards = await members(r.id);
+      if (!cards.some(p => p.position === c.position)) return invalid();
+      const locks = new Set(r.lockedPositions); if(c.locked) locks.add(c.position); else locks.delete(c.position);
+      await tx.update(tripRoutes).set({ lockedPositions:[...locks].sort((a,b)=>a-b), updatedAt:new Date() }).where(routeScope(r.id)); resultId=r.id;
     } else if (c.type === "nuke-place") {
       const place=await requirePlace(c.placeId);
       await tx.delete(tripPlaces).where(placeScope(c.placeId));
-      await orderCards(place.routeId,(await members(place.routeId)).map(p=>p.id));
+      const remaining = await members(place.routeId), r = await requireRoute(place.routeId,true);
+      await orderCards(place.routeId,remaining.map(p=>p.id));
+      await tx.update(tripRoutes).set({lockedPositions:r.lockedPositions.filter(i=>i<remaining.length)}).where(routeScope(r.id));
       resultId = c.placeId;
     } else if(c.type === "nuke-route") {
       await requireRoute(c.routeId,true);
@@ -157,11 +185,12 @@ export async function mutateTrip(db: ToskerDatabase, actor: AuthenticatedActor, 
       await requireRoute(c.routeId, true);
       await tx.update(tripRoutes).set(c.type === "edit-route" ? { name: c.name, color: c.color, updatedAt: new Date() } : { archivedAt: c.archived ? new Date() : null, updatedAt: new Date() }).where(routeScope(c.routeId)); resultId = c.routeId;
     } else {
-      await requireRoute(c.routeId);
+      const r = await requireRoute(c.routeId);
       if (c.type === "order") {
         const rows = await members(c.routeId);
         // Include archived memberships too: archive/restore never silently discards order.
         if (rows.length !== c.placeIds.length || rows.some(r => !c.placeIds.includes(r.id))) return invalid();
+        if (rows.some(p => r.lockedPositions.includes(p.position) && c.placeIds[p.position] !== p.id)) throw new TripError("invalid", "Unlock the affected positions before moving these locations.");
         // One bounded UPDATE, not N round trips per drag.
         await orderCards(c.routeId,c.placeIds);
       } else {

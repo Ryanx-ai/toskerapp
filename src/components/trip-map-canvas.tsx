@@ -4,7 +4,7 @@ import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { Map as MapIcon, RotateCcw, Maximize } from "lucide-react";
 import type { Map as MapInstance, Marker, GeoJSONSource } from "maplibre-gl";
 import type { PlaceCandidate, TripPlace, TripRoute } from "@/lib/trip-contract";
-import { routeBounds, type RoadGeometry, type RoadMode } from "@/lib/maps/road-contract";
+import { routeBounds, roadDistance, roadDuration, type RoadGeometry, type RoadMode } from "@/lib/maps/road-contract";
 import { routeLegPresentation } from "@/lib/maps/route-presentation";
 import { getBrowserMapProvider, SINGAPORE_CENTER } from "@/lib/maps/browser-provider";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -14,19 +14,21 @@ import type { LocalMapLocation } from "./use-local-map-location";
 type Status = "loading" | "ready" | "unavailable" | "failed";
 type PlanningRoute = TripRoute & { ghost: boolean; places: (TripPlace & { isStop: boolean })[] };
 
-export default function TripMapCanvas({ places, roadFit = 0, hiddenIds, activeVisible, routes, roads, roadMode, roadEnabled, localLocation, onDeselect, snapshotReady, candidate, selectedId, onSelect, onSelectGhost, pinMode, onPin }: { places: TripPlace[]; roadFit?: number; hiddenIds: string[]; activeVisible: boolean; routes: PlanningRoute[]; roads: Record<string,RoadGeometry>; roadMode: RoadMode; roadEnabled: boolean; localLocation: LocalMapLocation | null; onDeselect(): void; snapshotReady: boolean; candidate: PlaceCandidate | null; selectedId: string | null; onSelect(id: string): void; onSelectGhost(routeId: string, id: string): void; pinMode: boolean; onPin(latitude: number, longitude: number): void }) {
+export default function TripMapCanvas({ places, canMove, onMove, estimate, roadFit = 0, hiddenIds, activeVisible, routes, roads, roadMode, roadEnabled, localLocation, onDeselect, snapshotReady, candidate, selectedId, onSelect, onSelectGhost, pinMode, onPin }: { places: TripPlace[]; canMove:boolean; onMove(id:string,latitude:number,longitude:number):void; estimate?:RoadGeometry; roadFit?: number; hiddenIds: string[]; activeVisible: boolean; routes: PlanningRoute[]; roads: Record<string,RoadGeometry>; roadMode: RoadMode; roadEnabled: boolean; localLocation: LocalMapLocation | null; onDeselect(): void; snapshotReady: boolean; candidate: PlaceCandidate | null; selectedId: string | null; onSelect(id: string): void; onSelectGhost(routeId: string, id: string): void; pinMode: boolean; onPin(latitude: number, longitude: number): void }) {
   const container = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapInstance | null>(null);
   const initialCamera = useRef(false);
   const [status, setStatus] = useState<Status>("loading");
   const [attempt, setAttempt] = useState(0);
+  const estimateRef=useRef<HTMLDetailsElement>(null);
+  const moved=useEffectEvent(onMove);
   const selected = useEffectEvent((id: string) => onSelect(id));
   const selectedGhost = useEffectEvent((routeId: string, id: string) => onSelectGhost(routeId, id));
   const clicked = useEffectEvent((latitude: number, longitude: number) => { if (pinMode) onPin(latitude, longitude); else onDeselect(); });
   const fitTrip = () => {
     if (!places.length || !mapRef.current) return;
     const active=routes.find(r=>!r.ghost),road=active?roads[active.id]:undefined;
-    const bounds=routeBounds(places,roadEnabled&&road?.mode===roadMode?road:undefined);
+    const bounds=routeBounds(places.filter(p=>!p.skipped),roadEnabled&&road?.mode===roadMode?road:undefined);
     if(bounds)mapRef.current.fitBounds(bounds, { padding: Math.min(64, Math.max(24,(container.current?.clientWidth??320)/8)), maxZoom: 14, duration: 0 });
   };
   const fitInitialTrip = useEffectEvent(fitTrip);
@@ -129,13 +131,15 @@ export default function TripMapCanvas({ places, roadFit = 0, hiddenIds, activeVi
       places.forEach((place, index) => {
         if (!activeVisible || hiddenIds.includes(place.id)) return;
         const button = document.createElement("button"); button.type = "button";
-        button.className = `${styles.pin} ${place.id === selectedId ? styles.selectedPin : ""} ${place.starred ? styles.starredPin : ""}`;
+        button.className = `${styles.pin} ${place.id === selectedId ? styles.selectedPin : ""} ${place.starred ? styles.starredPin : ""} ${place.source==="pin"?styles.checkpointPin:""} ${place.skipped?styles.skippedPin:""}`;
         button.dataset.routeColor = activeColor;
-        button.textContent = `${place.starred ? "★" : ""}${index + 1}`;
-        button.setAttribute("aria-label", `Select ${place.starred ? "starred " : ""}place ${index + 1}: ${place.title}`);
+        button.textContent = `${place.skipped ? "−" : place.starred ? "★" : ""}${index + 1}`;
+        button.setAttribute("aria-label", `Select ${place.skipped?"skipped ":""}${place.starred ? "starred " : ""}${place.source==="pin"?"checkpoint":"place"} ${index + 1}: ${place.title}`);
         button.setAttribute("aria-pressed", String(place.id === selectedId));
         button.addEventListener("click", event => { event.stopPropagation(); selected(place.id); });
-        markers.push(new Marker({ element: button, anchor: "center" }).setLngLat([place.longitude, place.latitude]).addTo(map));
+        const marker=new Marker({ element: button, anchor: "center", draggable:canMove&&!pinMode&&place.source==="pin"&&!place.providerId }).setLngLat([place.longitude, place.latitude]).addTo(map);
+        marker.on("dragend",()=>{const point=marker.getLngLat();marker.setLngLat([place.longitude,place.latitude]);moved(place.id,point.lat,point.lng);});
+        markers.push(marker);
       });
       if (candidate) {
         const element = document.createElement("span"); element.className = `${styles.pin} ${styles.candidatePin}`;
@@ -144,17 +148,18 @@ export default function TripMapCanvas({ places, roadFit = 0, hiddenIds, activeVi
       }
     });
     return () => { disposed = true; markers.forEach(marker => marker.remove()); };
-  }, [status, places, routes, candidate, selectedId, hiddenIds, activeVisible]);
+  }, [status, places, routes, candidate, selectedId, hiddenIds, activeVisible, canMove, pinMode]);
 
   useEffect(() => {
     const map = mapRef.current;
     if (status !== "ready" || !map || !container.current) return;
     const tokens = getComputedStyle(container.current);
     const data: GeoJSON.FeatureCollection<GeoJSON.LineString> = { type: "FeatureCollection", features: routes.flatMap(route => {
-      // Every saved route card is a planned stop. Eye suppresses adjacent visual segments only.
-      return route.places.slice(1).flatMap((place,index) => {
-        const previous = route.places[index];
-        const leg = routeLegPresentation(route.places,index,selectedId,route.ghost,roadEnabled,roadMode,roads[route.id]);
+      // Shared Skip removes waypoints; private Eye only suppresses this viewer's visual segments.
+      const eligible=route.places.filter(p=>!p.skipped);
+      return eligible.slice(1).flatMap((place,index) => {
+        const previous = eligible[index];
+        const leg = routeLegPresentation(eligible,index,selectedId,route.ghost,roadEnabled,roadMode,roads[route.id]);
         return !leg || hiddenIds.includes(place.id) || hiddenIds.includes(previous.id) ? [] : [{ type: "Feature" as const, properties: { name: route.name, ghost: route.ghost, opacity: leg.opacity, width: leg.width, color: tokens.getPropertyValue(`--trip-${route.color}`).trim() }, geometry: { type: "LineString" as const, coordinates: leg.coordinates } }];
       });
     }) };
@@ -190,8 +195,23 @@ export default function TripMapCanvas({ places, roadFit = 0, hiddenIds, activeVi
   }, [candidate, selectedId, status]);
   useEffect(() => { const canvas = mapRef.current?.getCanvas(); if (canvas) canvas.style.cursor = pinMode ? "crosshair" : ""; }, [pinMode, status]);
 
+  useEffect(()=>{
+    const map=mapRef.current,element=estimateRef.current;if(status!=="ready"||!map||!element||!estimate)return;
+    const points=estimate.segments.flat(),anchor=points[Math.floor(points.length/2)];if(!anchor)return;
+    const position=()=>{
+      const canvas=map.getContainer(),point=map.project([anchor[0],anchor[1]]);
+      const half=Math.min(100,canvas.clientWidth/2-12),x=Math.max(half+8,Math.min(canvas.clientWidth-half-8,point.x));
+      let y=point.y-54;
+      if(places.some(p=>{const q=map.project([p.longitude,p.latitude]);return Math.abs(q.x-x)<half+24&&Math.abs(q.y-y)<40;}))y=point.y+60;
+      y=Math.max(64,Math.min(canvas.clientHeight-74,y));
+      element.style.left=`${x}px`;element.style.top=`${y}px`;
+    };
+    position();map.on("move",position);map.on("resize",position);return()=>{map.off("move",position);map.off("resize",position);};
+  },[estimate,status,places]);
+
   return <div className={styles.canvasRegion} data-map-state={status}>
     <div ref={container} className={styles.canvas} />
+    {status==="ready"&&activeVisible&&estimate?.estimate&&<details ref={estimateRef} className={styles.routeEstimate} aria-label={`${estimate.mode==="walk"?"Walking":"Driving"} route estimate`}><summary>{roadDuration(estimate.estimate.seconds)} · {roadDistance(estimate.estimate.metres)}</summary><div><p>Estimate · no live traffic or navigation</p>{estimate.estimate.guidance.length>0&&<ul>{estimate.estimate.guidance.map(step=><li key={step.name}>{step.name} · {roadDistance(step.metres)}</li>)}</ul>}<small>{estimate.attribution}</small></div></details>}
     {status === "ready" && <div className={styles.cameraControls}><button type="button" className={styles.resetMap} aria-label="Reset map to Singapore" title="Singapore" onClick={() => mapRef.current?.jumpTo({ center: SINGAPORE_CENTER, zoom: 11, bearing: 0, pitch: 0 })}><RotateCcw size={16} aria-hidden="true" /></button>{places.length > 0 && <button type="button" className={styles.resetMap} aria-label="Fit trip" title="Fit trip" onClick={fitTrip}><Maximize size={16} aria-hidden="true" /></button>}</div>}
     <p className={styles.mapStatus} role="status">{status === "ready" ? "Map ready. No live location is shared." : status === "loading" ? "Loading Singapore map…" : ""}</p>
     {status !== "ready" && <div className={styles.emptyMap}>

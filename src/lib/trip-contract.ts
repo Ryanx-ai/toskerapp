@@ -5,10 +5,10 @@ export type PlaceCandidate = {
   title: string; latitude: number; longitude: number; source: "search" | "pin";
   provider: string | null; providerId: string | null; address: string; attribution: string; license: string;
 };
-export type TripPlace = PlaceCandidate & { id: string; note: string; archived: boolean; starred?: boolean; commentCount?: number };
+export type TripPlace = PlaceCandidate & { id: string; note: string; archived: boolean; starred?: boolean; skipped?: boolean; commentCount?: number };
 export type TripComment = { id: string; body: string; authorId: string; author: string; createdAt: string };
 export type TripCommentPage = { comments: TripComment[]; hasMore: boolean };
-export type TripRoute = { id: string; name: string; color: TripColor; archived: boolean };
+export type TripRoute = { id: string; name: string; color: TripColor; archived: boolean; lockedPositions?: number[] };
 export type TripMembership = { routeId: string; placeId: string; position: number; isStop: boolean };
 export type TripSnapshot = { revision: number; places: TripPlace[]; routes: TripRoute[]; memberships: TripMembership[] };
 export type TripCommand =
@@ -17,6 +17,9 @@ export type TripCommand =
   | { type: "comment"; placeId: string; body: string }
   | { type: "archive-place"; placeId: string; archived: boolean }
   | { type: "star-place"; placeId: string; starred: boolean }
+  | { type: "skip-place"; placeId: string; skipped: boolean }
+  | { type: "lock-position"; routeId: string; position: number; locked: boolean }
+  | { type: "move-checkpoint"; placeId: string; latitude: number; longitude: number }
   | { type: "nuke-place"; placeId: string }
   | { type: "order-routes"; routeIds: string[] }
   | { type: "create-route"; name: string; color: TripColor }
@@ -42,6 +45,43 @@ export function orderedRoutePlaces(snapshot: TripSnapshot, routeId: string) {
   return snapshot.memberships.filter(m => m.routeId === routeId && places.has(m.placeId))
     .sort((a, b) => a.position - b.position || a.placeId.localeCompare(b.placeId))
     .map(m => ({ ...places.get(m.placeId)!, isStop: m.isStop }));
+}
+
+/** Shared planning eligibility. Viewer-private Eye preferences never enter this list. */
+export function routingPlaces(snapshot: TripSnapshot, routeId: string) {
+  return orderedRoutePlaces(snapshot, routeId).filter(p => !p.skipped);
+}
+
+/** Immutable full-route slots, including archived cards. Locks are positions, not card flags. */
+export function lockedQuickOrder(snapshot: TripSnapshot, routeId: string) {
+  const route = snapshot.routes.find(r => r.id === routeId);
+  const cards = new Map(snapshot.places.map(p => [p.id, p]));
+  const ordered = snapshot.memberships.filter(m => m.routeId === routeId).sort((a,b) => a.position-b.position);
+  const locks = new Set(route?.lockedPositions ?? [0]);
+  const free = ordered.filter(m => !locks.has(m.position) && !cards.get(m.placeId)?.archived && !cards.get(m.placeId)?.skipped).map(m => cards.get(m.placeId)!);
+  let previous: TripPlace | undefined;
+  return ordered.map(m => {
+    const current = cards.get(m.placeId)!;
+    if (locks.has(m.position) || current.archived || current.skipped) {
+      if (!current.archived && !current.skipped) previous = current;
+      return current.id;
+    }
+    if (previous) free.sort((a,b) => squaredDistance(previous!, a) - squaredDistance(previous!, b) || a.id.localeCompare(b.id));
+    const next = free.shift()!; previous = next; return next.id;
+  });
+}
+
+function squaredDistance(a: Pick<TripPlace,"latitude"|"longitude">, b: Pick<TripPlace,"latitude"|"longitude">) {
+  const rad = Math.PI / 180;
+  return Math.sin((b.latitude-a.latitude)*rad/2)**2 + Math.cos(a.latitude*rad)*Math.cos(b.latitude*rad)*Math.sin((b.longitude-a.longitude)*rad/2)**2;
+}
+
+export function nextCheckpointName(places: Pick<TripPlace,"title">[]) {
+  return `Checkpoint ${places.reduce((n,p) => Math.max(n, Number(/^Checkpoint (\d+)$/.exec(p.title)?.[1] ?? 0)), 0) + 1}`;
+}
+
+export function isCoordinatePinTitle(title: string) {
+  return /^Pin\s+-?\d+(?:\.\d+)?,\s*-?\d+(?:\.\d+)?$/.test(title) || title === "Checkpoint";
 }
 
 /** Reorder visible places while retaining archived route references in their slots. */

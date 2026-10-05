@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { MoreHorizontal, Plus, Eye, EyeOff, Pencil, Palette, Archive, ArrowLeft, ArrowRight, Share2, X, Sparkles, Trash2 } from "lucide-react";
-import { TRIP_COLORS, orderedRoutePlaces, quickOrder, mergeVisibleOrder, type TripColor, type TripCommand, type TripSnapshot } from "@/lib/trip-contract";
+import { TRIP_COLORS, orderedRoutePlaces, lockedQuickOrder, type TripColor, type TripCommand, type TripSnapshot } from "@/lib/trip-contract";
 import { InteractionPopover } from "./interaction-popover";
 import { ModalLayer } from "./modal-layer";
 import { RevealName } from "./reveal-name";
@@ -13,7 +13,7 @@ export default function TripRouteControls({ plan, activeId, ghosts, hiddenRoutes
   const [nuke,setNuke]=useState<{id:string;name:string;revision:number}|null>(null);
   const [editing, setEditing] = useState<{ id: string | null; name: string; color: TripColor; revision: number } | null>(null);
   const [proposal, setProposal] = useState<{ routeId: string; revision: number; before: string[]; after: string[] } | null>(null);
-  const [undo, setUndo] = useState<{ routeId: string; revision: number; ids: string[] } | null>(null);
+  const [notice, setNotice] = useState("");
   const [menu, setMenu] = useState<{ anchor: HTMLElement; id: string | null } | null>(null), [share, setShare] = useState(false);
   const route = plan.routes.find(r => r.id === activeId && !r.archived);
   const visible = plan.routes.filter(r => !r.archived);
@@ -38,7 +38,7 @@ export default function TripRouteControls({ plan, activeId, ghosts, hiddenRoutes
       </div>)}
       <button className={styles.newRoute} disabled={disabled || plan.routes.length >= 12} onClick={() => setEditing({ id:null,name:`Day ${plan.routes.length+1}`,color:TRIP_COLORS[plan.routes.length % TRIP_COLORS.length],revision:plan.revision })}><Plus size={16} aria-hidden="true" />Route</button>
     </div><div className={styles.actions}>
-      <button className={styles.control} disabled={disabled || places.length < 3} aria-label="Quick order" title="Quick order · distance suggestion, not AI" onClick={() => { if (route) setProposal({ routeId:route.id,revision:plan.revision,before:fullOrder,after:mergeVisibleOrder(plan,route.id,quickOrder(places)) }); }}><Sparkles size={16} aria-hidden="true" /></button>
+      <button className={styles.control} disabled={disabled || places.length < 2} aria-label="Quick order" title="Quick order · ordering suggestion" onClick={() => { if (!route) return; const after=lockedQuickOrder(plan,route.id); if(after.every((id,i)=>id===fullOrder[i])){setNotice("Already in the quickest order.");return;}setNotice("");setProposal({routeId:route.id,revision:plan.revision,before:fullOrder,after}); }}><Sparkles size={16} aria-hidden="true" /></button>
       <button className={styles.control} aria-label="Share route" title="Share route · deferred" onClick={() => setShare(true)}><Share2 size={18} aria-hidden="true" /></button>
     </div></div>
     {!visible.length && plan.routes.some(r=>r.archived) && <button className="quiet-action" onClick={e => setMenu({ anchor:e.currentTarget, id:null })}>Archived routes</button>}
@@ -59,7 +59,7 @@ export default function TripRouteControls({ plan, activeId, ghosts, hiddenRoutes
     {nuke && <ModalLayer onClose={()=>{if(!disabled)setNuke(null);}}><section className={`creation-panel ${styles.placeDialog}`} aria-label="Nuke route confirmation">
       <h2>Nuke {nuke.name}?</h2><p>This removes the route and all its locations and comments for everyone. This cannot be undone.</p>
       {nuke.revision!==plan.revision && <p role="alert">The trip changed. Cancel and review it before removing.</p>}
-      <div className={styles.actions}><button className="quiet-action" disabled={disabled} onClick={()=>setNuke(null)}>Cancel</button><button className="primary-action fp3-nuke-action" disabled={disabled||nuke.revision!==plan.revision} onClick={async()=>{if(await change({type:"nuke-route",routeId:nuke.id},nuke.revision)){setNuke(null);setProposal(null);setUndo(null);}}}>Nuke route</button></div>
+      <div className={styles.actions}><button className="quiet-action" disabled={disabled} onClick={()=>setNuke(null)}>Cancel</button><button className="primary-action fp3-nuke-action" disabled={disabled||nuke.revision!==plan.revision} onClick={async()=>{if(await change({type:"nuke-route",routeId:nuke.id},nuke.revision)){setNuke(null);setProposal(null);}}}>Nuke route</button></div>
     </section></ModalLayer>}
     {(editing || proposal || share) && <ModalLayer onClose={() => {if(!disabled){setEditing(null);setProposal(null);setShare(false);}}}><section className={`creation-panel ${styles.placeDialog}`}>
       <button className="overlay-close" aria-label="Close route dialog" disabled={disabled} onClick={()=>{setEditing(null);setProposal(null);setShare(false);}}><X size={18} /></button>
@@ -69,12 +69,12 @@ export default function TripRouteControls({ plan, activeId, ghosts, hiddenRoutes
         {editing.revision!==plan.revision && <p role="alert">The trip changed. Close and reopen to review the latest route.</p>}
         <button className={styles.primary} disabled={disabled || editing.revision!==plan.revision}>Save route</button>
       </form>}
-      {proposal && <section className={styles.proposal} aria-label="Quick order preview"><h2>Quick order</h2><p>First and last stay fixed. Intermediate places use a straight-line nearest-neighbour suggestion, not road optimization or an ETA.</p><ol>{proposal.after.filter(id=>plan.places.some(p=>p.id===id&&!p.archived)).map(id=><li key={id}>{plan.places.find(p=>p.id===id)?.title}</li>)}</ol>
+      {proposal && <section className={styles.proposal} aria-label="Quick order preview"><h2>Quick order</h2><p>Locked positions stay fixed. A straight-line ordering suggestion; not road directions.</p><ol>{proposal.after.filter(id=>plan.places.some(p=>p.id===id&&!p.archived)).map(id=><li key={id}>{plan.places.find(p=>p.id===id)?.title}</li>)}</ol>
         {proposal.revision!==plan.revision && <p role="alert">The trip changed. Reopen Quick order; nothing was applied.</p>}
-        <button className={styles.primary} disabled={disabled || proposal.revision!==plan.revision} onClick={async()=>{const result=await change({type:"order",routeId:proposal.routeId,placeIds:proposal.after},proposal.revision);if(result){setUndo({routeId:proposal.routeId,revision:result.revision,ids:proposal.before});setProposal(null);}}}>Apply suggested order</button>
+        <button className={styles.primary} disabled={disabled || proposal.revision!==plan.revision} onClick={async()=>{const result=await change({type:"order",routeId:proposal.routeId,placeIds:proposal.after},proposal.revision);if(result){setProposal(null);}}}>Apply suggested order</button>
       </section>}
       {share && <><h2>Share route</h2><p>Deferred. This route is already shared with current members here. External sharing needs scoped access, revocation and a clear live-versus-snapshot contract. No link or message has been created.</p></>}
     </section></ModalLayer>}
-    {undo && plan.routes.some(r=>r.id===undo.routeId) && <div className={styles.routeTools}><button className={styles.control} disabled={disabled || plan.revision!==undo.revision} onClick={async()=>{if(await change({type:"order",routeId:undo.routeId,placeIds:undo.ids},undo.revision))setUndo(null);}}>Undo Quick order</button>{plan.revision!==undo.revision && <span>Trip changed; undo is no longer safe.</span>}</div>}
+    {notice && <p className={styles.routeTools} role="status">{notice}</p>}
   </section>;
 }

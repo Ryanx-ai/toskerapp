@@ -2,6 +2,12 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## MS7.3 FP4A ACTIVE — isolated local acceptance — 2026-10-05
+
+Founder now authorizes TWO bounded eight-hour sprints, superseding historical STOP below. Read top `docs/MS7-3-FP4-NEXT-DEPLOYMENT.md`. FP4A starts 09:07 UTC, target deadline17:07 UTC; FP4B may start only after FP4A canonical/live green. Local refinement implementation has passed contract tests, rollback migration/lifecycle rehearsal, targeted lint/typecheck and production build. Browser startup/sign-in surface clean. Full A/B/responsive/security/regression acceptance still pending; NO release acceptance claimed.
+
+Public migration remains25; canonical FP3 remains `7578c26`/`dpl_8ji8nVx968cvBVKXobDxLifaNX33`. Additive0025 is staged locally, NOT applied publicly. Browser server uses exact-owned isolated schema from ignored0600 `.git/fp4a-recovery/browser-schema.json` via `scripts/run-ms73-fp4a-local.mjs`; direct same Neon compute supports schema startup option. Do NOT run local new service directly against public before gated cutover. Disposable browser Room `ms73-qa-7020333f` includes exact founder+A/B; receipt `.git/fp4a-recovery/browser-fixture.json`, five shadow trip cards/80 safe QA messages. Preserve protected Founder Review and founder-content Rooms. Do not recreate fixtures or restore/replay0024. Existing unrelated design/art/web/inheritance WIP excluded. Next full isolated A/B/testing, guarded backup/cutover, normal scoped push, canonical/live verification/save; THEN FP4B audit/implementation/release. MS7.3 unlocked; MS7.4 unstarted.
+
 ## MS7.3 FP4 — RECOVERED / EXECUTION-TIME STOP — 2026-10-05
 
 Read the top of `docs/MS7-3-FP4-NEXT-DEPLOYMENT.md`. New six-page Map refinement + Map Pins brief read fully, including visual references. Section 00 says STOP before implementation for an 8+ hour architecture wave. Estimate reported: best case8–10h, realistic12–16h including canonical acceptance, optional pings excluded. New canonical pins/Sandbox provenance projections, shared position locks/checkpoint movement and private-Hide/routing semantics exceed the 4–7h gate. **No FP4 implementation or cutover; await explicit larger-window or reduced-scope authorization.** Do not auto-start a subset.

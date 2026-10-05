@@ -1,0 +1,40 @@
+import assert from "node:assert/strict";
+import {randomUUID} from "node:crypto";
+import type {ToskerDatabase} from "../../src/server/db/client";
+import {readTrip,mutateTrip,readTripComments} from "../../src/server/trips/service";
+import {lockedQuickOrder,routingPlaces,type TripCommand} from "../../src/lib/trip-contract";
+import {createQaFixture,cleanupQaFixture,resolveQaActors} from "./ms73-fixtures";
+
+export async function verifyFp4aLifecycle(db:ToskerDatabase) {
+  const {a,b,founder}=await resolveQaActors(db);
+  const fixture=await createQaFixture(db,"FP4A locks/checkpoints/Skip lifecycle");
+  console.log(JSON.stringify({ownedFixture:fixture}));
+  const read=()=>readTrip(db,a,fixture.slug);
+  const change=async(command:TripCommand,actor=a)=>mutateTrip(db,actor,{roomSlug:fixture.slug,requestId:randomUUID(),expectedRevision:(await read()).revision,command});
+  const route=(await change({type:"create-route",name:"FP4A QA",color:"gold"})).resultId!;
+  const ids:string[]=[];
+  for(const offset of [0,5,2,4,1])ids.push((await change({type:"add",routeId:route,candidate:{title:"Checkpoint",source:"pin",latitude:1.3,longitude:103.8+offset/1000,provider:null,providerId:null,address:"",attribution:"",license:""}})).resultId!);
+  assert.deepEqual((await read()).places.map(p=>p.title).sort(),[1,2,3,4,5].map(n=>`Checkpoint ${n}`));
+  assert.deepEqual((await read()).routes[0].lockedPositions,[0]);
+  await change({type:"lock-position",routeId:route,position:2,locked:true},b);
+  const before=await read(),order=lockedQuickOrder(before,route);
+  await change({type:"order",routeId:route,placeIds:order});
+  assert.equal(order[0],ids[0]);assert.equal(order[2],ids[2]);
+  await assert.rejects(()=>change({type:"order",routeId:route,placeIds:[...order].reverse()}));
+  assert.deepEqual(await readTrip(db,b,fixture.slug),await readTrip(db,founder,fixture.slug));
+  const card=ids[2];await change({type:"comment",placeId:card,body:"Movement preserves this safe QA comment"},b);await change({type:"star-place",placeId:card,starred:true});
+  const move={roomSlug:fixture.slug,requestId:randomUUID(),expectedRevision:(await read()).revision,command:{type:"move-checkpoint" as const,placeId:card,latitude:1.301,longitude:103.802}};
+  await mutateTrip(db,a,move);assert((await mutateTrip(db,a,move)).replayed);
+  const moved=await readTrip(db,b,fixture.slug);assert.equal(moved.places.find(p=>p.id===card)?.latitude,1.301);assert.equal(moved.places.find(p=>p.id===card)?.starred,true);assert.equal(moved.memberships.find(m=>m.placeId===card)?.position,2);assert(moved.routes[0].lockedPositions?.includes(2));assert.equal((await readTripComments(db,b,fixture.slug,card)).comments.length,1);
+  await change({type:"skip-place",placeId:ids[4],skipped:true},b);assert(!routingPlaces(await read(),route).some(p=>p.id===ids[4]));
+  await change({type:"skip-place",placeId:ids[4],skipped:false});assert.equal(routingPlaces(await read(),route).length,5);
+  const poi=(await change({type:"add",routeId:route,candidate:{title:"Synthetic provider fixture",source:"search",provider:"qa",providerId:"safe-test",latitude:1.302,longitude:103.806,address:"Synthetic QA only",attribution:"QA",license:"QA"}})).resultId!;
+  await assert.rejects(()=>change({type:"move-checkpoint",placeId:poi,latitude:1.303,longitude:103.807}));
+  await assert.rejects(()=>change({type:"move-checkpoint",placeId:card,latitude:NaN,longitude:103.8}));
+  await assert.rejects(()=>change({type:"move-checkpoint",placeId:card,latitude:1.3,longitude:103.8}));
+  const stale={roomSlug:fixture.slug,requestId:randomUUID(),expectedRevision:0,command:{type:"skip-place" as const,placeId:card,skipped:true}};
+  await assert.rejects(()=>mutateTrip(db,b,stale));
+  await change({type:"nuke-route",routeId:route});assert.equal((await read()).places.length,0);
+  await cleanupQaFixture(db,fixture,true);
+  console.log("PASS shared locks/order, checkpoint identity/comments/star/replay, Skip eligibility, POI/invalid/duplicate/stale rejection and exact-owned cleanup");
+}

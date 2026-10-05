@@ -40,6 +40,7 @@ export const tripPlaces = pgTable("trip_places", {
   routeId: uuid("route_id").notNull(),
   position: integer("position").default(0).notNull(),
   isStop: boolean("is_stop").default(true).notNull(),
+  skipped: boolean("skipped").default(false).notNull(),
   title: text("title").notNull(),
   note: text("note").default("").notNull(),
   starred: boolean("starred").default(false).notNull(),
@@ -80,6 +81,7 @@ export const tripRoutes = pgTable("trip_routes", {
   name: text("name").notNull(),
   color: text("color").default("gold").notNull(),
   position: integer("position").default(0).notNull(),
+  lockedPositions: integer("locked_positions").array().default(sql`ARRAY[0]::integer[]`).notNull(),
   archivedAt: timestamp("archived_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
@@ -87,6 +89,7 @@ export const tripRoutes = pgTable("trip_routes", {
   uniqueIndex("trip_routes_plan_id_unique").on(t.planId, t.id),
   check("trip_routes_name_valid", sql`length(${t.name}) between 1 and 60`),
   check("trip_routes_color_valid", sql`${t.color} in ('gold', 'rose', 'sage', 'sky', 'iris')`),
+  check("trip_routes_locks_valid", sql`cardinality(${t.lockedPositions}) <= 200 and (cardinality(${t.lockedPositions}) = 0 or (array_ndims(${t.lockedPositions}) = 1 and array_position(${t.lockedPositions}, null) is null and 0 <= all(${t.lockedPositions}) and 200 > all(${t.lockedPositions})))`),
 ]);
 
 export const tripRoutePlaces = pgTable("trip_route_places", {

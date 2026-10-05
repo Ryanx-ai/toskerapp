@@ -21,7 +21,7 @@ export async function POST(request: Request, context: { params: Promise<{ slug: 
       candidates = await provider.search(input.query.trim(), request.signal);
     } else if (input.kind === "pin" && Number.isFinite(input.latitude) && Number.isFinite(input.longitude) && Math.abs(input.latitude) <= 90 && Math.abs(input.longitude) <= 180) {
       // The point is selected manually, never device location. Reverse results are context ONLY.
-      const candidate: PlaceCandidate = { title: `Pin ${input.latitude.toFixed(5)}, ${input.longitude.toFixed(5)}`, latitude: input.latitude, longitude: input.longitude, source: "pin", provider: null, providerId: null, address: "", attribution: "", license: "" };
+      const candidate: PlaceCandidate = { title: "Checkpoint", latitude: input.latitude, longitude: input.longitude, source: "pin", provider: null, providerId: null, address: "", attribution: "", license: "" };
       try {
         await reservePlaceRequest(db, actor.userId);
         const context = await provider.reverse(input.latitude, input.longitude, request.signal);

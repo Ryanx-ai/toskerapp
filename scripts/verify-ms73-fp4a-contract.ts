@@ -1,0 +1,13 @@
+import assert from "node:assert/strict";
+import { lockedQuickOrder, nextCheckpointName, routingPlaces, type TripSnapshot } from "../src/lib/trip-contract";
+const plan: TripSnapshot = {revision:0, routes:[{id:"r",name:"R",color:"gold",archived:false,lockedPositions:[0,2]}],places:[0,5,2,4,1].map((n,i)=>({id:String(i),title:`P${i}`,latitude:1.3,longitude:103.8+n/1000,source:"pin",provider:null,providerId:null,address:"",attribution:"",license:"",note:"",archived:false})),memberships:[0,1,2,3,4].map(i=>({routeId:"r",placeId:String(i),position:i,isStop:true}))};
+const order=lockedQuickOrder(plan,"r");
+assert.equal(order[0],"0");assert.equal(order[2],"2");assert.equal(new Set(order).size,5);assert.notEqual(order.at(-1),"4","Last is not automatically fixed");
+const sorted={...plan,memberships:order.map((id,i)=>({routeId:"r",placeId:id,position:i,isStop:true}))};
+assert.deepEqual(lockedQuickOrder(sorted,"r"),order,"Already-quick suggestion is idempotent");
+plan.places[4].skipped=true;assert.deepEqual(routingPlaces(plan,"r").map(p=>p.id),["0","1","2","3"]);
+assert.equal(lockedQuickOrder(plan,"r")[4],"4","Skipped card stays in its planning slot");
+plan.places[1].archived=true;assert.equal(lockedQuickOrder(plan,"r")[1],"1");
+assert.equal(nextCheckpointName([{title:"Checkpoint 1"},{title:"Checkpoint 4"},{title:"Other"}]),"Checkpoint 5");
+assert.deepEqual(lockedQuickOrder({...plan,places:[],memberships:[]},"r"),[]);
+console.log("PASS position locks, free endpoint, deterministic/idempotent suggestion, archive/skip slots and route-local naming");

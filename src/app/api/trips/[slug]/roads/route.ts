@@ -3,7 +3,7 @@ import { AuthenticationRequiredError } from "@/server/auth/actor";
 import { AuthorizationDeniedError } from "@/server/auth/authorize";
 import { getDatabase } from "@/server/db/client";
 import { readTrip } from "@/server/trips/service";
-import { orderedRoutePlaces } from "@/lib/trip-contract";
+import { routingPlaces } from "@/lib/trip-contract";
 import { roadKey, supportedRoadPoints } from "@/lib/maps/road-contract";
 import { isConversationId } from "@/lib/realtime-contract";
 import { getRoadProvider, reserveRoadRequest } from "@/server/maps/road-provider";
@@ -19,12 +19,12 @@ export async function POST(request:Request, context:{params:Promise<{slug:string
     if(!isConversationId(routeId)||(mode!=="drive"&&mode!=="walk"))return reply({error:"Choose a route and travel mode."},400);
     const plan=await readTrip(db,actor,slug);
     if(!plan.routes.some(r=>r.id===routeId&&!r.archived))return reply({error:"Route unavailable."},404);
-    const places=orderedRoutePlaces(plan,routeId);
+    const places=routingPlaces(plan,routeId);
     if(!supportedRoadPoints(places))return reply({error:"Road preview supports 2–8 Singapore places. Planning remains available."},400);
     await reserveRoadRequest(db,actor.userId,places.length);
     const geometry=await getRoadProvider().route(places,mode,request.signal);
     const latest=await readTrip(db,actor,slug); // Reauthorize after provider I/O, including Subroom visibility.
-    if(!latest.routes.some(r=>r.id===routeId&&!r.archived)||roadKey(orderedRoutePlaces(latest,routeId),mode)!==geometry.key)return reply({error:"Route changed. Refresh roads for the latest order."},409);
+    if(!latest.routes.some(r=>r.id===routeId&&!r.archived)||roadKey(routingPlaces(latest,routeId),mode)!==geometry.key)return reply({error:"Route changed. Retry roads for the latest order."},409);
     return reply({geometry});
   }catch(error){
     if(error instanceof AuthenticationRequiredError||error instanceof AuthorizationDeniedError)return reply({error:"Your Room access is no longer available."},403);

@@ -41,7 +41,9 @@ const indexes = await sql`
   from pg_index x join pg_class t on t.oid=x.indrelid join pg_namespace n on n.oid=t.relnamespace
   join pg_class i on i.oid=x.indexrelid join pg_am am on am.oid=i.relam
   where n.nspname='public'`;
-const normalize = (value) => String(value ?? "").replace(/::[\w\s]+(?=[),]|$)/g, "").replace(/"|\bpublic\./g, "").replace(/[\s()]/g, "").toLowerCase();
+// PostgreSQL omits the redundant integer[] cast on ARRAY[integer literals].
+// Column type is checked independently and exactly below.
+const normalize = (value) => String(value ?? "").replace(/(ARRAY\[\d+(?:,\s*\d+)*\])::integer\[\]/gi, "$1").replace(/::[\w\s]+(?=[),]|$)/g, "").replace(/"|\bpublic\./g, "").replace(/[\s()]/g, "").toLowerCase();
 const names = (values) => values.map((value) => value.name).sort();
 // PostgreSQL deparses CHECK IN as = ANY(ARRAY), removes the owning-table
 // qualifier, and quotes negative float constants. Canonicalize those exact

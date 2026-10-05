@@ -2,7 +2,7 @@ import { requireCurrentActor } from "@/server/auth/clerk";
 import { AuthenticationRequiredError } from "@/server/auth/actor";
 import { AuthorizationDeniedError } from "@/server/auth/authorize";
 import { getDatabase } from "@/server/db/client";
-import { authorizeTripScope } from "@/server/trips/scope";
+import { authorizePinScope } from "@/server/map-pins/scope";
 import { getPlaceProvider, PlaceProviderError, reservePlaceRequest } from "@/server/maps/provider";
 import { signCandidate } from "@/server/maps/candidate-token";
 import type { PlaceCandidate } from "@/lib/trip-contract";
@@ -12,7 +12,7 @@ export async function POST(request: Request, context: { params: Promise<{ slug: 
   try {
     if (request.headers.get("origin") !== new URL(request.url).origin) return reply({ error: "Request origin unavailable." }, 403);
     const actor = await requireCurrentActor(), db = getDatabase(), { slug } = await context.params;
-    await authorizeTripScope(db, actor, slug);
+    await authorizePinScope(db, actor, slug);
     const body = await request.text(); if (body.length > 512) return reply({ error: "Lookup is too large." }, 400);
     const input = JSON.parse(body), provider = getPlaceProvider();
     let candidates: PlaceCandidate[] = [], notice = "";
@@ -33,7 +33,7 @@ export async function POST(request: Request, context: { params: Promise<{ slug: 
       } catch { notice = "Address lookup unavailable. You can still preview and confirm these coordinates."; }
       candidates = [candidate];
     } else return reply({ error: "Enter at least 3 characters or choose a valid map point." }, 400);
-    await authorizeTripScope(db, actor, slug); // Reauthorize Subroom visibility too after external I/O.
+    await authorizePinScope(db, actor, slug); // Reauthorize every source context after external I/O.
     if (request.signal.aborted) return reply({ error: "Lookup cancelled." }, 408);
     return reply({ candidates: candidates.map(candidate => ({ candidate, token: signCandidate(candidate, actor.userId, slug) })), notice });
   } catch (error) {

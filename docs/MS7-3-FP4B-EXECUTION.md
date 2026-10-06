@@ -1,6 +1,25 @@
 # MS7.3 FP4B — Map Pins / social place memory
 
+## Extension authorized — restart recovery, 2026-10-06
+
+Founder explicitly approved the extension to finish remaining gates and canonical deployment, then directed recovery after a machine restart. This supersedes the historical timebox STOP below; it does not waive acceptance or expand scope. Recovered HEAD173f4e0, only unrelated pre-existing WIP. Canonical remains FP4A eadc1cf/READY. Before restart, fresh27hash/catalog and fixture ownership checks passed; responsive320/390/430/768 rerun passed, desktop run interrupted when browser switched to about:blank. Do not count interrupted checks. At03:44UTC recovery no local server/browser test process survived. Recheck persistence, reuse receipt, restart normal QA sessions; never replay0026 or fixture creation. Finish required B5/B6, canonical/live A/B, exact cleanup; no Pings/MS7.4/MS8/automatic lock.
+
+## B5 complete — extension acceptance, 2026-10-06
+
+Recovered173f4e0; no migration replay or fixture creation. Latest optimized build includes one bounded recovery fix: successful authorized Pin refresh now clears its stale offline/read warning independently of write errors. Real offline test found this defect; regression passed after rebuild. Native agent-browser sessions repeatedly reset/timed out; switched to already-installed Playwright Chromium without installing packages or changing app architecture. Normal isolated Clerk A/B authentication throughout.
+
+Completed browser evidence: explicit search/preview/confirmation and four-state update; separate Route-owned copies and Route1 Nuke from prior run; final source Pin Nuke removes A/B projections, no resurrection on reload, Route2 Card survives. Manual point remains unsaved until explicit keyboard Pin confirmation; resulting Checkpoint visible only to A's private Sandbox, then exact temporary Pin removed. A-only private Hide remains durable; shared source/B unaffected. Actual B Room membership withdrawal clears open detail, unsaved state, Route choices and rendered provenance; fresh realtime request403 and reload deny access; A and founder untouched; B restored in finally. Offline/reconnect warning recovery and background-clear/foreground-authorize pass.
+
+Responsive320/390/430/768/1440/1728 plus844x390 passed page/dialog bounds, singular modal, actual reduced-motion emulation, Escape/focus return; long place/context names wrap. Native macOS dropdown requires Space to commit its keyboard choice in this harness; successful keyboard state change + explicit keyboard Save reconciled to B. Earlier Enter-based attempts are not counted. Manual preview test initially focused before confirmation enabled; corrected harness waits for enabled and asserts focus, then passed. Distinct44px accessible Map Pin marker opens by Enter, short-landscape keyboard reaches bottom action without clipping; screenshots inspected. Zero page exceptions in successful runs. Screenshots remain ignored under `.git/fp4b-recovery/`.
+
+Retained review `ms73-founder-review-904a9dea` now has one Want-to-go Marina Bay Sands Pin `009e5547-5a05-4ae7-a511-11f46c7599b0`, explicitly derived from its existing identical licensed Card candidate through QA A. Exact founder TID uniquely resolved and membership/read verified; no Card/Route overwrite. Retain for Founder+Jenn. Protected founder-content `ms73-qa-bfff9475` untouched. Disposable `ms73-qa-6896cd50` still A/B/founder, source Pin now removed; Route2/Card remain for canonical smoke. No private temporary Pin remains. Fresh guarded inspection required before cleanup.
+
+Fresh27 migration hashes/catalog pass;35tables/250columns/125constraints/15enums. Trip inventory4plans/8routes/17cards/17memberships/4comments/89receipts, no orphan/mirror/position violations,7enabled cutover triggers; protected founder memberships pass. Full B2/B3 rollback lifecycle, boundary200/cursor/forged/pending-invite and B4 independent-copy rollback tests rerun successfully during recovery; no retained service fixtures. Typecheck/full lint (only historical unused eq warning), db:check, workspace/FP4A contracts, latest optimized build and555source+40bundle secret scan pass. No provider/key/billing changes, optional Pings/MS7.4/MS8 excluded.
+
+Next B6 release candidate review/secret scan and scoped commit/push, exact canonical deployment/live A/B/client/runtime gates, guarded disposable cleanup and final recovery save. Canonical still FP4A until independently verified; no automatic MS7.3 lock.
+
 ## B0 — recovered start, 2026-10-05 14:19 UTC
+
 
 Eight-hour target ends approximately22:19UTC. Mandatory safety gates are not timebox casualties. Optional Pings deferred. Founder authorization: attachment84770389-66dd-4cfd-8b9d-3a4abad68ec1, read fully. No MS7.3 lock, MS7.4, MS8, Share Route, email, GPS tracking, paid resources or permanent provider decision.
 

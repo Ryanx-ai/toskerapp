@@ -65,7 +65,8 @@ if(mode==="fp4b-nuke-pin"){
 if(mode==="fp4b-responsive"){
   await open(a,room);
   await run(a,"set","media","dark","reduced-motion");
-  for(const [width,height] of (process.env.FP4B_REMAINING?[[1440,900],[1728,960],[844,390]]:[[320,800],[390,844],[430,900],[768,900],[1440,900],[1728,960],[844,390]])){
+  assert(await ev(a,"matchMedia('(prefers-reduced-motion: reduce)').matches"),"real reduced-motion emulation");
+  for(const [width,height] of (process.env.FP4B_REMAINING?[[768,900],[1440,900],[1728,960],[844,390]]:[[320,800],[390,844],[430,900],[768,900],[1440,900],[1728,960],[844,390]]).filter(([w])=>!process.env.FP4B_WIDTH||w===Number(process.env.FP4B_WIDTH))){
     await run(a,"set","viewport",String(width),String(height));await showPins(a);
     assert(await ev(a,"document.documentElement.scrollWidth<=innerWidth+1"),`page overflow ${width}`);
     await run(a,"screenshot",`${process.cwd()}/.git/fp4b-recovery/map-${width}.png`);

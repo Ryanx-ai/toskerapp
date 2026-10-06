@@ -2,6 +2,12 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP4B B5 COMPLETE — release acceptance next — 2026-10-06
+
+Founder extension explicitly supersedes historical timebox STOP. Read top `docs/MS7-3-FP4B-EXECUTION.md`. Recovered173f4e0, finished responsive/keyboard/private Pin/offline/revocation/browser Pin-Nuke gates; bounded stale-read-warning fix rebuilt and verified. All27migration hashes/catalog and retained invariants pass; NEVER replay0026 or restore its backup. Canonical still FP4A until B6 exact release/live verification. Next scoped commit/push, canonical/live A/B/secret/runtime checks, exact disposable cleanup, final save and STOP for founder+Jenn. No MS7.3 lock/MS7.4/MS8/Pings.
+
+Retain Founder Review `ms73-founder-review-904a9dea` with Want-to-go Marina Bay Sands Pin009e5547-5a05-4ae7-a511-11f46c7599b0, exact founderTID8V3X7P1 membership/read verified. Existing Route cards untouched. Protected founder-content `ms73-qa-bfff9475` unchanged. Disposable `ms73-qa-6896cd50` source Pin removed in acceptance; Route2/Card remain for live smoke; A/B/founder membership restored/stable. Guard contribution/ownership again before exact cleanup. Preserve unrelated dirty design/art/web/inheritance work and older handoff hunks.
+
 ## FP4B TIMEBOX STOP — local recovery checkpoint, NOT released — 2026-10-05 22:39 UTC
 
 Read `docs/MS7-3-FP4B-EXECUTION.md` first. Original eight-hour window began14:19UTC and ended22:19UTC; clock recovered at22:39UTC after discontinuities. Implementation/deployment stopped; only safe recovery recording follows. B1–B4 service checkpoints committed through7c532de; integrated UI is saved as an INCOMPLETE B5 checkpoint, not accepted B5/B6. No FP4B push/deployment. Canonical rechecked READY Production `eadc1cf84f117c1f74f079cdc20c1591244039a6`, `dpl_566jmRSFkQxHmfW5Q9QDmjQyqEp2`, alias `toskerapp.vercel.app` remains FP4A.

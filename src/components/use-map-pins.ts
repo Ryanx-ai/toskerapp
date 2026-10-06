@@ -8,6 +8,7 @@ type Pending = Parameters<typeof mutatePinAction>[0];
 export function useMapPins(scope:string,conversationId:string) {
   const [pins,setPins] = useState<MapPin[]>([]),[next,setNext] = useState<string|null>(null);
   const [ready,setReady] = useState(false),[busy,setBusy] = useState(false),[error,setError] = useState("");
+  const [readError,setReadError] = useState("");
   const [paged,setPaged] = useState(false);
   const [selectedId,setSelectedId] = useState<string|null>(null),[pending,setPending] = useState<Pending|null>(null);
   const alive = useRef(true),generation = useRef(0),writing = useRef(false),selected = useRef<string|null>(null);
@@ -19,15 +20,15 @@ export function useMapPins(scope:string,conversationId:string) {
       const result = await readPinsAction(scope,cursor);
       if (!alive.current || epoch !== generation.current) return;
       if (!result.ok) {
-        clear();setError(result.message);
+        clear();setReadError(result.message);
         if (result.code === "denied") window.dispatchEvent(new CustomEvent(CONVERSATION_ACCESS_LOST,{detail:conversationId}));
         return;
       }
       // Replace, never append cached pages that have not been reauthorized.
-      setPins(result.value.pins);setPaged(!!cursor);
+      setPins(result.value.pins);setPaged(!!cursor);setReadError("");
       setNext(result.value.next);setReady(true);
       if (selected.current && !result.value.pins.some(p=>p.id===selected.current)) select(null);
-    } catch { if(alive.current && epoch===generation.current){clear();setError("Pins could not be refreshed. Reconnect and try again.");} }
+    } catch { if(alive.current && epoch===generation.current){clear();setReadError("Pins could not be refreshed. Reconnect and try again.");} }
   },[scope,conversationId,clear,select]);
   useEffect(()=>{
     alive.current=true;queueMicrotask(()=>{if(alive.current)void refresh();});
@@ -51,7 +52,7 @@ export function useMapPins(scope:string,conversationId:string) {
     }catch{if(alive.current)setError("Save acknowledgement was lost. Retry the same Pin change safely.");}
     finally{writing.current=false;if(alive.current)setBusy(false);}
   };
-  return {pins,next,paged,ready,busy,error,selectedId,select,pending,refresh,
+  return {pins,next,paged,ready,busy,error:error||readError,selectedId,select,pending,refresh,
     selected:pins.find(p=>p.id===selectedId)??null,
     change:(command:Pending["command"],sourceScope=scope)=>write({scope:sourceScope,requestId:crypto.randomUUID(),command}),
     retry:()=>pending?write(pending):undefined};

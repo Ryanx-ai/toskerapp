@@ -7,6 +7,6 @@ export function routeLegPresentation(places: TripPlace[], index: number, selecte
   const current = road?.key === roadKey(places, mode);
   if (roadEnabled && (!current || !road.segments[index])) return null;
   const selectedIndex = places.findIndex(p => p.id === selectedId);
-  const emphasized = !ghost && (selectedIndex < 0 || index <= selectedIndex);
+  const emphasized = !ghost && (selectedIndex < 0 || index === selectedIndex - 1 || index === selectedIndex);
   return { coordinates: roadEnabled && current ? road.segments[index] : [[previous.longitude,previous.latitude],[next.longitude,next.latitude]], opacity: ghost ? .3 : emphasized ? .95 : .25, width: emphasized ? 4 : 2 };
 }

@@ -1222,7 +1222,7 @@ function MobileNav({ friendAttention, notificationCount, chatAttention }: { frie
 
 export function MessagingApp({
   selectedSlug,
-  surface: requestedSurface = "chat",
+  surface: requestedSurface,
   workspace,
 }: {
   selectedSlug?: string;
@@ -1230,7 +1230,8 @@ export function MessagingApp({
   workspace?: AppWorkspace;
 }) {
   useMobileViewport();
-  const listOnly = useSearchParams().get("view") === "list";
+  const workspaceQuery = useSearchParams();
+  const listOnly = workspaceQuery.get("view") === "list";
   const baseIdentity = useToskerIdentity();
   const snapshot = useSyncExternalStore(workspaceSnapshot.subscribe, () => workspaceSnapshot.get(baseIdentity?.userId), workspaceSnapshot.server);
   const identity = useMemo(() => baseIdentity && snapshot.navigation && snapshot.navigationBasis === baseIdentity ? { ...baseIdentity, ...snapshot.navigation } : baseIdentity, [baseIdentity, snapshot.navigation, snapshot.navigationBasis]);
@@ -1402,7 +1403,7 @@ export function MessagingApp({
         : selectedSlug && !identity
           ? conversations[0]
           : undefined));
-  const surface = resolveWorkspaceSurface(requestedSurface, selected);
+  const surface = resolveWorkspaceSurface(requestedSurface ?? (selected?.kind === "my-room" && workspaceQuery.get("surface") !== "chat" && !workspaceQuery.get("message") ? "map" : "chat"), selected);
   const [companionEnabled, toggleCompanion] = useChatCompanion(identity?.userId, selected?.databaseId);
   const canCompanion = Boolean(companionWidth && selected && hasRoomMap(selected) && selected.databaseId && surface !== "chat");
   const companionOpen = canCompanion && companionEnabled;

@@ -1,6 +1,6 @@
 # MS7.3 FP5 — execution and recovery ledger
 
-## 2026-10-06 09:27 UTC — full FP5 window approved / checkpoint A in progress
+## 2026-10-06 — A/B saved locally; C next; full FP5 window approved
 
 Founder explicitly approved the proposed full11–16h scope: “Approve, lets get it.” This supersedes the execution-time STOP below, not the remaining safety/migration/release gates. Start09:27UTC; upper bounded window ends2026-10-07 01:27UTC. Work through A–F and canonical without another generic proceed approval. Checkpoint/report if the bound or a different stop gate is reached.
 
@@ -80,3 +80,16 @@ MS7.1 LOCKED. MS7.2 LOCKED. MS7.3 UNLOCKED. MS7.4 NOT STARTED. FP4B remains cano
 - Normal planning decision: direct preview → explicit Add to current Route. FP4B memory/provenance/lifecycle retained as a secondary Saved places surface, never silently converted into Route Locations.
 - Official MapLibre popup API, Geoapify routing API and Wanderlog collaboration references refreshed against the research ledger; no new provider or scope expansion.
 - Next: B compact marker/card inspection, direct add, manual Rename/icon controls and genuine private Sandbox planning/default Map; then C/D/E/F. UI/browser/regression acceptance is not yet claimed.
+
+## Checkpoint B — contextual Map and private Sandbox
+
+- A commit `55d70cc`. Direct search/manual preview now uses an anchored non-modal inspector with explicit Add to active Route. Normal FP4B shelf/Pin-first save removed; secondary Saved places retains existing data UI. Route changes cancel open previews. Manual Rename/icon controls are available from inspector and card menu, without editable provider POI names.
+- Stable MapLibre markers retain renderer classes, current drag handlers and keyboard focus. Adjacent legs only; no prefix emphasis. Marker selection horizontally reveals cards without scrolling the Map offscreen. Compact customization toggle avoids permanently tall popups. Existing card/menu/locks/Skip/private-Hide/Nuke/comments retained; full integrated regressions remain E.
+- Sandbox reads real owner-scoped plans; defaults Map+Chat on desktop and single primary surface on mobile. Explicit Chat navigation preserved.
+- Shadow preparation PASS with all retained rows unchanged. Backup `.git/fp5-recovery/before-prepare-browser-730ac6e0-9b1e-483d-be33-ec1d46e3d78f.json`, SHA256 `52d86d6d015de2a21658ca929a345cd9c78c288d25f2a8a33187b8e2717c85d8`,0600. Exact namespace receipt `.git/fp5-recovery/browser-schema.json`. Public schema/history remains27.
+- Disposable SHADOW Room `ms73-qa-06a7a155`, exact-founder+A+B membership, five synthetic checkpoints and two Routes. Receipt `.git/fp5-recovery/browser-fixture.json`. Private isolated A Sandbox has `FP5 private QA` and one confirmed manual checkpoint. No founder Sandbox/profile/retained content modified. These are not the final canonical Founder Review Room and are not visible through canonical until separately authorized release fixture work.
+- Copied provider counters were **renamed within the owned shadow**, not reset/deleted. Real lookup/road reservations resolve public budget via search_path; `scripts/ms73-fp5-budget.ts` asserts that boundary. Before browser calls: geocode5/120 and roads12/60, UTC2026-10-06; browser tile account total not freshly verified. One manual reverse lookup used in Sandbox acceptance. Never inflate/reset allowance.
+- Normal dev server on localhost verified sign-in rendering/no error overlay. Explicit127.0.0.1 binding caused local middleware self-proxy stall; normal repository binding fixed it, without auth/code bypass. Running local session uses `scripts/run-ms73-fp5-local.mjs` with exact shadow DB.
+- `typecheck`, targeted ESLint, adjacent-selection contract and FP4A lock/QuickOrder/naming contract PASS. Normal QA A/B browser: shared Rename and icon reconciliation, reload, peer-private selection, non-modal routine inspection, keyboard/Enter/Escape/stable-focus return PASS. Responsive320/390/430/768/1440/1728 and844x390 bounds/reduced-motion PASS; screenshots inspected at320/1440/844. Later compact customization change requires final E visual rerun.
+- Browser Sandbox: default Map+Chat, real private Route creation, Checkpoint1 manual preview/no auto-save/no Pin intermediary, explicit direct Add to Route, reload persistence, B isolation and singular mobile PASS. No provider POI browser case, full long-name/access-loss/reconnect/regression/security or release acceptance claimed yet.
+- Next C: one-shot Locate ON/OFF and avatar/local unmeasured connector, validated true leg metrics/compact Route summary, bounded west/north→Changi road audit. Then D legacy memory compatibility, E integrated regression and F guarded canonical release. No push/public cutover/deployment yet.

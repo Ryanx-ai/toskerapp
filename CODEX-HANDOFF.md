@@ -2,6 +2,10 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP5 FULL WINDOW APPROVED — A/B LOCAL; C NEXT — 2026-10-06
+
+Founder approved full11–16h FP5 through canonical; earlier STOP below superseded. Start09:27UTC; upper window ends2026-10-07 01:27UTC. Read latest `docs/MS7-3-FP5-EXECUTION.md` and research. A55d70cc additive Sandbox/icon model and rollback-only rehearsal PASS; B local contextual UI/default private Sandbox/rename/icons/selection and initial A/B/responsive/manual-add browser checks PASS. Canonical remains FP4B2f516e8/READYdpl_6Fiq682EVPvEoWeRhXw5ykMitfYs; public27migrations, no cutover/push/deploy. Recover ignored exact shadow/fixture receipts under `.git/fp5-recovery`; disposable shadow Room ms73-qa-06a7a155 includes exact-founder+A/B; A private QA Route exists only in shadow. Dev server normal localhost via run-ms73-fp5-local, not127binding. Provider counters use public budget, never shadow/reset. Next C Locate/true leg metrics/summary/road audit, D memory compatibility, E full integrated acceptance, F release. Preserve protected founder content/current saved MBS Pin and unrelated WIP. Do not stop for generic proceed; respect new destructive/paid/time gates. Final canonical→STOP founder+Jenn; MS7.3unlocked/MS7.4unstarted.
+
 ## FP5 RESEARCH R — EXECUTION-TIME GATE / STOP — 2026-10-06
 
 All four pages of the FP5 Game-Map UX brief read. See `docs/MS7-3-FP5-RESEARCH.md` (ADOPT/ADAPT/REJECT + proposed flow) and `docs/MS7-3-FP5-EXECUTION.md` (recovery, estimate and gates). Realistic11–16h through canonical, including8–11h architecture/implementation: Sandbox currently has Pins but no Route plan/authorization branch; compact popup/selection, icon model, private origin and per-leg metrics add further work. Section00 explicitly requires STOP for8+h architecture expansion. **No FP5 code/migration/fixture/provider request/push/deployment; await explicit larger-window or reduced/staged-scope founder decision. Do not reuse FP4B extension as FP5 approval.**

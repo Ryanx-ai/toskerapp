@@ -238,6 +238,25 @@
 .routeEstimate ul { padding-left:16px; }
 .workspace .toolbar .search { flex:0 1 60%; margin-right:auto; }
 .workspace .toolbar .control { min-height:44px; }
+.mapInspector { position:absolute; z-index:6; width:300px; max-width:calc(100% - 16px); max-height:calc(100% - 44px); overflow:auto; overscroll-behavior:contain; padding:14px; background:var(--shell-plane); border:1px solid var(--border); border-radius:var(--control-radius); box-shadow:var(--depth-raised); color:var(--text-primary); }
+.mapInspector:focus-visible { outline:2px solid var(--ui-highlight); outline-offset:-3px; }
+.pointInspector header { display:flex; align-items:flex-start; gap:8px; }
+.pointInspector header > svg { flex:none; margin-top:4px; color:var(--brand-gold); }
+.pointInspector h2 { flex:1; min-width:0; margin:0; font:600 14px/1.5 var(--font-montserrat),sans-serif; overflow-wrap:anywhere; }
+.inspectorClose { flex:none; display:grid; place-items:center; width:44px; height:44px; margin:-8px -8px 0 0; border:0; border-radius:var(--control-radius); background:transparent; color:var(--text-secondary); }
+.pointInspector p,.pointInspector small { margin:8px 0 12px; font-size:12px; line-height:1.5; color:var(--text-secondary); overflow-wrap:anywhere; }
+.pointInspector small { display:block; font-size:11px; }
+.pointInspector .previewTarget { color:var(--text-primary); }
+.pointInfo { margin-top:8px; border-top:1px solid var(--border); }
+.pointInfo summary { display:flex; align-items:center; gap:8px; min-height:44px; cursor:pointer; font-size:12px; }
+.placeAppearance { display:grid; gap:8px; padding-block:8px; min-width:0; }
+.placeAppearance > label { display:grid; grid-template-columns:auto minmax(0,1fr); align-items:center; gap:8px; font-size:12px; color:var(--text-secondary); }
+.placeAppearance select { min-width:0; width:100%; }
+.placeAppearance .editor { padding:0; }
+.markerOrdinal { position:absolute; right:-5px; bottom:-5px; display:grid; place-items:center; min-width:19px; height:19px; padding:2px; border-radius:6px; background:var(--shell-plane); color:var(--route-color,var(--brand-gold)); font-size:10px; border:1px solid currentColor; }
+.savedPlacesEntry { align-self:flex-start; min-height:44px; display:flex; align-items:center; gap:8px; border:0; border-radius:var(--control-radius); padding:8px 12px; background:transparent; color:var(--text-secondary); font:500 12px/1.5 var(--font-montserrat),sans-serif; }
+.canvasRegion:has(.mapInspector) .routeEstimate { visibility:hidden; }
+.workspace .canvasRegion { min-height:280px; }
 @media(min-width:769px) {
   .workspace .mapPlane { flex:1 0 auto; min-height:min-content; }
   .workspace .toolbar { flex-wrap:nowrap; }

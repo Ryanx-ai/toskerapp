@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useEffectEvent, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState, type ReactNode } from "react";
 import { Map as MapIcon, RotateCcw, Maximize } from "lucide-react";
 import type { Map as MapInstance, Marker, GeoJSONSource } from "maplibre-gl";
 import type { PlaceCandidate, TripPlace, TripRoute } from "@/lib/trip-contract";
@@ -11,17 +11,22 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import styles from "./room-map-workspace.module.css";
 import type { LocalMapLocation } from "./use-local-map-location";
 import { pinState, type MapPin } from "@/lib/map-pin-contract";
+import { PLACE_SYMBOL_PATHS } from "@/lib/maps/place-symbols";
 
 type Status = "loading" | "ready" | "unavailable" | "failed";
 type PlanningRoute = TripRoute & { ghost: boolean; places: (TripPlace & { isStop: boolean })[] };
 
-export default function TripMapCanvas({ mapPins, selectedPinId, onSelectPin, places, canMove, onMove, estimate, roadFit = 0, hiddenIds, activeVisible, routes, roads, roadMode, roadEnabled, localLocation, onDeselect, snapshotReady, candidate, selectedId, onSelect, onSelectGhost, pinMode, onPin }: { mapPins:MapPin[];selectedPinId:string|null;onSelectPin(id:string):void;places: TripPlace[]; canMove:boolean; onMove(id:string,latitude:number,longitude:number):void; estimate?:RoadGeometry; roadFit?: number; hiddenIds: string[]; activeVisible: boolean; routes: PlanningRoute[]; roads: Record<string,RoadGeometry>; roadMode: RoadMode; roadEnabled: boolean; localLocation: LocalMapLocation | null; onDeselect(): void; snapshotReady: boolean; candidate: PlaceCandidate | null; selectedId: string | null; onSelect(id: string): void; onSelectGhost(routeId: string, id: string): void; pinMode: boolean; onPin(latitude: number, longitude: number): void }) {
+export default function TripMapCanvas({ inspector, mapPins, selectedPinId, onSelectPin, places, canMove, onMove, estimate, roadFit = 0, hiddenIds, activeVisible, routes, roads, roadMode, roadEnabled, localLocation, onDeselect, snapshotReady, candidate, selectedId, onSelect, onSelectGhost, pinMode, onPin }: { inspector?: ReactNode; mapPins:MapPin[];selectedPinId:string|null;onSelectPin(id:string):void;places: TripPlace[]; canMove:boolean; onMove(id:string,latitude:number,longitude:number):void; estimate?:RoadGeometry; roadFit?: number; hiddenIds: string[]; activeVisible: boolean; routes: PlanningRoute[]; roads: Record<string,RoadGeometry>; roadMode: RoadMode; roadEnabled: boolean; localLocation: LocalMapLocation | null; onDeselect(): void; snapshotReady: boolean; candidate: PlaceCandidate | null; selectedId: string | null; onSelect(id: string): void; onSelectGhost(routeId: string, id: string): void; pinMode: boolean; onPin(latitude: number, longitude: number): void }) {
   const container = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapInstance | null>(null);
   const initialCamera = useRef(false);
   const [status, setStatus] = useState<Status>("loading");
   const [attempt, setAttempt] = useState(0);
   const estimateRef=useRef<HTMLDetailsElement>(null);
+  const inspectorRef = useRef<HTMLDivElement>(null);
+  const pointMarkers = useRef(new Map<string, { marker: Marker; place: TripPlace; routeId: string; ghost: boolean }>());
+  const inspectorPoint = candidate ?? places.find(place => place.id === selectedId);
+  const inspectorKey = inspector ? (candidate ? `preview:${candidate.latitude}:${candidate.longitude}` : selectedId) : null;
   const moved=useEffectEvent(onMove);
   const selected = useEffectEvent((id: string) => onSelect(id));
   const selectedMemory = useEffectEvent((id:string)=>onSelectPin(id));
@@ -51,6 +56,8 @@ export default function TripMapCanvas({ mapPins, selectedPinId, onSelectPin, pla
       clearTimeout(timer);
       observer?.disconnect();
       mapRef.current = null;
+      pointMarkers.current.forEach(entry => entry.marker.remove());
+      pointMarkers.current.clear();
       const current = instance;
       instance = undefined;
       current?.remove();
@@ -89,7 +96,7 @@ export default function TripMapCanvas({ mapPins, selectedPinId, onSelectPin, pla
           attributionControl: { compact: false },
         });
         mapRef.current = instance;
-        instance.on("click", event => { if (!(event.originalEvent.target as Element)?.closest("button")) clicked(event.lngLat.lat, event.lngLat.lng); });
+        instance.on("click", event => { if (!(event.originalEvent.target as Element)?.closest("button, [data-map-inspector]")) clicked(event.lngLat.lat, event.lngLat.lng); });
         instance.on("error", fail);
         instance.on("webglcontextlost", fail);
         instance.once("load", () => {
@@ -117,39 +124,55 @@ export default function TripMapCanvas({ mapPins, selectedPinId, onSelectPin, pla
     const map = mapRef.current;
     if (status !== "ready" || !map) return;
     let disposed = false;
-    const markers: Marker[] = [];
+    let previewMarker: Marker | undefined;
     void import("maplibre-gl").then(({ Marker }) => {
       if (disposed) return;
       const activeColor = routes.find(r => !r.ghost)?.color ?? "gold";
       const activeIds = new Set(activeVisible ? places.map(p => p.id) : []);
-      routes.filter(r => r.ghost).forEach(route => route.places.forEach((place,index) => {
-        if (activeIds.has(place.id) || hiddenIds.includes(place.id)) return;
-        const button = document.createElement("button"); button.type = "button";
-        button.className = `${styles.pin} ${styles.ghostPin} ${place.starred ? styles.starredPin : ""}`; button.dataset.routeColor = route.color;
-        button.textContent = `${place.starred ? "★" : "◌"}${index+1}`; button.setAttribute("aria-label", `Ghost ${route.name}, ${place.starred ? "starred " : ""}place ${index+1}: ${place.title}. Make route active`);
-        button.addEventListener("click", e => { e.stopPropagation(); selectedGhost(route.id, place.id); });
-        markers.push(new Marker({ element: button, anchor: "center" }).setLngLat([place.longitude,place.latitude]).addTo(map));
-      }));
-      places.forEach((place, index) => {
-        if (!activeVisible || hiddenIds.includes(place.id)) return;
-        const button = document.createElement("button"); button.type = "button";
-        button.className = `${styles.pin} ${place.id === selectedId ? styles.selectedPin : ""} ${place.starred ? styles.starredPin : ""} ${place.source==="pin"?styles.checkpointPin:""} ${place.skipped?styles.skippedPin:""}`;
-        button.dataset.routeColor = activeColor;
-        button.textContent = `${place.skipped ? "−" : place.starred ? "★" : ""}${index + 1}`;
-        button.setAttribute("aria-label", `Select ${place.skipped?"skipped ":""}${place.starred ? "starred " : ""}${place.source==="pin"?"checkpoint":"place"} ${index + 1}: ${place.title}`);
+      const wanted = new Set<string>();
+      const reconcileMarker = (place: TripPlace, index: number, routeId: string, color: string, ghost: boolean, routeName: string) => {
+        if (hiddenIds.includes(place.id)) return;
+        const key = `${routeId}:${place.id}`; wanted.add(key);
+        let entry = pointMarkers.current.get(key);
+        if (!entry) {
+          const button = document.createElement("button"); button.type = "button";
+          const marker = new Marker({ element: button, anchor: "center" }).setLngLat([place.longitude, place.latitude]).addTo(map);
+          entry = { marker, place, routeId, ghost };
+          pointMarkers.current.set(key, entry);
+          button.addEventListener("click", event => { event.stopPropagation(); const current = pointMarkers.current.get(key); if (current?.ghost) selectedGhost(current.routeId, current.place.id); else if (current) selected(current.place.id); });
+          marker.on("dragend", () => { const current = pointMarkers.current.get(key); if (!current) return; const point = marker.getLngLat(); marker.setLngLat([current.place.longitude, current.place.latitude]); moved(current.place.id, point.lat, point.lng); });
+        }
+        entry.place = place; entry.ghost = ghost;
+        const button = entry.marker.getElement();
+        // Keep the renderer's positioning classes when refreshing application state.
+        button.classList.add("maplibregl-marker", "maplibregl-marker-anchor-center", styles.pin);
+        for (const [name, enabled] of [[styles.ghostPin, ghost], [styles.selectedPin, place.id === selectedId], [styles.starredPin, !!place.starred], [styles.checkpointPin, place.source === "pin"], [styles.skippedPin, !!place.skipped]] as const) button.classList.toggle(name, enabled);
+        button.dataset.routeColor = color;
+        button.replaceChildren();
+        const icon = place.icon ?? "destination";
+        if (icon !== "destination") {
+          const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+          for (const [name, value] of Object.entries({ viewBox: "0 0 24 24", width: "19", height: "19", fill: "none", stroke: "currentColor", "stroke-width": "1.8", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" })) svg.setAttribute(name, value);
+          PLACE_SYMBOL_PATHS[icon].forEach(d => { const path = document.createElementNS(svg.namespaceURI, "path"); path.setAttribute("d", d); svg.append(path); });
+          button.append(svg);
+        }
+        const ordinal = document.createElement("span"); ordinal.textContent = String(index + 1); ordinal.className = icon === "destination" ? "" : styles.markerOrdinal; button.append(ordinal);
+        button.setAttribute("aria-label", `${ghost ? `Ghost ${routeName}, ` : "Select "}${place.skipped ? "skipped " : ""}${place.starred ? "starred " : ""}${icon} ${index + 1}: ${place.title}${ghost ? ". Make route active" : ""}`);
         button.setAttribute("aria-pressed", String(place.id === selectedId));
-        button.addEventListener("click", event => { event.stopPropagation(); selected(place.id); });
-        const marker=new Marker({ element: button, anchor: "center", draggable:canMove&&!pinMode&&place.source==="pin"&&!place.providerId }).setLngLat([place.longitude, place.latitude]).addTo(map);
-        marker.on("dragend",()=>{const point=marker.getLngLat();marker.setLngLat([place.longitude,place.latitude]);moved(place.id,point.lat,point.lng);});
-        markers.push(marker);
-      });
+        entry.marker.setDraggable(!ghost && canMove && !pinMode && place.source === "pin" && !place.providerId);
+        entry.marker.setLngLat([place.longitude, place.latitude]);
+      };
+      routes.filter(r => r.ghost).forEach(route => route.places.forEach((place, index) => { if (!activeIds.has(place.id)) reconcileMarker(place, index, route.id, route.color, true, route.name); }));
+      const active = routes.find(r => !r.ghost);
+      if (activeVisible) places.forEach((place, index) => reconcileMarker(place, index, active?.id ?? "active", activeColor, false, active?.name ?? ""));
+      for (const [key, entry] of pointMarkers.current) if (!wanted.has(key)) { entry.marker.remove(); pointMarkers.current.delete(key); }
       if (candidate) {
         const element = document.createElement("span"); element.className = `${styles.pin} ${styles.candidatePin}`;
         element.textContent = "+"; element.setAttribute("aria-label", "Unsaved preview pin");
-        markers.push(new Marker({ element, anchor: "center" }).setLngLat([candidate.longitude, candidate.latitude]).addTo(map));
+        previewMarker = new Marker({ element, anchor: "center" }).setLngLat([candidate.longitude, candidate.latitude]).addTo(map);
       }
     });
-    return () => { disposed = true; markers.forEach(marker => marker.remove()); };
+    return () => { disposed = true; previewMarker?.remove(); };
   }, [status, places, routes, candidate, selectedId, hiddenIds, activeVisible, canMove, pinMode]);
 
   useEffect(()=>{
@@ -208,11 +231,35 @@ export default function TripMapCanvas({ mapPins, selectedPinId, onSelectPin, pla
   useEffect(() => {
     if (status !== "ready") return;
     const point = candidate ?? places.find(place => place.id === selectedId);
-    if (point) mapRef.current?.jumpTo({ center: [point.longitude, point.latitude], zoom: Math.max(14, mapRef.current.getZoom()) });
+    if (point && mapRef.current) mapRef.current.easeTo({ center: [point.longitude, point.latitude], offset: [(container.current?.clientWidth ?? 320) >= 560 ? -140 : 0, 0], zoom: Math.max(14, mapRef.current.getZoom()), duration: 0 });
     // Camera reacts only to this viewer's selection, never a peer's snapshot.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [candidate, selectedId, status]);
   useEffect(() => { const canvas = mapRef.current?.getCanvas(); if (canvas) canvas.style.cursor = pinMode ? "crosshair" : ""; }, [pinMode, status]);
+
+  useEffect(() => {
+    const element = inspectorRef.current;
+    if (!inspectorKey || !element) return;
+    const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    element.focus({ preventScroll: true });
+    return () => { if ((element.contains(document.activeElement) || document.activeElement === document.body) && previous?.isConnected) previous.focus({ preventScroll: true }); };
+  }, [inspectorKey]);
+  useEffect(() => {
+    const map = mapRef.current, element = inspectorRef.current;
+    if (!element || !inspectorPoint) return;
+    const position = () => {
+      const canvas = container.current; if (!canvas) return;
+      const point = map && status === "ready" ? map.project([inspectorPoint.longitude, inspectorPoint.latitude]) : { x: canvas.clientWidth / 2, y: canvas.clientHeight / 2 };
+      const width = element.offsetWidth, height = element.offsetHeight;
+      const side = point.x + width + 36 <= canvas.clientWidth ? point.x + 28 : point.x - width - 28 >= 8 ? point.x - width - 28 : point.x - width / 2;
+      const x = Math.max(8, Math.min(canvas.clientWidth - width - 8, side));
+      const y = Math.max(8, Math.min(canvas.clientHeight - height - 32, point.y - height / 2));
+      element.style.left = `${x}px`; element.style.top = `${y}px`;
+    };
+    position(); const observer = new ResizeObserver(position); observer.observe(element);
+    map?.on("move", position); map?.on("resize", position);
+    return () => { observer.disconnect(); map?.off("move", position); map?.off("resize", position); };
+  }, [inspectorPoint, inspectorKey, status]);
 
   useEffect(()=>{
     const map=mapRef.current,element=estimateRef.current;if(status!=="ready"||!map||!element||!estimate)return;
@@ -232,6 +279,7 @@ export default function TripMapCanvas({ mapPins, selectedPinId, onSelectPin, pla
 
   return <div className={styles.canvasRegion} data-map-state={status}>
     <div ref={container} className={styles.canvas} />
+    {inspector && <div key={inspectorKey} ref={inspectorRef} data-map-inspector className={styles.mapInspector} tabIndex={-1} onKeyDown={event => { if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); onDeselect(); } }}>{inspector}</div>}
     {status==="ready"&&activeVisible&&estimate?.estimate&&<details ref={estimateRef} className={styles.routeEstimate} aria-label={`${estimate.mode==="walk"?"Walking":"Driving"} route estimate`}><summary>{roadDuration(estimate.estimate.seconds)} · {roadDistance(estimate.estimate.metres)}</summary><div><p>Estimate · no live traffic or navigation</p>{estimate.estimate.guidance.length>0&&<ul>{estimate.estimate.guidance.map(step=><li key={step.name}>{step.name} · {roadDistance(step.metres)}</li>)}</ul>}<small>{estimate.attribution}</small></div></details>}
     {status === "ready" && <div className={styles.cameraControls}><button type="button" className={styles.resetMap} aria-label="Reset map to Singapore" title="Singapore" onClick={() => mapRef.current?.jumpTo({ center: SINGAPORE_CENTER, zoom: 11, bearing: 0, pitch: 0 })}><RotateCcw size={16} aria-hidden="true" /></button>{(places.length > 0 || mapPins.length > 0) && <button type="button" className={styles.resetMap} aria-label={places.length?"Fit trip":"Fit Pins"} title="Fit visible places" onClick={fitTrip}><Maximize size={16} aria-hidden="true" /></button>}</div>}
     <p className={styles.mapStatus} role="status">{status === "ready" ? "Map ready. No live location is shared." : status === "loading" ? "Loading Singapore map…" : ""}</p>

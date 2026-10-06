@@ -1,11 +1,13 @@
 "use client";
 import { useState } from "react";
-import { Archive, MoreHorizontal, Eye, EyeOff, Star, Info, Copy, X, MapPin, Trash2, ArrowLeft, ArrowRight, MessageCircle, Lock, Unlock, SkipForward, Move } from "lucide-react";
+import { Archive, MoreHorizontal, Eye, EyeOff, Star, Info, Copy, X, Trash2, ArrowLeft, ArrowRight, MessageCircle, Lock, Unlock, SkipForward, Move } from "lucide-react";
 import type { TripPlace, TripSnapshot } from "@/lib/trip-contract";
 import type { TripChange } from "./trip-route-controls";
 import { InteractionPopover } from "./interaction-popover";
 import { ModalLayer } from "./modal-layer";
 import { RevealName } from "./reveal-name";
+import { TripPlaceSymbol } from "./trip-place-symbol";
+import { TripPlaceAppearance } from "./trip-place-appearance";
 import styles from "./room-map-workspace.module.css";
 
 type Props = { place: TripPlace; plan: TripSnapshot; routeId: string | null; index: number; total: number; selected: boolean; hidden: boolean; disabled: boolean; comments(id: string): void; toggleHidden(id: string): void; select(id: string): void; move(id: string, offset: number): void; drop(id: string, target: string, revision: number): void; change: TripChange };
@@ -23,7 +25,7 @@ export default function TripPlaceCard({ place, plan, routeId, index, total, sele
     onDragOver={e => { if (canDrag && e.dataTransfer.types.includes("application/x-tosker-place")) { e.preventDefault(); e.dataTransfer.dropEffect = "move"; } }}
     onDrop={e => { e.preventDefault(); if (!canDrag) return; try { const data = JSON.parse(e.dataTransfer.getData("application/x-tosker-place")); if (data.routeId === routeId && typeof data.id === "string" && Number.isSafeInteger(data.revision)) drop(data.id, place.id, data.revision); } catch { /* Unrelated drag payload. */ } }}>
     <button className={styles.cardSelect} aria-pressed={selected} aria-label={`Select place ${index+1}: ${place.title}`} onClick={() => select(place.id)}>
-      <span className={styles.cardVisual} aria-hidden="true"><MapPin size={30} strokeWidth={1.25} /></span>
+      <span className={styles.cardVisual} aria-hidden="true"><TripPlaceSymbol icon={place.icon} size={30} /></span>
       <span className={styles.cardInfo}><span className={styles.cardTitle}><span className={styles.ordinal}>{place.archived ? <Archive size={13} aria-hidden="true" /> : index+1}</span><strong><RevealName>{place.title}</RevealName></strong></span><span className={styles.cardAddress}>{place.address || "Manually selected pin"}</span></span>
     </button>
     <div className={styles.cardActions}><button aria-label={`Comments on ${place.title}, ${place.commentCount ?? 0}`} onClick={() => comments(place.id)}><MessageCircle size={14} aria-hidden="true" /><span>{place.commentCount ?? 0}</span></button><button aria-label={hidden ? `Show ${place.title} on my map` : `Hide ${place.title} from my map`} aria-pressed={!hidden} onClick={() => toggleHidden(place.id)}>{hidden ? <EyeOff size={14} aria-hidden="true" /> : <Eye size={14} aria-hidden="true" />}</button></div>
@@ -33,6 +35,7 @@ export default function TripPlaceCard({ place, plan, routeId, index, total, sele
       {!edit ? <div className={styles.cardMenu}>
         <button onClick={() => { setAnchor(null); setCopyState(""); setDialog("info"); }}><Info size={16} aria-hidden="true" />Get info</button>
         {!place.archived && <>
+          <TripPlaceAppearance place={place} revision={plan.revision} disabled={disabled} change={change} />
           <button aria-pressed={!hidden} onClick={() => toggleHidden(place.id)}>{hidden ? <EyeOff size={16} aria-hidden="true" /> : <Eye size={16} aria-hidden="true" />}{hidden ? "Show on my map" : "Hide from my map"}</button>
           <button disabled={disabled} aria-pressed={!!place.starred} onClick={() => void change({ type: "star-place", placeId: place.id, starred: !place.starred })}><Star size={16} aria-hidden="true" />{place.starred ? "Unstar" : "Star"}</button>
           <button disabled={disabled || !routeId} aria-pressed={locked} onClick={() => routeId && void change({type:"lock-position",routeId,position,locked:!locked})}>{locked ? <Unlock size={16} aria-hidden="true"/> : <Lock size={16} aria-hidden="true"/>}{locked ? "Unlock" : "Lock"} position {position+1}</button>

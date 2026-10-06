@@ -25,11 +25,11 @@ export function useTripRoadPreview(scope:string,routeId:string|null,points:RoadP
         const response=await fetch(`/api/trips/${encodeURIComponent(scope)}/roads`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({routeId,mode}),signal:controller.signal,cache:"no-store"});
         const data=await response.json();if(controller.signal.aborted||generation.current!==epoch)return;
         if(response.status===403){setRoads({});denied();return;}
-        if(!response.ok)throw new Error(typeof data.error==="string"?data.error:"Road preview unavailable. Retry when ready.");
+        if(!response.ok)throw new Error(typeof data.error==="string"?data.error:"Route calculation unavailable. Retry when ready.");
         if(data.geometry?.key!==key||data.geometry?.mode!==mode)throw new Error("Route changed. Retry for the latest saved order.");
         setRoads(previous=>({...previous,[routeId]:data.geometry}));
         if(shouldFit)setFit(previous=>({routeId,key,sequence:(previous?.sequence??0)+1}));
-      }catch(error){if(!controller.signal.aborted&&generation.current===epoch){setRoads(previous=>{const next={...previous};delete next[routeId];return next;});setFailure({key:requestKey,message:error instanceof Error&&error.name!=="TypeError"?error.message:"Road preview could not finish. Your trip is saved; retry when ready."});}}
+      }catch(error){if(!controller.signal.aborted&&generation.current===epoch){setRoads(previous=>{const next={...previous};delete next[routeId];return next;});setFailure({key:requestKey,message:error instanceof Error&&error.name!=="TypeError"?error.message:"Route calculation could not finish. Your trip is saved; retry when ready."});}}
       finally{lastCompleted.current=Date.now();if(!controller.signal.aborted&&generation.current===epoch)setPendingKey(null);}
     },delay);
     return()=>{clearTimeout(timer);controller.abort();};

@@ -257,6 +257,21 @@
 .savedPlacesEntry { align-self:flex-start; min-height:44px; display:flex; align-items:center; gap:8px; border:0; border-radius:var(--control-radius); padding:8px 12px; background:transparent; color:var(--text-secondary); font:500 12px/1.5 var(--font-montserrat),sans-serif; }
 .canvasRegion:has(.mapInspector) .routeEstimate { visibility:hidden; }
 .workspace .canvasRegion { min-height:280px; }
+.routeSummary { position:absolute; z-index:3; left:12px; bottom:36px; width:min(300px,calc(100% - 24px)); max-height:calc(100% - 56px); overflow:auto; border:1px solid var(--border); border-radius:var(--control-radius); background:var(--shell-plane); color:var(--text-primary); box-shadow:var(--depth-raised); font-size:12px; }
+.routeSummary summary { display:grid; gap:4px; cursor:pointer; min-height:44px; padding:10px 12px; }
+.routeSummary summary strong { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12px; }
+.routeSummary summary span { font-size:11px; line-height:1.5; color:var(--text-secondary); }
+.routeSummary > div { padding:0 12px 12px; max-height:170px; overflow:auto; overscroll-behavior:contain; }
+.routeSummary p,.routeSummary small { font-size:11px; line-height:1.5; color:var(--text-secondary); }
+.routeSummary ol { margin:8px 0 12px; padding-left:18px; }
+.routeSummary li { margin-bottom:10px; line-height:1.5; }
+.routeSummary li span,.routeSummary li strong { display:block; overflow-wrap:anywhere; font-size:11px; }
+.routeSummary li strong { font-weight:500; color:var(--text-secondary); }
+.canvasRegion:has(.mapInspector) .routeSummary { visibility:hidden; }
+.localLocation { display:grid; place-items:center; width:40px; height:40px; border:3px solid var(--text-primary); background:var(--shell-plane); box-shadow:0 0 0 6px color-mix(in srgb,var(--action-secondary) 22%,transparent); }
+.localLocation img { width:100%; height:100%; border-radius:50%; object-fit:cover; }
+.localLocation > span { position:absolute; bottom:-18px; padding:3px 7px; background:var(--shell-plane); color:var(--text-primary); border:1px solid var(--border); border-radius:8px; font:600 10px/1.4 var(--font-montserrat),sans-serif; }
+@media(max-width:768px) { .routeSummary { bottom:44px; } }
 @media(min-width:769px) {
   .workspace .mapPlane { flex:1 0 auto; min-height:min-content; }
   .workspace .toolbar { flex-wrap:nowrap; }

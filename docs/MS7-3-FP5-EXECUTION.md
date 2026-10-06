@@ -1,6 +1,6 @@
 # MS7.3 FP5 — execution and recovery ledger
 
-## 2026-10-06 — A/B saved locally; C next; full FP5 window approved
+## 2026-10-06 — A/B/C saved locally; D next; full FP5 window approved
 
 Founder explicitly approved the proposed full11–16h scope: “Approve, lets get it.” This supersedes the execution-time STOP below, not the remaining safety/migration/release gates. Start09:27UTC; upper bounded window ends2026-10-07 01:27UTC. Work through A–F and canonical without another generic proceed approval. Checkpoint/report if the bound or a different stop gate is reached.
 
@@ -93,3 +93,13 @@ MS7.1 LOCKED. MS7.2 LOCKED. MS7.3 UNLOCKED. MS7.4 NOT STARTED. FP4B remains cano
 - `typecheck`, targeted ESLint, adjacent-selection contract and FP4A lock/QuickOrder/naming contract PASS. Normal QA A/B browser: shared Rename and icon reconciliation, reload, peer-private selection, non-modal routine inspection, keyboard/Enter/Escape/stable-focus return PASS. Responsive320/390/430/768/1440/1728 and844x390 bounds/reduced-motion PASS; screenshots inspected at320/1440/844. Later compact customization change requires final E visual rerun.
 - Browser Sandbox: default Map+Chat, real private Route creation, Checkpoint1 manual preview/no auto-save/no Pin intermediary, explicit direct Add to Route, reload persistence, B isolation and singular mobile PASS. No provider POI browser case, full long-name/access-loss/reconnect/regression/security or release acceptance claimed yet.
 - Next C: one-shot Locate ON/OFF and avatar/local unmeasured connector, validated true leg metrics/compact Route summary, bounded west/north→Changi road audit. Then D legacy memory compatibility, E integrated regression and F guarded canonical release. No push/public cutover/deployment yet.
+
+## Checkpoint C — private origin and provider-truth summary
+
+- B commit `8d7eb54`. Locate is an explicit one-shot ON/OFF switch with local avatar/You marker and unmeasured dotted connector to the first eligible stop. Device coordinates never enter road keys, requests, saved plans or realtime payloads. OFF invalidates pending callbacks and clears the guide; access loss also clears it.
+- Compact on-Map Route name/count/mode/totals disclosure replaces the old mid-line estimate. Per-leg DTOs come only from validated provider legs matching exact adjacent waypoint IDs/count and total sums; invalid or missing legs are omitted, not invented. Fit retains current road detours even with independent memory Pins present. Adjacent-only emphasis remains unchanged.
+- Typecheck and metric/FP3 road projection unit contracts PASS. Emulated normal browser A/B Locate test PASS: ON/OFF, pending cancellation, denial recovery, reload OFF, peer isolation, no coordinate request-body/storage disclosure. This is emulated device input, not live-location sharing or provider quality evidence.
+- Exact-owned shadow fixture gained `FP5 cross-island QA` with approximate manual west/north/Changi points, explicitly not verified venue entrances. Real Drive PASS:50,487m /2491.774s; legs19,692m/1058.528s and30,795m/1433.246s,406/428 geometry points. Browser summary/leg sums, shared Skip recalculation and viewer-private Hide independence PASS; Order restored. Screenshot `.git/fp5-recovery/cross-island-drive.png` visually inspected.
+- Cross-island Walk repeatedly returned provider HTTP400/routing failure. No successful Walk claimed. Sanitized diagnostics print status/category flags only, never raw bodies/URLs/keys. Error copy avoids guessing whether inaccessible points caused it; saved cards/order remain unchanged and retry is explicit. Repeated identical calls stopped. E must include a bounded short Walk success/failure audit and retain this cross-island caveat.
+- Provider reservations currently expected38/60 roads and6/120 geocoding forUTC2026-10-06 (including diagnostic failures and Drive/Skip); recheck exact counters before more live calls. Whole account/tile usage is not freshly verified. No quota reset/increase, paid changes, public migration, push or deployment.
+- Next D: dormant FP4B memory/provenance/revocation/independence compatibility, including authorized copies into genuine private Sandbox Routes. E retains final responsive/focus/provider/complete regression gates; F remains gated.

@@ -16,17 +16,20 @@ import { PLACE_SYMBOL_PATHS } from "@/lib/maps/place-symbols";
 type Status = "loading" | "ready" | "unavailable" | "failed";
 type PlanningRoute = TripRoute & { ghost: boolean; places: (TripPlace & { isStop: boolean })[] };
 
-export default function TripMapCanvas({ inspector, mapPins, selectedPinId, onSelectPin, places, canMove, onMove, estimate, roadFit = 0, hiddenIds, activeVisible, routes, roads, roadMode, roadEnabled, localLocation, onDeselect, snapshotReady, candidate, selectedId, onSelect, onSelectGhost, pinMode, onPin }: { inspector?: ReactNode; mapPins:MapPin[];selectedPinId:string|null;onSelectPin(id:string):void;places: TripPlace[]; canMove:boolean; onMove(id:string,latitude:number,longitude:number):void; estimate?:RoadGeometry; roadFit?: number; hiddenIds: string[]; activeVisible: boolean; routes: PlanningRoute[]; roads: Record<string,RoadGeometry>; roadMode: RoadMode; roadEnabled: boolean; localLocation: LocalMapLocation | null; onDeselect(): void; snapshotReady: boolean; candidate: PlaceCandidate | null; selectedId: string | null; onSelect(id: string): void; onSelectGhost(routeId: string, id: string): void; pinMode: boolean; onPin(latitude: number, longitude: number): void }) {
+export default function TripMapCanvas({ inspector, viewerAvatarUrl, mapPins, selectedPinId, onSelectPin, places, canMove, onMove, estimate, roadFit = 0, hiddenIds, activeVisible, routes, roads, roadMode, roadEnabled, localLocation, onDeselect, snapshotReady, candidate, selectedId, onSelect, onSelectGhost, pinMode, onPin }: { inspector?: ReactNode; viewerAvatarUrl?: string | null; mapPins:MapPin[];selectedPinId:string|null;onSelectPin(id:string):void;places: TripPlace[]; canMove:boolean; onMove(id:string,latitude:number,longitude:number):void; estimate?:RoadGeometry; roadFit?: number; hiddenIds: string[]; activeVisible: boolean; routes: PlanningRoute[]; roads: Record<string,RoadGeometry>; roadMode: RoadMode; roadEnabled: boolean; localLocation: LocalMapLocation | null; onDeselect(): void; snapshotReady: boolean; candidate: PlaceCandidate | null; selectedId: string | null; onSelect(id: string): void; onSelectGhost(routeId: string, id: string): void; pinMode: boolean; onPin(latitude: number, longitude: number): void }) {
   const container = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapInstance | null>(null);
   const initialCamera = useRef(false);
   const [status, setStatus] = useState<Status>("loading");
   const [attempt, setAttempt] = useState(0);
-  const estimateRef=useRef<HTMLDetailsElement>(null);
   const inspectorRef = useRef<HTMLDivElement>(null);
   const pointMarkers = useRef(new Map<string, { marker: Marker; place: TripPlace; routeId: string; ghost: boolean }>());
   const inspectorPoint = candidate ?? places.find(place => place.id === selectedId);
   const inspectorKey = inspector ? (candidate ? `preview:${candidate.latitude}:${candidate.longitude}` : selectedId) : null;
+  const activeRoute = routes.find(route => !route.ghost);
+  const eligiblePlaces = places.filter(place => !place.skipped);
+  const firstStop = activeVisible ? eligiblePlaces[0] : undefined;
+  const originTarget = firstStop && !hiddenIds.includes(firstStop.id) ? firstStop : undefined;
   const moved=useEffectEvent(onMove);
   const selected = useEffectEvent((id: string) => onSelect(id));
   const selectedMemory = useEffectEvent((id:string)=>onSelectPin(id));
@@ -35,7 +38,7 @@ export default function TripMapCanvas({ inspector, mapPins, selectedPinId, onSel
   const fitTrip = () => {
     if ((!places.length && !mapPins.length) || !mapRef.current) return;
     const active=routes.find(r=>!r.ghost),road=active?roads[active.id]:undefined;
-    const bounds=routeBounds([...places.filter(p=>!p.skipped),...mapPins],roadEnabled&&road?.mode===roadMode?road:undefined);
+    const bounds=routeBounds(places.filter(p=>!p.skipped),roadEnabled&&road?.mode===roadMode?road:undefined,mapPins);
     if(bounds)mapRef.current.fitBounds(bounds, { padding: Math.min(64, Math.max(24,(container.current?.clientWidth??320)/8)), maxZoom: 14, duration: 0 });
   };
   const fitInitialTrip = useEffectEvent(fitTrip);
@@ -221,12 +224,28 @@ export default function TripMapCanvas({ inspector, mapPins, selectedPinId, onSel
     void import("maplibre-gl").then(({ Marker }) => {
       if (disposed) return;
       const element = document.createElement("span"); element.className = styles.localLocation;
-      element.setAttribute("role", "img"); element.setAttribute("aria-label", `Your location, accuracy about ${Math.round(localLocation.accuracy)} metres. Visible only to you.`);
+      element.setAttribute("role", "img"); element.setAttribute("aria-label", `You, accuracy about ${Math.round(localLocation.accuracy)} metres. Visible only to you.`);
+      if (viewerAvatarUrl) { const avatar = document.createElement("img"); avatar.src = viewerAvatarUrl; avatar.alt = ""; avatar.referrerPolicy = "no-referrer"; element.append(avatar); }
+      const label = document.createElement("span"); label.textContent = "You"; element.append(label);
       marker = new Marker({ element }).setLngLat([localLocation.longitude, localLocation.latitude]).addTo(map);
       map.jumpTo({ center: [localLocation.longitude, localLocation.latitude], zoom: 14 });
     });
     return () => { disposed = true; marker?.remove(); };
-  }, [localLocation, status]);
+  }, [localLocation, viewerAvatarUrl, status]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || status !== "ready" || !container.current) return;
+    const data: GeoJSON.FeatureCollection<GeoJSON.LineString> = { type: "FeatureCollection", features: localLocation && originTarget ? [{ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: [[localLocation.longitude, localLocation.latitude], [originTarget.longitude, originTarget.latitude]] } }] : [] };
+    const source = map.getSource("tosker-local-origin") as GeoJSONSource | undefined;
+    if (source) source.setData(data);
+    else {
+      map.addSource("tosker-local-origin", { type: "geojson", data });
+      map.addLayer({ id: "tosker-local-origin", type: "line", source: "tosker-local-origin", paint: { "line-color": getComputedStyle(container.current).getPropertyValue("--text-secondary").trim(), "line-width": 2, "line-opacity": .7, "line-dasharray": [1, 3] } });
+    }
+    // Browser-only visual guide. Never part of roadKey, provider waypoints,
+    // requests, persisted trip geometry, realtime payloads or travel estimates.
+  }, [localLocation, originTarget, status]);
 
   useEffect(() => {
     if (status !== "ready") return;
@@ -261,26 +280,14 @@ export default function TripMapCanvas({ inspector, mapPins, selectedPinId, onSel
     return () => { observer.disconnect(); map?.off("move", position); map?.off("resize", position); };
   }, [inspectorPoint, inspectorKey, status]);
 
-  useEffect(()=>{
-    const map=mapRef.current,element=estimateRef.current;if(status!=="ready"||!map||!element||!estimate)return;
-    const points=estimate.segments.flat(),anchor=points[Math.floor(points.length/2)];if(!anchor)return;
-    const position=()=>{
-      const canvas=map.getContainer(),point=map.project([anchor[0],anchor[1]]);
-      const half=element.offsetWidth/2,x=Math.max(half+8,Math.min(canvas.clientWidth-half-8,point.x));
-      const detail=element.querySelector<HTMLElement>("div");
-      if(detail)detail.style.maxHeight=`${Math.max(40,Math.min(140,canvas.clientHeight-110))}px`;
-      let y=point.y-54;
-      if(places.some(p=>{const q=map.project([p.longitude,p.latitude]);return Math.abs(q.x-x)<half+24&&Math.abs(q.y-y)<40;}))y=point.y+60;
-      y=Math.max(8,Math.min(canvas.clientHeight-element.offsetHeight-30,Math.max(64,y)));
-      element.style.left=`${x}px`;element.style.top=`${y}px`;
-    };
-    position();const observer=new ResizeObserver(position);observer.observe(element);map.on("move",position);map.on("resize",position);return()=>{observer.disconnect();map.off("move",position);map.off("resize",position);};
-  },[estimate,status,places]);
-
   return <div className={styles.canvasRegion} data-map-state={status}>
     <div ref={container} className={styles.canvas} />
     {inspector && <div key={inspectorKey} ref={inspectorRef} data-map-inspector className={styles.mapInspector} tabIndex={-1} onKeyDown={event => { if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); onDeselect(); } }}>{inspector}</div>}
-    {status==="ready"&&activeVisible&&estimate?.estimate&&<details ref={estimateRef} className={styles.routeEstimate} aria-label={`${estimate.mode==="walk"?"Walking":"Driving"} route estimate`}><summary>{roadDuration(estimate.estimate.seconds)} · {roadDistance(estimate.estimate.metres)}</summary><div><p>Estimate · no live traffic or navigation</p>{estimate.estimate.guidance.length>0&&<ul>{estimate.estimate.guidance.map(step=><li key={step.name}>{step.name} · {roadDistance(step.metres)}</li>)}</ul>}<small>{estimate.attribution}</small></div></details>}
+    {status === "ready" && activeVisible && activeRoute && <details className={styles.routeSummary} aria-label="Route summary"><summary><strong>{activeRoute.name}</strong><span>{eligiblePlaces.length} {eligiblePlaces.length === 1 ? "stop" : "stops"} · {roadEnabled ? roadMode === "walk" ? "Walk" : "Drive" : "Order"}{roadEnabled && estimate?.estimate ? ` · ${roadDuration(estimate.estimate.seconds)} · ${roadDistance(estimate.estimate.metres)}` : ""}</span></summary><div>
+      {roadEnabled ? estimate?.estimate ? <><p>Estimated travel between saved stops. No live traffic or navigation.</p>{estimate.estimate.legs ? <ol aria-label="Route segments">{estimate.estimate.legs.map(leg => <li key={`${leg.fromId}:${leg.toId}`}><span>{places.find(p => p.id === leg.fromId)?.title} → {places.find(p => p.id === leg.toId)?.title}</span><strong>{roadDuration(leg.seconds)} · {roadDistance(leg.metres)}</strong></li>)}</ol> : <p>Segment estimates unavailable.</p>}<small>{estimate.attribution}</small></> : <p>Travel estimates are unavailable until this route is calculated.</p> : <p>Straight lines connect your saved stops. Choose Walk or Drive for estimated travel.</p>}
+      {localLocation && <p>Your dotted connector is a private visual guide, not directions. It is not included in travel estimates.</p>}
+    </div></details>}
+    {localLocation && originTarget && <p className={styles.srOnly} role="status">Private visual connector from You to {originTarget.title}. No distance or travel time is inferred.</p>}
     {status === "ready" && <div className={styles.cameraControls}><button type="button" className={styles.resetMap} aria-label="Reset map to Singapore" title="Singapore" onClick={() => mapRef.current?.jumpTo({ center: SINGAPORE_CENTER, zoom: 11, bearing: 0, pitch: 0 })}><RotateCcw size={16} aria-hidden="true" /></button>{(places.length > 0 || mapPins.length > 0) && <button type="button" className={styles.resetMap} aria-label={places.length?"Fit trip":"Fit Pins"} title="Fit visible places" onClick={fitTrip}><Maximize size={16} aria-hidden="true" /></button>}</div>}
     <p className={styles.mapStatus} role="status">{status === "ready" ? "Map ready. No live location is shared." : status === "loading" ? "Loading Singapore map…" : ""}</p>
     {status !== "ready" && <div className={styles.emptyMap}>

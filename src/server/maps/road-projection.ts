@@ -31,6 +31,18 @@ export function projectRoad(raw:unknown,points:RoadPoint[],mode:RoadMode):RoadGe
     // Major named segments, then restore route order. No inferred road names or instructions.
     const guidance=[...names.values()].filter(s=>s.metres>=100&&s.metres<=Number(props.distance)).sort((a,b)=>b.metres-a.metres).slice(0,4).sort((a,b)=>a.index-b.index).map(({name,metres})=>({name,metres}));
     result.estimate={metres:props.distance,seconds:props.time,guidance};
+    // Each provider leg must correspond to one adjacent pair in the exact saved
+    // waypoint order. Never infer per-leg time from distance or split a total.
+    if (Array.isArray(props.legs) && props.legs.length === points.length - 1) {
+      const legs = props.legs.map(object);
+      if (legs.every(leg => metric(leg.distance) && metric(leg.time) && leg.distance <= 500000 && leg.time <= 604800)) {
+        const distance = legs.reduce((sum, leg) => sum + Number(leg.distance), 0), time = legs.reduce((sum, leg) => sum + Number(leg.time), 0);
+        // Small provider rounding tolerance only; reject internally inconsistent metrics.
+        if (Math.abs(distance - props.distance) <= legs.length && Math.abs(time - props.time) <= legs.length) {
+          result.estimate.legs = legs.map((leg, index) => ({ fromId: points[index].id, toId: points[index + 1].id, metres: Number(leg.distance), seconds: Number(leg.time) }));
+        }
+      }
+    }
   }
   return result;
 }

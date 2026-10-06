@@ -18,7 +18,7 @@ export function useLocalMapLocation() {
       if (current !== generation.current) return;
       pending.current = false; setBusy(false);
       const { latitude, longitude, accuracy } = position.coords;
-      if (![latitude, longitude, accuracy].every(Number.isFinite)) { setStatus("Location unavailable. Try again."); return; }
+      if (![latitude, longitude, accuracy].every(Number.isFinite) || Math.abs(latitude) > 90 || Math.abs(longitude) > 180 || accuracy < 0) { setStatus("Location unavailable. Try again."); return; }
       setLocation({ latitude, longitude, accuracy });
       setStatus(`Only on your map · accuracy about ${Math.max(1, Math.round(accuracy))} m`);
     }, error => {

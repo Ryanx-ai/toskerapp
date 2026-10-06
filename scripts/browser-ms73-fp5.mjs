@@ -13,6 +13,52 @@ async function login(s,letter){
   await until(s,"!!document.querySelector('input[autocomplete=one-time-code]')","QA OTP");await run(s,"fill","input[autocomplete=one-time-code]","424242");await until(s,"!!document.querySelector('.messaging-app')","authenticated QA",45000);
 }
 const mode=process.argv[2];
+if(mode==="locate"){
+  await ready(a,`/room/${fixture.slug}/map`);await button(a,"FP5 Singapore QA");
+  await run(a,"select","select[aria-label='Travel mode']","planning");
+  await ready(b,`/room/${fixture.slug}/map`);
+  await until(a,"document.querySelector('[data-map-state]')?.dataset.mapState==='ready'","Map ready");
+  await ev(a,"(()=>{window.__fp5LocalCalls=[];window.__fp5Position=null;window.__fp5Denied=null;Object.defineProperty(navigator,'geolocation',{configurable:true,value:{getCurrentPosition(success,error){window.__fp5Position=success;window.__fp5Denied=error;},watchPosition(){throw Error('Live tracking forbidden');}}});const original=window.fetch;window.fetch=(...args)=>{window.__fp5LocalCalls.push(typeof args[1]?.body==='string'?args[1].body:'');return original(...args)};return true})()");
+  await button(a,"Locate me");assert(await ev(a,"document.querySelector('button[aria-label=\"Locate me\"]').getAttribute('aria-pressed')==='true'"));
+  await button(a,"Locate me");await ev(a,"window.__fp5Position({coords:{latitude:1.321234,longitude:103.851234,accuracy:12}});true");
+  assert.equal(await ev(a,"document.querySelectorAll('[role=img][aria-label^=\"You, accuracy\"]').length"),0,"late result after OFF ignored");
+  await button(a,"Locate me");await ev(a,"window.__fp5Position({coords:{latitude:1.321234,longitude:103.851234,accuracy:12}});true");
+  await until(a,"!!document.querySelector('[role=img][aria-label^=\"You, accuracy\"]')","local You marker");
+  assert(await ev(a,"document.body.textContent.includes('Private visual connector from You')"));
+  assert.equal(await ev(b,"document.querySelectorAll('[role=img][aria-label^=\"You, accuracy\"]').length"),0,"peer receives no local marker");
+  assert(!(await ev(a,"window.__fp5LocalCalls.some(body=>body.includes('1.321234')||body.includes('103.851234'))")),"device location absent from request bodies");
+  assert(!(await ev(a,"JSON.stringify({...localStorage,...sessionStorage}).includes('1.321234')")),"device location absent from browser persistence");
+  await button(a,"Locate me");await until(a,"!document.querySelector('[role=img][aria-label^=\"You, accuracy\"]')","OFF removes marker");
+  assert(!(await ev(a,"document.body.textContent.includes('Private visual connector from You')")),"OFF removes connector");
+  await button(a,"Locate me");await ev(a,"window.__fp5Denied({code:1});true");await until(a,"document.body.textContent.includes('Location permission denied')","permission denial recovery");
+  await run(a,"reload");await until(a,"!!document.querySelector('button[aria-label=\"Locate me\"]')","reload");
+  assert.equal(await ev(a,"document.querySelector('button[aria-label=\"Locate me\"]').getAttribute('aria-pressed')"),"false","reload starts OFF");
+  console.log("PASS emulated Locate ON/OFF, pending cancellation, private marker/connector, no coordinate body/storage, peer isolation, permission denial and reload OFF; zero geolocation provider calls");
+}
+if(mode==="roads"||mode==="roads-drive"){
+  await ready(a,`/room/${fixture.slug}/map`);await run(a,"set","viewport","1440","900");await button(a,"FP5 cross-island QA");
+  await until(a,"!!document.querySelector('button[aria-label=\"Select checkpoint 3: QA Changi endpoint\"]')","saved cross-island route");
+  await ev(a,"(()=>{window.__fp5Roads=[];const original=window.fetch;window.fetch=async(...args)=>{const response=await original(...args);const path=new URL(typeof args[0]==='string'?args[0]:args[0].url,location.origin).pathname;if(path.endsWith('/roads')){const body=await response.clone().json();window.__fp5Roads.push({status:response.status,body});}return response;};return true})()");
+  const travelModes=mode==="roads-drive"?["drive"]:["walk","drive"];
+  for(const mode of travelModes){
+    await run(a,"select","select[aria-label='Travel mode']",mode);
+    await until(a,`window.__fp5Roads.some(r=>r.status===200&&r.body.geometry?.mode===${JSON.stringify(mode)})`,`${mode} provider response`,45000);
+    const road=await ev(a,`window.__fp5Roads.find(r=>r.status===200&&r.body.geometry?.mode===${JSON.stringify(mode)}).body.geometry`);
+    assert.equal(road.segments.length,2);assert.equal(road.estimate?.legs?.length,2,"two real provider leg estimates");assert(road.estimate.metres>20000&&road.estimate.seconds>0);
+    assert(Math.abs(road.estimate.legs.reduce((n,l)=>n+l.metres,0)-road.estimate.metres)<=2);assert(Math.abs(road.estimate.legs.reduce((n,l)=>n+l.seconds,0)-road.estimate.seconds)<=2);
+    await run(a,"click","details[aria-label='Route summary'] summary");assert.equal(await ev(a,"document.querySelectorAll('ol[aria-label=\"Route segments\"] li').length"),2);
+    await run(a,"screenshot",`${process.cwd()}/.git/fp5-recovery/cross-island-${mode}.png`);await run(a,"click","details[aria-label='Route summary'] summary");
+    console.log(JSON.stringify({mode,provider:true,metres:road.estimate.metres,seconds:road.estimate.seconds,legs:road.estimate.legs.map(l=>({metres:l.metres,seconds:l.seconds})),points:road.segments.map(s=>s.length)}));
+  }
+  const before=await ev(a,"window.__fp5Roads.length");await button(a,"Hide QA north stop from my map");
+  assert.equal(await ev(a,"window.__fp5Roads.length"),before,"private Hide does not immediately request routing");await button(a,"Show QA north stop on my map");
+  await button(a,"Place actions for QA north stop");await button(a,"Skip in route");await run(a,"press","Escape");
+  await until(a,`window.__fp5Roads.length>${before}&&window.__fp5Roads.at(-1).body.geometry?.estimate?.legs?.length===1`,"Skip recalculates exact two remaining stops",45000);
+  const skipped=await ev(a,"window.__fp5Roads.at(-1).body.geometry");assert(!skipped.key.includes("1.436"),"north skipped from waypoints");
+  // Restore in Order mode to avoid another provider call solely for QA cleanup.
+  await run(a,"select","select[aria-label='Travel mode']","planning");await button(a,"Place actions for QA north stop");await button(a,"Include in route");await run(a,"press","Escape");
+  console.log(`PASS real west→north→Changi ${mode==="roads-drive"?"Drive":"Walk/Drive"} totals+legs, shared Skip recalculation, private Hide independent, Order restored`);
+}
 if(mode==="sandbox"){
   await ready(a,"/personal/my-room");await ready(b,"/personal/my-room");
   assert(await ev(a,"!!document.querySelector('.composer')"),"desktop Sandbox defaults Map with Chat");

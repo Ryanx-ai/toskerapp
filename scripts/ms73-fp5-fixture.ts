@@ -24,8 +24,16 @@ async function main(){
     writeFileSync(path,JSON.stringify({fixture,routeId,secondId},null,2),{mode:0o600});
     console.log(JSON.stringify({room:fixture.slug,purpose:fixture.purpose,founderIncluded:true,providerRequests:0}));return;
   }
-  assert(["--inspect","--cleanup"].includes(process.argv[2]));
+  assert(["--inspect","--cleanup","--seed-roads"].includes(process.argv[2]));
   const {fixture}=JSON.parse(readFileSync(path,"utf8")) as {fixture:QaFixture};
+  if(process.argv[2]==="--seed-roads"){
+    await cleanupQaFixture(db,fixture,false);
+    assert(!(await readTrip(db,a,fixture.slug)).routes.some(route=>route.name==="FP5 cross-island QA"),"Route exists; no duplicate setup");
+    const change=async(command:TripCommand)=>mutateTrip(db,a,{roomSlug:fixture.slug,requestId:randomUUID(),expectedRevision:(await readTrip(db,a,fixture.slug)).revision,command});
+    const routeId=(await change({type:"create-route",name:"FP5 cross-island QA",color:"sage"})).resultId!;
+    for(const [title,latitude,longitude] of [["QA west start",1.3331,103.7423],["QA north stop",1.436,103.7865],["QA Changi endpoint",1.3601,103.9898]] as const)await change({type:"add",routeId,candidate:{title,source:"pin",latitude,longitude,provider:null,providerId:null,address:"Approximate manual QA coordinate, not a verified venue entrance",attribution:"",license:""}});
+    console.log(JSON.stringify({roadRouteId:routeId,providerRequests:0}));return;
+  }
   console.log(await cleanupQaFixture(db,fixture,process.argv[2]==="--cleanup"));
 }
 main().catch(e=>{console.error(JSON.stringify({failure:"FP5 fixture stopped",kind:e instanceof Error?e.name:"unknown",assertion:e instanceof assert.AssertionError?e.message.split("\n")[0]:undefined,code:e?.cause?.code??e?.code??null}));process.exitCode=1;}).finally(()=>db.$client.end());

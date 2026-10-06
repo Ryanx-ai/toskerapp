@@ -2,6 +2,12 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP5 RESEARCH R — EXECUTION-TIME GATE / STOP — 2026-10-06
+
+All four pages of the FP5 Game-Map UX brief read. See `docs/MS7-3-FP5-RESEARCH.md` (ADOPT/ADAPT/REJECT + proposed flow) and `docs/MS7-3-FP5-EXECUTION.md` (recovery, estimate and gates). Realistic11–16h through canonical, including8–11h architecture/implementation: Sandbox currently has Pins but no Route plan/authorization branch; compact popup/selection, icon model, private origin and per-leg metrics add further work. Section00 explicitly requires STOP for8+h architecture expansion. **No FP5 code/migration/fixture/provider request/push/deployment; await explicit larger-window or reduced/staged-scope founder decision. Do not reuse FP4B extension as FP5 approval.**
+
+Canonical freshly verified FP4B `2f516e8fa0093ca357d1995d876016d22eaffced`, READY `dpl_6Fiq682EVPvEoWeRhXw5ykMitfYs`, alias/redirect→HTTP200. All27migration hashes/catalog and retained invariants pass. Founder Review Pin009e5547-5a05-4ae7-a511-11f46c7599b0 is NOW `saved`, superseding older want_to_go closeout below: preserve it and both protected Rooms. Geoapify Development/Production browser/server assignments verified metadata-only; UTC2026-10-06 app counters5/120geocode,12/60roads, not total provider usage. No secrets displayed. Never replay0026 or deleted fixture receipts. Preserve unrelated design/art/web/inheritance WIP and older handoff hunks. Re-recover before implementation. MS7.3unlocked/MS7.4unstarted.
+
 ## FP4B CANONICAL VERIFIED — STOP FOR FOUNDER + JENN — 2026-10-06
 
 Exact release `2f516e8fa0093ca357d1995d876016d22eaffced`, READY Production `dpl_6Fiq682EVPvEoWeRhXw5ykMitfYs`, `toskerapp.vercel.app`/HTTPS200 verified. Read top `docs/MS7-3-FP4B-EXECUTION.md` for B1–B6, full local and live A/B,27migration/catalog, source+client/canonical20asset secret scan, zero browser exceptions and empty deployment error/fatal/5xx evidence. Map Pins and authorized provenance-preserving Sandbox views are released; independent Add-to-Route, private Hide and revocation boundaries verified. This final recovery checkpoint is local documentation only; canonical remains the exact release above.

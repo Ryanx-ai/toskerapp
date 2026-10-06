@@ -13,6 +13,34 @@ async function login(s,letter){
   await until(s,"!!document.querySelector('input[autocomplete=one-time-code]')","QA OTP");await run(s,"fill","input[autocomplete=one-time-code]","424242");await until(s,"!!document.querySelector('.messaging-app')","authenticated QA",45000);
 }
 const mode=process.argv[2];
+if(mode==="short-walk"){
+  await ready(a,`/room/${fixture.slug}/map`);await button(a,"FP5 Singapore QA");
+  await ev(a,"(()=>{window.__fp5ShortRoad=null;const original=window.fetch;window.fetch=async(...args)=>{const r=await original(...args);if(new URL(typeof args[0]==='string'?args[0]:args[0].url,location.origin).pathname.endsWith('/roads'))window.__fp5ShortRoad={status:r.status,body:await r.clone().json()};return r};return true})()");
+  await run(a,"select","select[aria-label='Travel mode']","walk");await until(a,"!!window.__fp5ShortRoad","short Walk result",45000);
+  const result=await ev(a,"window.__fp5ShortRoad");assert.equal(result.status,200,JSON.stringify({status:result.status,error:result.body.error}));
+  assert.equal(result.body.geometry.estimate.legs.length,4);assert.equal(result.body.geometry.segments.length,4);
+  await run(a,"click","details[aria-label='Route summary'] summary");await run(a,"screenshot",`${process.cwd()}/.git/fp5-recovery/short-walk.png`);
+  console.log(JSON.stringify({walk:"real short Singapore route",metres:result.body.geometry.estimate.metres,seconds:result.body.geometry.estimate.seconds,legs:result.body.geometry.estimate.legs.length}));
+  await run(a,"select","select[aria-label='Travel mode']","planning");
+}
+if(mode==="search"){
+  await ready(a,`/room/${fixture.slug}/map`);await button(a,"FP5 second route");
+  assert.equal(await ev(a,"document.querySelectorAll('[data-place-id]').length"),0,"owned empty route before search");
+  await run(a,"fill","input[aria-label='Search places']","Jewel Changi Airport");
+  await until(a,"!!document.querySelector('ul[aria-label=\"Place search results\"] button')","real Singapore search",30000);
+  const labels=await ev(a,"[...document.querySelectorAll('ul[aria-label=\"Place search results\"] button')].map(e=>e.textContent)");console.log(JSON.stringify({query:"Jewel Changi Airport",observedResults:labels}));
+  assert.equal(await ev(a,"document.querySelectorAll('[data-place-id]').length"),0,"search results are not autosaved");
+  await run(a,"click","ul[aria-label='Place search results'] li:first-child button");await until(a,"!!document.querySelector('section[aria-label=\"Place preview\"]')","chosen search preview");
+  assert.equal(await ev(a,"document.querySelectorAll('[data-place-id]').length"),0,"preview is not a save");
+  const title=await ev(a,"document.querySelector('section[aria-label=\"Place preview\"] h2').textContent");
+  await button(a,"FP5 Singapore QA");assert.equal(await ev(a,"document.querySelectorAll('section[aria-label=\"Place preview\"]').length"),0,"Route change cancels preview");
+  await button(a,"FP5 second route");await run(a,"click","ul[aria-label='Place search results'] li:first-child button");
+  await button(a,"Add to Route");await until(a,"document.querySelectorAll('[data-place-id]').length===1&&!document.querySelector('section[aria-label=\"Place preview\"]')","explicit direct Route save",45000);
+  await button(a,"Edit place appearance");assert.equal(await ev(a,"[...document.querySelectorAll('[data-map-inspector] button')].filter(e=>e.textContent==='Rename checkpoint').length"),0,"provider name is not editable");
+  await ready(b,`/room/${fixture.slug}/map`);await button(b,"FP5 second route");await until(b,`[...document.querySelectorAll('[data-place-id]')].some(e=>e.textContent.includes(${JSON.stringify(title)}))`,"A/B shared chosen POI");
+  await run(a,"reload");await until(a,"document.querySelectorAll('[data-place-id]').length===1","POI persists reload");
+  console.log("PASS real search→explicit result choice→preview→direct Add to selected Route, no autosave, Route-switch cancel, immutable POI title, A/B+reload");
+}
 if(mode==="locate"){
   await ready(a,`/room/${fixture.slug}/map`);await button(a,"FP5 Singapore QA");
   await run(a,"select","select[aria-label='Travel mode']","planning");

@@ -11,7 +11,7 @@ import { requirePin } from "./service";
 
 export type PinTransfer = { sourceScope:string; targetScope:string; pinId:string; expectedPinRevision:number; routeId:string; expectedTripRevision:number; requestId:string };
 export async function addPinToRoute(db: ToskerDatabase, actor: AuthenticatedActor, input: PinTransfer) {
-  if (!input || ![input.sourceScope,input.targetScope].every(s=>typeof s === "string" && s.length<=150) || ![input.pinId,input.routeId,input.requestId].every(isConversationId) || !Number.isSafeInteger(input.expectedPinRevision) || input.expectedPinRevision<1 || !Number.isSafeInteger(input.expectedTripRevision) || input.expectedTripRevision<0 || input.targetScope.startsWith("sandbox--")) throw new TripError("invalid","Choose an available Route.");
+  if (!input || ![input.sourceScope,input.targetScope].every(s=>typeof s === "string" && s.length<=150) || ![input.pinId,input.routeId,input.requestId].every(isConversationId) || !Number.isSafeInteger(input.expectedPinRevision) || input.expectedPinRevision<1 || !Number.isSafeInteger(input.expectedTripRevision) || input.expectedTripRevision<0) throw new TripError("invalid","Choose an available Route.");
   const payloadHash = createHash("sha256").update(JSON.stringify({type:"add-to-route",...input})).digest("hex");
   return db.transaction(async tx => {
     // Stable scope order; all permissions are locked again before copying any source data.
@@ -36,10 +36,10 @@ export async function addPinToRoute(db: ToskerDatabase, actor: AuthenticatedActo
 
 /** Available target Routes are authorized server-side, including when opened from Sandbox. */
 export async function pinRouteChoices(db:ToskerDatabase, actor:AuthenticatedActor) {
-  const result = await db.execute(sql`select r.id,r.name,p.revision,c.kind,c.id as conversation_id,c.subroom_id,room.slug,coalesce(child.name,room.name,'Personal Chat') as context_name
+  const result = await db.execute(sql`select r.id,r.name,p.revision,c.kind,c.id as conversation_id,c.subroom_id,room.slug,case when c.kind='sandbox' then 'Your Sandbox' else coalesce(child.name,room.name,'Personal Chat') end as context_name
     from trip_routes r join trip_plans p on p.id=r.plan_id
-    join conversations c on (p.personal_conversation_id=c.id or (p.room_id=c.room_id and ((p.subroom_id is null and c.subroom_id is null and c.is_primary) or p.subroom_id=c.subroom_id)))
+    join conversations c on (p.sandbox_conversation_id=c.id or p.personal_conversation_id=c.id or (p.room_id=c.room_id and ((p.subroom_id is null and c.subroom_id is null and c.is_primary) or p.subroom_id=c.subroom_id)))
     left join rooms room on room.id=c.room_id left join subrooms child on child.id=c.subroom_id
     where r.archived_at is null and ${authorizedContext(sql`${actor.userId}::uuid`)} order by r.updated_at desc,r.id limit 100`);
-  return result.rows.map(r=>({id:String(r.id),name:String(r.name),revision:Number(r.revision),contextName:String(r.context_name),scope:r.kind === "personal" ? `personal--${r.conversation_id}` : `${r.slug}${r.subroom_id?`--${r.subroom_id}`:""}`}));
+  return result.rows.map(r=>({id:String(r.id),name:String(r.name),revision:Number(r.revision),contextName:String(r.context_name),scope:r.kind === "sandbox" ? `sandbox--${r.conversation_id}` : r.kind === "personal" ? `personal--${r.conversation_id}` : `${r.slug}${r.subroom_id?`--${r.subroom_id}`:""}`}));
 }

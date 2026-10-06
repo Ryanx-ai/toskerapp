@@ -1,6 +1,6 @@
 # MS7.3 FP5 — execution and recovery ledger
 
-## 2026-10-06 — A/B/C saved locally; D next; full FP5 window approved
+## 2026-10-06 — A/B/C/D saved locally; integrated E next; full FP5 window approved
 
 Founder explicitly approved the proposed full11–16h scope: “Approve, lets get it.” This supersedes the execution-time STOP below, not the remaining safety/migration/release gates. Start09:27UTC; upper bounded window ends2026-10-07 01:27UTC. Work through A–F and canonical without another generic proceed approval. Checkpoint/report if the bound or a different stop gate is reached.
 
@@ -103,3 +103,13 @@ MS7.1 LOCKED. MS7.2 LOCKED. MS7.3 UNLOCKED. MS7.4 NOT STARTED. FP4B remains cano
 - Cross-island Walk repeatedly returned provider HTTP400/routing failure. No successful Walk claimed. Sanitized diagnostics print status/category flags only, never raw bodies/URLs/keys. Error copy avoids guessing whether inaccessible points caused it; saved cards/order remain unchanged and retry is explicit. Repeated identical calls stopped. E must include a bounded short Walk success/failure audit and retain this cross-island caveat.
 - Provider reservations currently expected38/60 roads and6/120 geocoding forUTC2026-10-06 (including diagnostic failures and Drive/Skip); recheck exact counters before more live calls. Whole account/tile usage is not freshly verified. No quota reset/increase, paid changes, public migration, push or deployment.
 - Next D: dormant FP4B memory/provenance/revocation/independence compatibility, including authorized copies into genuine private Sandbox Routes. E retains final responsive/focus/provider/complete regression gates; F remains gated.
+
+## Checkpoint D — dormant memory compatibility
+
+- C commit `aa9f27a`. Existing Pins remain a secondary Saved places entry, with honest empty copy and no normal Pin-first planning path. No Pin conversion/backfill or schema deletion.
+- Legacy Add to Route now offers the viewer's genuine private Sandbox Routes. Both source and target are authorized and row-locked again inside the transfer transaction; neither listing nor mutation grants access to another user's Sandbox. Existing receipt/replay and independent-copy semantics preserved.
+- Fresh whole-row backup before repeated isolated rehearsal: `.git/fp5-recovery/before-rehearse-c6445c12-ff7e-4514-b59f-64450204030c.json`, SHA256 `cd53316a3a48688228fe303ebf93147e3b782c9f5d85bf32ebce4167f8ab4071`,0600. Rehearsal PASS, retained rows unchanged, public history still27.
+- Extended Sandbox lifecycle PASS: target choices owner-only, B transfer denial, source provenance preserved, explicit copy/replay, source Nuke preserves private Route Card, Route Nuke preserves independent Pin. Exact-owned fixture cleanup and full rehearsal rollback.
+- FP4B rollback lifecycle PASS: source CRUD/dedupe/revisions, private/social projections and hide, Room removal, selected Subroom loss, strict Personal pair/connection revocation, no stale provenance/source cascade. Focused independence PASS: one Pin/two Route Cards; Nuke leaves other card/comments/star/Skip intact; forged IDs denied. No retained founder changes.
+- Typecheck and targeted lint PASS. No public apply/push/deploy. E will complete browser lifecycle, source/security/full build and final responsive acceptance before F.
+- Additional bounded C evidence: real short Singapore Walk PASS3,765m/3579.708s with four provider legs; screenshot `.git/fp5-recovery/short-walk.png` inspected. Long cross-island Walk remains provider400, not a successful coverage claim. Expected road reservations46/60; preserve remaining allowance for canonical smoke.

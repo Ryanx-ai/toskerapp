@@ -4,6 +4,8 @@ import { and, eq, sql } from "drizzle-orm";
 import type { ToskerDatabase } from "../../src/server/db/client";
 import { conversations, tripPlans } from "../../src/server/db/schema";
 import { mutateTrip, readTrip, readTripComments } from "../../src/server/trips/service";
+import {mutatePin,readPins} from "../../src/server/map-pins/service";
+import {addPinToRoute,pinRouteChoices} from "../../src/server/map-pins/transfer";
 import { createQaFixture, cleanupQaFixture, resolveQaActors } from "./ms73-fixtures";
 import type { TripCommand } from "../../src/lib/trip-contract";
 
@@ -51,11 +53,25 @@ export async function verifyFp5Lifecycle(db: ToskerDatabase) {
   await assert.rejects(()=>change({type:"add",routeId:sharedRoute,candidate:manual}));
   assert.deepEqual(await readTrip(db,b,fixture.slug),await readTrip(db,founder,fixture.slug));
   assert.equal((await readTrip(db,b,fixture.slug)).places.length,0);
+  const pin=(await mutatePin(db,a,{scope:fixture.slug,requestId:randomUUID(),command:{type:"create",candidate:{...manual,longitude:103.79,title:"QA legacy memory"},state:"want-to-go"}})).resultId;
+  const transfer={sourceScope:fixture.slug,targetScope:scope,pinId:pin,expectedPinRevision:1,routeId:route,expectedTripRevision:(await read()).revision,requestId:randomUUID()};
+  assert((await pinRouteChoices(db,a)).some(r=>r.id===route&&r.scope===scope&&r.contextName==="Your Sandbox"));
+  assert(!(await pinRouteChoices(db,b)).some(r=>r.id===route));
+  await assert.rejects(()=>addPinToRoute(db,b,transfer));
+  const copied=await addPinToRoute(db,a,transfer);assert((await addPinToRoute(db,a,transfer)).replayed);
+  assert.notEqual(copied.resultId,pin);assert((await read()).places.some(p=>p.id===copied.resultId));
+  const memory=(await readPins(db,a,scope)).pins.find(p=>p.id===pin)!;
+  assert.equal(memory.contextName,fixture.name);assert.equal(memory.scope,fixture.slug,"projection preserves canonical source");
+  await mutatePin(db,a,{scope:fixture.slug,requestId:randomUUID(),command:{type:"nuke",pinId:pin,expectedRevision:1}});
+  assert((await read()).places.some(p=>p.id===copied.resultId),"source Nuke does not destroy private Route copy");
+  const retainedPin=(await mutatePin(db,a,{scope,requestId:randomUUID(),command:{type:"create",candidate:{...manual,longitude:103.81},state:"saved"}})).resultId;
   await change({type:"nuke-route",routeId:route});
   assert.equal((await read()).places.length,0);
+  assert((await readPins(db,a,scope)).pins.some(p=>p.id===retainedPin),"private Route Nuke leaves independent Pin");
+  await mutatePin(db,a,{scope,requestId:randomUUID(),command:{type:"nuke",pinId:retainedPin,expectedRevision:1}});
   // Exactly this newly created QA Sandbox plan only; parent Sandbox/profile never changed.
   await db.execute(sql`select set_config('tosker.trip_protocol','4',true)`);
   await db.delete(tripPlans).where(eq(tripPlans.sandboxConversationId,sandbox.id));
   await cleanupQaFixture(db,fixture,true);
-  console.log("PASS isolated Sandbox owner-only access, cross-context rejection, named manual checkpoints, icon validation, replay, POI-name protection, duplicate preservation, comments, shared A/B/founder read and exact QA cleanup");
+  console.log("PASS isolated Sandbox owner-only access, cross-context rejection, named manual checkpoints, icon validation, replay, POI-name protection, duplicate preservation, comments, shared A/B/founder read, legacy Pin→private Route ownership/provenance/replay/Nuke independence and exact QA cleanup");
 }

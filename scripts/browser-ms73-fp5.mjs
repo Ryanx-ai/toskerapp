@@ -14,6 +14,16 @@ async function login(s,letter){
   await until(s,"!!document.querySelector('input[autocomplete=one-time-code]')","QA OTP");await run(s,"fill","input[autocomplete=one-time-code]","424242");await until(s,"!!document.querySelector('.messaging-app')","authenticated QA",45000);
 }
 const mode=process.argv[2];
+if(mode==="recover-built"){
+  for(const [s,letter] of[[a,"a"],[b,"b"]]){await login(s,letter);await run(s,"set","viewport","1440","900");await ready(s,`/room/${fixture.slug}/map`);await button(s,"FP5 Singapore QA");}
+  await button(a,"Select place 3: QA Meetup");await until(a,"!!document.querySelector('[data-map-inspector]')","built inspector");assert.equal(await ev(b,"document.querySelectorAll('[data-map-inspector]').length"),0);
+  assert(await ev(a,"document.querySelector('[data-place-id]:nth-child(3)')?.dataset.starred==='true'"));
+  await run(a,"press","Escape");await until(a,"!document.querySelector('[data-map-inspector]')","built Escape");
+  await ready(a,"/personal/my-room");assert(await ev(a,"!!document.querySelector('.composer')&&document.body.textContent.includes('FP5 private QA')&&document.querySelectorAll('[data-place-id]').length===2"));
+  await ready(b,"/personal/my-room");assert(!(await ev(b,"document.body.textContent.includes('FP5 private QA')")));
+  await run(a,"screenshot",`${process.cwd()}/.git/fp5-recovery/built-recovery.png`);
+  console.log("PASS fresh normal A/B sign-in, built-app shared Card/inspector/private selection/Escape, retained private Sandbox Map+Chat and owner isolation; no provider calls");
+}
 if(mode==="reconnect"){
   for(const s of[a,b]){await run(s,"set","viewport","1440","900");await ready(s,`/room/${fixture.slug}/map`);await button(s,"FP5 Singapore QA");}
   const rename=async(name)=>{await button(a,"Edit place appearance");await button(a,"Rename checkpoint");await run(a,"fill","[data-map-inspector] input",name);await button(a,"Save name");await until(a,`document.querySelector('[data-map-inspector] h2')?.textContent===${JSON.stringify(name)}`,"name acknowledged");};

@@ -260,12 +260,13 @@ export default function TripMapCanvas({ inspector, viewerAvatarUrl, mapPins, sel
     const element = inspectorRef.current;
     if (!inspectorKey || !element) return;
     const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const registry = pointMarkers.current;
     element.focus({ preventScroll: true });
     return () => {
       if (!element.contains(document.activeElement) && document.activeElement !== document.body) return;
       // A mobile Card opener is hidden after switching to Map. Return to its
       // stable marker (or canvas for a new preview), never a hidden control.
-      const marker = [...pointMarkers.current.values()].find(entry => entry.place.id === inspectorKey)?.marker.getElement();
+      const marker = [...registry.values()].find(entry => entry.place.id === inspectorKey)?.marker.getElement();
       const target = previous?.isConnected && previous.checkVisibility() ? previous : marker ?? mapRef.current?.getCanvas();
       target?.focus({ preventScroll: true });
     };

@@ -1,5 +1,11 @@
 # MS7.3 FP5 — execution and recovery ledger
 
+## Checkpoint E — integrated release gate green (2026-10-06)
+
+Restart checkpoint9271708 saved before runtime restart. Optimized Next16.3.3 production build PASS twice; final rebuild includes stable-registry focus cleanup. TypeScript PASS; full lint0errors, only pre-existing cleanup-fp4-qa.ts unused-eq warning. React review kept stable marker registry/current event handlers, dynamic Map boundary and authenticated server actions; no new dependencies. Full source/owned575files +40client/worker bundles server-secret scan PASS including Geoapify, no secret values printed or passed to browser. Local environments ignored, no public server-secret variable. Fresh Vercel metadata confirms separate encrypted browser/sensitive server Development and Production assignments; no key/restriction/billing changes.
+
+Built-app fresh normal QA A/B sign-in PASS, shared Card/inspector/private selection/Escape and retained private Sandbox Map+Chat/owner isolation PASS. Screenshot built-recovery.png visually inspected. Final built long-name/enlarged320px Info/keyboard/Escape/visible-marker focus test PASS after ref cleanup; QA name restored. Existing full six-width/landscape, service/privacy/memory/routing evidence above remains valid. No duplicated provider calls. Migration still27 before this checkpoint. Next F fresh backup, atomic0027, actual public rollback auth/lifecycle probe +28hash/catalog/invariants, exact scoped release/canonical/live smoke/cleanup/STOP.
+
 ## Restart recovered — integrated E complete except build/security gate (2026-10-06 23:10 SGT)
 
 Founder restart directive fully read from attachment9b82875b; continue existing FP5 to canonical, no product redesign/reseed/provider replay. Recovered HEAD `4d491967c4650a4571eb4028e465aebff97d3549` (D), with A55d70cc/B8d7eb54/Caa9f27a preserved. Fresh origin remains `2f516e8fa0093ca357d1995d876016d22eaffced`; canonical READY `dpl_6Fiq682EVPvEoWeRhXw5ykMitfYs`, exact alias/source verified. No FP5 push or deployment.

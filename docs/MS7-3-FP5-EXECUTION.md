@@ -1,5 +1,13 @@
 # MS7.3 FP5 — execution and recovery ledger
 
+## F — public cutover applied; canonical release next (2026-10-06)
+
+E checkpoint `91cf2b2`. Migration0027 APPLIED ONCE atomically; public now28migrations. Fresh0600 backup `.git/fp5-recovery/before-apply-7ec905c6-4475-491e-9fb3-f31281f3ac05.json`, SHA256 `a2127e6eda0c5ea4bf189c6743f9443ca9ff48cadf56ccc889ade2bdaa500a25`. Every old row/field compared equal inside the migration transaction. Never replay prior migrations or restore old backups onto newer retained data.
+
+Exact28hash/catalog PASS35tables/252columns/127constraints/15enums. Actual public-schema rollback probe PASS owner-private Sandbox access, cross-context/Personal rejection, names/icons/invalid-icon denial/receipt replay/provider-name protection, shared A/B/founder read and retained saved founder Pin. Probe fully rolled back. General and Route audits unchanged3plans/7routes/16cards/4comments/84receipts,6Rooms/11memberships/34messages; required guards active, invalid counts zero.
+
+Canonical currently still FP4B until next exact pushed deployment. Post-cutover release uses existing separate Vercel browser/server Production assignments, unchanged Free plan/restrictions. Build uses provider abstraction/MapLibre, server key never client. Bounded live smoke will use a separate newly owned public fixture receipt, not shadow receipt. All new disposable collaborative fixtures include uniquely resolved founder8V3X7P1. Retained Founder Review `ms73-founder-review-904a9dea` and protected `ms73-qa-bfff9475` remain; both available, neither scheduled for cleanup. Shadow `ms73-qa-06a7a155` is disposable and will be removed with its exact-owned isolated namespace after release. No final Founder Review cleanup.
+
 ## Checkpoint E — integrated release gate green (2026-10-06)
 
 Restart checkpoint9271708 saved before runtime restart. Optimized Next16.3.3 production build PASS twice; final rebuild includes stable-registry focus cleanup. TypeScript PASS; full lint0errors, only pre-existing cleanup-fp4-qa.ts unused-eq warning. React review kept stable marker registry/current event handlers, dynamic Map boundary and authenticated server actions; no new dependencies. Full source/owned575files +40client/worker bundles server-secret scan PASS including Geoapify, no secret values printed or passed to browser. Local environments ignored, no public server-secret variable. Fresh Vercel metadata confirms separate encrypted browser/sensitive server Development and Production assignments; no key/restriction/billing changes.

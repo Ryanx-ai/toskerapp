@@ -2,6 +2,10 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP5 PUBLIC28 APPLIED — CANONICAL RELEASE NEXT — 2026-10-06
+
+Read top `docs/MS7-3-FP5-EXECUTION.md`. E91cf2b2 green (build/type/lint/built-A/B/responsive/privacy/service/secret gates). Fresh backup + atomic0027 PASS; all28hashes/catalog and actual public rollback Sandbox/name/icon/auth/lifecycle probe PASS; retained data unchanged. NEVER reapply migration or restore backup. Next exact scoped push/canonical/live smoke/cleanup/save/STOP, no generic approval needed. Canonical stillFP4B2f516e8 until release. Existing shadow/QA receipts survive and are disposable only after exact ownership checks; protect Founder Review and bfff9475. Provider46/60road,7/120geo counters, conserve. Keep server credentials server-only and unrelated WIP unstaged. MS7.3unlocked/MS7.4/MS8unstarted.
+
 ## FP5 RESTART RECOVERED — BUILD/RELEASE GATES NEXT — 2026-10-06
 
 Read the top restart section of `docs/MS7-3-FP5-EXECUTION.md`. HEAD4d49196 (A–D committed), integrated E fixes/tests survive uncommitted. Fresh origin/canonical2f516e8 READYdpl_6Fiq682EVPvEoWeRhXw5ykMitfYs; public27 exact hashes/catalog, FP5 NOT applied. Public retained invariants/founder profiles/messages/Board/Map Pins unchanged; saved MBS Pin revision2. Shadow/fixture receipts and screenshots survived; no reseed. Disposable shadow ms73-qa-06a7a155 exact-founder+A/B, A private Sandbox Route preserved; B membership restored. Provider counters46/60roads,7/120geocode; do not repeat real provider audit. Runtime lost only; build had no completed result. Recovery typecheck/diff check PASS. Save this checkpoint before restarting build/server. Remaining build/secrets/bounded built-app check→E→fresh backup/atomic0027+post-cutover verification→scoped push/canonical/live A/B/exact cleanup/save/STOP. Founder explicitly authorizes continuation without generic approval. Preserve unrelated Design/Art/Web WIP/older handoff hunks; no MS7.4/MS8/auto-lock.

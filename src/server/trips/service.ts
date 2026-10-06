@@ -6,7 +6,7 @@ import type { ToskerDatabase } from "@/server/db/client";
 import { tripPlans, tripPlaces, tripRoutes, tripMutationReceipts, tripComments, profiles } from "@/server/db/schema";
 import { contextualName, conversationRoomId } from "@/server/profiles/context-name";
 import { lockTripScope, tripScopeWhere } from "./scope";
-import { TRIP_COLORS, TRIP_LIMITS, nextCheckpointName, isCoordinatePinTitle, type PlaceCandidate, type TripColor, type TripFailureCode, type TripMutation, type TripSnapshot } from "@/lib/trip-contract";
+import { TRIP_COLORS, TRIP_LIMITS, PLACE_ICONS, nextCheckpointName, isCoordinatePinTitle, type PlaceIcon, type PlaceCandidate, type TripColor, type TripFailureCode, type TripMutation, type TripSnapshot } from "@/lib/trip-contract";
 import { isConversationId } from "@/lib/realtime-contract";
 
 export class TripError extends Error {
@@ -35,6 +35,11 @@ function normalize(input: TripMutation): TripMutation {
   switch (c.type) {
     case "add": return { ...base, command: { type: c.type, candidate: validateCandidate(c.candidate), routeId: c.routeId === null ? null : uuid(c.routeId) } };
     case "edit-place": return { ...base, command: { type: c.type, placeId: uuid(c.placeId), title: text(c.title, 120), note: text(c.note, 1000, true) } };
+    case "rename-checkpoint": return { ...base, command: { type: c.type, placeId: uuid(c.placeId), title: text(c.title, 120) } };
+    case "place-icon": {
+      if (!PLACE_ICONS.includes(c.icon)) return invalid();
+      return { ...base, command: { type: c.type, placeId: uuid(c.placeId), icon: c.icon } };
+    }
     case "comment": return { ...base, command: { type: c.type, placeId: uuid(c.placeId), body: text(c.body, 1000) } };
     case "archive-place": return { ...base, command: { type: c.type, placeId: uuid(c.placeId), archived: flag(c.archived) } };
     case "star-place": return { ...base, command: { type: c.type, placeId: uuid(c.placeId), starred: flag(c.starred) } };
@@ -78,7 +83,7 @@ export async function readTrip(db: ToskerDatabase, actor: AuthenticatedActor, sl
     const counts = await tx.select({ id: tripComments.placeId, n: count() }).from(tripComments).where(eq(tripComments.planId, plan.id)).groupBy(tripComments.placeId);
     const commentCounts = new Map(counts.map(row => [row.id, row.n]));
     return { revision: plan.revision,
-      places: places.map(p => ({ id: p.id, title: p.title, note: p.note, starred: p.starred, skipped: p.skipped, commentCount: commentCounts.get(p.id) ?? 0, latitude: p.latitude, longitude: p.longitude, source: p.source as "search" | "pin", provider: p.provider, providerId: p.providerId, address: p.address, attribution: p.attribution, license: p.license, archived: !!p.archivedAt })),
+      places: places.map(p => ({ id: p.id, title: p.title, icon: p.icon as PlaceIcon, note: p.note, starred: p.starred, skipped: p.skipped, commentCount: commentCounts.get(p.id) ?? 0, latitude: p.latitude, longitude: p.longitude, source: p.source as "search" | "pin", provider: p.provider, providerId: p.providerId, address: p.address, attribution: p.attribution, license: p.license, archived: !!p.archivedAt })),
       routes: routes.map(r => ({ id: r.id, name: r.name, color: r.color as TripColor, archived: !!r.archivedAt, lockedPositions: r.lockedPositions })), memberships };
   });
 }
@@ -93,7 +98,7 @@ export async function mutateTrip(db: ToskerDatabase, actor: AuthenticatedActor, 
     let [plan] = await tx.select().from(tripPlans).where(tripScopeWhere(scope));
     if (!plan) {
       if (input.expectedRevision !== 0) throw new TripError("conflict", "The trip changed. Review its latest state before trying again.");
-      [plan] = await tx.insert(tripPlans).values({ roomId: scope.roomId, subroomId: scope.subroomId, personalConversationId: scope.personalConversationId }).returning();
+      [plan] = await tx.insert(tripPlans).values({ roomId: scope.roomId, subroomId: scope.subroomId, personalConversationId: scope.personalConversationId, sandboxConversationId: scope.sandboxConversationId }).returning();
     }
     const [receipt] = await tx.select().from(tripMutationReceipts).where(and(eq(tripMutationReceipts.planId, plan.id), eq(tripMutationReceipts.actorId, actor.userId), eq(tripMutationReceipts.requestId, input.requestId)));
     if (receipt) {
@@ -130,8 +135,14 @@ export async function mutateTrip(db: ToskerDatabase, actor: AuthenticatedActor, 
       else {
         if (all.length >= TRIP_LIMITS.places) throw new TripError("limit", "Up to 200 places, including archived places, fit in this Development trip.");
         const title = p.source === "pin" && isCoordinatePinTitle(p.title) ? nextCheckpointName(routeCards) : p.title;
-        const [created] = await tx.insert(tripPlaces).values({ planId: plan.id, routeId:c.routeId, position:routeCards.length, ...p, title }).returning({ id: tripPlaces.id }); resultId = created.id;
+        const [created] = await tx.insert(tripPlaces).values({ planId: plan.id, routeId:c.routeId, position:routeCards.length, ...p, title, icon: p.source === "pin" && !p.providerId ? "checkpoint" : "destination" }).returning({ id: tripPlaces.id }); resultId = created.id;
       }
+    } else if (c.type === "rename-checkpoint" || c.type === "place-icon") {
+      const p = await requirePlace(c.placeId); if (p.archivedAt) return invalid();
+      await requireRoute(p.routeId);
+      if (c.type === "rename-checkpoint" && (p.source !== "pin" || p.providerId)) throw new TripError("invalid", "Only manual checkpoints can be renamed.");
+      await tx.update(tripPlaces).set(c.type === "rename-checkpoint" ? { title: c.title, updatedAt: new Date() } : { icon: c.icon, updatedAt: new Date() }).where(placeScope(p.id));
+      resultId = p.id;
     } else if (c.type === "comment") {
       const p = await requirePlace(c.placeId); if (p.archivedAt) return invalid();
       const [{ n }] = await tx.select({ n: count() }).from(tripComments).where(eq(tripComments.placeId, p.id));

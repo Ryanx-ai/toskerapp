@@ -1,0 +1,61 @@
+import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
+import { and, eq, sql } from "drizzle-orm";
+import type { ToskerDatabase } from "../../src/server/db/client";
+import { conversations, tripPlans } from "../../src/server/db/schema";
+import { mutateTrip, readTrip, readTripComments } from "../../src/server/trips/service";
+import { createQaFixture, cleanupQaFixture, resolveQaActors } from "./ms73-fixtures";
+import type { TripCommand } from "../../src/lib/trip-contract";
+
+/** Must only run inside the exact-owned rollback rehearsal, never public. */
+export async function verifyFp5Lifecycle(db: ToskerDatabase) {
+  const namespace = await db.execute(sql`select current_schema() as name`);
+  assert(/^fp5_rehearsal_[a-f0-9]{32}$/.test(String(namespace.rows[0].name)));
+  const { a, b, founder } = await resolveQaActors(db);
+  const fixture = await createQaFixture(db, "FP5 private Sandbox and Route lifecycle");
+  const [sandbox] = await db.select().from(conversations).where(and(eq(conversations.kind,"sandbox"),eq(conversations.ownerId,a.userId)));
+  assert(sandbox && sandbox.ownerId !== founder.userId);
+  const scope = `sandbox--${sandbox.id}`;
+  const read = () => readTrip(db,a,scope);
+  assert.equal((await read()).routes.length,0,"Rehearsal QA Sandbox must have no retained Route data");
+  const change = async (command:TripCommand) => mutateTrip(db,a,{roomSlug:scope,requestId:randomUUID(),expectedRevision:(await read()).revision,command});
+  await assert.rejects(()=>readTrip(db,b,scope));
+  await assert.rejects(()=>readTrip(db,founder,scope));
+  await assert.rejects(()=>readTrip(db,a,`personal--${sandbox.id}`));
+  await assert.rejects(()=>readTrip(db,a,`sandbox--${fixture.conversationId}`));
+  const route=(await change({type:"create-route",name:"Personal QA Route",color:"gold"})).resultId!;
+  const manual={source:"pin" as const,title:"Checkpoint",latitude:1.35,longitude:103.76,provider:null,providerId:null,address:"",attribution:"",license:""};
+  const card=(await change({type:"add",routeId:route,candidate:manual})).resultId!;
+  const next=(await change({type:"add",routeId:route,candidate:{...manual,longitude:103.78}})).resultId!;
+  assert.equal((await read()).places.find(p=>p.id===card)?.title,"Checkpoint 1");
+  assert.equal((await read()).places.find(p=>p.id===next)?.title,"Checkpoint 2");
+  assert.equal((await read()).places.find(p=>p.id===card)?.icon,"checkpoint");
+  await change({type:"comment",placeId:card,body:"Safe isolated QA comment"});
+  const rename={roomSlug:scope,requestId:randomUUID(),expectedRevision:(await read()).revision,command:{type:"rename-checkpoint" as const,placeId:card,title:"Home"}};
+  await mutateTrip(db,a,rename);assert((await mutateTrip(db,a,rename)).replayed);
+  await change({type:"place-icon",placeId:card,icon:"home"});
+  const home=(await read()).places.find(p=>p.id===card)!;
+  assert.equal(home.title,"Home");assert.equal(home.icon,"home");assert.equal(home.longitude,manual.longitude);
+  assert.equal((await readTripComments(db,a,scope,card)).comments.length,1);
+  await assert.rejects(()=>mutateTrip(db,b,{...rename,requestId:randomUUID(),expectedRevision:(0)}));
+  await assert.rejects(()=>change({type:"rename-checkpoint",placeId:card,title:" "}));
+  await assert.rejects(()=>change({type:"place-icon",placeId:card,icon:"unsafe" as never}));
+  const poi=(await change({type:"add",routeId:route,candidate:{...manual,longitude:103.98,source:"search",title:"QA Jewel",provider:"qa",providerId:"fp5-qa-jewel"}})).resultId!;
+  await assert.rejects(()=>change({type:"rename-checkpoint",placeId:poi,title:"Home"}));
+  await assert.rejects(()=>change({type:"edit-place",placeId:poi,title:"Changed POI",note:""}));
+  await change({type:"place-icon",placeId:poi,icon:"activity"});
+  assert.equal((await read()).places.find(p=>p.id===poi)?.title,"QA Jewel");
+  const duplicate=(await change({type:"add",routeId:route,candidate:manual})).resultId;
+  assert.equal(duplicate,card);assert.equal((await read()).places.find(p=>p.id===card)?.title,"Home");
+  const sharedRoute=(await mutateTrip(db,a,{roomSlug:fixture.slug,requestId:randomUUID(),expectedRevision:0,command:{type:"create-route",name:"Shared QA Route",color:"sky"}})).resultId!;
+  await assert.rejects(()=>change({type:"add",routeId:sharedRoute,candidate:manual}));
+  assert.deepEqual(await readTrip(db,b,fixture.slug),await readTrip(db,founder,fixture.slug));
+  assert.equal((await readTrip(db,b,fixture.slug)).places.length,0);
+  await change({type:"nuke-route",routeId:route});
+  assert.equal((await read()).places.length,0);
+  // Exactly this newly created QA Sandbox plan only; parent Sandbox/profile never changed.
+  await db.execute(sql`select set_config('tosker.trip_protocol','4',true)`);
+  await db.delete(tripPlans).where(eq(tripPlans.sandboxConversationId,sandbox.id));
+  await cleanupQaFixture(db,fixture,true);
+  console.log("PASS isolated Sandbox owner-only access, cross-context rejection, named manual checkpoints, icon validation, replay, POI-name protection, duplicate preservation, comments, shared A/B/founder read and exact QA cleanup");
+}

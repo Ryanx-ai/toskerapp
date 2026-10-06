@@ -1,11 +1,14 @@
 export const TRIP_COLORS = ["gold", "rose", "sage", "sky", "iris"] as const;
 export type TripColor = typeof TRIP_COLORS[number];
+export const PLACE_ICONS = ["destination", "checkpoint", "home", "work", "food", "stay", "activity", "favourite", "meetup"] as const;
+export type PlaceIcon = typeof PLACE_ICONS[number];
+export const PLACE_ICON_LABELS: Record<PlaceIcon, string> = { destination: "Destination", checkpoint: "Checkpoint", home: "Home", work: "Work", food: "Food", stay: "Stay", activity: "Activity", favourite: "Favourite", meetup: "Meetup" };
 export const TRIP_LIMITS = { places: 200, routes: 12, receipts: 10000 } as const;
 export type PlaceCandidate = {
   title: string; latitude: number; longitude: number; source: "search" | "pin";
   provider: string | null; providerId: string | null; address: string; attribution: string; license: string;
 };
-export type TripPlace = PlaceCandidate & { id: string; note: string; archived: boolean; starred?: boolean; skipped?: boolean; commentCount?: number };
+export type TripPlace = PlaceCandidate & { id: string; note: string; archived: boolean; icon?: PlaceIcon; starred?: boolean; skipped?: boolean; commentCount?: number };
 export type TripComment = { id: string; body: string; authorId: string; author: string; createdAt: string };
 export type TripCommentPage = { comments: TripComment[]; hasMore: boolean };
 export type TripRoute = { id: string; name: string; color: TripColor; archived: boolean; lockedPositions?: number[] };
@@ -14,6 +17,8 @@ export type TripSnapshot = { revision: number; places: TripPlace[]; routes: Trip
 export type TripCommand =
   | { type: "add"; candidate: PlaceCandidate; routeId: string | null }
   | { type: "edit-place"; placeId: string; title: string; note: string }
+  | { type: "rename-checkpoint"; placeId: string; title: string }
+  | { type: "place-icon"; placeId: string; icon: PlaceIcon }
   | { type: "comment"; placeId: string; body: string }
   | { type: "archive-place"; placeId: string; archived: boolean }
   | { type: "star-place"; placeId: string; starred: boolean }

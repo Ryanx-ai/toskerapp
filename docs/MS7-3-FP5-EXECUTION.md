@@ -1,5 +1,15 @@
 # MS7.3 FP5 — execution and recovery ledger
 
+## 2026-10-06 09:27 UTC — full FP5 window approved / checkpoint A in progress
+
+Founder explicitly approved the proposed full11–16h scope: “Approve, lets get it.” This supersedes the execution-time STOP below, not the remaining safety/migration/release gates. Start09:27UTC; upper bounded window ends2026-10-07 01:27UTC. Work through A–F and canonical without another generic proceed approval. Checkpoint/report if the bound or a different stop gate is reached.
+
+Recovered local `f47a919`, fetched origin/canonical FP4B `2f516e8`/READY `dpl_6Fiq682EVPvEoWeRhXw5ykMitfYs`. Fresh27hash/catalog and general/Route ownership audits pass;3plans/7routes/16cards/4comments/84receipts, protected founder memberships intact. No applied migration change yet. Existing unrelated WIP remains excluded.
+
+A decision: explicit nullable `sandbox_conversation_id` with an exactly-one-context constraint and unique index; owner-only Sandbox service branch, unchanged strict Personal Chat guards. Add a bounded category/icon field to Route Locations; no new Pin card type or memory backfill. Existing old columns/identities/receipts remain unchanged. Schema rehearsal and UI verification will use an exact-owned isolated namespace before public cutover. Dormant FP4B memory stays reachable through a secondary Saved places entry, not the normal planning tray.
+
+UI skeleton: map-first surface; existing Tosker Night/Ivory/Gold/accent tokens and Mermaid/Montserrat identity; concise contextual popup at selection; one explicit Add to active Route; Location Cards below; compact toolbar/summary; optional existing Chat companion. No new palette, typography system, art, animation library or external service. Saved Pin data does not become a Route automatically.
+
 ## 2026-10-06 — checkpoint R / execution-time STOP
 
 All four pages of `/Users/ryanc/Desktop/TOSKER_MS7_3_FP5_GAME_MAP_UX_RESEARCH_BUILD_EXECUTION.pdf` were extracted and read, and all pages rendered/inspected. This is the active FP5 brief. Research/synthesis: [MS7-3-FP5-RESEARCH.md](MS7-3-FP5-RESEARCH.md).
@@ -57,4 +67,16 @@ PDF skill used for complete source review. UX skills and repository design guida
 4. Save A→B→C→D→E→F and respect all stop gates. No automatic partial-scope implementation or hidden regression deferral.
 5. Only after integrated green: scoped commit/push, exact canonical deployment/live A/B/security verification, exact ownership cleanup, recovery save and STOP for founder + Jenn. Do not automatically lock MS7.3.
 
-MS7.1 LOCKED. MS7.2 LOCKED. MS7.3 UNLOCKED. MS7.4 NOT STARTED. FP4B remains canonical; FP5 is research-checkpointed, not built or released.
+MS7.1 LOCKED. MS7.2 LOCKED. MS7.3 UNLOCKED. MS7.4 NOT STARTED. FP4B remains canonical; the research checkpoint above is retained as history, superseded by the approved execution status at the top.
+
+## Checkpoint A — model and component skeleton (2026-10-06)
+
+- Founder approval recovered; fresh canonical deployment remains READY on FP4B. Fresh migration/schema, ownership and general integrity audits passed before changes. No public cutover, push or deployment.
+- Explicit Sandbox plan owner scope added; no weakening of Personal Chat or Room authorization. Additive migration0027 adds nullable unique Sandbox ownership plus constrained place-icon field. Protocol4 and old payload receipt hashes remain compatible.
+- Manual Rename is a separate validated command; provider names cannot be renamed. Icon commands are whitelisted, revision-bound and receipt-safe. Small shared icon-component skeleton uses the existing Lucide/Tosker vocabulary.
+- Full retained-row backup (35 tables) stored with0600 permissions at `.git/fp5-recovery/before-rehearse-39893444-7ea3-4b6f-96e8-00ef236c99f6.json`; SHA256 `fe3c27a237d4afd306e860b1d9d811a2703ebb1c5800de431659d9c83146d06d`. Private backup is not committed or printed.
+- `npm run typecheck` PASS. `scripts/migrate-ms73-fp5.ts --rehearse` PASS in transaction-owned isolated namespace, including whole-row preservation, owner-only Sandbox reads/writes, cross-context rejection, exact-founder QA membership, shared A/B/founder read, checkpoint naming/Rename/icons, replay, POI-name protection, duplicates, comments and exact fixture cleanup. Transaction rolled back. Public history still27; no FP5 schema/fixtures retained by this rehearsal.
+- Migration SQL is additive except atomically replacing the context CHECK. No destructive data rewrite/backfill; no pin conversion. Public apply remains gated behind integrated acceptance and a fresh backup.
+- Normal planning decision: direct preview → explicit Add to current Route. FP4B memory/provenance/lifecycle retained as a secondary Saved places surface, never silently converted into Route Locations.
+- Official MapLibre popup API, Geoapify routing API and Wanderlog collaboration references refreshed against the research ledger; no new provider or scope expansion.
+- Next: B compact marker/card inspection, direct add, manual Rename/icon controls and genuine private Sandbox planning/default Map; then C/D/E/F. UI/browser/regression acceptance is not yet claimed.

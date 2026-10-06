@@ -11,6 +11,12 @@ export async function lockTripScope(tx: ToskerTransaction, actor: AuthenticatedA
   if (typeof scope !== "string") throw new AuthorizationDeniedError();
   const [slug, child, extra] = scope.split("--");
   if (!slug || scope.length > 150 || extra !== undefined || (child !== undefined && !isConversationId(child))) throw new AuthorizationDeniedError();
+  if (slug === "sandbox") {
+    if (!child) throw new AuthorizationDeniedError();
+    const [chat] = await tx.select({ id: conversations.id }).from(conversations).where(and(eq(conversations.id, child), eq(conversations.kind, "sandbox"), eq(conversations.ownerId, actor.userId), isNull(conversations.roomId), isNull(conversations.subroomId))).for(mode);
+    if (!chat) throw new AuthorizationDeniedError();
+    return { roomId: null, subroomId: null, personalConversationId: null, sandboxConversationId: child, conversationId: child };
+  }
   if (slug === "personal") {
     if (!child) throw new AuthorizationDeniedError();
     const [chat] = await tx.select().from(conversations).where(and(eq(conversations.id, child), eq(conversations.kind, "personal"), isNull(conversations.roomId), isNull(conversations.subroomId))).for(mode);
@@ -22,7 +28,7 @@ export async function lockTripScope(tx: ToskerTransaction, actor: AuthenticatedA
     if (chat.directKey !== pair) throw new AuthorizationDeniedError();
     const [relationship] = await tx.select({ id: connections.id }).from(connections).where(and(eq(connections.pairKey, pair), eq(connections.status, "accepted"))).for("share");
     if (!relationship) throw new AuthorizationDeniedError();
-    return { roomId: null, subroomId: null, personalConversationId: child, conversationId: child };
+    return { roomId: null, subroomId: null, personalConversationId: child, sandboxConversationId: null, conversationId: child };
   }
   const [room] = await tx.select({ id: rooms.id }).from(rooms).where(eq(rooms.slug, slug)).for(mode);
   if (!room) throw new AuthorizationDeniedError();
@@ -35,7 +41,7 @@ export async function lockTripScope(tx: ToskerTransaction, actor: AuthenticatedA
   }
   const [chat] = await tx.select({ id: conversations.id }).from(conversations).where(and(eq(conversations.roomId, room.id), child ? eq(conversations.subroomId, child) : and(isNull(conversations.subroomId), eq(conversations.isPrimary, true)))).limit(1);
   if (!chat) throw new AuthorizationDeniedError();
-  return { roomId: room.id, subroomId: child ?? null, personalConversationId: null, conversationId: chat.id };
+  return { roomId: room.id, subroomId: child ?? null, personalConversationId: null, sandboxConversationId: null, conversationId: chat.id };
 }
-export const tripScopeWhere = (scope: { roomId: string | null; subroomId: string | null; personalConversationId: string | null }) => scope.personalConversationId ? eq(tripPlans.personalConversationId, scope.personalConversationId) : and(eq(tripPlans.roomId, scope.roomId!), scope.subroomId ? eq(tripPlans.subroomId, scope.subroomId) : isNull(tripPlans.subroomId));
+export const tripScopeWhere = (scope: { roomId: string | null; subroomId: string | null; personalConversationId: string | null; sandboxConversationId: string | null }) => scope.sandboxConversationId ? eq(tripPlans.sandboxConversationId, scope.sandboxConversationId) : scope.personalConversationId ? eq(tripPlans.personalConversationId, scope.personalConversationId) : and(eq(tripPlans.roomId, scope.roomId!), scope.subroomId ? eq(tripPlans.subroomId, scope.subroomId) : isNull(tripPlans.subroomId));
 export const authorizeTripScope = (db: ToskerDatabase, actor: AuthenticatedActor, scope: string) => db.transaction(tx => lockTripScope(tx, actor, scope, "share"));

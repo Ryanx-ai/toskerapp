@@ -71,16 +71,17 @@ export const mapPinReceipts = pgTable("map_pin_receipts", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 }, t => [primaryKey({ columns: [t.conversationId,t.actorId,t.requestId] }), check("map_pin_receipts_hash_valid", sql`length(${t.payloadHash}) = 64`)]);
 
-// Exactly one owner context: Room/Subroom OR Personal conversation, never shared IDs.
+// Exactly one owner context: Room/Subroom, Personal Chat, or owner-private Sandbox.
 export const tripPlans = pgTable("trip_plans", {
   id: uuid("id").defaultRandom().primaryKey(),
   roomId: uuid("room_id").references(() => rooms.id, { onDelete: "cascade" }),
   subroomId: uuid("subroom_id").references(() => subrooms.id, { onDelete: "cascade" }),
   personalConversationId: uuid("personal_conversation_id").references(() => conversations.id, { onDelete: "cascade" }),
+  sandboxConversationId: uuid("sandbox_conversation_id").references(() => conversations.id, { onDelete: "cascade" }),
   revision: integer("revision").default(0).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
-}, t => [uniqueIndex("trip_plans_room_unique").on(t.roomId).where(sql`${t.subroomId} is null`), uniqueIndex("trip_plans_subroom_unique").on(t.subroomId), uniqueIndex("trip_plans_personal_unique").on(t.personalConversationId), check("trip_plans_context_valid", sql`(${t.roomId} is not null and ${t.personalConversationId} is null) or (${t.roomId} is null and ${t.subroomId} is null and ${t.personalConversationId} is not null)`), check("trip_plans_revision_valid", sql`${t.revision} >= 0`)]);
+}, t => [uniqueIndex("trip_plans_room_unique").on(t.roomId).where(sql`${t.subroomId} is null`), uniqueIndex("trip_plans_subroom_unique").on(t.subroomId), uniqueIndex("trip_plans_personal_unique").on(t.personalConversationId), uniqueIndex("trip_plans_sandbox_unique").on(t.sandboxConversationId), check("trip_plans_context_valid", sql`(${t.roomId} is not null and ${t.personalConversationId} is null and ${t.sandboxConversationId} is null) or (${t.roomId} is null and ${t.subroomId} is null and ${t.personalConversationId} is not null and ${t.sandboxConversationId} is null) or (${t.roomId} is null and ${t.subroomId} is null and ${t.personalConversationId} is null and ${t.sandboxConversationId} is not null)`), check("trip_plans_revision_valid", sql`${t.revision} >= 0`)]);
 
 export const tripPlaces = pgTable("trip_places", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -90,6 +91,7 @@ export const tripPlaces = pgTable("trip_places", {
   isStop: boolean("is_stop").default(true).notNull(),
   skipped: boolean("skipped").default(false).notNull(),
   title: text("title").notNull(),
+  icon: text("icon").default("destination").notNull(),
   note: text("note").default("").notNull(),
   starred: boolean("starred").default(false).notNull(),
   latitude: doublePrecision("latitude").notNull(),
@@ -112,6 +114,7 @@ export const tripPlaces = pgTable("trip_places", {
   check("trip_places_longitude_valid", sql`${t.longitude} >= -180 and ${t.longitude} <= 180`),
   check("trip_places_text_valid", sql`length(${t.title}) between 1 and 120 and length(${t.note}) <= 1000 and length(${t.address}) <= 400 and length(${t.attribution}) <= 500 and length(${t.license}) <= 120`),
   check("trip_places_source_valid", sql`${t.source} in ('search', 'pin')`),
+  check("trip_places_icon_valid", sql`${t.icon} in ('destination', 'checkpoint', 'home', 'work', 'food', 'stay', 'activity', 'favourite', 'meetup')`),
 ]);
 
 export const tripComments = pgTable("trip_comments", {

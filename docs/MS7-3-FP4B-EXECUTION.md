@@ -6,6 +6,12 @@ Founder explicitly approved the extension to finish remaining gates and canonica
 
 ## B5 complete — extension acceptance, 2026-10-06
 
+## B6 release candidate — 2026-10-06
+
+B5 checkpoint42ff4a265ff5c780ec86e458271cda463e221c6b. Fresh optimized build after that checkpoint passed; no remaining application changes. Final source review covered source/projection authorization, lock order, idempotent independent copy, realtime authorization and server/client boundaries. Signed candidate/forged actor/context/expiry, licensed provider subset/Singapore filter and founder fixture abort/protection tests pass. Exact disposable fixture ownership dry-run passes. Production metadata confirms NEXT_PUBLIC_GEOAPIFY_MAP_KEY as browser Config and GEOAPIFY_SEARCH_KEY as server Secret; retained Development configuration unchanged. No credential values pulled/changed, no billing/provider restrictions changed. Latest source/client scan556owned files+40bundles passes. Fresh origin/main remains eadc1cf, no concurrent remote divergence; canonical independently still FP4A READY before release. Push this scoped release candidate normally; do not upload unrelated working-tree files. Live canonical acceptance/cleanup remains mandatory after deploy, not yet claimed here.
+
+### B5 evidence
+
 Recovered173f4e0; no migration replay or fixture creation. Latest optimized build includes one bounded recovery fix: successful authorized Pin refresh now clears its stale offline/read warning independently of write errors. Real offline test found this defect; regression passed after rebuild. Native agent-browser sessions repeatedly reset/timed out; switched to already-installed Playwright Chromium without installing packages or changing app architecture. Normal isolated Clerk A/B authentication throughout.
 
 Completed browser evidence: explicit search/preview/confirmation and four-state update; separate Route-owned copies and Route1 Nuke from prior run; final source Pin Nuke removes A/B projections, no resurrection on reload, Route2 Card survives. Manual point remains unsaved until explicit keyboard Pin confirmation; resulting Checkpoint visible only to A's private Sandbox, then exact temporary Pin removed. A-only private Hide remains durable; shared source/B unaffected. Actual B Room membership withdrawal clears open detail, unsaved state, Route choices and rendered provenance; fresh realtime request403 and reload deny access; A and founder untouched; B restored in finally. Offline/reconnect warning recovery and background-clear/foreground-authorize pass.

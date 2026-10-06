@@ -166,7 +166,7 @@ export default function TripWorkspace({ roomSlug, conversationId }: { roomSlug: 
   useEffect(() => {
     const escape = (event: KeyboardEvent) => {
       if (event.key !== "Escape" || event.defaultPrevented || document.querySelector('[role="dialog"], [aria-modal="true"]') || (event.target as Element)?.closest('input, textarea, select, [contenteditable="true"]')) return;
-      setSelectedId(null); setPinMode(false); setPreview(null);
+      request.current?.abort(); setSearching(false); setNotice(""); setSelectedId(null); setPinMode(false); setPreview(null);
     };
     window.addEventListener("keydown", escape);
     return () => window.removeEventListener("keydown", escape);
@@ -185,7 +185,7 @@ export default function TripWorkspace({ roomSlug, conversationId }: { roomSlug: 
   const closeInspector = () => { if (busy) return; request.current?.abort(); setSearching(false); setPreview(null); setSelectedId(null); setNotice(""); };
   const showCards = () => { setCollapsed(false); setView("places"); requestAnimationFrame(() => cards.current?.querySelector<HTMLElement>(`[data-place-id="${selectedId}"] button`)?.focus({ preventScroll:false })); };
   const inspector = (preview || selectedPlace) && <TripPointInspector key={preview ? `preview:${preview.candidate.latitude}:${preview.candidate.longitude}:${route?.id}` : selectedPlace?.id} candidate={preview?.candidate} place={selectedPlace} title={previewTitle ?? selectedPlace?.title ?? "Place"} routeName={route?.name} revision={plan?.revision ?? 0} disabled={disabled} ready={!!preview?.token} busy={busy} close={closeInspector} add={() => { if (preview?.token && route) void change({ type:"add", token:preview.token, routeId:route.id }); }} showCard={showCards} comments={() => { if(selectedPlace)setCommentId(selectedPlace.id); }} createRoute={() => { closeInspector(); setView("places"); setCollapsed(false); }} change={change} />;
-  return <section className={styles.workspace} data-tray-collapsed={collapsed} aria-label="Trip Map" data-trip-revision={plan?.revision} onClick={event => { if (!(event.target as Element).closest('button, a, input, textarea, select, summary, [role="dialog"], [data-place-id], .maplibregl-map')) setSelectedId(null); }}>
+  return <section className={styles.workspace} data-tray-collapsed={collapsed} aria-label="Trip Map" data-trip-revision={plan?.revision} onClick={event => { if (!(event.target as Element).closest('button, a, input, textarea, select, summary, [role="dialog"], [data-place-id], [data-map-inspector], .maplibregl-map')) setSelectedId(null); }}>
     <div className={styles.mobileViews} aria-label="Map view"><button aria-pressed={view === "map"} onClick={() => setView("map")}><MapIcon size={16} aria-hidden="true" />Map</button><button aria-pressed={view === "places"} onClick={() => setView("places")}><List size={16} aria-hidden="true" />Places ({places.length})</button></div>
     {error && <div className={styles.feedback} role="alert"><p>{error}</p>{pending ? <button disabled={busy} onClick={() => void write(pending)}>Retry same change</button> : <div className={styles.actions}><button onClick={() => void load()}>Refresh locations</button>{query.trim().length >= 3 && <button disabled={searching} onClick={() => setSearchAttempt(value => value+1)}>Retry search</button>}</div>}</div>}
     <div className={`${styles.mapPlane} ${view === "places" ? styles.mobileMapHidden : ""}`}>

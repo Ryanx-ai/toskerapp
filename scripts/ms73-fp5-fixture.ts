@@ -6,6 +6,7 @@ import {sql} from "drizzle-orm";
 import {getDatabase} from "../src/server/db/client";
 import {createQaFixture,cleanupQaFixture,resolveQaActors,type QaFixture} from "./lib/ms73-fixtures";
 import {readTrip,mutateTrip} from "../src/server/trips/service";
+import {mutatePin} from "../src/server/map-pins/service";
 import type {TripCommand} from "../src/lib/trip-contract";
 const db=getDatabase(),path=".git/fp5-recovery/browser-fixture.json";
 async function main(){
@@ -24,8 +25,13 @@ async function main(){
     writeFileSync(path,JSON.stringify({fixture,routeId,secondId},null,2),{mode:0o600});
     console.log(JSON.stringify({room:fixture.slug,purpose:fixture.purpose,founderIncluded:true,providerRequests:0}));return;
   }
-  assert(["--inspect","--cleanup","--seed-roads"].includes(process.argv[2]));
+  assert(["--inspect","--cleanup","--seed-roads","--seed-memory"].includes(process.argv[2]));
   const {fixture}=JSON.parse(readFileSync(path,"utf8")) as {fixture:QaFixture};
+  if(process.argv[2]==="--seed-memory"){
+    await cleanupQaFixture(db,fixture,false);
+    const pin=await mutatePin(db,a,{scope:fixture.slug,requestId:randomUUID(),command:{type:"create",candidate:{title:"QA legacy memory",latitude:1.305,longitude:103.855,source:"pin",provider:null,providerId:null,address:"Synthetic legacy compatibility fixture only",attribution:"",license:""},state:"saved"}});
+    console.log(JSON.stringify({room:fixture.slug,pinId:pin.resultId,providerRequests:0}));return;
+  }
   if(process.argv[2]==="--seed-roads"){
     await cleanupQaFixture(db,fixture,false);
     assert(!(await readTrip(db,a,fixture.slug)).routes.some(route=>route.name==="FP5 cross-island QA"),"Route exists; no duplicate setup");

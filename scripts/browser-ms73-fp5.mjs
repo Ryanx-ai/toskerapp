@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {run,ev,until,button} from "./browser-fp2.mjs";
+import {run,ev,until,button as clickButton} from "./browser-fp2.mjs";
 const a="ms73-fp5-a",b="ms73-fp5-b",origin=process.env.FP5_ORIGIN??"http://localhost:3000";
 const {fixture}=JSON.parse(readFileSync(".git/fp5-recovery/browser-fixture.json","utf8"));
+async function button(s,name){await until(s,`[...document.querySelectorAll('button')].some(e=>e.checkVisibility()&&!e.disabled&&(e.getAttribute('aria-label')||e.textContent).trim()===${JSON.stringify(name)})`,`enabled ${name}`);return clickButton(s,name);}
 async function ready(s,path){await run(s,"open",origin+path);await until(s,"!!document.querySelector('input[aria-label=\"Search places\"]')&&!document.querySelector('input[aria-label=\"Search places\"]').disabled","authorized Map",45000);}
 async function login(s,letter){
   await run(s,"open",origin+"/app");await until(s,"!!document.querySelector('.messaging-app')||[...document.querySelectorAll('button')].some(e=>e.textContent==='Sign in')","session hydration",45000);if(await ev(s,"!!document.querySelector('.messaging-app')"))return;
@@ -13,6 +14,89 @@ async function login(s,letter){
   await until(s,"!!document.querySelector('input[autocomplete=one-time-code]')","QA OTP");await run(s,"fill","input[autocomplete=one-time-code]","424242");await until(s,"!!document.querySelector('.messaging-app')","authenticated QA",45000);
 }
 const mode=process.argv[2];
+if(mode==="reconnect"){
+  for(const s of[a,b]){await run(s,"set","viewport","1440","900");await ready(s,`/room/${fixture.slug}/map`);await button(s,"FP5 Singapore QA");}
+  const rename=async(name)=>{await button(a,"Edit place appearance");await button(a,"Rename checkpoint");await run(a,"fill","[data-map-inspector] input",name);await button(a,"Save name");await until(a,`document.querySelector('[data-map-inspector] h2')?.textContent===${JSON.stringify(name)}`,"name acknowledged");};
+  await button(a,"Select place 3: QA Meetup");await run(b,"set","offline","on");
+  try{await rename("QA reconnect checkpoint");assert(!(await ev(b,"[...document.querySelectorAll('[data-place-id]')].some(e=>e.textContent.includes('QA reconnect checkpoint'))")),"disconnected peer has no new state");}
+  finally{await run(b,"set","offline","off");}
+  await until(b,"[...document.querySelectorAll('[data-place-id]')].some(e=>e.textContent.includes('QA reconnect checkpoint'))","reconnect canonical refresh",45000);
+  await button(a,"Rename checkpoint");await run(a,"fill","[data-map-inspector] input","QA Meetup");await button(a,"Save name");await until(b,"[...document.querySelectorAll('[data-place-id]')].some(e=>e.textContent.includes('QA Meetup'))","restored name reconciles");
+  await button(a,"Close place preview");
+  console.log("PASS genuine B offline/online recovery after A shared mutation; canonical state reconciled and QA name restored");
+}
+if(mode==="memory"){
+  await run(a,"set","viewport","1440","900");await ready(a,`/room/${fixture.slug}/map`);assert.equal(await ev(a,"document.querySelectorAll('section[aria-label=\"Map Pins\"]').length"),0,"legacy memory is secondary");
+  await button(a,"Saved places");await run(a,"click","section[aria-label='Map Pins'] summary");await button(a,"Open Saved Pin: QA legacy memory");
+  assert((await ev(a,"document.querySelector('[aria-label=\"Map Pin details\"]').textContent")).includes(fixture.name),"source provenance retained");
+  await button(a,"Add to Route");await until(a,"[...document.querySelectorAll('select[aria-label=\"Target Route\"] option')].some(o=>o.textContent==='FP5 private QA · Your Sandbox')","owner-only Sandbox target choice");
+  const id=await ev(a,"[...document.querySelectorAll('select[aria-label=\"Target Route\"] option')].find(o=>o.textContent==='FP5 private QA · Your Sandbox').value");await run(a,"select","select[aria-label='Target Route']",id);await button(a,"Confirm Add to Route");await until(a,"!document.querySelector('[aria-label=\"Map Pin details\"]')","explicit private copy acknowledged",45000);
+  assert(await ev(a,"!!document.querySelector('button[aria-label=\"Open Saved Pin: QA legacy memory\"]')"),"source Pin survives Route copy");
+  await ready(a,"/personal/my-room");await until(a,"[...document.querySelectorAll('[data-place-id]')].some(e=>e.textContent.includes('QA legacy memory'))","private copied Route Card");
+  await ready(b,"/personal/my-room");assert(!(await ev(b,"[...document.querySelectorAll('[data-place-id]')].some(e=>e.textContent.includes('QA legacy memory'))")),"B cannot see private copied Card");
+  await button(b,"Saved places");await button(b,"Open Saved Pin: QA legacy memory");assert((await ev(b,"document.querySelector('[aria-label=\"Map Pin details\"]').textContent")).includes(fixture.name));await button(b,"Add to Route");await until(b,"!!document.querySelector('select[aria-label=\"Target Route\"]')","B authorized target list");assert(!(await ev(b,"[...document.querySelectorAll('select[aria-label=\"Target Route\"] option')].some(o=>o.textContent.includes('FP5 private QA'))")),"A private Route absent from B choices");await button(b,"Close Pin details");
+  console.log("PASS secondary legacy memory, canonical provenance, explicit Pin→own Sandbox Route copy, source survives, B social projection without private card/target leakage");
+}
+if(mode==="long-focus"){
+  const long="QA meeting point with an intentionally very long checkpoint title for narrow-screen focus and wrapping verification";
+  await run(a,"set","viewport","1440","900");await ready(a,`/room/${fixture.slug}/map`);await button(a,"FP5 Singapore QA");const current=await ev(a,"document.querySelector('[data-place-id]:nth-child(3) button').getAttribute('aria-label')");await button(a,current);await button(a,"Edit place appearance");await button(a,"Rename checkpoint");
+  await run(a,"fill","[data-map-inspector] input",long);await button(a,"Save name");await until(a,`document.querySelector('[data-map-inspector] h2')?.textContent===${JSON.stringify(long)}`,"long name saved");
+  await until(a,"!document.querySelector('[data-map-inspector] button[aria-label=\"Close place preview\"]').disabled","long name acknowledged");
+  await run(a,"set","viewport","320","800");
+  await ev(a,"(()=>{const style=document.createElement('style');style.id='fp5-text-stress';style.textContent='[data-map-inspector] h2,[data-map-inspector] p,[data-map-inspector] button,[data-map-inspector] summary{font-size:20px!important}';document.head.append(style);return true})()");
+  await ev(a,"new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve(true))))");
+  await run(a,"scrollintoview","[data-map-inspector] h2");await run(a,"click","[data-map-inspector] h2");assert(await ev(a,"!!document.querySelector('[data-map-inspector]')"),"reading/clicking content does not dismiss popup");
+  await run(a,"scrollintoview","[data-map-inspector] details summary");await run(a,"focus","[data-map-inspector] details summary");await run(a,"press","Enter");
+  assert(await ev(a,"(()=>{const e=document.activeElement,r=e.getBoundingClientRect(),p=document.querySelector('[data-map-inspector]'),b=p.getBoundingClientRect();return r.top>=b.top&&r.bottom<=b.bottom&&r.top>=0&&r.bottom<=innerHeight&&p.scrollWidth<=p.clientWidth+1&&document.documentElement.scrollWidth<=innerWidth+1})()"),"long title/enlarged text keeps focused Info visible with no horizontal clipping");
+  await run(a,"screenshot",`${process.cwd()}/.git/fp5-recovery/long-text-focus-320.png`);await run(a,"press","Escape");await until(a,"!document.querySelector('[data-map-inspector]')","Escape closes after React commit");assert(await ev(a,"document.activeElement?.classList.contains('maplibregl-marker')"),"hidden mobile Card opener restores focus to marker");
+  await ev(a,"document.querySelector('#fp5-text-stress').remove();true");await run(a,"set","viewport","1440","900");await button(a,`Select place 3: ${long}`);await button(a,"Edit place appearance");await button(a,"Rename checkpoint");await run(a,"fill","[data-map-inspector] input","QA Meetup");await button(a,"Save name");await until(a,"document.querySelector('[data-map-inspector] h2')?.textContent==='QA Meetup'","QA name restored");await button(a,"Close place preview");
+  console.log("PASS actual long manual name save, 320px enlarged inspector text/focus/overflow, text click retained, Info/Escape; original QA name restored");
+}
+if(mode==="access-before"){
+  await ready(b,`/room/${fixture.slug}/map`);await button(b,"FP5 Singapore QA");await button(b,"Select place 3: QA Meetup");
+  await ev(b,"Object.defineProperty(navigator,'geolocation',{configurable:true,value:{getCurrentPosition(ok){ok({coords:{latitude:1.321234,longitude:103.851234,accuracy:10}})}}});true");await button(b,"Locate me");await until(b,"!!document.querySelector('[aria-label^=\"You, accuracy\"]')","private location before revocation");console.log("Ready: isolated B inspector and private location; remove B only from this owned shadow Room");
+}
+if(mode==="access-after"){
+  await until(b,"!document.querySelector('[data-place-id]')&&!document.querySelector('[aria-label^=\"You, accuracy\"]')&&!document.querySelector('[data-map-inspector]')","revocation clears cards/selection/local origin",45000);
+  const status=await ev(b,`(async()=>{const response=await fetch('/api/trips/${fixture.slug}/places',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind:'search',query:'QA unauthorized'})});return {status:response.status,cache:response.headers.get('cache-control')}})()`);assert.equal(status.status,403);assert.equal(status.cache,"private, no-store");console.log("PASS real B membership revocation clears private location/cards/inspector and API denies403 before lookup; founder membership stable");
+}
+if(mode==="drag"){
+  await run(a,"set","viewport","1440","900");await ready(a,`/room/${fixture.slug}/map`);await button(a,"FP5 Singapore QA");await ready(b,`/room/${fixture.slug}/map`);await button(b,"FP5 Singapore QA");
+  await button(a,"Select place 3: QA Meetup");await button(a,"Close place preview");
+  const revision=await ev(a,"Number(document.querySelector('[data-trip-revision]').dataset.tripRevision)");
+  await ev(a,"(()=>{window.__fp5MoveLookups=0;const original=window.fetch;window.fetch=(u,o)=>{if(String(u).endsWith('/places'))window.__fp5MoveLookups++;return original(u,o)};return true})()");
+  async function drag(){const p=await ev(a,"(()=>{const r=document.querySelector('.maplibregl-marker[aria-label$=\"3: QA Meetup\"]').getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2}})()");await run(a,"mouse","move",String(p.x),String(p.y));await run(a,"mouse","down");await run(a,"mouse","move",String(p.x+50),String(p.y+25));await run(a,"mouse","up");await until(a,"!!document.querySelector('[aria-label=\"Move checkpoint preview\"]')","drag preview");}
+  await drag();assert.equal(await ev(a,"Number(document.querySelector('[data-trip-revision]').dataset.tripRevision)"),revision);await button(a,"Cancel");assert.equal(await ev(a,"Number(document.querySelector('[data-trip-revision]').dataset.tripRevision)"),revision);
+  await drag();await button(a,"Save position");await until(b,`Number(document.querySelector('[data-trip-revision]').dataset.tripRevision)>${revision}`,"B receives confirmed drag");assert.equal(await ev(a,"window.__fp5MoveLookups"),0);
+  assert(await ev(b,"!!document.querySelector('[aria-label=\"Comments on QA Meetup, 1\"]')"));console.log("PASS real pointer marker drag preview/cancel/confirm, shared acknowledgement, same-card comments and zero lookup calls");
+}
+if(mode==="resilience"){
+  await ready(a,`/room/${fixture.slug}/map`);await button(a,"FP5 cross-island QA");
+  await ev(a,"(()=>{window.__fp5MockCalls=[];window.__fp5MockFail=true;window.__fp5OriginalFetch=window.fetch;window.fetch=async(u,o)=>{if(!String(u).endsWith('/roads'))return window.__fp5OriginalFetch(u,o);const mode=JSON.parse(o.body).mode;window.__fp5MockCalls.push(mode);if(window.__fp5MockFail)return Response.json({error:'QA controlled route outage'},{status:503});const coords=[[1.3331,103.7423],[1.436,103.7865],[1.3601,103.9898]],points=[...document.querySelectorAll('[data-place-id]')].map((e,i)=>[e.dataset.placeId,...coords[i]]);return Response.json({geometry:{mode,key:JSON.stringify([mode,...points]),segments:[[[103.7423,1.3331],[103.7865,1.436]],[[103.7865,1.436],[103.9898,1.3601]]],attribution:'Synthetic QA; no provider request',estimate:{metres:2000,seconds:1000,guidance:[],legs:points.slice(1).map((p,i)=>({fromId:points[i][0],toId:p[0],metres:1000,seconds:500}))}}})};return true})()");
+  await run(a,"select","[aria-label='Travel mode']","walk");await until(a,"document.body.textContent.includes('QA controlled route outage')","explicit outage",45000);
+  assert(!(await ev(a,"document.querySelector('details[aria-label=\"Route summary\"] summary').textContent.includes('km')")),"no stale totals on failure");
+  const before=await ev(a,"window.__fp5MockCalls.length");await ev(a,"window.__fp5MockFail=false;true");await button(a,"Retry route");await until(a,"document.querySelector('details[aria-label=\"Route summary\"] summary').textContent.includes('2.0 km')","explicit retry recovery",45000);assert.equal(await ev(a,"window.__fp5MockCalls.length"),before+1);
+  await run(a,"select","[aria-label='Travel mode']","drive");assert(!(await ev(a,"document.querySelector('details[aria-label=\"Route summary\"] summary').textContent.includes('km')")),"mode change removes old totals immediately");await until(a,"document.querySelector('details[aria-label=\"Route summary\"] summary').textContent.includes('2.0 km')","new mode success",45000);
+  await run(a,"select","[aria-label='Travel mode']","planning");const count=await ev(a,"window.__fp5MockCalls.length");await run(a,"select","[aria-label='Travel mode']","walk");await run(a,"select","[aria-label='Travel mode']","drive");await run(a,"select","[aria-label='Travel mode']","planning");assert.equal(await ev(a,"window.__fp5MockCalls.length"),count,"coalesced cancellation has no network attempt");await ev(a,"window.fetch=window.__fp5OriginalFetch;true");
+  console.log("PASS controlled route outage/retry, no stale totals on mode change, debounce cancellation; synthetic responses only, zero provider requests");
+}
+if(mode==="regression"){
+  for(const s of[a,b]){await run(s,"set","viewport","1440","900");await ready(s,`/room/${fixture.slug}/map`);await button(s,"FP5 Singapore QA");}
+  const cards="[...document.querySelectorAll('[data-place-id]')].map(e=>({id:e.dataset.placeId,hidden:e.dataset.hidden,star:e.dataset.starred,locked:!!e.querySelector('[aria-label*=locked]'),skipped:!!e.querySelector('[aria-label^=Skipped]')}))";
+  const before=await ev(a,cards);assert.equal(before.length,5);assert(before[0].locked);
+  await button(a,"Place actions for QA Meetup");if(!(await ev(a,cards))[2].locked)await button(a,"Lock position 3");await run(a,"press","Escape");await until(b,`${cards}[2].locked`,"B shared lock");
+  if(await ev(a,"!!document.querySelector('[aria-label=\"Comments on QA Meetup, 0\"]')")){await button(a,"Comments on QA Meetup, 0");await run(a,"fill","dialog textarea","FP5 safe QA movement preserves discussion");await button(a,"Post location comment");await until(a,"document.querySelector('dialog textarea').value===''","comment persisted");await button(a,"Close comments");}
+  await button(a,"Place actions for QA Meetup");if((await ev(a,cards))[2].star!=="true")await button(a,"Star");await until(b,`${cards}[2].star==='true'`,"B shared star");await button(a,"Reposition checkpoint");await run(a,"find","label","Latitude","fill","1.2898");await button(a,"Save position");await until(a,"!document.querySelector('dialog[open]')","manual move confirmed");
+  await until(b,"!!document.querySelector('[aria-label=\"Comments on QA Meetup, 1\"]')","same-card comment preserved");assert.deepEqual((await ev(a,cards)).map(c=>c.id),before.map(c=>c.id));
+  await button(b,"Place actions for QA Meetup");await button(b,"Get info");assert((await ev(b,"document.querySelector('dialog').textContent")).includes("1.28980"));await button(b,"Close place details");
+  await button(a,"Hide Checkpoint 5 from my map");assert.equal((await ev(b,cards))[4].hidden,"false");await button(a,"Place actions for Checkpoint 5");await button(a,"Skip in route");await run(a,"press","Escape");await until(b,`${cards}[4].skipped`,"shared Skip");
+  await button(b,"Place actions for Checkpoint 5");await button(b,"Include in route");await run(b,"press","Escape");await until(a,`!${cards}[4].skipped`,"shared restore");await button(a,"Show Checkpoint 5 on my map");
+  await button(a,"Quick order");if(await ev(a,"!!document.querySelector('[aria-label=\"Quick order preview\"]')"))await button(a,"Apply suggested order");
+  await until(b,`${cards}.map(c=>c.id).join('|')===${JSON.stringify((await ev(a,cards)).map(c=>c.id).join('|'))}`,"B order reconciliation");assert.equal((await ev(a,cards))[0].id,before[0].id);assert.equal((await ev(a,cards))[2].id,before[2].id);
+  await button(a,"Select place 3: QA Meetup");await ev(a,"window.__fp5Canvas=document.querySelector('.maplibregl-canvas');true");await run(a,"fill",".composer textarea","FP5 unsent tray draft");await button(a,"Collapse Location Cards");assert(await ev(a,"window.__fp5Canvas===document.querySelector('.maplibregl-canvas')"));await button(a,"Expand Location Cards");assert.equal(await ev(a,"document.querySelector('.composer textarea').value"),"FP5 unsent tray draft");await run(a,"fill",".composer textarea","");
+  await button(a,"Close place preview");await run(b,"reload");await until(b,`${cards}.length===5&&${cards}[2].locked&&${cards}[2].star==='true'`,"durable shared fields reload");
+  console.log("PASS browser A/B locks, manual position/comment/star preservation, private Hide/shared Skip, Quick Order locked slots, tray canvas/draft preservation and reload");
+}
 if(mode==="short-walk"){
   await ready(a,`/room/${fixture.slug}/map`);await button(a,"FP5 Singapore QA");
   await ev(a,"(()=>{window.__fp5ShortRoad=null;const original=window.fetch;window.fetch=async(...args)=>{const r=await original(...args);if(new URL(typeof args[0]==='string'?args[0]:args[0].url,location.origin).pathname.endsWith('/roads'))window.__fp5ShortRoad={status:r.status,body:await r.clone().json()};return r};return true})()");
@@ -128,9 +212,9 @@ if(mode==="b"){
   console.log("PASS B shared Rename/icon + reload; non-modal inspector; private selection; keyboard/Escape/focus");
 }
 if(mode==="responsive"){
-  await ready(a,`/room/${fixture.slug}/map`);await run(a,"set","media","dark","reduced-motion");
+  await run(a,"set","viewport","1440","900");await ready(a,`/room/${fixture.slug}/map`);await button(a,"FP5 Singapore QA");await run(a,"set","media","dark","reduced-motion");
   for(const [width,height] of [[320,800],[390,844],[430,900],[768,900],[1440,900],[1728,960],[844,390]]){
-    await run(a,"set","viewport",String(width),String(height));await button(a,"Select meetup 3: QA Meetup");
+    await run(a,"set","viewport",String(width),String(height));await button(a,"Fit trip");await run(a,"click",".maplibregl-marker[aria-label$='3: QA Meetup']");
     const geometry=await ev(a,"(()=>{const e=document.querySelector('[data-map-inspector]'),r=e.getBoundingClientRect(),c=e.parentElement.getBoundingClientRect();return {overflow:document.documentElement.scrollWidth>innerWidth+1,inside:r.left>=c.left&&r.right<=c.right+1&&r.top>=c.top&&r.bottom<=c.bottom-20,content:e.scrollWidth<=e.clientWidth+1,motion:matchMedia('(prefers-reduced-motion:reduce)').matches,modal:document.querySelectorAll('dialog[open]').length}})()");
     assert(!geometry.overflow&&geometry.inside&&geometry.content&&geometry.motion&&geometry.modal===0,JSON.stringify({width,geometry}));
     await run(a,"screenshot",`${process.cwd()}/.git/fp5-recovery/inspector-${width}.png`);await button(a,"Close place preview");console.log(`PASS inspector ${width}x${height}: bounded, non-modal, reduced motion`);

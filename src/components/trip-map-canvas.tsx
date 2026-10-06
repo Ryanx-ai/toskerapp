@@ -261,7 +261,14 @@ export default function TripMapCanvas({ inspector, viewerAvatarUrl, mapPins, sel
     if (!inspectorKey || !element) return;
     const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     element.focus({ preventScroll: true });
-    return () => { if ((element.contains(document.activeElement) || document.activeElement === document.body) && previous?.isConnected) previous.focus({ preventScroll: true }); };
+    return () => {
+      if (!element.contains(document.activeElement) && document.activeElement !== document.body) return;
+      // A mobile Card opener is hidden after switching to Map. Return to its
+      // stable marker (or canvas for a new preview), never a hidden control.
+      const marker = [...pointMarkers.current.values()].find(entry => entry.place.id === inspectorKey)?.marker.getElement();
+      const target = previous?.isConnected && previous.checkVisibility() ? previous : marker ?? mapRef.current?.getCanvas();
+      target?.focus({ preventScroll: true });
+    };
   }, [inspectorKey]);
   useEffect(() => {
     const map = mapRef.current, element = inspectorRef.current;
@@ -285,6 +292,7 @@ export default function TripMapCanvas({ inspector, viewerAvatarUrl, mapPins, sel
     {inspector && <div key={inspectorKey} ref={inspectorRef} data-map-inspector className={styles.mapInspector} tabIndex={-1} onKeyDown={event => { if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); onDeselect(); } }}>{inspector}</div>}
     {status === "ready" && activeVisible && activeRoute && <details className={styles.routeSummary} aria-label="Route summary"><summary><strong>{activeRoute.name}</strong><span>{eligiblePlaces.length} {eligiblePlaces.length === 1 ? "stop" : "stops"} · {roadEnabled ? roadMode === "walk" ? "Walk" : "Drive" : "Order"}{roadEnabled && estimate?.estimate ? ` · ${roadDuration(estimate.estimate.seconds)} · ${roadDistance(estimate.estimate.metres)}` : ""}</span></summary><div>
       {roadEnabled ? estimate?.estimate ? <><p>Estimated travel between saved stops. No live traffic or navigation.</p>{estimate.estimate.legs ? <ol aria-label="Route segments">{estimate.estimate.legs.map(leg => <li key={`${leg.fromId}:${leg.toId}`}><span>{places.find(p => p.id === leg.fromId)?.title} → {places.find(p => p.id === leg.toId)?.title}</span><strong>{roadDuration(leg.seconds)} · {roadDistance(leg.metres)}</strong></li>)}</ol> : <p>Segment estimates unavailable.</p>}<small>{estimate.attribution}</small></> : <p>Travel estimates are unavailable until this route is calculated.</p> : <p>Straight lines connect your saved stops. Choose Walk or Drive for estimated travel.</p>}
+      {roadEnabled && !!estimate?.estimate?.guidance.length && <p>Via {estimate.estimate.guidance.map(road => road.name).join(" · ")}</p>}
       {localLocation && <p>Your dotted connector is a private visual guide, not directions. It is not included in travel estimates.</p>}
     </div></details>}
     {localLocation && originTarget && <p className={styles.srOnly} role="status">Private visual connector from You to {originTarget.title}. No distance or travel time is inferred.</p>}

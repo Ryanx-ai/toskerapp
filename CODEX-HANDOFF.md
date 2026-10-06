@@ -2,6 +2,12 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP4B CANONICAL VERIFIED — STOP FOR FOUNDER + JENN — 2026-10-06
+
+Exact release `2f516e8fa0093ca357d1995d876016d22eaffced`, READY Production `dpl_6Fiq682EVPvEoWeRhXw5ykMitfYs`, `toskerapp.vercel.app`/HTTPS200 verified. Read top `docs/MS7-3-FP4B-EXECUTION.md` for B1–B6, full local and live A/B,27migration/catalog, source+client/canonical20asset secret scan, zero browser exceptions and empty deployment error/fatal/5xx evidence. Map Pins and authorized provenance-preserving Sandbox views are released; independent Add-to-Route, private Hide and revocation boundaries verified. This final recovery checkpoint is local documentation only; canonical remains the exact release above.
+
+Owned disposable `ms73-qa-6896cd50` deleted after fresh ownership/contribution checks; DO NOT replay its fixture/smoke/cleanup receipt. Protected `ms73-founder-review-904a9dea` retains Want-to-go Marina Bay Sands Pin009e5547-5a05-4ae7-a511-11f46c7599b0 for walkthrough, founderTID8V3X7P1 unique/member/read verified. `ms73-qa-bfff9475` founder content preserved. Final6Rooms/11memberships/34messages,3plans/7routes/16cards/4comments/84Tripreceipts,oneMapPin,zero private QA Pins/orphans. No migration replay;0026 remains additive/applied. Local server stopped/browser contexts closed. Preserve unrelated WIP. **MS7.1/MS7.2locked; MS7.3unlocked; MS7.4unstarted. STOP awaiting founder+Jenn.**
+
 ## FP4B B5 COMPLETE — release acceptance next — 2026-10-06
 
 Founder extension explicitly supersedes historical timebox STOP. Read top `docs/MS7-3-FP4B-EXECUTION.md`. Recovered173f4e0, finished responsive/keyboard/private Pin/offline/revocation/browser Pin-Nuke gates; bounded stale-read-warning fix rebuilt and verified. All27migration hashes/catalog and retained invariants pass; NEVER replay0026 or restore its backup. Canonical still FP4A until B6 exact release/live verification. Next scoped commit/push, canonical/live A/B/secret/runtime checks, exact disposable cleanup, final save and STOP for founder+Jenn. No MS7.3 lock/MS7.4/MS8/Pings.

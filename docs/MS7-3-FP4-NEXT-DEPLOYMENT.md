@@ -1,5 +1,9 @@
 # MS7.3 FP4 — approved Map Pin prime / next-deployment marker
 
+## FP4A + FP4B CANONICAL — STOP FOR FOUNDER + JENN — 2026-10-06
+
+FP4A refinement released first and verified before FP4B. FP4B now canonical `2f516e8fa0093ca357d1995d876016d22eaffced`, READY Production `dpl_6Fiq682EVPvEoWeRhXw5ykMitfYs`, `toskerapp.vercel.app`. Full evidence, migration/recovery and final exact-owned cleanup in [FP4B execution ledger](MS7-3-FP4B-EXECUTION.md). Founder-approved extension completed remaining mandatory gates; no optional scope expansion. Retain Founder Review with representative Want-to-go Marina Bay Sands Pin and protected founder-content Room; disposable FP4B fixture deleted and must not be replayed. MS7.1/MS7.2locked, MS7.3unlocked, MS7.4unstarted. Await founder+Jenn walkthrough; no automatic lock or next milestone. Earlier active/STOP entries below are historical.
+
 ## ACTIVE — two bounded sprints authorized — 2026-10-05
 
 ### FP4A CANONICAL VERIFIED — final save state

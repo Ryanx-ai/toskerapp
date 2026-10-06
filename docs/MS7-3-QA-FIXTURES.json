@@ -13,6 +13,19 @@
     "purpose": "Retained A/B Map + Location Cards + Routes + Board + Chat Founder Walk"
   }],
   "activeDisposableReceipt": null,
+  "fp5Closeout": {
+    "canonicalSha": "0d6f367e0dbfaac180990a2aa5f3b54074286f95",
+    "deploymentId": "dpl_EqFA8D7XnkzLp4SHjD1tTjfx5LeY",
+    "publicMigrations": 28,
+    "retainedReviewPinState": "saved",
+    "retainedReviewPinRevision": 2,
+    "protectedFounderContentRoom": "ms73-qa-bfff9475",
+    "deletedDisposableRoom": "ms73-qa-ef3f6f46",
+    "deletedShadowRoom": "ms73-qa-06a7a155",
+    "deletedOwnedPrivateQaPlan": "0d0c316e-d4ba-41e2-8f2a-fd1b1ff8af04",
+    "receiptsAreHistoricalOnly": true,
+    "awaitingFounderAndJenn": true
+  },
   "historicalDeletedSearchReceipt": "MS7-3-SEARCH-FIXTURE.json",
   "historicalDeletedStressReceipt": "MS7-3-STRESS-FIXTURE.json",
   "fp4bCloseout": {

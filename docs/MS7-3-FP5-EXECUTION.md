@@ -1,5 +1,43 @@
 # MS7.3 FP5 — execution and recovery ledger
 
+## FP5 CANONICAL VERIFIED — STOP FOR FOUNDER + JENN (2026-10-06, Singapore)
+
+**Application release:** `0d6f367e0dbfaac180990a2aa5f3b54074286f95`, pushed normally to origin/main. **Canonical:** READY Production `dpl_EqFA8D7XnkzLp4SHjD1tTjfx5LeY`, deployment `tosker-q07bamk5a-pangea6.vercel.app`, exact SHA and `toskerapp.vercel.app` alias reverified after acceptance. Expected public redirect followed to HTTP200. This final recovery/QA documentation checkpoint is local and does not replace the canonical application SHA.
+
+### Final acceptance
+
+- A–F complete. Production build/typecheck PASS; lint0errors/one existing unrelated unused-eq warning. Exact28migration hashes/catalog PASS35tables/252columns/127constraints/15enums;0027 applied once with retained rows unchanged. Additive schema and actual public rollback authorization/lifecycle probe PASS. No migration replay or historical restore.
+- Sandbox is genuinely owner-private, defaults Map+Chat desktop/single-primary mobile. A/B server denial, browser target isolation, manual preview→explicit Route Add and reload PASS. Personal authorization remains separate; Room/Subroom boundaries and FP4B revocation/lifecycle regressions PASS.
+- Normal planning Search/Pin→preview→explicit Add to selected Route→Route-owned Card. Marker/Card remain the same Location. No separate primary Pin shelf or autosave-first-result. Existing FP4B data/provenance is retained behind secondary Saved places; source/Route copies remain independently deletable.
+- Manual Checkpoint1/2, Rename and nine-category icon state PASS; provider names protected. Locks/Quick Order/drag-move/comments/star/private Hide/shared Skip/recalculation/retry/reconnect PASS. Local selection, adjacent-leg emphasis, compact nonmodal inspector and focus restoration PASS.
+- Locate one-shot ON/OFF, late cancellation, denial/reloadOFF and private avatar/dotted connector PASS. No background watch, persisted history, peer broadcast, request-body/device-coordinate routing or invented connector metrics. Canonical granted-position test used emulated QA coordinates, not the founder's device location.
+- Validated provider total/per-leg metrics PASS; Order mode never fabricates roads/ETA. Local real cross-island Drive50,487m/2491.774s/two legs; short Walk3,765m/3579.708s/four legs. **Long west/north→Changi Walk returned provider400: coverage caveat retained, not success or an inferred cause.** Canonical Drive1,857m/163.981s/one leg PASS, road-name guidance and attribution visible.
+- Responsive320/390/430/768/1440/1728 plus844×390, long names/enlarged text, keyboard/Info/Escape/focus, reduced motion PASS. Native screenshots visually inspected. UX/React skills informed compact existing-token composition and stable marker focus; no artistic redesign/new visual system.
+- Canonical normal A/B sign-in, read-only Founder Review cards/saved MBS provenance, shared Rename/icon/selection, true Drive, explicitly chosen MBS search result→preview→Add, private Locate, Sandbox manual Checkpoint and reload PASS. Zero browser page exceptions; map tiles200 with no provider-access errors observed. Test-only ambiguous dialog selector and async response-observer race corrected; no application failure suppressed. One extra bounded Drive call resolved the response-capture uncertainty; no cross-island reruns.
+- Source/owned576files +40client/worker bundle scan PASS;20canonical client assets server-secret scan PASS. Server key never supplied to browser. Separate Vercel browser/server Development and Production metadata reverified; keys/restrictions/billing/Free-plan settings not changed. Browser-origin compatibility proven by live tiles; this is not a fresh dashboard audit of every restriction. MapLibre/provider boundary remains replaceable and Geoapify remains bounded founder-review infrastructure, not permanent production approval.
+- Release-scoped error/fatal log query empty; project runtime-error clusters empty for acceptance window. MCP statusCode argument did not filter info entries reliably; final independent Vercel CLI59.11.7 exact-deployment `--status-code 5xx --since 30m --json` succeeded with zero matching rows. Do not label the informational Clerk development-instance telemetry notice an error. No new paid monitoring services.
+
+### Exact cleanup and retained walkthrough
+
+Public disposable `ms73-qa-ef3f6f46` included A/B + uniquely resolved founder8V3X7P1; its purpose was bounded FP5 canonical smoke. Fresh ownership/contribution dry-run PASS, then Room deleted. Exact new A-private QA plan `0d0c316e-d4ba-41e2-8f2a-fd1b1ff8af04`/Route `39ae82b4-ecd5-485c-a3bb-6167d820a747` removed; A's parent Sandbox/account/profile/history retained. No unrelated Room membership changes. Public QA receipt is now historical, NEVER replay setup/cleanup.
+
+Shadow Room `ms73-qa-06a7a155`, its private test plan and whole isolated namespace removed after exact receipt,35table allowlist, zero external dependencies, and all retained copied profiles/messages/Board/Rooms/Route cards/comments/Pins plus founder account equality checks. Cleanup inspector originally matched profiles by nonexistent id; corrected to actual user_id primary key, then equality checks passed—no data was modified to make checks pass. Shadow backup0600 `.git/fp5-recovery/shadow-cleanup-f0dbf944-1a17-460c-aa8b-28b07d7d7500.json`, SHA256 `3333f6c440752c935d1199e981a807b8cdf82625c2a0d477f39c8046cd7b3c0c`; recoverable isolated test contents, not a public restore instruction. Namespace absence verified. Earlier owned shadow FP3 fixture754ef921 already deleted; rollback probes retain nothing. Local server and exact A/B QA browsers closed; live Playwright contexts closed.
+
+Every retained MS7.3 QA/Review Room containing founder8V3X7P1, freshly queried:
+
+| Room | Purpose | Founder Walk | Cleanup |
+| --- | --- | --- | --- |
+| `ms73-founder-review-904a9dea` — MS7.3 Founder Review — Singapore Trip | Existing representative Map/Location Cards/Routes/Board/Chat review | Available | Never automatically clean |
+| `ms73-qa-bfff9475` — MS7.3 QA — bfff9475 | Protected founder-authored retained content | Available | Protected; not disposable |
+
+Founder Review MBS Pin009e5547-5a05-4ae7-a511-11f46c7599b0 remains **saved, revision2**, provenance unchanged. Final public3plans/7routes/16cards/4comments/84receipts;8users/profiles/Sandboxes,6Rooms/11memberships,5Personal conversations/34messages,12Boardnotes/2Boardpins/3capabilities/6connections/48notifications. All orphan/duplicate/ownership checks zero; seven cutover guards enabled. Final public profiles/messages/Board/Pins equal the saved pre-FP5 baseline. Provider app countersUTC2026-10-06: roads50/60,geocoding9/120; total provider/tile account usage not freshly audited, cap remains3000/day.
+
+### Recovery / final boundary
+
+Do not run old shadow wrappers/fixture scripts: that namespace and disposable Room no longer exist. Preserve ignored backups/receipts as historical evidence; never restore over newer founder data. New work starts with exact canonical/Git/public28 read-only recovery and a new founder directive. Unrelated Design/Art/Web/inheritance WIP remains unstaged and intact.
+
+**MS7.1 LOCKED · MS7.2 LOCKED · MS7.3 FP5 FOUNDER-REVIEW BUILD LIVE, UNLOCKED · MS7.4 NOT STARTED · MS8 NOT STARTED.** STOP awaiting founder + Jenn playtest. Continuous live location, pings, Share Route, email, permanent provider procurement and MS8 visual overhaul remain deferred; no scope advanced automatically.
+
 ## F — public cutover applied; canonical release next (2026-10-06)
 
 E checkpoint `91cf2b2`. Migration0027 APPLIED ONCE atomically; public now28migrations. Fresh0600 backup `.git/fp5-recovery/before-apply-7ec905c6-4475-491e-9fb3-f31281f3ac05.json`, SHA256 `a2127e6eda0c5ea4bf189c6743f9443ca9ff48cadf56ccc889ade2bdaa500a25`. Every old row/field compared equal inside the migration transaction. Never replay prior migrations or restore old backups onto newer retained data.

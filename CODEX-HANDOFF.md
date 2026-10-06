@@ -2,6 +2,12 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP5 CANONICAL VERIFIED — STOP FOR FOUNDER + JENN — 2026-10-06
+
+Exact pushed application `0d6f367e0dbfaac180990a2aa5f3b54074286f95`, READY Production `dpl_EqFA8D7XnkzLp4SHjD1tTjfx5LeY`, canonical alias/HTTP200 verified. Read final top `docs/MS7-3-FP5-EXECUTION.md` for A–F,28hash/catalog, additive backup/cutover, full local and bounded live A/B, private Sandbox, names/icons/Locate/true metrics, responsive/keyboard and source/client/canonical-secret/runtime gates. Long cross-island Walk provider400 remains a coverage caveat; shortWalk/longDrive/canonicalDrive passed. No MS7.3 automatic lock/MS7.4/MS8.
+
+Disposable public ms73-qa-ef3f6f46 and exact new A-private QA plan removed after ownership/contribution dry-run; parent Sandbox/profile retained. Exact shadow schema/Room06a7a155 removed after retained-copy/dependency checks and0600 backup. DO NOT replay those historical receipts or old shadow wrappers. Both protected Rooms/ms73-founder-review-904a9dea and ms73-qa-bfff9475 remain with founder8V3X7P1; saved MBS Pin revision2 and retained content unchanged. Final3plans/7routes/16cards/4comments/84receipts,6Rooms/11memberships/34messages. Provider50/60roads,9/120geocode (UTC10-06; tiles excluded). Local server/QA browsers closed. This local recovery/docs checkpoint is separate from canonical app SHA. Preserve unrelated WIP. **STOP awaiting founder + Jenn playtest.**
+
 ## FP5 PUBLIC28 APPLIED — CANONICAL RELEASE NEXT — 2026-10-06
 
 Read top `docs/MS7-3-FP5-EXECUTION.md`. E91cf2b2 green (build/type/lint/built-A/B/responsive/privacy/service/secret gates). Fresh backup + atomic0027 PASS; all28hashes/catalog and actual public rollback Sandbox/name/icon/auth/lifecycle probe PASS; retained data unchanged. NEVER reapply migration or restore backup. Next exact scoped push/canonical/live smoke/cleanup/save/STOP, no generic approval needed. Canonical stillFP4B2f516e8 until release. Existing shadow/QA receipts survive and are disposable only after exact ownership checks; protect Founder Review and bfff9475. Provider46/60road,7/120geo counters, conserve. Keep server credentials server-only and unrelated WIP unstaged. MS7.3unlocked/MS7.4/MS8unstarted.

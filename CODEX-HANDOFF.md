@@ -2,6 +2,14 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP6 F overnight candidate — deterministic green, HOLD CANONICAL — 2026-10-08 SGT
+
+Application/test commit3481b3b, branch codex/ms73-fp6. Read new F in docs/MS7-3-FP6-EXECUTION.md and founder directive5e3d3cfb-d33b-4ae6-9c76-cb7f5026a2c9/Pasted text.txt. Non-provider code/acceptance complete: search/atomic Route1/lost ACK/concurrency/all-scope auth, controlled roads/errors/cancellation, Locate consent/access-loss, built A/B ephemeral Pings, seven widths/long preview/200% text/focus/collapse, build/type/security/catalog/invariants green. Fixed route-switch debounce cancellation and reversed provider geometry validation (500m endpoint allowance). Real road matrix must still exercise the guard; mocks are not provider truth.
+
+Canonical/origin-main unchanged FP5 0d6f367e0dbfaac180990a2aa5f3b54074286f95, READY dpl_EqFA8D7XnkzLp4SHjD1tTjfx5LeY; no push/deploy. Road60/60/geocode12/120 stored UTC Oct7. After Oct8 08:00SGT verify UTC/effective allowance, no counter reset, then ledger's bounded24-credit real matrix plus separately budgeted live smoke. Only after truth green: final regression/scoped push/exact canonical/live A/B/exact cleanup/save/STOP. No quota/provider/billing/env changes; no scheduled wakeup.
+
+28migrations unchanged, seven guards enabled, no orphans/mirror mismatch/duplicate positions; protected profiles/messages/Board/Map Pins unchanged.7Rooms/6plans/9routes/23cards/5comments/122receipts; isolated A's empty Sandbox plan/receipts legitimately remain. Owned FP6 Rooma26cdbb5 A+B+exact-founder8V3X7P1 retained for final QA; protect Founder Review904a9dea and founder-contentbfff9475. Temporary first-add/cancellation-route receipts historical, routes already deleted. Runtime/owned QA browsers closed; discover fresh PIDs/CDP. Preserve unrelated Design/Art/Web/inheritance WIP and older handoff hunks. MS7.3 unlocked; MS7.4/MS8 not started.
+
 ## FP6 E checkpoint — provider quota gate, NOT deployed — 2026-10-07
 
 Read the top of `docs/MS7-3-FP6-EXECUTION.md` and full founder addendum `5b631309-e2f8-48b2-a421-c0d30357d03f/Pasted text.txt`. FP6 application work is based on977c57d plus scoped E fixes/tests; current branch `codex/ms73-fp6`. Canonical freshly verified FP5 SHA0d6f367/READY dpl_EqFA8D7XnkzLp4SHjD1tTjfx5LeY; no FP6 push/deployment. Road sub-budget60/60UTC Oct7: do not reset/raise; natural reset Oct8 00:00UTC /08:00SGT. No automatic scheduled continuation. Real SG→JB and BT→Jewel passed; remaining real matrix/private-origin smoke still required. Controlled A/B, pings, origin privacy, order/locks, responsive and rollback auth tests documented separately from provider evidence. All28migrations unchanged. Latest build/type/security scan passed; rerun final release gates before canonical.

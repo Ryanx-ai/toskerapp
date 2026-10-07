@@ -1,5 +1,67 @@
 # MS7.3 FP6 execution and recovery
 
+## F — overnight release candidate, 2026-10-08 SGT — HOLD CANONICAL
+
+**Application/test HEAD3481b3b, codex/ms73-fp6. Code and provider-independent deterministic acceptance complete. Real-provider final gate pending.** Supersedes the unfinished non-provider list in E. Founder directive 5e3d3cfb-d33b-4ae6-9c76-cb7f5026a2c9/Pasted text.txt read fully; recovered1bfdb98. No push/deployment/migration/new provider/quota/billing/environment changes. Unrelated Design/Art/Web/inheritance and older handoff WIP preserved.
+
+Fresh fetch and canonical API lookup still report **0d6f367e0dbfaac180990a2aa5f3b54074286f95**, READY Production **dpl_EqFA8D7XnkzLp4SHjD1tTjfx5LeY**, alias toskerapp.vercel.app. Project prj_cxYhH8ypeFmuPOiEBC0gf0Rbzmau, team team_0V7YbyeIfevX0daNFOIuI2Ob. Separate browser/server Geoapify Development/Production assignments verified metadata-only during recovery. Restrictions/Free plan/replaceable provider boundary unchanged; bounded founder review, not production-provider certification.
+
+### Completed acceptance
+
+- Search/first Add: browser-fp6-search-first-add.mjs PASS. MBS local-context suggestion measured52ms; typed text unchanged. Sequential typing produced one debounced request, stale older query cancelled, JB one inflight request, no Add before explicit selection. Actual empty isolated A Sandbox first Add/double click/committed-but-lost ACK/same-operation replay produced one Route1/card. Independent concurrent operations yielded one revision winner. Both exact newly-created QA routes removed; parent Sandbox retained, founder Sandbox untouched. Synthetic result quality, not fresh geocoding evidence.
+- Route/context cancellation: browser-fp6-search-cancellation.mjs PASS before debounce, inflight and context navigation. Fixed aborted debounce restarting loading; route change clears query/results/preview. Temporary empty route created only in owned FP6 Room, removed by exact returned ID after no-content check. No new Room.
+- Adapter: verify-ms73-fp6-offline-roads.ts PASS controlled Drive/Walk/SG-JB,400/404/429/500/503,timeout/abort,no-route,malformed/regional/reversed geometry,invalid legs/inconsistent totals. Reproduced accepted reversed geometry; added fail-closed500m endpoint snap allowance. This validation bound is NOT an accuracy guarantee. Tomorrow must exercise it with real roads; earlier real evidence predates this guard.
+- Browser roads: browser-fp6-road-recovery.mjs PASS late Drive ignored after Walk, private Hide no shared request, Skip/Include invalidation/replacement,400/429/503 no stale labels/metrics or retry loop. Virtual UI timers only, no provider clock/counter changes. Add/Nuke routing-key invalidation added to rollback addendum; prior reorder/move/current-key/leg-pair browser evidence in E remains valid.
+- Lifecycle: browser-fp6-lifecycle.mjs PASS on configured production build: checkpoint drag/cancel preserves canonical coordinates/revision, zero roads; permission denial/late geolocation after OFF; Locate alone no request; declined consent no origin; accepted ephemeral request only consent/latitude/longitude; OFF ignores late private response; no coordinate in persistent browser storage. Escape restores marker focus; collapse grows Map/preserves four cards; access denial clears Map/origin/Pings and ignores late signals. Context workspace keyed/unmounted. Real consented origin roads still pending.
+- Built A/B: configured build/start via existing dotenv files. Actual realtime Room Ping, explicit map point not device origin, sender/reduced motion/eight-second expiry, OFF refusal, Sandbox pulse local-only/no API, reload clearing all PASS. No durable message/card/Board history. Plain build also compiled but omitted separate map variables; only configured build used for final built-app acceptance.
+- Visual browser-fp6-visual-final.mjs PASS320x740,390x844,430x932,768x1024,1440x900,1728x1117,844x390. Locate/Ping/Drive/summary/long previews/cards, no horizontal overflow, bounded inspector, focused Add fully visible even short landscape. Long inspector intentionally scrolls.200% computed-type stress passed, not WCAG certification. Chat-only unmounts Map. Representative screenshots visually reviewed; ignored .git/fp6-recovery/final-*.png retained. One unchanged shared-road request across resize/selection/Locate/Ping arming; four existing avatar requests, zero preview-image requests. No unlicensed imagery.
+- Authorization: expanded verify-ms73-fp6.ts PASS atomic first Add/replay/conflict/naming for Sandbox owner, accepted Personal pair, Room, Subroom; forged mutation scopes rejected. Addendum and FP5 public-security rollback suites PASS scoped/revoked Ping, canonical ephemeral sender, names/icons/POI protection/locks/Skip/comments/Nuke. All probe writes rolled back.
+- Typecheck, configured production build Next16.3.3/18pages, diff check, road/metrics/presentation/FP4A/provider-boundary contracts PASS. Lint zero errors, one pre-existing unused eq warning in cleanup-fp4-qa.ts. Source/client secret scan PASS616owned/source files/41bundles including server Geoapify value, no public secret reuse. No dependencies/schema changes.
+
+Resolved harness/transport failures are not product passes: transient Neon termination/navigation timeout recovered after connectivity check; corrected post-mutation revision wait, Clerk factor-preparation wait, Chat textarea selector and valid route colour. No unresolved deterministic failure. Controlled roads are NOT real coverage/road-following/origin evidence.
+
+### Durable inventory and ownership
+
+Read-only recover-ms73-fp6.ts PASS.28 exact migration hashes/catalog:35tables,252columns,127constraints,15enums. Seven enabled ownership/projection guards; zero orphan cards/mirror mismatches/duplicate positions. General DB verifier PASS. Protected profiles/messages/hall_items/map_pins match verified FP5 backup; no restoration. Founder TID8V3X7P1 unique and both protected memberships intact.
+
+Final7Rooms/6plans/9routes/23cards/5comments/122receipts. Empty isolated A Sandbox plan/idempotency receipts legitimately remain after first-Add tests; never delete parent or restore old counts. Owned FP6 Room retains four cards, QA Gardens included (not skipped).
+
+- ms73-founder-review-904a9dea: protected Founder Walk, stays available, never automatic cleanup.
+- ms73-qa-bfff9475: founder-retained content, NOT disposable, stays available.
+- ms73-qa-a26cdbb5: this run's disposable A/B+exact-founder Room, four safe QA cards. Fresh guarded --inspect passed. Retain until release; cleanup only after fresh ownership/contribution check. Founder removal only with owned Room deletion.
+- .git/fp6-recovery/fixture.json (0600) active receipt. first-add.json and cancellation-route.json refer to already deleted temporary routes; historical, never replay. Old FP5 receipts/shadow also historical.
+
+Counters: geocoding12/120, roads60/60, stored UTC2026-10-07. No real road/geocoding calls this continuation; browser tiles separate. Next natural window **Oct8 00:00UTC /08:00SGT**. Changed local calendar date alone is insufficient. Reservation lazily rolls the stored UTC row on a permitted request: verify UTC/effective allowance read-only after08:00, never manually rewrite/reset the row. Founder traffic may consume new allowance.
+
+### Remaining real-provider gate — initial maximum24 credits
+
+Recover HEAD/origin/canonical/protected state first. Plan against actually available allowance; leave at least36/60headroom if fresh. Ten calculations, not unlimited retries:
+
+| Case | Conservative app credits |
+| --- | ---: |
+| Bukit Timah to MBS Drive | 2 |
+| West Singapore to Jewel/Changi Drive | 2 |
+| North Singapore to Jewel/Changi Drive | 2 |
+| Singapore to JB Drive, repeat under new endpoint guard | 2 |
+| Short Walk | 2 |
+| Three-plus destination Drive | 4 |
+| Explicitly consented private origin to destination1 | 2 |
+| Manual checkpoint to POI | 2 |
+| Reordered POI route | 4 |
+| Moved checkpoint to POI | 2 |
+
+Existing verify-ms73-fp6-provider.ts --budget is read-only; named --road cases SPEND credits. Fixed coordinates are adapter probes, not selected-POI/browser proof. Verify representative signed, explicitly selected POIs/coordinates first; never auto-save result1. Combine browser fit/summary/leg-label evidence with matrix calls where practical, avoiding duplicate spends. Current origin MUST pass UI disclosure/Allow private route, never CLI injection. No secret URL/raw device-coordinate logging.
+
+Verify road-following/ordered geometry/new endpoint guard, detour camera fit, total and exact leg distance/time, compact labels/adjacent emphasis/mode/SG-JB behavior. Provider400/unavailable is not a fabricated pass. Retry only for diagnosed reason with remaining budget. Deterministic stale/cancel tests need no real requests. Separately reserve at most8additional credits for final canonical shared/private smoke if available; reassess before spending. No cap increase or permanent provider commitment.
+
+Truth green -> affected regression -> exact scoped release commit/push -> verify Production assignments/final source+client scan -> exact SHA READY canonical -> bounded live A/B -> exact-owned FP6 cleanup -> retained-data/invariants check -> recovery save -> STOP. Never deploy local Development build as Production prebuilt. Preserve Founder Review. MS7.1/MS7.2 locked, MS7.3 unlocked, MS7.4/MS8 not started.
+
+### Restart
+
+Repo /Users/ryanc/Developer/toskerapp, NOT Desktop/tosker. Read F/new handoff and original addendum. Inspect status/fetch; preserve unrelated WIP. Existing loader: npx dotenv -e .env.development.local -e .env.local -- command; service scripts also NODE_OPTIONS=--conditions=react-server. Never print env files. Recovery/migration-history/fixture --inspect are read-only. No --create or old migration/rehearsal wrappers.
+
+One server at a time: existing dev stopped, configured production tested onlocalhost3000. Owned fp6-a/fp6-b browser sessions and production server closed at handoff; discover new endpoints/PIDs after restart. Private screenshots/receipts remain ignored. No scheduled wakeup. Final recovery identity is git log -1 on this branch and ignored .git/fp6-recovery/overnight.json; application commit3481b3b. No new generic proceed approval needed once real-provider gates are available.
+
 ## E — integrated acceptance checkpoint, 2026-10-07 (not release-ready)
 
 Application checkpoint `977c57d` plus the scoped E fixes/tests below. Fresh fetch and Vercel lookup at11:02UTC confirm canonical is still FP5 `0d6f367e0dbfaac180990a2aa5f3b54074286f95`, READY Production `dpl_EqFA8D7XnkzLp4SHjD1tTjfx5LeY`, with the canonical alias. **No FP6 push or deployment.** No environment, billing, restrictions, quota or schema changes. Preserve unrelated Design/Art/website/handoff WIP.

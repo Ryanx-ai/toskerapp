@@ -62,9 +62,13 @@ async function main(){
     await tx.insert(conversationParticipants).values({conversationId:chat.id,userId:a.userId});
     await assert.rejects(()=>sendMapPing(d,b,`${f.slug}--${sub.id}`,placement));
     await sendMapPing(d,a,`${f.slug}--${sub.id}`,{...placement,id:randomUUID()});
+    const [personal]=await tx.select().from(conversations).where(and(eq(conversations.kind,"personal"),eq(conversations.directKey,[a.userId,b.userId].sort().join(":"))));
+    assert(personal,"Existing isolated A/B Personal Chat required; never create a duplicate");
+    await sendMapPing(d,a,`personal--${personal.id}`,{...placement,id:randomUUID()});
+    await assert.rejects(()=>sendMapPing(d,founder,`personal--${personal.id}`,placement));
     await tx.delete(roomMemberships).where(and(eq(roomMemberships.roomId,f.id),eq(roomMemberships.userId,b.userId)));
     const count=published.length;await assert.rejects(()=>sendMapPing(d,b,f.slug,placement));assert.equal(published.length,count);
-    for(let i=0;i<4;i++)await sendMapPing(d,a,f.slug,{...placement,id:randomUUID()});
+    for(let i=0;i<3;i++)await sendMapPing(d,a,f.slug,{...placement,id:randomUUID()});
     await assert.rejects(()=>sendMapPing(d,a,f.slug,{...placement,id:randomUUID()}),PingRateError);
     throw rollback;
   });}catch(e){if(e!==rollback)throw e;}finally{realtime.channels.get=original;}

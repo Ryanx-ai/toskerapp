@@ -6,6 +6,7 @@ import { CONVERSATION_ACCESS_LOST } from "@/lib/realtime-contract";
 export function useMapPings(scope:string,conversationId:string,enabled:boolean,sender:{id:string;name:string}|null,onDenied:()=>void) {
   const [pings,setPings]=useState<MapPing[]>([]),[kind,setKind]=useState<PingKind|null>(null),[error,setError]=useState("");
   const pending=useRef<AbortController|null>(null),last=useRef(0);
+  useEffect(()=>{if(!enabled)queueMicrotask(()=>setKind(null));},[enabled]);
   const receive=useCallback((ping:MapPing)=>setPings(old=>[...old.filter(p=>p.id!==ping.id&&p.expiresAt>Date.now()),ping].slice(-8)),[]);
   useEffect(()=>{
     const clear=()=>{pending.current?.abort();setPings([]);setKind(null);};

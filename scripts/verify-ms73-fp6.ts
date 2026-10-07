@@ -6,7 +6,7 @@ import { getDatabase, type ToskerDatabase } from "../src/server/db/client";
 import { conversations } from "../src/server/db/schema";
 import { createQaFixture, resolveQaActors } from "./lib/ms73-fixtures";
 import { mutateTrip, readTrip } from "../src/server/trips/service";
-import { normalizedPlaceQuery, canSearchPlaces, contextPlaceSuggestions } from "../src/lib/maps/place-search";
+import { normalizedPlaceQuery, canSearchPlaces, contextPlaceSuggestions, rankPlaceCandidates } from "../src/lib/maps/place-search";
 const db = getDatabase(), rollback = new Error("FP6 rollback");
 async function main() {
   assert.equal(normalizedPlaceQuery(" mBs "), "Marina Bay Sands");
@@ -14,6 +14,7 @@ async function main() {
   assert.equal(normalizedPlaceQuery("MBS clinic"), "MBS clinic");
   assert.equal(normalizedPlaceQuery("JB Hi-Fi"), "JB Hi-Fi");
   assert(canSearchPlaces("JB")); assert(!canSearchPlaces("M"));
+  assert.equal(rankPlaceCandidates([{title:"Everest Jewellery"},{title:"Jewel Changi Airport"},{title:"Apple Jewel Changi"}],"Jewel Changi")[0].title,"Jewel Changi Airport");
   try { await db.transaction(async tx => {
     const d = tx as unknown as ToskerDatabase, {a,b,founder} = await resolveQaActors(tx);
     const fixture = await createQaFixture(d, "FP6 atomic first-add rollback regression");

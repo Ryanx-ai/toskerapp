@@ -2,6 +2,12 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP6 E checkpoint — provider quota gate, NOT deployed — 2026-10-07
+
+Read the top of `docs/MS7-3-FP6-EXECUTION.md` and full founder addendum `5b631309-e2f8-48b2-a421-c0d30357d03f/Pasted text.txt`. FP6 application work is based on977c57d plus scoped E fixes/tests; current branch `codex/ms73-fp6`. Canonical freshly verified FP5 SHA0d6f367/READY dpl_EqFA8D7XnkzLp4SHjD1tTjfx5LeY; no FP6 push/deployment. Road sub-budget60/60UTC Oct7: do not reset/raise; natural reset Oct8 00:00UTC /08:00SGT. No automatic scheduled continuation. Real SG→JB and BT→Jewel passed; remaining real matrix/private-origin smoke still required. Controlled A/B, pings, origin privacy, order/locks, responsive and rollback auth tests documented separately from provider evidence. All28migrations unchanged. Latest build/type/security scan passed; rerun final release gates before canonical.
+
+Owned disposable QA Room `ms73-qa-a26cdbb5`, private receipt `.git/fp6-recovery/fixture.json`, contains exact-founder8V3X7P1+A/B. Keep until acceptance; cleanup only after final release and fresh exact-ownership check. Protect Founder Review904a9dea and founder-content bfff9475. Do not replay historical FP5 receipts or restore retained counts. Local runtime/browser IDs may expire; recover them rather than trusting old process IDs. Preserve unrelated Design/Art/Web/inheritance WIP and older uncommitted handoff additions. No generic proceed approval needed once gates are available; MS7.3 stays unlocked, MS7.4/MS8 unstarted.
+
 ## FP5 post-release safety audit complete — 2026-10-07
 
 Read `docs/MS7-3-FP5-POST-RELEASE-AUDIT.md` for the full matrix, fresh evidence and limitations. Canonical unchanged0d6f367/READY Production dpl_EqFA8D7XnkzLp4SHjD1tTjfx5LeY;28migrations/catalog and protected data pass. No application changes, push or redeployment. Fresh bounded A/B/private Sandbox/Locate/seven-width/keyboard/build/secret checks pass. One realtime-token503 recovered to A/B200, cause unconfirmed; dashboard restrictions not freshly verified; longWalk400 remains. Exact audit Room2d947361/private planba3f99de deleted with guards, final counts restored, both protected founder Rooms/MBS savedPin unchanged. Audit receipts historical, do not replay. STOP; MS7.3unlocked/MS7.4/MS8unstarted. Preserve unrelated Design/Art WIP.

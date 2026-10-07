@@ -5,6 +5,7 @@ import type { ToskerDatabase } from "@/server/db/client";
 import { mapProviderUsage } from "@/server/db/schema";
 import { inPlanningRegion, PLACE_REGION_FILTER } from "@/lib/maps/planning-region";
 import { credibleNearby } from "@/lib/maps/nearby-place";
+import { rankPlaceCandidates } from "@/lib/maps/place-search";
 
 export class PlaceProviderError extends Error {
   constructor(readonly code: "rate" | "unavailable", message: string) { super(message); }
@@ -68,7 +69,7 @@ function geoapifyProvider(): PlaceProvider {
     }
   }
   return {
-    search: (query, signal) => request("autocomplete", { text: query, limit: "5", filter: PLACE_REGION_FILTER, bias: "proximity:103.8198,1.3521" }, signal),
+    search: async (query, signal) => rankPlaceCandidates(await request("autocomplete", { text: query, limit: "5", filter: PLACE_REGION_FILTER, bias: "proximity:103.8198,1.3521" }, signal),query),
     reverse: async (latitude, longitude, signal) => (await request("reverse", { lat: String(latitude), lon: String(longitude), limit: "5" }, signal))[0] ?? null,
   };
 }

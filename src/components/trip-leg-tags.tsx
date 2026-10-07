@@ -32,8 +32,9 @@ export function TripLegTags({map,road,points,color,selectedId,privateLeg=false,h
         if(!privateLeg)element.dataset.sharedLegTag="";
         element.setAttribute("aria-hidden","true"); // Equivalent in accessible route detail; no tiny interactive targets.
         element.textContent=`${privateLeg?"YOUR LEG · ":""}${roadDistance(leg.metres)} · ${roadDuration(leg.seconds)}`;
-        element.style.opacity=selectedId&&selectedId!==leg.fromId&&selectedId!==leg.toId?"0.45":"1";
-        markers.push(new Marker({element,anchor:"center",offset:[0,-16]}).setLngLat(point).addTo(map));
+        // Marker owns opacity and refreshes it during rendering; setting the DOM style is overwritten.
+        const opacity=selectedId&&selectedId!==leg.fromId&&selectedId!==leg.toId?0.45:1;
+        markers.push(new Marker({element,anchor:"center",offset:[0,-16],opacity}).setLngLat(point).addTo(map));
       });update();map.on("render",update);
     });
     return()=>{disposed=true;map.off("render",update);markers.forEach(m=>m.remove());};

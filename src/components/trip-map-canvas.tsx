@@ -48,7 +48,8 @@ export default function TripMapCanvas({ pings, pingKind, onPing, inspector, view
     const active=routes.find(r=>!r.ghost),road=active?roads[active.id]:undefined;
     const extras=[...mapPins,...(currentPrivateRoad?currentPrivateRoad.segments.flat().map(p=>({latitude:p[1],longitude:p[0]})):[])];
     const bounds=routeBounds(places.filter(p=>!p.skipped),roadEnabled&&road?.mode===roadMode?road:undefined,extras);
-    if(bounds)mapRef.current.fitBounds(bounds, { padding: Math.min(64, Math.max(24,(container.current?.clientWidth??320)/8)), maxZoom: 14, duration: 0 });
+    const side=Math.min(64,Math.max(32,(container.current?.clientWidth??320)/8));
+    if(bounds)mapRef.current.fitBounds(bounds, { padding:{top:64,left:side,right:side,bottom:Math.min(120,(container.current?.clientHeight??300)*.4)}, maxZoom: 14, duration: 0 });
   };
   const fitInitialTrip = useEffectEvent(fitTrip);
   useEffect(() => { if(roadFit && status==="ready")fitInitialTrip(); }, [roadFit,status]);
@@ -287,16 +288,20 @@ export default function TripMapCanvas({ pings, pingKind, onPing, inspector, view
     if (!element || !inspectorPoint) return;
     const position = () => {
       const canvas = container.current; if (!canvas) return;
+      const region=canvas.getBoundingClientRect();
+      const visibleTop=Math.max(8,8-region.top),visibleBottom=Math.min(canvas.clientHeight-32,window.innerHeight-region.top-8);
+      element.style.maxHeight=`${Math.max(80,visibleBottom-visibleTop)}px`;
       const point = map && status === "ready" ? map.project([inspectorPoint.longitude, inspectorPoint.latitude]) : { x: canvas.clientWidth / 2, y: canvas.clientHeight / 2 };
       const width = element.offsetWidth, height = element.offsetHeight;
       const side = point.x + width + 36 <= canvas.clientWidth ? point.x + 28 : point.x - width - 28 >= 8 ? point.x - width - 28 : point.x - width / 2;
       const x = Math.max(8, Math.min(canvas.clientWidth - width - 8, side));
-      const y = Math.max(8, Math.min(canvas.clientHeight - height - 32, point.y - height / 2));
+      const y = Math.max(visibleTop, Math.min(visibleBottom-height, point.y - height / 2));
       element.style.left = `${x}px`; element.style.top = `${y}px`;
     };
     position(); const observer = new ResizeObserver(position); observer.observe(element);
     map?.on("move", position); map?.on("resize", position);
-    return () => { observer.disconnect(); map?.off("move", position); map?.off("resize", position); };
+    window.addEventListener("scroll",position,true);window.addEventListener("resize",position);
+    return () => { observer.disconnect(); map?.off("move", position); map?.off("resize", position);window.removeEventListener("scroll",position,true);window.removeEventListener("resize",position); };
   }, [inspectorPoint, inspectorKey, status]);
 
   return <div className={styles.canvasRegion} data-map-state={status}>

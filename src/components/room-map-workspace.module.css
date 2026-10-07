@@ -23,7 +23,8 @@
 @media(max-width:480px) { .pinDialog { padding:20px; } .pinPreviewActions { width:100%; min-width:0; } }
 .mapPlane { flex:none; display:flex; flex-direction:column; min-width:0; border:1px solid var(--border); border-radius:16px; background:var(--shell-plane); overflow:hidden; }
 .canvasRegion { position:relative; min-width:0; height:clamp(240px,28vh,400px); isolation:isolate; }
-.canvas { position:absolute; inset:0; }
+/* Outrank MapLibre's late-loaded .maplibregl-map { position:relative }. */
+.canvasRegion > .canvas { position:absolute; inset:0; }
 .canvasRegion .emptyMap { position:absolute; inset:0; background:var(--shell-plane); }
 .mapStatus { position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip-path:inset(50%); }
 .resetMap,.retryMap { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:44px; padding:10px 14px; border:1px solid var(--border); border-radius:var(--control-radius); background:var(--shell-plane); color:var(--text-primary); font:600 12px/1.5 var(--font-montserrat),sans-serif; cursor:pointer; }
@@ -35,7 +36,7 @@
 .canvasRegion :global(.maplibregl-ctrl-group button + button) { border-color:var(--border); }
 .canvasRegion :global(.maplibregl-ctrl-group button:hover) { background:var(--surface-hover); }
 .canvasRegion :global(.maplibregl-ctrl-icon) { filter:invert(1); }
-.canvasRegion :global(.maplibregl-ctrl-attrib) { max-width:100%; background:var(--shell-plane); color:var(--text-secondary); font:10px/1.5 var(--font-montserrat),sans-serif; padding:4px 8px; }
+.canvasRegion :global(.maplibregl-ctrl.maplibregl-ctrl-attrib) { max-width:100%; background:var(--shell-plane); color:var(--text-secondary); font:10px/1.5 var(--font-montserrat),sans-serif; padding:4px 8px; }
 .canvasRegion :global(.maplibregl-ctrl-attrib a) { color:var(--text-primary); }
 .canvasRegion :global(.maplibregl-ctrl-bottom-right) { max-width:100%; }
 .state { padding:16px 20px; display:flex; align-items:center; gap:8px; color:var(--text-secondary); font-size:12px; line-height:1.5; }
@@ -87,6 +88,8 @@
 .originChip .control { font-size:11px; min-height:44px; }
 .legTag { padding:4px 7px; border-radius:8px; border:1px solid var(--route-color,var(--brand-gold)); background:var(--shell-plane); color:var(--text-primary); box-shadow:var(--depth-raised); font:600 10px/1.4 var(--font-montserrat),sans-serif; white-space:nowrap; pointer-events:none; }
 .legTag[hidden] { display:none; }
+.aboutCopy { display:grid; gap:14px; color:var(--text-secondary); font-size:13px; line-height:1.6; }
+.aboutCopy a { color:var(--text-primary); text-decoration:underline; text-underline-offset:3px; }
 .preview { margin:16px; padding:20px; display:flex; justify-content:space-between; align-items:center; gap:24px; border:1px solid var(--brand-gold); border-radius:var(--control-radius); background:var(--surface-hover); }
 .preview > div { min-width:0; }
 .previewLabel { font-size:12px; color:var(--brand-gold); }

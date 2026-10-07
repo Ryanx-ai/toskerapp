@@ -19,3 +19,10 @@ export function contextPlaceSuggestions(places: TripPlace[], query: string) {
     seen.add(key); return true;
   }).slice(0, 5);
 }
+/** Prefer literal name matches within the bounded provider result set. Never invent a place. */
+export function rankPlaceCandidates<T extends {title:string}>(candidates:T[],query:string):T[] {
+  const normalize=(s:string)=>s.normalize("NFKC").toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu," ").trim();
+  const q=normalize(query),words=q.split(" ").filter(Boolean);
+  const score=(title:string)=>{const name=normalize(title);return name===q?0:name.startsWith(q+" ")?1:words.every(w=>name.split(" ").includes(w))?2:3;};
+  return candidates.map((candidate,index)=>({candidate,index,rank:score(candidate.title)})).sort((a,b)=>a.rank-b.rank||a.index-b.index).map(p=>p.candidate);
+}

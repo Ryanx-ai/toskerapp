@@ -107,6 +107,7 @@ export default function TripWorkspace({ roomSlug, conversationId }: { roomSlug: 
       return () => controller.abort();
     }
     const timer = setTimeout(async () => {
+      if (controller.signal.aborted || !alive.current || accessDenied.current) return;
       lastSearchAt.current = Date.now();
       setSearching(true); setSearched(false);
       try {
@@ -190,7 +191,7 @@ export default function TripWorkspace({ roomSlug, conversationId }: { roomSlug: 
   const route = plan?.routes.find(route => route.id === preferences.activeId && !route.archived) ?? plan?.routes.find(route => !route.archived);
   // Never silently retarget an open confirmation after a peer archives/nukes a Route.
   const previousRoute = useRef<string | undefined>(undefined);
-  useEffect(() => { if (previousRoute.current !== route?.id) { request.current?.abort(); setPreview(null); setSearching(false); setSelectedId(id => plan?.memberships.some(m => m.routeId === route?.id && m.placeId === id) ? id : null); setPinMode(false); } previousRoute.current = route?.id; }, [route?.id, plan]);
+  useEffect(() => { if (previousRoute.current !== route?.id) { request.current?.abort(); setQuery(""); setResults([]); setSearched(false); setPreview(null); setSearching(false); setSelectedId(id => plan?.memberships.some(m => m.routeId === route?.id && m.placeId === id) ? id : null); setPinMode(false); } previousRoute.current = route?.id; }, [route?.id, plan]);
   const places = useMemo(() => plan && route ? orderedRoutePlaces(plan, route.id) : [], [plan, route]);
   const mapRoutes = useMemo(() => plan ? plan.routes.filter(r => !r.archived && !preferences.hiddenRoutes.includes(r.id) && (r.id === route?.id || preferences.ghosts.includes(r.id))).map(r => ({ ...r, ghost: r.id !== route?.id, places: orderedRoutePlaces(plan, r.id) })) : [], [plan, route, preferences.ghosts, preferences.hiddenRoutes]);
   const ownedIds=new Set(plan?.memberships.filter(m=>m.routeId===route?.id).map(m=>m.placeId));

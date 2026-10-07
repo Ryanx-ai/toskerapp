@@ -52,6 +52,11 @@ async function main(){
     await change({type:"order",routeId,placeIds:ids});
     await assert.rejects(()=>mutateTrip(d,b,{roomSlug:f.slug,expectedRevision:stale,requestId:randomUUID(),command:{type:"order",routeId,placeIds:[...ids].reverse()}}));
     await change({type:"skip-place",placeId:ids[1],skipped:true});assert.equal(routingPlaces(await read(),routeId).length,1);
+    const beforeAdd=roadKey(routingPlaces(await read(),routeId),"drive");
+    const extra=await change({type:"add",routeId,candidate:{...candidate,title:"QA extra",providerId:"qa-extra",latitude:1.31}});
+    assert.notEqual(roadKey(routingPlaces(await read(),routeId),"drive"),beforeAdd);
+    await change({type:"nuke-place",placeId:extra.resultId!});
+    assert.equal(roadKey(routingPlaces(await read(),routeId),"drive"),beforeAdd);
     assert.deepEqual(await readTrip(d,b,f.slug),await readTrip(d,founder,f.slug));
     const sent=await sendMapPing(d,a,f.slug,placement);assert.equal(sent.senderId,a.userId);assert(validPing(sent));
     assert.equal(published[0].channel,conversationChannel(f.conversationId));assert.deepEqual((published[0].message as {extras:unknown}).extras,{ephemeral:true});

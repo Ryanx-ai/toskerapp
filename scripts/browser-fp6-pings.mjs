@@ -1,18 +1,16 @@
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {chromium} from "/Users/ryanc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs";
+import {ensureFp6QaLogin} from "./lib/fp6-browser.mjs";
 const receipt=JSON.parse(readFileSync(".git/fp6-recovery/fixture.json","utf8"));assert(!receipt.fixture.retained);
 const ba=await chromium.connectOverCDP(process.env.FP6_CDP),bb=await chromium.connectOverCDP(process.env.FP6_B_CDP);
 const ca=ba.contexts()[0],cb=bb.contexts()[0],a=ca.pages()[0],b=cb.pages()[0],origin="http://localhost:3000";
 const button=(page,name)=>page.getByRole("button",{name,exact:true});
 try{
-  if(await button(b,"Sign in").count()){
-    await button(b,"Sign in").click();await b.getByRole("textbox",{name:"Email address",exact:true}).fill("tosker.user.b+clerk_test@example.com");
-    await button(b,"Continue").click();await b.getByRole("link",{name:"Use another method",exact:true}).waitFor({timeout:60000});
-    await b.getByRole("link",{name:"Use another method",exact:true}).click();await button(b,"Email code to tosker.user.b+clerk_test@example.com").click();
-    await b.getByRole("textbox",{name:"Enter verification code",exact:true}).fill("424242");await button(b,"Open your Namecard").waitFor({timeout:60000});
+  for(const [page,actor] of [[a,"a"],[b,"b"]]){
+    await page.route("**/api/trips/*/roads",r=>r.fulfill({status:503,json:{error:"QA road firewall"}}));
+    await page.goto(`${origin}/room/${receipt.fixture.slug}`,{waitUntil:"domcontentloaded",timeout:60000});await ensureFp6QaLogin(page,actor);await page.locator('[data-map-state="ready"]').waitFor();
   }
-  for(const page of[a,b]){await page.goto(`${origin}/room/${receipt.fixture.slug}`);await page.locator('[data-map-state="ready"]').waitFor();}
   await ca.grantPermissions(["geolocation"],{origin});await ca.setGeolocation({latitude:1.34,longitude:103.79,accuracy:10});
   const sent=[];a.on("request",r=>{if(r.url().includes("/pings"))sent.push(r.postDataJSON());});
   assert.equal(await a.getByRole("combobox",{name:"Ping Map",exact:true}).count(),0);
@@ -34,4 +32,4 @@ try{
   await a.reload();await a.locator('[data-map-state="ready"]').waitFor();assert.equal(await a.getByRole("combobox",{name:"Ping Map",exact:true}).count(),0);assert.equal(await a.getByRole("img",{name:/activity ping/}).count(),0);
   console.log("PASS reload clears location/pings; no ping history");
 }catch(e){console.error({failure:"FP6 ping browser",message:String(e.message).slice(0,650)});process.exitCode=1;}
-finally{await ba.close();await bb.close();}
+finally{for(const page of[a,b])await page.unrouteAll({behavior:"wait"});await ba.close();await bb.close();}

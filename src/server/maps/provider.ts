@@ -39,7 +39,7 @@ function project(value: Record<string, unknown>): PlaceCandidate | null {
 }
 
 function geoapifyProvider(): PlaceProvider {
-  async function request(kind: "search" | "reverse", params: Record<string, string>, signal: AbortSignal) {
+  async function request(kind: "autocomplete" | "reverse", params: Record<string, string>, signal: AbortSignal) {
     const key = process.env.GEOAPIFY_SEARCH_KEY;
     if (!key) throw new PlaceProviderError("unavailable", "Place lookup is not configured. Saved trip places remain available.");
     const url = new URL(`https://api.geoapify.com/v1/geocode/${kind}`);
@@ -58,7 +58,7 @@ function geoapifyProvider(): PlaceProvider {
     }
   }
   return {
-    search: (query, signal) => request("search", { text: query, limit: "5", filter: "countrycode:sg", bias: "proximity:103.8198,1.3521" }, signal),
+    search: (query, signal) => request("autocomplete", { text: query, limit: "5", filter: "countrycode:sg", bias: "proximity:103.8198,1.3521" }, signal),
     reverse: async (latitude, longitude, signal) => (await request("reverse", { lat: String(latitude), lon: String(longitude), limit: "1" }, signal))[0] ?? null,
   };
 }

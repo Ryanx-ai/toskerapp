@@ -21,6 +21,16 @@ Provider app counters observed UTC2026-10-07: geocoding5/120, roads54/60. These 
 
 ## Checkpoints and release gates
 
+### A and B local implementation
+
+R commit d6dc871. Implemented atomic Route1+first add under existing scope/revision/receipt locks, immediate current-context suggestions, two exact aliases, cancellable autocomplete, bounded component-local five-minute cache and server re-signing of authorized context IDs. No migration/fixture/provider call. Baseline remote path: minimum700ms debounce + network; new local path synchronous, remote450ms + conservative1200ms request gap. Typecheck/diff passed after A. Provider names remain protected; manual names keep address. Inspector now offers first Add directly, no create-route detour. B glass refinement uses existing tokens with opaque fallback, and icon-only tray control retains44px target/labels. Browser visual/latency/reorder reproduction remains pending; do not claim acceptance from source checks.
+
+### Founder addendum integrated during A
+
+Read the complete pasted addendum `5b631309-e2f8-48b2-a421-c0d30357d03f/Pasted text.txt`. It extends FP6 without restarting or reopening FP5. Revised total estimate 12–18 hours, longer execution explicitly authorized. Pings are now in scope (supersedes original FP6 deferral): Locate-gated, explicit clicked point, ephemeral current-context signal using existing Ably, no durable history/Route/Card/memory/comment. Add !/?/pulse, identity, expiry, A/B/auth/reduced-motion. Investigate and reproduce POI/manual/locks/Quick Order/drag/fallback/move/concurrent routing failures before changing those paths. Add 20m nearby-place context without snapping/conversion, compact summary, correct per-leg midpoint tags/collision handling, separate YOUR LEG, Settings About attribution supplement, expanded bounded road matrix. Preserve all original gates and quotas.
+
+[Ably ephemeral messages](https://ably.com/docs/pub-sub/advanced) support `extras.ephemeral: true` and exclude persisted history; no new provider needed. [Geoapify Free attribution](https://apidocs.geoapify.com/docs/maps) remains on-map together with applicable OpenMapTiles/OSM credit. Settings supplements, never substitutes.
+
 R recovery/research/estimate → A search/default-route → B naming/popup/collapse → C local origin/consent → D SG/JB/provider truth → E integrated regressions → F release candidate → scoped commit/push/canonical → live A/B → exact-owned cleanup → STOP.
 
 Pending: all FP6 implementation/QA. Each checkpoint must record HEAD, migrations, fixtures, passes/pending and restart instructions. Before release: typecheck, lint, build, migration/catalog/invariants, all auth scopes, atomic Route1/idempotency, aliases/latency, naming, marker/card/focus, Locate/consent privacy, roads/metrics/stale cases, SG/JB, Hide/Skip/locks/comments/move, seven viewports, secret scans and diff check. Do not cut tests to fit time.

@@ -6,6 +6,8 @@ import { authorizePinScope } from "@/server/map-pins/scope";
 import { getPlaceProvider, PlaceProviderError, reservePlaceRequest } from "@/server/maps/provider";
 import { signCandidate } from "@/server/maps/candidate-token";
 import type { PlaceCandidate } from "@/lib/trip-contract";
+import { normalizedPlaceQuery, canSearchPlaces } from "@/lib/maps/place-search";
+import { readTrip } from "@/server/trips/service";
 
 export async function POST(request: Request, context: { params: Promise<{ slug: string }> }) {
   const reply = (body: unknown, status = 200) => Response.json(body, { status, headers: { "Cache-Control": "private, no-store" } });
@@ -16,9 +18,13 @@ export async function POST(request: Request, context: { params: Promise<{ slug: 
     const body = await request.text(); if (body.length > 512) return reply({ error: "Lookup is too large." }, 400);
     const input = JSON.parse(body), provider = getPlaceProvider();
     let candidates: PlaceCandidate[] = [], notice = "";
-    if (input.kind === "search" && typeof input.query === "string" && input.query.trim().length >= 3 && input.query.length <= 160) {
+    if (input.kind === "context" && typeof input.placeId === "string") {
+      const place = (await readTrip(db, actor, slug)).places.find(p => p.id === input.placeId && !p.archived);
+      if (!place) return reply({ error: "This context location is no longer available." }, 404);
+      candidates = [place];
+    } else if (input.kind === "search" && typeof input.query === "string" && canSearchPlaces(input.query) && input.query.length <= 160) {
       await reservePlaceRequest(db, actor.userId);
-      candidates = await provider.search(input.query.trim(), request.signal);
+      candidates = await provider.search(normalizedPlaceQuery(input.query), request.signal);
     } else if (input.kind === "pin" && Number.isFinite(input.latitude) && Number.isFinite(input.longitude) && Math.abs(input.latitude) <= 90 && Math.abs(input.longitude) <= 180) {
       // The point is selected manually, never device location. Reverse results are context ONLY.
       const candidate: PlaceCandidate = { title: "Checkpoint", latitude: input.latitude, longitude: input.longitude, source: "pin", provider: null, providerId: null, address: "", attribution: "", license: "" };

@@ -6,6 +6,7 @@ import { ACTIVITY_REFRESH, CONVERSATION_ACCESS_LOST, TRIP_REFRESH } from "@/lib/
 import { orderedRoutePlaces, routingPlaces, nextCheckpointName, isCoordinatePinTitle, mergeVisibleOrder, recoverActiveRoute, type PlaceCandidate, type TripSnapshot } from "@/lib/trip-contract";
 import { ModalLayer } from "./modal-layer";
 import { type RoadMode } from "@/lib/maps/road-contract";
+import { canSearchPlaces, contextPlaceSuggestions, normalizedPlaceQuery } from "@/lib/maps/place-search";
 import { useTripRoadPreview } from "./use-trip-road-preview";
 import TripMapCanvas from "./trip-map-canvas";
 import TripRouteControls from "./trip-route-controls";
@@ -42,8 +43,13 @@ export default function TripWorkspace({ roomSlug, conversationId }: { roomSlug: 
   const accessDenied = useRef(false);
   const alive = useRef(true), reading = useRef(false), queued = useRef(false), writing = useRef(false);
   const request = useRef<AbortController | null>(null), cards = useRef<HTMLDivElement>(null);
+  const searchCache = useRef(new Map<string, { at: number; results: Preview[] }>());
+  const lastSearchAt = useRef(0);
+  const localSuggestions = useMemo(() => contextPlaceSuggestions(plan?.places ?? [], query), [plan, query]);
+  const alias = normalizedPlaceQuery(query) !== query.trim() ? normalizedPlaceQuery(query) : "";
   const deny = useCallback(() => {
     clearLocalLocation();
+    searchCache.current.clear();
     accessDenied.current = true; request.current?.abort(); setPlan(null); setPreview(null); setResults([]); setSelectedId(null); setPending(null); setCommentId(null); setMoving(null);
     try { sessionStorage.removeItem(preferenceKey); } catch { /* No retained plan data is stored locally. */ }
     setError("Your access to this trip is no longer available.");
@@ -82,10 +88,17 @@ export default function TripWorkspace({ roomSlug, conversationId }: { roomSlug: 
     return () => { alive.current = false; request.current?.abort(); clearInterval(timer); window.removeEventListener(TRIP_REFRESH, refresh); window.removeEventListener(ACTIVITY_REFRESH, refresh); window.removeEventListener("online", refresh); document.removeEventListener("visibilitychange", refresh); };
   }, [load]);
   useEffect(() => {
-    if (query.trim().length < 3) return;
+    if (!canSearchPlaces(query)) return;
     if (accessDenied.current) return;
     const controller = new AbortController(); request.current?.abort(); request.current = controller;
+    const cacheKey = normalizedPlaceQuery(query).toLocaleLowerCase();
+    const cached = searchCache.current.get(cacheKey);
+    if (cached && Date.now() - cached.at < 5 * 60 * 1000 && searchAttempt === 0) {
+      queueMicrotask(() => { if (!controller.signal.aborted) { setResults(cached.results); setSearched(true); } });
+      return () => controller.abort();
+    }
     const timer = setTimeout(async () => {
+      lastSearchAt.current = Date.now();
       setSearching(true); setSearched(false);
       try {
         const response = await fetch(`/api/trips/${encodeURIComponent(roomSlug)}/places`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kind: "search", query: query.trim() }), signal: controller.signal, cache: "no-store" });
@@ -93,11 +106,26 @@ export default function TripWorkspace({ roomSlug, conversationId }: { roomSlug: 
         if (response.status === 403) { deny(); return; }
         if (!response.ok) { setError(data.error || "Place lookup unavailable."); return; }
         setResults(data.candidates); setSearched(true); setError("");
+        if (searchCache.current.size >= 12) searchCache.current.delete(searchCache.current.keys().next().value!);
+        searchCache.current.set(cacheKey, { at: Date.now(), results: data.candidates });
       } catch { if (!controller.signal.aborted && alive.current) setError("Place lookup could not finish. Change the search or try again."); }
       finally { if (!controller.signal.aborted && alive.current) setSearching(false); }
-    }, 700);
+    }, Math.max(450, lastSearchAt.current + 1200 - Date.now()));
     return () => { clearTimeout(timer); controller.abort(); };
   }, [query, roomSlug, deny, searchAttempt]);
+  const chooseContextPlace = async (placeId: string) => {
+    request.current?.abort(); const controller = new AbortController(); request.current = controller;
+    setSearching(true); setError("");
+    try {
+      const response = await fetch(`/api/trips/${encodeURIComponent(roomSlug)}/places`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kind: "context", placeId }), signal: controller.signal, cache: "no-store" });
+      const data = await response.json();
+      if (controller.signal.aborted || !alive.current || accessDenied.current) return;
+      if (response.status === 403) { deny(); return; }
+      if (!response.ok) { setError(data.error || "This place is no longer available."); return; }
+      setPreview(data.candidates[0]); setSelectedId(null);
+    } catch { if (!controller.signal.aborted && alive.current) setError("Place preview could not finish. Try again."); }
+    finally { if (!controller.signal.aborted && alive.current) setSearching(false); }
+  };
   const select = useCallback((id: string) => {
     setSelectedId(id); setPreview(null); setView("map");
     requestAnimationFrame(() => {
@@ -184,7 +212,7 @@ export default function TripWorkspace({ roomSlug, conversationId }: { roomSlug: 
   const selectedPlace = places.find(p => p.id === selectedId && !p.archived);
   const closeInspector = () => { if (busy) return; request.current?.abort(); setSearching(false); setPreview(null); setSelectedId(null); setNotice(""); };
   const showCards = () => { setCollapsed(false); setView("places"); requestAnimationFrame(() => cards.current?.querySelector<HTMLElement>(`[data-place-id="${selectedId}"] button`)?.focus({ preventScroll:false })); };
-  const inspector = (preview || selectedPlace) && <TripPointInspector key={preview ? `preview:${preview.candidate.latitude}:${preview.candidate.longitude}:${route?.id}` : selectedPlace?.id} candidate={preview?.candidate} place={selectedPlace} title={previewTitle ?? selectedPlace?.title ?? "Place"} routeName={route?.name} revision={plan?.revision ?? 0} disabled={disabled} ready={!!preview?.token} busy={busy} close={closeInspector} add={() => { if (preview?.token && route) void change({ type:"add", token:preview.token, routeId:route.id }); }} showCard={showCards} comments={() => { if(selectedPlace)setCommentId(selectedPlace.id); }} createRoute={() => { closeInspector(); setView("places"); setCollapsed(false); }} change={change} />;
+  const inspector = (preview || selectedPlace) && <TripPointInspector key={preview ? `preview:${preview.candidate.latitude}:${preview.candidate.longitude}:${route?.id}` : selectedPlace?.id} candidate={preview?.candidate} place={selectedPlace} title={previewTitle ?? selectedPlace?.title ?? "Place"} routeName={route?.name} revision={plan?.revision ?? 0} disabled={disabled} ready={!!preview?.token} busy={busy} close={closeInspector} add={() => { if (preview?.token) void change({ type:"add", token:preview.token, routeId:route?.id ?? null }); }} showCard={showCards} comments={() => { if(selectedPlace)setCommentId(selectedPlace.id); }} change={change} />;
   return <section className={styles.workspace} data-tray-collapsed={collapsed} aria-label="Trip Map" data-trip-revision={plan?.revision} onClick={event => { if (!(event.target as Element).closest('button, a, input, textarea, select, summary, [role="dialog"], [data-place-id], [data-map-inspector], .maplibregl-map')) setSelectedId(null); }}>
     <div className={styles.mobileViews} aria-label="Map view"><button aria-pressed={view === "map"} onClick={() => setView("map")}><MapIcon size={16} aria-hidden="true" />Map</button><button aria-pressed={view === "places"} onClick={() => setView("places")}><List size={16} aria-hidden="true" />Places ({places.length})</button></div>
     {error && <div className={styles.feedback} role="alert"><p>{error}</p>{pending ? <button disabled={busy} onClick={() => void write(pending)}>Retry same change</button> : <div className={styles.actions}><button onClick={() => void load()}>Refresh locations</button>{query.trim().length >= 3 && <button disabled={searching} onClick={() => setSearchAttempt(value => value+1)}>Retry search</button>}</div>}</div>}
@@ -200,16 +228,20 @@ export default function TripWorkspace({ roomSlug, conversationId }: { roomSlug: 
       {roadEnabled && <p className={styles.helper} role="status">{roadError || (roadBusy ? "Calculating route…" : road ? "" : "Choose 2–8 included Singapore locations for Walk or Drive.")}{roadError && <button className="quiet-action" onClick={roadPreview.retry}>Retry route</button>}</p>}
       {localLocation.status && plan && <p className={styles.helper} role="status">{localLocation.status} <button className="quiet-action" onClick={localLocation.clear} aria-label="Clear my location">Clear</button></p>}
       {(searching || pinMode || (searched && !results.length)) && <p className={styles.helper} role="status">{searching ? "Looking up this place…" : pinMode ? "Click the map to preview a pin. Nothing is saved until you confirm." : "No results found. Try a fuller address or drop a pin."}</p>}
-      {results.length > 0 && !preview && <ul className={styles.results} aria-label="Place search results">{results.map((result, index) => <li key={result.token}><button disabled={disabled} onClick={() => { setPreview(result); setSelectedId(null); setNotice("Check the name and position before adding. Search results can be approximate."); }}><span>{index + 1}. {result.candidate.title}</span><small>{result.candidate.address}</small></button></li>)}</ul>}
+      {!!(results.length || localSuggestions.length || alias) && !preview && <ul className={styles.results} aria-label="Place search results">
+        {alias && <li className={styles.searchHint}>Searching for {alias} · select a result to preview</li>}
+        {localSuggestions.map(place => <li key={place.id}><button disabled={disabled} onClick={() => void chooseContextPlace(place.id)}><span>{place.title}</span><small>In this context · {place.address || "Manual checkpoint"}</small></button></li>)}
+        {results.filter(result => !localSuggestions.some(place => place.latitude === result.candidate.latitude && place.longitude === result.candidate.longitude)).map(result => <li key={result.token}><button disabled={disabled} onClick={() => { request.current?.abort(); setSearching(false); setPreview(result); setSelectedId(null); setNotice("Check the name and position before adding. Search results can be approximate."); }}><span>{result.candidate.title}</span><small>{result.candidate.address}</small></button></li>)}
+      </ul>}
       {!preview && notice && <p className={styles.helper} role="status">{notice}</p>}
       <p className={styles.attribution}><a href="https://www.geoapify.com/" target="_blank" rel="noopener noreferrer">Search by Geoapify</a></p>
     </div>
     </div>
     <section className={`${styles.cards} ${view === "map" ? styles.mobileMapHidden : ""}`} aria-label="Trip places">
-      <button className={styles.trayToggle} aria-label={collapsed?"Expand Location Cards":"Collapse Location Cards"} aria-expanded={!collapsed} onClick={()=>setCollapsed(value=>!value)}>{collapsed?<ChevronUp size={16}/>:<ChevronDown size={16}/>}<span>{collapsed?"Show places":"Collapse"}</span></button>
+      <button className={styles.trayToggle} aria-label={collapsed?"Expand locations":"Collapse locations"} title={collapsed?"Expand locations":"Collapse locations"} aria-expanded={!collapsed} onClick={()=>setCollapsed(value=>!value)}>{collapsed?<ChevronUp size={18} aria-hidden="true"/>:<ChevronDown size={18} aria-hidden="true"/>}</button>
       {archived && <div className={styles.libraryState}><span>Archived locations in {route?.name}</span><button className={styles.control} onClick={() => { setArchived(false); }}>Back to route</button></div>}
       {plan && <TripRouteControls plan={plan} activeId={route?.id ?? null} ghosts={preferences.ghosts} hiddenRoutes={preferences.hiddenRoutes} showArchive={() => { setArchived(true); }} disabled={disabled} activate={id => { prefer({ ...preferences, activeId: id }); setArchived(false); setSelectedId(null); }} ghost={id => prefer(id === route?.id ? { ...preferences, hiddenRoutes: preferences.hiddenRoutes.includes(id) ? preferences.hiddenRoutes.filter(r => r !== id) : [...preferences.hiddenRoutes,id] } : { ...preferences, ghosts: preferences.ghosts.includes(id) ? preferences.ghosts.filter(g => g !== id) : [...preferences.ghosts,id], hiddenRoutes: preferences.hiddenRoutes.filter(r => r !== id) })} change={change} />}
-      {!plan ? <p className={styles.helper} role="status">Loading routes…</p> : shown.length === 0 ? <div className={styles.cardsEmpty}><MapPin size={20} aria-hidden="true" /><p>{archived ? "No archived locations in this route." : !route ? "Create a route to begin, then search or pin a place." : "Search or pin a place to add it to this route."}</p></div> : <><p className={styles.srOnly} id="trip-card-help">Scroll or drag cards; Move earlier/later is available in Place actions.</p><div className={styles.cardStrip} ref={cards} role="list" aria-label="Route locations" aria-describedby="trip-card-help" tabIndex={0}>{shown.map((place, index) => <TripPlaceCard key={place.id} place={place} plan={plan} routeId={route?.id ?? null} index={index} total={shown.length} selected={selectedId === place.id} hidden={preferences.hidden.includes(place.id)} toggleHidden={id => prefer({ ...preferences, hidden: preferences.hidden.includes(id) ? preferences.hidden.filter(p => p !== id) : [...preferences.hidden,id] })} disabled={disabled} select={select} comments={id => setCommentId(id)} move={(id, offset) => { const target = places[places.findIndex(p => p.id === id)+offset]; if (target) reorder(id,target.id); }} drop={reorder} change={change} />)}</div></>}
+      {!plan ? <p className={styles.helper} role="status">Loading routes…</p> : shown.length === 0 ? <div className={styles.cardsEmpty}><MapPin size={20} aria-hidden="true" /><p>{archived ? "No archived locations in this route." : !route ? "Search or pin a place. Your first add creates Route 1." : "Search or pin a place to add it to this route."}</p></div> : <><p className={styles.srOnly} id="trip-card-help">Scroll or drag cards; Move earlier/later is available in Place actions.</p><div className={styles.cardStrip} ref={cards} role="list" aria-label="Route locations" aria-describedby="trip-card-help" tabIndex={0}>{shown.map((place, index) => <TripPlaceCard key={place.id} place={place} plan={plan} routeId={route?.id ?? null} index={index} total={shown.length} selected={selectedId === place.id} hidden={preferences.hidden.includes(place.id)} toggleHidden={id => prefer({ ...preferences, hidden: preferences.hidden.includes(id) ? preferences.hidden.filter(p => p !== id) : [...preferences.hidden,id] })} disabled={disabled} select={select} comments={id => setCommentId(id)} move={(id, offset) => { const target = places[places.findIndex(p => p.id === id)+offset]; if (target) reorder(id,target.id); }} drop={reorder} change={change} />)}</div></>}
     </section>
     <button className={styles.savedPlacesEntry} aria-expanded={showMemory} onClick={() => {setShowMemory(value=>!value);memory.select(null);}}><Bookmark size={15} aria-hidden="true" />Saved places{showMemory ? " · Close" : ""}</button>
     {showMemory && <MapPinMemory memory={memory} sandbox={sandbox} currentRouteId={route?.id} onRouteAdded={()=>{void load();}}/>}

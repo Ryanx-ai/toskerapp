@@ -78,6 +78,7 @@
 .results span,.results small { display:block; overflow-wrap:anywhere; }
 .results span { font-size:14px; font-weight:600; }
 .results small { margin-top:4px; color:var(--text-secondary); font-size:12px; line-height:1.5; }
+.searchHint { padding:8px 12px; font-size:12px; color:var(--text-secondary); }
 .preview { margin:16px; padding:20px; display:flex; justify-content:space-between; align-items:center; gap:24px; border:1px solid var(--brand-gold); border-radius:var(--control-radius); background:var(--surface-hover); }
 .preview > div { min-width:0; }
 .previewLabel { font-size:12px; color:var(--brand-gold); }
@@ -229,7 +230,7 @@
 .ghostPin { opacity:.45; border-style:dashed; }
 .checkpointPin { border-radius:12px 12px 12px 3px; border-style:double; }
 .skippedPin { background:var(--shell-plane); color:var(--route-color); border:2px dashed var(--route-color); }
-.trayToggle { float:right; display:inline-flex; align-items:center; justify-content:center; gap:4px; min-height:44px; padding:8px; margin-left:8px; border:1px solid var(--border); border-radius:var(--control-radius); background:transparent; color:var(--text-secondary); font:600 11px/1.4 var(--font-montserrat),sans-serif; }
+.trayToggle { float:right; display:inline-flex; align-items:center; justify-content:center; gap:4px; min-width:44px; min-height:44px; padding:8px; margin-left:8px; border:1px solid var(--border); border-radius:var(--control-radius); background:transparent; color:var(--text-secondary); font:600 11px/1.4 var(--font-montserrat),sans-serif; }
 .cards > .routes { display:flow-root; }
 .routeEstimate { position:absolute; z-index:3; left:50%; top:64px; transform:translateX(-50%); width:max-content; max-width:min(260px,calc(100% - 24px)); border:1px solid var(--border); border-radius:var(--control-radius); background:var(--shell-plane); color:var(--text-primary); box-shadow:var(--depth-raised); font-size:12px; }
 .routeEstimate summary { cursor:pointer; min-height:44px; padding:12px 14px; white-space:nowrap; font-weight:600; }
@@ -240,6 +241,10 @@
 .workspace .toolbar .control { min-height:44px; }
 .mapInspector { position:absolute; z-index:6; width:300px; max-width:calc(100% - 16px); max-height:calc(100% - 44px); overflow:auto; overscroll-behavior:contain; padding:14px; background:var(--shell-plane); border:1px solid var(--border); border-radius:var(--control-radius); box-shadow:var(--depth-raised); color:var(--text-primary); }
 .mapInspector:focus-visible { outline:2px solid var(--ui-highlight); outline-offset:-3px; }
+@supports (backdrop-filter:blur(12px)) {
+  .mapInspector { background:color-mix(in srgb,var(--shell-plane) 92%,transparent); backdrop-filter:blur(12px); }
+}
+.pointInspector header { padding-top:6px; border-top:2px solid color-mix(in srgb,var(--brand-gold) 60%,var(--border)); }
 .pointInspector header { display:flex; align-items:flex-start; gap:8px; }
 .pointInspector header > svg { flex:none; margin-top:4px; color:var(--brand-gold); }
 .pointInspector h2 { flex:1; min-width:0; margin:0; font:600 14px/1.5 var(--font-montserrat),sans-serif; overflow-wrap:anywhere; }

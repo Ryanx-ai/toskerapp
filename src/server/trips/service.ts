@@ -125,17 +125,24 @@ export async function mutateTrip(db: ToskerDatabase, actor: AuthenticatedActor, 
     };
     if (c.type === "add") {
       const p = c.candidate;
-      if(!c.routeId)throw new TripError("invalid","Create or select a route before adding a location.");
-      await requireRoute(c.routeId);
+      // Null means the confirmed first add, not permission to retarget an
+      // existing route. Scope lock + revision + receipt make creation atomic.
+      let routeId = c.routeId;
+      if (!routeId) {
+        const routes = await tx.select().from(tripRoutes).where(eq(tripRoutes.planId, plan.id));
+        if (routes.some(route => !route.archivedAt)) throw new TripError("conflict", "A route is available now. Select it and confirm this place again.");
+        routeId = (await makeRoute("Route 1", "gold")).id;
+      }
+      await requireRoute(routeId);
       const all = await tx.select().from(tripPlaces).where(eq(tripPlaces.planId, plan.id)).limit(TRIP_LIMITS.places);
-      const routeCards=all.filter(existing=>existing.routeId===c.routeId);
+      const routeCards=all.filter(existing=>existing.routeId===routeId);
       const duplicate = routeCards.find(existing => (p.providerId && p.provider && existing.providerId === p.providerId && existing.provider === p.provider) || (Math.abs(existing.latitude - p.latitude) < 0.000001 && Math.abs(existing.longitude - p.longitude) < 0.000001));
       if (duplicate?.archivedAt) throw new TripError("invalid", "This location is archived in this route. Restore it from Archived locations.");
       if (duplicate) resultId = duplicate.id;
       else {
         if (all.length >= TRIP_LIMITS.places) throw new TripError("limit", "Up to 200 places, including archived places, fit in this Development trip.");
         const title = p.source === "pin" && isCoordinatePinTitle(p.title) ? nextCheckpointName(routeCards) : p.title;
-        const [created] = await tx.insert(tripPlaces).values({ planId: plan.id, routeId:c.routeId, position:routeCards.length, ...p, title, icon: p.source === "pin" && !p.providerId ? "checkpoint" : "destination" }).returning({ id: tripPlaces.id }); resultId = created.id;
+        const [created] = await tx.insert(tripPlaces).values({ planId: plan.id, routeId, position:routeCards.length, ...p, title, icon: p.source === "pin" && !p.providerId ? "checkpoint" : "destination" }).returning({ id: tripPlaces.id }); resultId = created.id;
       }
     } else if (c.type === "rename-checkpoint" || c.type === "place-icon") {
       const p = await requirePlace(c.placeId); if (p.archivedAt) return invalid();

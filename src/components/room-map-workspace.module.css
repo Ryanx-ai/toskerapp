@@ -79,6 +79,14 @@
 .results span { font-size:14px; font-weight:600; }
 .results small { margin-top:4px; color:var(--text-secondary); font-size:12px; line-height:1.5; }
 .searchHint { padding:8px 12px; font-size:12px; color:var(--text-secondary); }
+.originChip { display:flex; align-items:center; gap:8px; padding:8px 12px; border-top:1px solid var(--border); flex-wrap:wrap; }
+.originChip img { width:28px; height:28px; object-fit:cover; border-radius:50%; }
+.originChip > div { flex:1; min-width:100px; }
+.originChip strong { font-size:12px; }
+.originChip small { display:block; font-size:11px; color:var(--text-secondary); line-height:1.5; }
+.originChip .control { font-size:11px; min-height:44px; }
+.legTag { padding:4px 7px; border-radius:8px; border:1px solid var(--route-color,var(--brand-gold)); background:var(--shell-plane); color:var(--text-primary); box-shadow:var(--depth-raised); font:600 10px/1.4 var(--font-montserrat),sans-serif; white-space:nowrap; pointer-events:none; }
+.legTag[hidden] { display:none; }
 .preview { margin:16px; padding:20px; display:flex; justify-content:space-between; align-items:center; gap:24px; border:1px solid var(--brand-gold); border-radius:var(--control-radius); background:var(--surface-hover); }
 .preview > div { min-width:0; }
 .previewLabel { font-size:12px; color:var(--brand-gold); }
@@ -293,3 +301,7 @@
 @media(pointer:coarse) { .cardMore { width:44px; height:44px; } .routeTab button:last-child { width:44px; } .roadTools select,.roadTools .control { min-height:44px; } }
 @media(max-width:640px) { .workspace { flex:1; min-height:0; overflow:auto; padding:12px; gap:12px; } .canvasRegion { height:360px; } .state { padding:12px; font-size:11px; } .emptyMap { padding:24px 16px; } .toolbar { padding:12px; gap:10px; } .cards { padding:16px; } }
 @media(max-width:768px) { .mobileViews { display:flex; gap:8px; } .mobileViews button { flex:1; } .mobileMapHidden { display:none; } .preview { align-items:stretch; flex-direction:column; gap:12px; padding:16px; } .cardStrip { flex-direction:column; overflow-x:visible; align-items:stretch; } .placeCard { flex:auto; width:100%; } .cardSelect { min-height:100px; } .search { max-width:none; } .stripControls { display:none; } }
+.pingPlacement{position:absolute;top:8px;left:8px;right:52px;z-index:5;display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:8px 12px;border:1px solid var(--border);border-radius:var(--control-radius);background:var(--shell-plane);font-size:12px}
+.mapPing{display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:var(--text-primary);color:var(--shell-plane);border:3px solid var(--shell-plane);box-shadow:0 0 0 3px var(--text-primary);font-size:24px;font-weight:800;pointer-events:auto;animation:pingHalo 1s ease-out 3}
+@keyframes pingHalo{50%{box-shadow:0 0 0 10px color-mix(in srgb,var(--text-primary) 20%,transparent)}}
+@media(prefers-reduced-motion:reduce){.mapPing{animation:none}}

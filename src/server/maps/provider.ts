@@ -3,6 +3,8 @@ import { eq, sql } from "drizzle-orm";
 import type { PlaceCandidate } from "@/lib/trip-contract";
 import type { ToskerDatabase } from "@/server/db/client";
 import { mapProviderUsage } from "@/server/db/schema";
+import { inPlanningRegion, PLACE_REGION_FILTER } from "@/lib/maps/planning-region";
+import { credibleNearby } from "@/lib/maps/nearby-place";
 
 export class PlaceProviderError extends Error {
   constructor(readonly code: "rate" | "unavailable", message: string) { super(message); }
@@ -30,7 +32,7 @@ export async function reservePlaceRequest(db: ToskerDatabase, userId: string) {
 
 const bounded = (value: unknown, max: number) => typeof value === "string" ? value.replace(/[\u0000-\u001F]/g, " ").trim().slice(0, max) : "";
 function project(value: Record<string, unknown>): PlaceCandidate | null {
-  if (value.country_code !== "sg" || typeof value.lat !== "number" || typeof value.lon !== "number" || !Number.isFinite(value.lat) || !Number.isFinite(value.lon) || Math.abs(value.lat) > 90 || Math.abs(value.lon) > 180) return null;
+  if (!["sg","my"].includes(String(value.country_code)) || typeof value.lat !== "number" || typeof value.lon !== "number" || !inPlanningRegion(value.lat,value.lon)) return null;
   const source = value.datasource as Record<string, unknown> | undefined;
   // Preserve the actual source/license, including OpenAddresses; never assume OSM.
   const attribution = bounded(source?.attribution || source?.sourcename, 450), license = bounded(source?.license, 120);
@@ -50,7 +52,15 @@ function geoapifyProvider(): PlaceProvider {
       if (!response.ok) throw new Error();
       const result = await response.json();
       if (!Array.isArray(result.results)) throw new Error();
-      return result.results.slice(0, 5).map((value: Record<string, unknown>) => project(value)).filter((p: PlaceCandidate | null): p is PlaceCandidate => !!p);
+      const raw:Record<string,unknown>[]=result.results.slice(0,5);
+      const projected=raw.map(value=>project(value)).filter((p):p is PlaceCandidate=>!!p);
+      if(kind==="reverse"&&projected[0]){
+        const nearby=raw.filter(value=>{const p=project(value);return p&&p.attribution===projected[0].attribution&&p.license===projected[0].license&&credibleNearby(value,{latitude:Number(params.lat),longitude:Number(params.lon)});});
+        const names=[...new Set(nearby.map(value=>bounded(value.name,80)))].slice(0,3);
+        // Context stays attached to the exact manual coordinate; no POI conversion.
+        if(names.length)projected[0]={...projected[0],address:`Near ${names.join(" / ")} · ${projected[0].address}`.slice(0,400)};
+      }
+      return projected;
     } catch (error) {
       if (error instanceof PlaceProviderError) throw error;
       // Never propagate request URLs/response bodies/SDK errors or log raw queries.
@@ -58,8 +68,8 @@ function geoapifyProvider(): PlaceProvider {
     }
   }
   return {
-    search: (query, signal) => request("autocomplete", { text: query, limit: "5", filter: "countrycode:sg", bias: "proximity:103.8198,1.3521" }, signal),
-    reverse: async (latitude, longitude, signal) => (await request("reverse", { lat: String(latitude), lon: String(longitude), limit: "1" }, signal))[0] ?? null,
+    search: (query, signal) => request("autocomplete", { text: query, limit: "5", filter: PLACE_REGION_FILTER, bias: "proximity:103.8198,1.3521" }, signal),
+    reverse: async (latitude, longitude, signal) => (await request("reverse", { lat: String(latitude), lon: String(longitude), limit: "5" }, signal))[0] ?? null,
   };
 }
 /** Replace here for a later provider evaluation; Room/card services remain vendor-neutral. */

@@ -9,7 +9,7 @@ import { projectRoad } from "./road-projection";
 export type RoadProvider = { route(points: RoadPoint[], mode: RoadMode, signal: AbortSignal): Promise<RoadGeometry> };
 /** Conservative reservation: two credits per leg, 60/day, 3 explicit calculations/minute per actor. */
 export async function reserveRoadRequest(db: ToskerDatabase, actorId: string, count: number) {
-  if (count < 2 || count > 8) throw new PlaceProviderError("unavailable", "Route calculation supports 2–8 Singapore places.");
+  if (count < 2 || count > 8) throw new PlaceProviderError("unavailable", "Route calculation supports 2–8 Singapore / southern Johor places.");
   await db.transaction(async tx => {
     await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended('tosker-ms73-geocoding-budget', 0))`);
     const now=new Date();
@@ -25,7 +25,7 @@ export async function reserveRoadRequest(db: ToskerDatabase, actorId: string, co
 /** Replaceable adapter; no provider response bodies, request URLs or coordinates are logged. */
 export function getRoadProvider():RoadProvider {
   return { async route(points,mode,signal) {
-    if(!supportedRoadPoints(points) || !["drive","walk"].includes(mode))throw new PlaceProviderError("unavailable","Route calculation supports 2–8 Singapore places.");
+    if(!supportedRoadPoints(points) || !["drive","walk"].includes(mode))throw new PlaceProviderError("unavailable","Route calculation supports 2–8 Singapore / southern Johor places.");
     const key=process.env.GEOAPIFY_SEARCH_KEY;
     if(!key)throw new PlaceProviderError("unavailable","Route calculation is not configured.");
     const url=new URL("https://api.geoapify.com/v1/routing");

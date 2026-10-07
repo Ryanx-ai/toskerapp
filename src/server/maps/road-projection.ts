@@ -12,8 +12,8 @@ export function projectRoad(raw:unknown,points:RoadPoint[],mode:RoadMode):RoadGe
   for(const segment of segments){
     if(!Array.isArray(segment)||segment.length<2)throw new Error("Invalid road segment");
     for(const point of segment){
-      // All approved waypoints are Singapore-only: reject bad projection/outlier geometry.
-      if(!Array.isArray(point)||!Number.isFinite(point[0])||!Number.isFinite(point[1])||point[0]<103.5||point[0]>104.2||point[1]<1.1||point[1]>1.6)throw new Error("Invalid Singapore road coordinate");
+      // Bounded SG/southern-Johor detour envelope; never accept arbitrary world geometry.
+      if(!Array.isArray(point)||!Number.isFinite(point[0])||!Number.isFinite(point[1])||point[0]<103.3||point[0]>104.45||point[1]<1.05||point[1]>1.9)throw new Error("Invalid regional road coordinate");
       if(++count>30000)throw new Error("Road geometry too large");
     }
   }

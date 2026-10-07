@@ -2,6 +2,7 @@
 import { useEffect, useId, useState, type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { MapAbout } from "./map-about";
 import { readOwnProfileAction, updateOwnProfileAction } from "@/server/profiles/owner-actions";
 import type { OwnProfileChange } from "@/server/profiles/owner-profile";
 import type { CanonicalIdentity } from "@/server/accounts/bootstrap";
@@ -71,6 +72,7 @@ export function OwnProfileEditor({ identity, onClose, accountMode = false, selec
       <p className="settings-scope">Reset is saved with your changes. Your interface and Room nickname stay unchanged. Custom images and fonts aren’t available.</p>
     </>) },
     ...(accountMode ? [
+      { id:"about", label:"Version info / About", content:<MapAbout/> },
       { id:"account", label:"Account", content:<AccountSecurity disabled={busy || changed} /> },
       { id:"notifications", label:"Notifications", content:section("In-app banners","Choose which new updates appear as a temporary banner while Tosker is open.",<>
         <label className="owner-profile-field">Show banners<select value={draft.bannerPreference} disabled={busy} onChange={event=>setDraft({...draft,bannerPreference:event.target.value as BannerPreference})}>{BANNER_PREFERENCES.map(value=><option key={value} value={value}>{({all:"All eligible updates",direct_mentions:"Direct conversations and mentions",quiet:"Quiet"})[value]}</option>)}</select></label>
@@ -86,7 +88,7 @@ export function OwnProfileEditor({ identity, onClose, accountMode = false, selec
       { id:"support", label:"Support", content:<SettingsSection title="Help and feedback" description="Find your way around Tosker."><Link className="quiet-action" href="/help">Open Help</Link><a className="quiet-action" href={`mailto:${SUPPORT_EMAIL}`}>Contact support</a><p className="settings-scope">Opens your email app. Include the page, what you expected and what happened. Don’t include passwords or verification codes.</p><p className="settings-scope">Tosker uses English and a dark interface with curated accents. Browser zoom and reduced motion follow your device. Translation, uploads and full themes aren’t available.</p></SettingsSection> },
     ] : []),
   ]} footer={requestClose => <div className="owner-profile-save">{error ? <p role="alert">{error}</p> : null}{feedback && !changed ? <p role="status">{feedback}</p> : null}
-    {accountMode && ["account","support"].includes(selectedSection ?? "") ? <form id={formId} onSubmit={save} /> : null}
+    {accountMode && ["account","support","about"].includes(selectedSection ?? "") ? <form id={formId} onSubmit={save} /> : null}
     {conflict ? <button className="quiet-action" disabled={busy} onClick={async () => {
       setBusy(true);
       try { const saved=await readOwnProfileAction(); setBase(saved); setDraft(saved); setConflict(false); setError(""); }

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useEffectEvent, useRef, useState } from "react";
 import { communicationTiming, deliveryTrace } from "@/lib/communication-performance";
 import { PROFILE_CHANGED, PROFILE_REFRESH } from "@/lib/realtime-contract";
+import { MAP_PING, MAP_PING_RECEIVED, MAP_PING_CLEAR, validPing } from "@/lib/maps/ping-contract";
 import { TRIP_CHANGED, TRIP_REFRESH } from "@/lib/realtime-contract";
 import { conversationChannel, typingChannel, userChannel, MESSAGE_CHANGED, TYPING_CHANGED, TYPING_TTL, USER_ACTIVITY, ACTIVITY_REFRESH, CHAT_REFRESH, HALL_REFRESH, CONVERSATION_ACCESS_LOST } from "@/lib/realtime-contract";
 
@@ -44,6 +45,9 @@ export function useConversationRealtime(conversationId: string | undefined, user
       feed.on(updateHealth); channel?.on(updateHealth);
       const refreshActivity = () => { if (!disposed) window.dispatchEvent(new Event(ACTIVITY_REFRESH)); };
       const refreshTrip = () => { if (!disposed) window.dispatchEvent(new Event(TRIP_REFRESH)); };
+      void channel?.subscribe(MAP_PING, message=>{
+        if(!disposed&&!document.hidden&&validPing(message.data))window.dispatchEvent(new CustomEvent(MAP_PING_RECEIVED,{detail:{conversationId,ping:message.data}}));
+      }).catch(()=>undefined);
       void channel?.subscribe(TRIP_CHANGED, refreshTrip).then(refreshTrip).catch(() => undefined);
       channel?.on("attached", refreshTrip);
       void feed.subscribe(PROFILE_CHANGED, () => {
@@ -97,10 +101,10 @@ export function useConversationRealtime(conversationId: string | undefined, user
         if (disposed) return;
         updateHealth();
         if (state.current === "connected") { changed(); refreshActivity(); window.dispatchEvent(new Event(HALL_REFRESH)); if (previouslyConnected) window.dispatchEvent(new Event(PROFILE_REFRESH)); previouslyConnected = true; }
-        else { peers.clear(); updatePeers(); wasTyping = false; refreshActivity(); }
+        else { peers.clear(); updatePeers(); wasTyping = false; refreshActivity(); window.dispatchEvent(new Event(MAP_PING_CLEAR)); }
       });
       const onVisible = () => {
-        if (document.hidden) { sendRef.current(false); peers.clear(); updatePeers(); }
+        if (document.hidden) { sendRef.current(false); peers.clear(); updatePeers(); window.dispatchEvent(new Event(MAP_PING_CLEAR)); }
         else { realtime.connect(); changed(); refreshActivity(); window.dispatchEvent(new Event(HALL_REFRESH)); window.dispatchEvent(new Event(PROFILE_REFRESH)); }
       };
       const onOnline = () => { realtime.connect(); changed(); refreshActivity(); window.dispatchEvent(new Event(HALL_REFRESH)); window.dispatchEvent(new Event(PROFILE_REFRESH)); };

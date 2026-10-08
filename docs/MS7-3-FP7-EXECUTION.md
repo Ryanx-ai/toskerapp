@@ -1,5 +1,21 @@
 # MS7.3 FP7 execution and recovery
 
+## F — recovered brief verified and release candidate
+
+2026-10-08. Actual founder PDF recovered at its original Desktop path. All three pages read completely and rendered/visually inspected. Sections00–20 match the implemented contract and A–E evidence; the missing-source hold below is resolved. No requirements inferred from the mistakenly supplied recovery ledger. The original10–14h bounded estimate remains the recorded pre-implementation estimate; no architecture, procurement or migration expansion.
+
+Recovered local checkpoint `c448c71923dc5927e9a3e19c3d210d487a26a428`; fresh origin/main and canonical remain FP6 `c469717`, deployment `dpl_6rKBPSvskuLYR9NN7tMgJRCio9Nq`, READY Production with canonical alias. Port3000 was free; started only the previously verified optimized build. Unrelated dirty/untracked work remains excluded.
+
+Fresh migration catalog28/35tables/252columns/127constraints/15enums PASS. `recover-ms73-fp7.ts` verifies seven enabled guards, zero orphan/mirror/position violations, unique founder, retained904a9dea+bfff9475 memberships and protected profiles/messages/Board/Map Pins unchanged after excluding only identity/contribution-checked current disposable QA conversations. No restoration or data reset. Naming audit flags two existing QA-style titles in the protected Founder Review Room; retained safe QA context, not permission to rename founder data. No new raw-coordinate title introduced.
+
+`browser-fp7-release.mjs` local PASS on optimized application. Copy/Share chooser bounds,44px controls, keyboard/Escape focus at320/390/430/768/1440/1728 and844×390; enlarged20px long-heading scroll/reflow screenshot inspected. Initial harness expected hidden mobile card controls; corrected to use Places before menus. Product unchanged. Real basemap origin access and attribution verified, zero page exceptions.
+
+Exactly TWO real road calls, durable `.git/fp7-recovery/release-truth.json` complete receipt: private origin1.286,103.854→Day2 MBS2089m/184.268s/77vertices; independently copied three-card Route4929m/403.79s/175vertices/twolegs. Provider geometry key matches destination-owned IDs. UserA explicitly consents; decline sends no origin; no trip/browser-storage/peer origin state; OFF clears. UserB sees copied cards after reload without source comments. This supplements, not repeats, FP6 SG/JB/Walk truth. Real map screenshots reviewed; estimates are provider estimates, not navigation guarantees. New QA Route1 copy remains in destination Room for canonical read/reconciliation and exact Room cleanup later. Never replay the completed local truth suite.
+
+Vercel environment metadata reconfirmed without reading/printing values: Production browser encrypted `nNNeSjaXSCstKaAM`, server sensitive `aXgbkWPfoZSFD3kQ`; Development browser `UkBD1Dbhasj3iWcn`, server `iGM2AT8n9oGlljeN`. No environment, billing, quota or restriction changes. Browser key appears only under approved public map architecture; server adapter remains server-only. Account-wide tile credits not independently measured; app budget is separately checked.
+
+TypeScript, new-script lint, full lint(0errors/one pre-existing unused eq warning), source/owned634files+41clientbundles secret scan and diff check PASS. Existing configured production build from E2 remains exact product source (only test/ledger changes since). Fresh protected-data/invariants PASS after two calls; UTC2026-10-08 road credits36/60, search15/120. Pending: scoped commit/normal push/exact-SHA Vercel verification/canonical A/B/client scan/owned cleanup/lock-prime review. MS7.3 remains unlocked. Restart: inspect F and ignored receipts; no fixture recreation, no repeat real road call. Resume first incomplete gate.
+
 ## E2 — rebuilt acceptance green; original brief reread outstanding
 
 2026-10-08 after R2. Configured production build passed twice (the second includes the enlarged-label correction), Next16.3.3/18pages. Typecheck passed; full lint zero errors/one pre-existing unused eq warning. Source/client secret scan passed631source/owned files and41bundles, including Geoapify server credential; no values printed. Final scoped scan/check rerun belongs to the local checkpoint below, not canonical acceptance.

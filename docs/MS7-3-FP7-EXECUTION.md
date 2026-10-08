@@ -1,5 +1,19 @@
 # MS7.3 FP7 execution and recovery
 
+## G — canonical verified and exact cleanup complete
+
+2026-10-08. **STOP for Ryan + Jenn playtest.** [Lock-prime review](MS7-3-LOCK-PRIME-REVIEW.md) contains the capability inventory, provider limits, privacy/security boundaries, debt/papercuts, blockers versus deferrals and walkthrough checklist. Recommendation HOLD formal lock pending founder acceptance; no known engineering release blocker. MS7.3 remains unlocked; MS7.4/MS8 unstarted.
+
+Normal push deployed exact application `ef00cef1c001595a6246448e34e3fb9da34b91d8`. Vercel `dpl_4BseJveHyFiT3FL5GTDcyqK5q2NK`, READY Production, canonical `toskerapp.vercel.app`; immutable host `tosker-2g9edqoju-pangea6.vercel.app`. Build approximately39s. Root307→HTTP200; anonymous protected Map sign-in shell200; unauthenticated same-origin lookup403. No bypass. Exact-deployment error/fatal log scan empty through13:21UTC. Environment assignments remain as F, no values printed.
+
+`browser-fp7-release.mjs --canonical` PASS: actual A/B Clerk login, Home→Favourite shared mutation/realtime/reload, private You card peer isolation/reload clearing, independently copied three-card Route retained and readable to both actors, removed primary Saved Places, real basemap/attribution and zero page exceptions. Twenty deployed client assets secret-scan PASS. Zero additional real road calls on canonical; use F's two-call evidence and inherited FP6 provider truth. Screenshots reviewed. Canonical receipt complete; DO NOT rerun against deleted fixtures.
+
+Exact cleanup removed only `ms73-qa-9c38272c` and `ms73-qa-809fbd3f`, each after current identity/member/contribution guards. Founder membership removed only with these disposable Rooms. Protected `ms73-founder-review-904a9dea` and founder-content `ms73-qa-bfff9475` retained, still containing exact-resolved8V3X7P1. Primary Founder Walk remains available; no automatic cleanup. Deleted QA content has no in-app undo; receipts remain, not a restore guarantee.
+
+Post-cleanup read-only baseline/invariants PASS: profiles/messages/hall_items/map_pins unchanged, seven guards enabled, zero orphan/mirror/position violations,6Rooms/5plans/8Routes/19cards/5comments/105receipts. No restoration to old counts. Migration catalog remains28, no schema delta. UTC2026-10-08 provider counters36/60roads and15/120search; account-wide tile totals not measured. No quota/plan/billing/restriction change.
+
+Owned browser contexts closed and optimized local server stopped. `.git/fp7-recovery/release-final.json`0600 records release/cleanup identities. Final recovery/report commit is local and separate from deployed application SHA; resolve it with Git HEAD. Preserve unrelated dirty/untracked work. Restart: verify these identities read-only, then await founder walkthrough/lock decision. Do not recreate fixtures, replay writes/provider calls, deploy docs merely to change the live SHA, auto-lock or start a new milestone.
+
 ## F — recovered brief verified and release candidate
 
 2026-10-08. Actual founder PDF recovered at its original Desktop path. All three pages read completely and rendered/visually inspected. Sections00–20 match the implemented contract and A–E evidence; the missing-source hold below is resolved. No requirements inferred from the mistakenly supplied recovery ledger. The original10–14h bounded estimate remains the recorded pre-implementation estimate; no architecture, procurement or migration expansion.

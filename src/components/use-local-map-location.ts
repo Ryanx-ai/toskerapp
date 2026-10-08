@@ -9,6 +9,15 @@ export function useLocalMapLocation() {
   const generation = useRef(0), pending = useRef(false);
   useEffect(() => () => { ++generation.current; }, []);
   const clear = useCallback(() => { ++generation.current; pending.current = false; setLocation(null); setStatus(""); setBusy(false); }, []);
+  useEffect(() => {
+    if (!location) return;
+    // A one-shot reading is not live tracking. Expire it rather than route from stale coordinates.
+    const expires = Date.now() + 5 * 60 * 1000;
+    const expire = () => { if (Date.now() >= expires) { clear(); setStatus("Your location expired. Use Locate for a fresh reading."); } };
+    const timer = setTimeout(expire, 5 * 60 * 1000);
+    document.addEventListener("visibilitychange", expire);
+    return () => { clearTimeout(timer); document.removeEventListener("visibilitychange", expire); };
+  }, [location, clear]);
   const locate = () => {
     if (pending.current) return;
     if (!navigator.geolocation) { setStatus("Location is unavailable in this browser."); return; }

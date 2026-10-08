@@ -8,6 +8,12 @@ import { publishTripChanged } from "@/server/realtime/provider";
 import { verifyCandidate } from "@/server/maps/candidate-token";
 import { mutateTrip, readTrip, readTripComments, TripError } from "./service";
 import type { TripCommand, TripResult, TripSnapshot } from "@/lib/trip-contract";
+import { tripCopyDestinations } from "./destinations";
+
+export async function tripCopyDestinationsAction(source:string) {
+  try { return {ok:true as const,value:await tripCopyDestinations(getDatabase(),await requireCurrentActor(),source)}; }
+  catch(error) { return failure(error); }
+}
 
 export async function readTripAction(roomSlug: string): Promise<TripResult<TripSnapshot>> {
   try { return { ok: true, value: await readTrip(getDatabase(), await requireCurrentActor(), roomSlug) }; }

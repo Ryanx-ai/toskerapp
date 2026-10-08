@@ -5,17 +5,18 @@ import { TRIP_COLORS, orderedRoutePlaces, lockedQuickOrder, type TripColor, type
 import { InteractionPopover } from "./interaction-popover";
 import { ModalLayer } from "./modal-layer";
 import { RevealName } from "./reveal-name";
+import { TripShareRoute } from "./trip-share-route";
 import styles from "./room-map-workspace.module.css";
 
 export type TripChange = (command: Exclude<TripCommand, { type: "add" }>, revision?: number) => Promise<{ revision: number; resultId: string | null } | undefined>;
-type Props = { plan: TripSnapshot; activeId: string | null; ghosts: string[]; hiddenRoutes: string[]; disabled: boolean; activate(id: string): void; ghost(id: string): void; change: TripChange; showArchive(): void };
-export default function TripRouteControls({ plan, activeId, ghosts, hiddenRoutes, disabled, activate, ghost, change, showArchive }: Props) {
+type Props = { scope:string; plan: TripSnapshot; activeId: string | null; ghosts: string[]; hiddenRoutes: string[]; disabled: boolean; activate(id: string): void; ghost(id: string): void; change: TripChange; showArchive(): void };
+export default function TripRouteControls({ scope, plan, activeId, ghosts, hiddenRoutes, disabled, activate, ghost, change, showArchive }: Props) {
   const [nuke,setNuke]=useState<{id:string;name:string;revision:number}|null>(null);
   const [editing, setEditing] = useState<{ id: string | null; name: string; color: TripColor; revision: number } | null>(null);
   const [proposal, setProposal] = useState<{ routeId: string; revision: number; before: string[]; after: string[] } | null>(null);
   const [notice, setNotice] = useState("");
   useEffect(()=>{if(!notice)return;const timer=setTimeout(()=>setNotice(""),4000);return()=>clearTimeout(timer);},[notice]);
-  const [menu, setMenu] = useState<{ anchor: HTMLElement; id: string | null } | null>(null), [share, setShare] = useState(false);
+  const [menu, setMenu] = useState<{ anchor: HTMLElement; id: string | null } | null>(null), [share, setShare] = useState<{id:string;name:string;revision:number}|null>(null);
   const route = plan.routes.find(r => r.id === activeId && !r.archived);
   const visible = plan.routes.filter(r => !r.archived);
   const menuRoute = plan.routes.find(r => r.id === menu?.id);
@@ -40,7 +41,7 @@ export default function TripRouteControls({ plan, activeId, ghosts, hiddenRoutes
       <button className={styles.newRoute} disabled={disabled || plan.routes.length >= 12} onClick={() => setEditing({ id:null,name:`Day ${plan.routes.length+1}`,color:TRIP_COLORS[plan.routes.length % TRIP_COLORS.length],revision:plan.revision })}><Plus size={16} aria-hidden="true" />Route</button>
     </div><div className={styles.actions}>
       <button className={styles.control} disabled={disabled || places.length < 2} aria-label="Quick order" title="Quick order · ordering suggestion" onClick={() => { if (!route) return; const after=lockedQuickOrder(plan,route.id); if(after.every((id,i)=>id===fullOrder[i])){setNotice("Already in the quickest order.");return;}setNotice("");setProposal({routeId:route.id,revision:plan.revision,before:fullOrder,after}); }}><Sparkles size={16} aria-hidden="true" /></button>
-      <button className={styles.control} aria-label="Share route" title="Share route · deferred" onClick={() => setShare(true)}><Share2 size={18} aria-hidden="true" /></button>
+      <button className={styles.control} disabled={disabled||!route} aria-label="Share route" title="Share an independent route copy" onClick={() => {if(route)setShare({id:route.id,name:route.name,revision:plan.revision});}}><Share2 size={18} aria-hidden="true" /></button>
     </div></div>
     {!visible.length && plan.routes.some(r=>r.archived) && <button className="quiet-action" onClick={e => setMenu({ anchor:e.currentTarget, id:null })}>Archived routes</button>}
     {menu && <InteractionPopover anchor={menu.anchor} onClose={() => setMenu(null)} label={menuRoute ? `Route actions for ${menuRoute.name}` : "Trip options"}><div className={styles.cardMenu}>
@@ -52,7 +53,7 @@ export default function TripRouteControls({ plan, activeId, ghosts, hiddenRoutes
         {plan.routes.filter(r=>r.archived).map(r=><button key={r.id} disabled={disabled} onClick={async()=>{if(await change({type:"archive-route",routeId:r.id,archived:false})){activate(r.id);setMenu(null);}}}>Restore {r.name}</button>)}
         <button disabled={disabled || visible[0]?.id === menuRoute.id} onClick={() => { const i=visible.findIndex(r=>r.id===menuRoute.id); if(i>0)move(menuRoute.id,visible[i-1].id); }}><ArrowLeft size={16} aria-hidden="true" />Move earlier</button>
         <button disabled={disabled || visible.at(-1)?.id === menuRoute.id} onClick={() => { const i=visible.findIndex(r=>r.id===menuRoute.id); if(i<visible.length-1)move(menuRoute.id,visible[i+1].id); }}><ArrowRight size={16} aria-hidden="true" />Move later</button>
-        <button onClick={() => {setMenu(null);setShare(true);}}><Share2 size={16} aria-hidden="true" />Share · deferred</button>
+        <button disabled={disabled||menuRoute.archived} onClick={() => {setMenu(null);setShare({id:menuRoute.id,name:menuRoute.name,revision:plan.revision});}}><Share2 size={16} aria-hidden="true" />Share</button>
         <button disabled={disabled} onClick={async () => { if(await change({type:"archive-route",routeId:menuRoute.id,archived:true}))setMenu(null); }}><Archive size={16} aria-hidden="true" />Archive</button>
         <button className="fp3-nuke-action" disabled={disabled} onClick={()=>{setNuke({id:menuRoute.id,name:menuRoute.name,revision:plan.revision});setMenu(null);}}><Trash2 size={16} aria-hidden="true" />Nuke route</button>
       </> : <>{plan.routes.filter(r=>r.archived).map(r=><button key={r.id} disabled={disabled} onClick={async()=>{if(await change({type:"archive-route",routeId:r.id,archived:false})){activate(r.id);setMenu(null);}}}>Restore {r.name}</button>)}</>}
@@ -62,8 +63,9 @@ export default function TripRouteControls({ plan, activeId, ghosts, hiddenRoutes
       {nuke.revision!==plan.revision && <p role="alert">The trip changed. Cancel and review it before removing.</p>}
       <div className={styles.actions}><button className="quiet-action" disabled={disabled} onClick={()=>setNuke(null)}>Cancel</button><button className="primary-action fp3-nuke-action" disabled={disabled||nuke.revision!==plan.revision} onClick={async()=>{if(await change({type:"nuke-route",routeId:nuke.id},nuke.revision)){setNuke(null);setProposal(null);}}}>Nuke route</button></div>
     </section></ModalLayer>}
-    {(editing || proposal || share) && <ModalLayer onClose={() => {if(!disabled){setEditing(null);setProposal(null);setShare(false);}}}><section className={`creation-panel ${styles.placeDialog}`}>
-      <button className="overlay-close" aria-label="Close route dialog" disabled={disabled} onClick={()=>{setEditing(null);setProposal(null);setShare(false);}}><X size={18} /></button>
+    {share && <TripShareRoute source={scope} routeId={share.id} name={share.name} revision={share.revision} currentRevision={plan.revision} close={()=>setShare(null)}/>}
+    {(editing || proposal) && <ModalLayer onClose={() => {if(!disabled){setEditing(null);setProposal(null);}}}><section className={`creation-panel ${styles.placeDialog}`}>
+      <button className="overlay-close" aria-label="Close route dialog" disabled={disabled} onClick={()=>{setEditing(null);setProposal(null);}}><X size={18} /></button>
       {editing && <form className={styles.editor} aria-label="Route editor" onSubmit={async e => { e.preventDefault(); const result=await change(editing.id ? {type:"edit-route",routeId:editing.id,name:editing.name,color:editing.color} : {type:"create-route",name:editing.name,color:editing.color},editing.revision); if(result){if(result.resultId)activate(result.resultId);setEditing(null);} }}>
         <h2>{editing.id ? "Edit route" : "New route"}</h2><label>Route name<input autoFocus required maxLength={60} value={editing.name} onChange={e=>setEditing({...editing,name:e.target.value})}/></label>
         <label>Route color<select value={editing.color} onChange={e=>setEditing({...editing,color:e.target.value as TripColor})}>{TRIP_COLORS.map(c=><option key={c} value={c}>{c}</option>)}</select></label>
@@ -74,7 +76,6 @@ export default function TripRouteControls({ plan, activeId, ghosts, hiddenRoutes
         {proposal.revision!==plan.revision && <p role="alert">The trip changed. Reopen Quick order; nothing was applied.</p>}
         <button className={styles.primary} disabled={disabled || proposal.revision!==plan.revision} onClick={async()=>{const result=await change({type:"order",routeId:proposal.routeId,placeIds:proposal.after},proposal.revision);if(result){setProposal(null);}}}>Apply suggested order</button>
       </section>}
-      {share && <><h2>Share route</h2><p>Deferred. This route is already shared with current members here. External sharing needs scoped access, revocation and a clear live-versus-snapshot contract. No link or message has been created.</p></>}
     </section></ModalLayer>}
     {notice && <p className={styles.routeTools} role="status">{notice}</p>}
   </section>;

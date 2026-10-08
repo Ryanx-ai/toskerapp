@@ -7,11 +7,10 @@ import { InteractionPopover } from "./interaction-popover";
 import { ModalLayer } from "./modal-layer";
 import { RevealName } from "./reveal-name";
 import { TripPlaceSymbol } from "./trip-place-symbol";
-import { TripPlaceAppearance } from "./trip-place-appearance";
 import styles from "./room-map-workspace.module.css";
 
-type Props = { place: TripPlace; plan: TripSnapshot; routeId: string | null; index: number; total: number; selected: boolean; hidden: boolean; disabled: boolean; comments(id: string): void; toggleHidden(id: string): void; select(id: string): void; move(id: string, offset: number): void; drop(id: string, target: string, revision: number): void; change: TripChange };
-export default function TripPlaceCard({ place, plan, routeId, index, total, selected, hidden, disabled, comments, toggleHidden, select, move, drop, change }: Props) {
+type Props = { place: TripPlace; plan: TripSnapshot; routeId: string | null; index: number; total: number; selected: boolean; hidden: boolean; disabled: boolean; copy(placeId:string):void; comments(id: string): void; toggleHidden(id: string): void; select(id: string): void; move(id: string, offset: number): void; drop(id: string, target: string, revision: number): void; change: TripChange };
+export default function TripPlaceCard({ place, plan, routeId, index, total, selected, hidden, disabled, copy, comments, toggleHidden, select, move, drop, change }: Props) {
   const [edit, setEdit] = useState<{ title: string; note: string; revision: number } | null>(null);
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const [dialog, setDialog] = useState<"info" | "nuke" | null>(null), [confirmRevision, setConfirmRevision] = useState(0), [copyState, setCopyState] = useState("");
@@ -33,16 +32,16 @@ export default function TripPlaceCard({ place, plan, routeId, index, total, sele
     <button className={styles.cardMore} aria-label={`Place actions for ${place.title}`} aria-haspopup="dialog" aria-expanded={!!anchor} onClick={e => setAnchor(e.currentTarget)}><MoreHorizontal size={18} aria-hidden="true" /></button>
     {anchor && <InteractionPopover anchor={anchor} onClose={() => { setAnchor(null); setEdit(null); }} label={`Place actions for ${place.title}`}>
       {!edit ? <div className={styles.cardMenu}>
-        <button onClick={() => { setAnchor(null); setCopyState(""); setDialog("info"); }}><Info size={16} aria-hidden="true" />Get info</button>
+        <button onClick={() => { setAnchor(null); setCopyState(""); setDialog("info"); }}><Info size={16} aria-hidden="true" />Info</button>
         {!place.archived && <>
-          <TripPlaceAppearance place={place} revision={plan.revision} disabled={disabled} change={change} />
+          <button disabled={disabled} onClick={()=>{setAnchor(null);copy(place.id);}}><Copy size={16} aria-hidden="true"/>Copy to route</button>
           <button aria-pressed={!hidden} onClick={() => toggleHidden(place.id)}>{hidden ? <EyeOff size={16} aria-hidden="true" /> : <Eye size={16} aria-hidden="true" />}{hidden ? "Show on my map" : "Hide from my map"}</button>
           <button disabled={disabled} aria-pressed={!!place.starred} onClick={() => void change({ type: "star-place", placeId: place.id, starred: !place.starred })}><Star size={16} aria-hidden="true" />{place.starred ? "Unstar" : "Star"}</button>
           <button disabled={disabled || !routeId} aria-pressed={locked} onClick={() => routeId && void change({type:"lock-position",routeId,position,locked:!locked})}>{locked ? <Unlock size={16} aria-hidden="true"/> : <Lock size={16} aria-hidden="true"/>}{locked ? "Unlock" : "Lock"} position {position+1}</button>
           <button disabled={disabled} aria-pressed={!!place.skipped} onClick={() => void change({type:"skip-place",placeId:place.id,skipped:!place.skipped})}><SkipForward size={16} aria-hidden="true"/>{place.skipped ? "Include in route" : "Skip in route"}</button>
-          {place.source==="pin" && !place.providerId && <button disabled={disabled} onClick={()=>{setAnchor(null);setReposition({latitude:String(place.latitude),longitude:String(place.longitude),revision:plan.revision});}}><Move size={16} aria-hidden="true"/>Reposition checkpoint</button>}
-          <button disabled={disabled} onClick={() => setEdit({ title: place.title, note: place.note, revision: plan.revision })}>Edit note</button>
-          <button disabled={disabled || locked || !routeId || index === 0} onClick={() => move(place.id,-1)}><ArrowLeft size={16} aria-hidden="true" />Move earlier</button><button disabled={disabled || locked || !routeId || index === total-1} onClick={() => move(place.id,1)}><ArrowRight size={16} aria-hidden="true" />Move later</button>
+          {place.source==="pin" && !place.providerId && <button disabled={disabled} onClick={()=>{setAnchor(null);setReposition({latitude:String(place.latitude),longitude:String(place.longitude),revision:plan.revision});}}><Move size={16} aria-hidden="true"/>Move pin</button>}
+          <button disabled={disabled} onClick={() => setEdit({ title: place.title, note: place.note, revision: plan.revision })}>Note</button>
+          <button disabled={disabled || locked || !routeId || index === 0} onClick={() => move(place.id,-1)}><ArrowLeft size={16} aria-hidden="true" />Earlier</button><button disabled={disabled || locked || !routeId || index === total-1} onClick={() => move(place.id,1)}><ArrowRight size={16} aria-hidden="true" />Later</button>
         </>}
         <button disabled={disabled} onClick={() => void change({ type: "archive-place", placeId: place.id, archived: !place.archived })}><Archive size={16} aria-hidden="true" />{place.archived ? "Restore" : "Archive"}</button>
         <button disabled={disabled} onClick={() => { setAnchor(null); setConfirmRevision(plan.revision); setDialog("nuke"); }}><Trash2 size={16} aria-hidden="true" />Nuke</button>

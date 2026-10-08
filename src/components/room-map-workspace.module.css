@@ -80,12 +80,18 @@
 .results span { font-size:14px; font-weight:600; }
 .results small { margin-top:4px; color:var(--text-secondary); font-size:12px; line-height:1.5; }
 .searchHint { padding:8px 12px; font-size:12px; color:var(--text-secondary); }
-.originChip { display:flex; align-items:center; gap:8px; padding:8px 12px; border-top:1px solid var(--border); flex-wrap:wrap; }
-.originChip img { width:28px; height:28px; object-fit:cover; border-radius:50%; }
-.originChip > div { flex:1; min-width:100px; }
-.originChip strong { font-size:12px; }
-.originChip small { display:block; font-size:11px; color:var(--text-secondary); line-height:1.5; }
-.originChip .control { font-size:11px; min-height:44px; }
+.originCard { display:flex; flex-direction:column; align-self:flex-start; gap:8px; flex:0 0 184px; padding:12px; border:1px dashed var(--border); border-radius:12px; min-width:0; }
+.originCard header,.originCard footer { display:flex; align-items:center; gap:8px; }
+.originCard img { width:28px; height:28px; object-fit:cover; border-radius:50%; }
+.originCard header > div { flex:1; min-width:0; }
+.originCard strong { font-size:13px; }
+.originCard small { display:block; font-size:11px; line-height:1.5; color:var(--text-secondary); overflow-wrap:anywhere; }
+.originCard .control { font-size:11px; min-height:44px; padding:6px; }
+.originCard footer .control:last-child { width:44px; flex:none; margin-left:auto; }
+.placeTags { display:flex; flex-wrap:wrap; gap:8px; margin:8px 0; }
+.placeTags .control { flex:1 1 5.6em; flex-direction:column; gap:4px; min-width:max(44px,5.6em); min-height:44px; padding:8px 5px; font-size:10px; }
+.placeTags .control[aria-pressed="true"] { color:var(--brand-gold); border-color:var(--brand-gold); background:var(--surface-hover); }
+@media(max-width:768px) { .originCard { flex:0 0 auto; width:100%; max-width:100%; } }
 .legTag { padding:4px 7px; border-radius:8px; border:1px solid var(--route-color,var(--brand-gold)); background:var(--shell-plane); color:var(--text-primary); box-shadow:var(--depth-raised); font:600 10px/1.4 var(--font-montserrat),sans-serif; white-space:nowrap; pointer-events:none; }
 .legTag[hidden] { display:none; }
 .aboutCopy { display:grid; gap:14px; color:var(--text-secondary); font-size:13px; line-height:1.6; }
@@ -270,7 +276,6 @@
 .placeAppearance select { min-width:0; width:100%; }
 .placeAppearance .editor { padding:0; }
 .markerOrdinal { position:absolute; right:-5px; bottom:-5px; display:grid; place-items:center; min-width:19px; height:19px; padding:2px; border-radius:6px; background:var(--shell-plane); color:var(--route-color,var(--brand-gold)); font-size:10px; border:1px solid currentColor; }
-.savedPlacesEntry { align-self:flex-start; min-height:44px; display:flex; align-items:center; gap:8px; border:0; border-radius:var(--control-radius); padding:8px 12px; background:transparent; color:var(--text-secondary); font:500 12px/1.5 var(--font-montserrat),sans-serif; }
 .canvasRegion:has(.mapInspector) .routeEstimate { visibility:hidden; }
 .workspace .canvasRegion { min-height:280px; }
 .routeSummary { position:absolute; z-index:3; left:12px; bottom:36px; width:min(300px,calc(100% - 24px)); max-height:calc(100% - 56px); overflow:auto; border:1px solid var(--border); border-radius:var(--control-radius); background:var(--shell-plane); color:var(--text-primary); box-shadow:var(--depth-raised); font-size:12px; }

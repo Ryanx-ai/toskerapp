@@ -46,12 +46,14 @@ export default function TripMapCanvas({ pings, pingKind, onPing, inspector, view
   const fitTrip = () => {
     if ((!places.length && !mapPins.length) || !mapRef.current) return;
     const active=routes.find(r=>!r.ghost),road=active?roads[active.id]:undefined;
-    const extras=[...mapPins,...(currentPrivateRoad?currentPrivateRoad.segments.flat().map(p=>({latitude:p[1],longitude:p[0]})):[])];
+    const extras=[...mapPins,...(localLocation?[localLocation]:[]),...(currentPrivateRoad?currentPrivateRoad.segments.flat().map(p=>({latitude:p[1],longitude:p[0]})):[])];
     const bounds=routeBounds(places.filter(p=>!p.skipped),roadEnabled&&road?.mode===roadMode?road:undefined,extras);
     const side=Math.min(64,Math.max(32,(container.current?.clientWidth??320)/8));
     if(bounds)mapRef.current.fitBounds(bounds, { padding:{top:64,left:side,right:side,bottom:Math.min(120,(container.current?.clientHeight??300)*.4)}, maxZoom: 14, duration: 0 });
   };
   const fitInitialTrip = useEffectEvent(fitTrip);
+  const privateFitKey=currentPrivateRoad?.key;
+  useEffect(() => { if(privateFitKey && status==="ready")fitInitialTrip(); }, [privateFitKey,status]);
   useEffect(() => { if(roadFit && status==="ready")fitInitialTrip(); }, [roadFit,status]);
   useEffect(() => {
     if (!snapshotReady || status !== "ready" || initialCamera.current) return;

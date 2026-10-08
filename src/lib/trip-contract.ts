@@ -16,6 +16,8 @@ export type TripMembership = { routeId: string; placeId: string; position: numbe
 export type TripSnapshot = { revision: number; places: TripPlace[]; routes: TripRoute[]; memberships: TripMembership[] };
 export type TripCommand =
   | { type: "add"; candidate: PlaceCandidate; routeId: string | null }
+  | { type: "copy-place"; placeId: string; routeId: string }
+  | { type: "copy-route"; sourceScope: string; sourceRevision: number; routeId: string }
   | { type: "edit-place"; placeId: string; title: string; note: string }
   | { type: "rename-checkpoint"; placeId: string; title: string }
   | { type: "place-icon"; placeId: string; icon: PlaceIcon }

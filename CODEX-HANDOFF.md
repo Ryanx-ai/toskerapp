@@ -2,6 +2,12 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP6 CANONICAL VERIFIED — STOP FOR RYAN + JENN — 2026-10-08
+
+Canonical/pushed application c469717a0b7ee5f65429e6a23f545e378b56870c, READY Production dpl_6rKBPSvskuLYR9NN7tMgJRCio9Nq, toskerapp.vercel.app alias/HTTP/auth verified. Read H/G in docs/MS7-3-FP6-EXECUTION.md. Natural reset0/60→seven real road calls16/60 (44remaining); ninegeocode/120; BT→MBS, west/north/Jewel3-stop, SG→JB, shortWalk, consented emulated private origin, true metrics/fit/leglabels pass. Canonical bounded A/B normal login/Route1/MBS/JB/consent/Drive/rename/reload/ephemeralPing/security PASS;20deployed assets free of server secrets; runtime error/fatal scan clean.28migrations unchanged. No provider/env/quota/billing changes or permanent provider approval.
+
+Exact disposable Rooma26cdbb5 and local/canonical firstAdd QA routes/cards deleted after guarded dry-runs; parent Sandboxes retained. ALL FP6 fixture/setup receipts now historical: do not replay. FounderReview904a9dea and foundercontentbfff9475 preserved with exactfounder8V3X7P1 and remain available for playtest. Profiles/messages/Board/MapPins unchanged; ownership guards/invariants/general DB PASS;6Rooms/5plans/8routes/19cards/5comments/104receipts. QA browsers/localserver closed; port3000free. Local intermittent Neon terminated-connection log remains a caveat, not reproduced in canonical error window. Final docs checkpoint local/separate from deployedSHA; ignored release-final.json records identities. Preserve unrelated Design/Art/Web/inheritance and older handoff hunks. STOP: MS7.1/MS7.2locked, MS7.3unlocked, MS7.4/MS8unstarted. Await Ryan+Jenn.
+
 ## FP6 G real-provider green — canonical release next — 2026-10-08
 
 Recovered40c376e; application source unchanged3481b3b. Read new G in docs/MS7-3-FP6-EXECUTION.md. Natural effective road reset verified0/60; five real browser calls now12/60,48remaining. BT→MBS, west→north→Jewel3-stop, SG→JB, shortWalk, explicit-consent emulated private origin pass exact identity/order/geometry/metrics/labels/fit. Seven fresh searches; MRT queries yield localities, not station evidence. No quota/env/restriction/billing changes. Final configured build/type/auth/security/catalog/invariants/spot responsive/focus green,28migrations unchanged. New scripts/evidence only, no product source changes today.

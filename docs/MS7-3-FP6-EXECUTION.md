@@ -1,5 +1,37 @@
 # MS7.3 FP6 execution and recovery
 
+## H — FP6 canonical verified and cleanup complete, 2026-10-08
+
+**STOP for Ryan + Jenn playtest.** MS7.1/MS7.2 locked; MS7.3 remains unlocked; MS7.4/MS8 not started. G/F release-pending instructions below are historical. Founder road-reset/final-release directive completed without a provider/quota/billing workaround or product-design reopening.
+
+- Canonical application/release SHA **c469717a0b7ee5f65429e6a23f545e378b56870c**, normal fast-forward push to origin/main. Source identical to3481b3b; release commit adds bounded truth/smoke/cleanup tests and G evidence. No unrelated Design/Art/Web/inheritance/handoff hunks staged.
+- Vercel **dpl_6rKBPSvskuLYR9NN7tMgJRCio9Nq**, **READY, Production**, exact Git SHA; canonical alias **toskerapp.vercel.app** verified. Build created2026-10-08T04:15:50Z, READY04:16:36Z. Deployment host tosker-6vx7hykui-pangea6.vercel.app. Root307→HTTP200; unauthenticated /app sign-in shell200; normal A/B Clerk login succeeded. No auth bypass.
+- Deployment build log scan clean. Runtime error clusters empty; exact-deployment error/fatal logs empty from04:15:50 through04:28:16UTC. Informational Clerk Development telemetry notices remain expected for this founder-review infrastructure, not MS15 certification. Generic statusCode/grouped-log filter was not reliable through the connector, so no unsupported all-request-status census is claimed.
+- Production/Development separate Geoapify browser/server assignments unchanged, server sensitive/browser encrypted; no credential printed/committed. Configured local source/client scan **621files/41bundles PASS**; deployed client scan **20assets PASS**. Canonical map requests succeeded with no observed provider HTTP errors; existing origin restrictions not edited, not newly dashboard-audited.
+
+### Bounded canonical acceptance
+
+`browser-fp6-canonical.mjs` PASS: normal isolated A/B sign-in; Sandbox Map+Chat; fresh MBS alias lookup; explicit reviewed10Bayfront018956 preview with no write until Add; one Route1/card, correct owner, durable reload; keyboard marker/inspector/Escape. Locate/decline zero origin disclosure; explicit consent emulated QA origin→destination1 real Drive2088m/184.198s/77points, personal YOUR LEG and camera; shared numbering/trip snapshot unchanged; no persistent browser coordinate or peer origin UI/request; OFF clears. Shared BT→MBS real Drive13908m/916.923s/426points, compact summary/exact leg tag and fit. JB lookup exposes Johor Bahru/Johor/Malaysia, explicit preview only and no autosave. A's manual checkpoint rename reconciled to B and survived B reload. One real authorized Room attention Ping reached B and expired, no trip write. No browser page exceptions. Final canonical Drive/private screenshots visually reviewed.
+
+Total today **seven real road calls**: five local truth calls + two canonical calls; conservative application reservation **16/60**, **44remaining**, after natural effective reset0/60. Geocoding **9/120**,111remaining: seven local + two canonical. Account-wide3000credits/day and browser-tile consumption are separate, not freshly dashboard measured. No provider counters reset/raised, no retry solely for screenshots. The complete matrix and measured values are in G. Earlier deterministic A/B/error/cancel/firstAdd replay/reorder/manual movement/locks/Hide/Skip/Ping authorization/nearby20m and seven-viewports evidence remains unchanged and applicable. Short Walk, long Drive and SG→JB are validated examples, not universal coverage or border/live-traffic guarantees.
+
+### Exact cleanup and final state
+
+Fresh guarded dry-run and deletion of **ms73-qa-a26cdbb5** succeeded, including its five disposable original/truth routes and13cards. No founder or unexpected participant contribution was present. Founder membership was removed only with that owned Room. The local and canonical isolated-A firstAdd Route1/card were each deleted by exact receipted route ID after owner/content/receipt/comment checks; parent Sandbox/conversation/profile retained. These disposable live records have no UI undo; ignored receipts/results/screenshots remain recovery evidence, not a complete restorable data backup. Never replay their setup/cleanup after this closeout.
+
+Retained QA Rooms containing exact founder TID8V3X7P1:
+
+| Room | Purpose and disposition |
+| --- | --- |
+| ms73-founder-review-904a9dea | MS7.3 Founder Review — Singapore Trip; safe representative Map/Route/Pin state; remains available for Founder Walk; never automatic cleanup. |
+| ms73-qa-bfff9475 | Earlier QA Room with founder-retained content; remains available; NOT disposable. |
+
+Read-only final recovery/general DB verification PASS: founder uniquely resolves, both protected memberships remain, seven ownership guards enabled, zero orphan cards/mirror mismatches/duplicate positions. Profiles/messages/Board/Map Pins match verified protected baseline; no restore. Current6Rooms/5plans/8routes/19cards/5comments/104receipts; legitimate retained counts are not reset to historical FP5 values. **28migrations unchanged**; no FP6 migration/cutover needed.
+
+All isolated QA browsers closed. Owned local Next server stopped; port3000 has no listener. On draining local server logs, an intermittent Neon connection-terminated/uncaughtException entry was observed during local work; later local DB/acceptance recovered and canonical error scans are clean. Cause is not proven fixed; retain as transport-reliability caveat, do not conflate with a canonical failure or invent a remediation.
+
+This final recovery/docs checkpoint is local and separate from the deployed application SHA above; Git HEAD identifies it. Final ignored `.git/fp6-recovery/release-final.json` records both identities. All FP6 fixture and firstAdd receipts are now historical. Preserve unrelated working-tree changes. Do not begin more QA/provider calls, MS7.4/MS8, or automatically lock MS7.3. Await founder + Jenn walkthrough.
+
 ## G — real-provider gate complete, release prepared, 2026-10-08
 
 Recovered founder checkpoint40c376e in /Users/ryanc/Developer/toskerapp. Fresh origin/main and canonical remained FP5 0d6f367, READY Production dpl_EqFA8D7XnkzLp4SHjD1tTjfx5LeY; branch codex/ms73-fp6 eight ahead/zero behind. Full current road-reset/final-release directive read. Application source is unchanged from3481b3b today. No schema/dependency/environment/provider restrictions/billing/quota changes. Preserve unrelated Design/Art/Web/inheritance/handoff work.

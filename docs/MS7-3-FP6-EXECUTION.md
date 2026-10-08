@@ -1,5 +1,35 @@
 # MS7.3 FP6 execution and recovery
 
+## G — real-provider gate complete, release prepared, 2026-10-08
+
+Recovered founder checkpoint40c376e in /Users/ryanc/Developer/toskerapp. Fresh origin/main and canonical remained FP5 0d6f367, READY Production dpl_EqFA8D7XnkzLp4SHjD1tTjfx5LeY; branch codex/ms73-fp6 eight ahead/zero behind. Full current road-reset/final-release directive read. Application source is unchanged from3481b3b today. No schema/dependency/environment/provider restrictions/billing/quota changes. Preserve unrelated Design/Art/Web/inheritance/handoff work.
+
+Effective UTC2026-10-08 road allowance verified read-only at0/60, not inferred from clock alone. The first authorized reservation naturally advanced the stale Oct7 row; no manual reset. Five real road calls consumed12 conservative app credits, leaving48/60 before canonical smoke. Account-wide3000-credit statistics were not freshly read; application counters exclude browser tiles. No dashboard/account/billing mutations. Seven fresh search calls (six Room discovery queries plus one isolated Sandbox MBS) used7/120 application geocoding credits. Cached discovery responses were reused only for explicit UI selection/preview/Add, with original signed scope-bound tokens; no automatic first-result save.
+
+| Real selected-place case | Mode | Distance | Provider seconds | Legs | Geometry points |
+| --- | --- | ---: | ---: | ---: | ---: |
+| Bukit Timah Nature Reserve, Main Road → MBS10Bayfront | Drive | 13,908m | 916.923 | 1 | 426 |
+| Jurong East locality → Woodlands locality → Jewel78T1Boulevard | Drive | 52,894m | 2643.866 | 2 | 938 |
+| MBS10Bayfront → Johor Bahru, Johor, Malaysia | Drive | 29,854m | 2920.739 | 1 | 728 |
+| Marina Bay Sands Casino → MBS10Bayfront | Walk | 318m | 280.822 | 1 | 15 |
+| Explicitly consented emulated QA origin → MBS10Bayfront | Drive, private | 2,088m | 184.198 | 1 | 77 |
+
+All real responses pass current regional/endpoint validation, exact saved order/coordinates/mode/identity keys, road/path geometry, positive total and per-leg metrics/sums, compact summary and exact pair-label correspondence. Fit screenshots reviewed, including detours, with on-map credits. Order removes road tags/metrics. BT display verification reused its captured successful response after fixing an ambiguous test selector; no repeat provider spend. Other harness recovery corrected a reload assertion before route loading and a navigation wait for full external-resource load. No product failure or source change resulted. Recorded real responses/private fixtures/screenshots remain ignored0600 receipts, not committed credentials.
+
+Search quality: MBS resolves actual Marina Bay Sands variants; deliberately selected10Bayfront018956. JB resolves Johor Bahru with Malaysia visible and explicit preview. Jewel is prioritized over jewellery. Jurong East MRT/Woodlands MRT returned localities, NOT station-accuracy evidence; selected/labeled as localities. Bukit Timah Main Road selected rather than reserve centroid. Cross-border estimates exclude immigration/queue/tolls/live traffic/entry legality; no arrival guarantee. Existing long cross-island Walk limitation remains, despite short Walk passing. No new permanent production-provider commitment.
+
+Isolated A empty Sandbox fresh MBS→explicit preview→Add created exactly one Route1/card, correct QA owner and reload persistence. Prior double-click/lost-ACK/replay/concurrent first-Add evidence remains applicable. Exact new route cleanup separately receipted; parent Sandbox retained. No founder Sandbox/profile/history touched. Shared truth routes live only inside owned ms73-qa-a26cdbb5 (A+B+uniquely resolved founder8V3X7P1), pending exact cleanup after canonical acceptance. Protected Founder Review904a9dea and founder-contentbfff9475 remain untouched.
+
+Origin: browser-emulated QA coordinate only; Locate and declined consent sent no origin. Explicit disclosure/Allow private route preceded the real request. Personal card/leg and exact private-origin key/destination verified, shared numbering/totals unchanged, saved snapshot unchanged, no coordinate in persistent browser storage or peer requests/UI. Existing source/rollback/realtime lifecycle/privacy evidence reused. OFF removed origin/private markers, and captured real geometry was reused to verify private rendering/fit without an extra provider call.
+
+Final unchanged-build spot PASS1440×900,320×740,768×1024,844×390: bounded inspector, keyboard activation/Escape, visible focus, no horizontal overflow, attribution, collapse grows Map. Prior complete seven-width/200% text/access-loss/A-B Ping/stale roads/reorder/move/locks/Skip/Hide/cancellation/20m nearby tests remain valid; not redundantly rerun with live providers. UI skill used only for targeted focus-not-obscured guidance, no redesign.
+
+Final gates: configured production build PASS Next16.3.3/18pages, typecheck PASS, lint zero errors (pre-existing cleanup-fp4-qa unused eq warning only),28migration hashes/catalog PASS, seven guards/invariants PASS, rollback actual-public Sandbox/cross-context/naming/protected-POI/A-B-founder authorization PASS, general DB verifier PASS. Source/client secret scan includes Geoapify server value and41bundles; no public-secret reuse, values never printed. Final scoped scripts and docs scan/diff rerun before commit. Vercel Production/Development metadata rechecked: separate browser encrypted/config and server sensitive credentials, IDs/updatedAt unchanged since9/29. Existing restriction configuration not edited; canonical origin access checked in live smoke, not a fresh dashboard restriction audit.
+
+[Current Geoapify maps attribution](https://apidocs.geoapify.com/docs/maps) and [Free pricing terms](https://www.geoapify.com/pricing/) verified: retain linked Powered by Geoapify, OpenStreetMap contributors and applicable OpenMapTiles credit directly on Map; Settings supplements only. Free remains3000credits/day, bounded founder-review use only. No white-label removal.
+
+Next: scoped normal commit/push → exact pushed SHA READY Production/canonical alias → bounded live A/B (two real roads/fourcredits reserved, MBS+JB search, fresh Sandbox firstAdd, private consent, shared Drive, rename/reload, one ephemeral Ping, deployed client/runtime scan) → exact owned cleanup → protected/invariants/save → STOP. No automatic MS7.3 lock, MS7.4/MS8 remain unstarted.
+
 ## F — overnight release candidate, 2026-10-08 SGT — HOLD CANONICAL
 
 **Application/test HEAD3481b3b, codex/ms73-fp6. Code and provider-independent deterministic acceptance complete. Real-provider final gate pending.** Supersedes the unfinished non-provider list in E. Founder directive 5e3d3cfb-d33b-4ae6-9c76-cb7f5026a2c9/Pasted text.txt read fully; recovered1bfdb98. No push/deployment/migration/new provider/quota/billing/environment changes. Unrelated Design/Art/Web/inheritance and older handoff WIP preserved.

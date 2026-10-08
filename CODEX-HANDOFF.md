@@ -2,6 +2,12 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP6 G real-provider green — canonical release next — 2026-10-08
+
+Recovered40c376e; application source unchanged3481b3b. Read new G in docs/MS7-3-FP6-EXECUTION.md. Natural effective road reset verified0/60; five real browser calls now12/60,48remaining. BT→MBS, west→north→Jewel3-stop, SG→JB, shortWalk, explicit-consent emulated private origin pass exact identity/order/geometry/metrics/labels/fit. Seven fresh searches; MRT queries yield localities, not station evidence. No quota/env/restriction/billing changes. Final configured build/type/auth/security/catalog/invariants/spot responsive/focus green,28migrations unchanged. New scripts/evidence only, no product source changes today.
+
+Canonical still FP5 0d6f367/READYdpl_EqFA8D7XnkzLp4SHjD1tTjfx5LeY until exact scoped normal push. Next READYexactSHA→bounded canonical A/B script (two road calls/fourcredits, two searches)→guarded cleanup→saveSTOP. Ignored release-truth.json is current receipted evidence (complete); owned QA Sandbox route cleanup records sandboxCleaned, preserve parent. Rooma26cdbb5 holds disposable original+truth routes A+B+exactfounder, retain until canonical smoke. Protect FounderReview904a9dea and foundercontentbfff9475. Do not replay successful real calls or old fixture receipts. Preserve unrelated Design/Art/Web/inheritance and older handoff hunks. MS7.3 unlocked; MS7.4/MS8 unstarted.
+
 ## FP6 F overnight candidate — deterministic green, HOLD CANONICAL — 2026-10-08 SGT
 
 Application/test commit3481b3b, branch codex/ms73-fp6. Read new F in docs/MS7-3-FP6-EXECUTION.md and founder directive5e3d3cfb-d33b-4ae6-9c76-cb7f5026a2c9/Pasted text.txt. Non-provider code/acceptance complete: search/atomic Route1/lost ACK/concurrency/all-scope auth, controlled roads/errors/cancellation, Locate consent/access-loss, built A/B ephemeral Pings, seven widths/long preview/200% text/focus/collapse, build/type/security/catalog/invariants green. Fixed route-switch debounce cancellation and reversed provider geometry validation (500m endpoint allowance). Real road matrix must still exercise the guard; mocks are not provider truth.

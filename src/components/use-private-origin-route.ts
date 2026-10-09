@@ -5,7 +5,7 @@ import { ORIGIN_CONSENT } from "@/lib/maps/private-origin";
 import { markMapPhase } from "@/lib/maps/performance";
 
 /** In-memory, private leg only. No persisted response/cache/telemetry. */
-export function usePrivateOriginRoute(scope:string,routeId:string|null,points:RoadPoint[],mode:RoadMode,enabled:boolean,sharedBusy:boolean,onDenied:()=>void) {
+export function usePrivateOriginRoute(scope:string,routeId:string|null,points:RoadPoint[],mode:RoadMode,enabled:boolean,sharedBusy:boolean,nextPrivateSlotAt:number,onDenied:()=>void) {
   const [road,setRoad]=useState<RoadGeometry|null>(null),[failure,setFailure]=useState<{key:string;message:string}|null>(null),[attempt,setAttempt]=useState(0);
   const generation=useRef(0),lastAttempt=useRef(0),settled=useRef(""),denied=useEffectEvent(onDenied);
   const key=roadKey(points,mode),eligible=enabled&&!!routeId&&supportedRoadPoints(points);
@@ -16,7 +16,8 @@ export function usePrivateOriginRoute(scope:string,routeId:string|null,points:Ro
     // A later shared-leg recalculation must not repeat the unchanged private request.
     if(sharedBusy||!routeId||settled.current===stamp)return;
     queueMicrotask(()=>{if(generation.current===epoch){setRoad(null);setFailure(null);}});
-    // Shared calculation gets the first slot; respect the same actor cooldown.
+    // Shared calculation gets the first slot. Wait only for its remaining
+    // cooldown, not another unconditional six seconds after an idle consent.
     const timer=setTimeout(async()=>{
       lastAttempt.current=Date.now();
       try{
@@ -31,8 +32,8 @@ export function usePrivateOriginRoute(scope:string,routeId:string|null,points:Ro
         setRoad(data.geometry);
         settled.current=stamp;
       }catch(error){if(!controller.signal.aborted&&generation.current===epoch){settled.current=stamp;setFailure({key,message:error instanceof Error&&error.name!=="TypeError"?error.message:"Your origin leg could not be calculated."});}}
-    },Math.max(6000,lastAttempt.current+21000-Date.now()));
+    },Math.max(650,nextPrivateSlotAt-Date.now(),lastAttempt.current+21000-Date.now()));
     return()=>{clearTimeout(timer);controller.abort();};
-  },[scope,routeId,key,mode,eligible,sharedBusy,attempt]);
+  },[scope,routeId,key,mode,eligible,sharedBusy,nextPrivateSlotAt,attempt]);
   return {road:eligible&&!sharedBusy&&road?.key===key?road:undefined,error:eligible&&failure?.key===key?failure.message:"",retry:()=>setAttempt(v=>v+1)};
 }

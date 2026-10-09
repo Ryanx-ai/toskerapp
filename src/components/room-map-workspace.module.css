@@ -36,7 +36,10 @@
 .localPingControl .resetMap { width:44px; min-width:44px; height:44px; padding:0; flex:none; }
 .localPingOptions { display:flex; gap:4px; align-items:center; }
 .localPingOptions .resetMap > span { font-size:20px; }
+@media(max-width:640px) { .cameraControls { flex-direction:row; } }
 .localPingMarker { pointer-events:none; }
+.routeReplay { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; overflow:hidden; }
+.routeReplay path { fill:none; stroke:var(--text-primary); stroke-width:5px; stroke-linecap:round; stroke-linejoin:round; opacity:.85; }
 .localPingIcon { display:grid; place-items:center; width:36px; height:36px; border-radius:50%; border:2px solid var(--border); background:var(--shell-plane); color:var(--text-primary); box-shadow:0 3px 10px #0003; font:700 23px/1 var(--font-montserrat),sans-serif; animation:localPingAppear 4s ease-out both; }
 .localPingIcon[data-kind="heart"] { color:var(--action-primary); }
 @keyframes localPingAppear { 0% { opacity:0; transform:translateY(5px) scale(.9); } 8%,85% { opacity:1; transform:translateY(0) scale(1); } 100% { opacity:0; transform:translateY(-3px); } }
@@ -282,14 +285,18 @@
 .pointInspector .previewTarget { color:var(--text-primary); }
 .pointInfo { margin-top:8px; border-top:1px solid var(--border); }
 .pointInfo summary { display:flex; align-items:center; gap:8px; min-height:44px; cursor:pointer; font-size:12px; }
-.placeAppearance { display:grid; gap:8px; min-width:0; flex:1; }
-.checkpointHeading { display:flex; align-items:flex-start; gap:4px; min-width:0; }
+.pointInspector header:has(.placeAppearance) { display:grid; grid-template-columns:20px minmax(0,1fr) 36px; }
+.pointInspector header:has(.placeAppearance) > svg { grid-column:1; grid-row:1; }
+.pointInspector header:has(.placeAppearance) > button { grid-column:3; grid-row:1; }
+.placeAppearance { display:contents; }
+.checkpointHeading { display:flex; align-items:flex-start; gap:4px; min-width:0; grid-column:2; grid-row:1; }
 .checkpointHeading h2 { padding-top:10px; }
+.checkpointHeading:has(+ form) h2 { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; overflow:hidden; }
 .nearbyChoices { display:grid; gap:8px; border-top:1px solid var(--border); margin-top:12px; padding-top:8px; }
 .nearbyChoices .control { white-space:normal; text-align:left; justify-content:flex-start; }
 .placeAppearance > label { display:grid; grid-template-columns:auto minmax(0,1fr); align-items:center; gap:8px; font-size:12px; color:var(--text-secondary); }
 .placeAppearance select { min-width:0; width:100%; }
-.placeAppearance .editor { padding:0; }
+.placeAppearance .editor { padding:0; grid-column:1 / -1; grid-row:2; }
 .markerOrdinal { position:absolute; right:-5px; bottom:-5px; display:grid; place-items:center; min-width:19px; height:19px; padding:2px; border-radius:6px; background:var(--shell-plane); color:var(--route-color,var(--brand-gold)); font-size:10px; border:1px solid currentColor; }
 .canvasRegion:has(.mapInspector) .routeEstimate { visibility:hidden; }
 .workspace .canvasRegion { min-height:280px; }
@@ -304,7 +311,7 @@
 .routeSummary li span,.routeSummary li strong { display:block; overflow-wrap:anywhere; font-size:11px; }
 .routeSummary li strong { font-weight:500; color:var(--text-secondary); }
 .canvasRegion:has(.mapInspector) .routeSummary { visibility:hidden; }
-.localLocation { display:grid; place-items:center; width:40px; height:40px; border:3px solid var(--text-primary); background:var(--shell-plane); box-shadow:0 0 0 6px color-mix(in srgb,var(--action-secondary) 22%,transparent); }
+.localLocation { display:grid; place-items:center; width:40px; height:40px; border:3px solid var(--text-primary); background:var(--shell-plane); box-shadow:0 0 0 6px color-mix(in srgb,var(--action-secondary) 22%,transparent); pointer-events:none; }
 .localLocation img { width:100%; height:100%; border-radius:50%; object-fit:cover; }
 .localLocation > span { position:absolute; bottom:-18px; padding:3px 7px; background:var(--shell-plane); color:var(--text-primary); border:1px solid var(--border); border-radius:8px; font:600 10px/1.4 var(--font-montserrat),sans-serif; }
 @media(max-width:768px) { .routeSummary { bottom:44px; } }

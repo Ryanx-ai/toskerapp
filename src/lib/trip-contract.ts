@@ -85,7 +85,12 @@ function squaredDistance(a: Pick<TripPlace,"latitude"|"longitude">, b: Pick<Trip
 }
 
 export function nextCheckpointName(places: Pick<TripPlace,"title"|"defaultTitle">[]) {
-  return `Checkpoint ${places.reduce((n,p) => Math.max(n, Number(/^Checkpoint (\d+)$/.exec(p.title)?.[1] ?? 0), Number(/^Checkpoint (\d+)$/.exec(p.defaultTitle ?? "")?.[1] ?? 0)), 0) + 1}`;
+  const used = new Set(places.flatMap(place => [place.title,place.defaultTitle ?? ""]).map(title => Number(/^Checkpoint (\d+)$/.exec(title)?.[1] ?? 0)).filter(n => Number.isSafeInteger(n) && n > 0));
+  let next = Math.max(0,...used) + 1;
+  // A numeric-looking custom label must never produce Infinity/exponent names
+  // or make subsequent adds fail the canonical default-name constraint.
+  if (!Number.isSafeInteger(next)) { next = 1; while (used.has(next)) next++; }
+  return `Checkpoint ${next}`;
 }
 
 export function isCoordinatePinTitle(title: string) {

@@ -41,6 +41,7 @@ try {
   assert(await button(a, "Ping your location").isDisabled());
   await ca.grantPermissions(["geolocation"], { origin }); await ca.setGeolocation({ latitude: 1.301, longitude: 103.801, accuracy: 10 });
   await button(a, "Locate me").click(); await a.locator("[data-private-origin]").waitFor();
+  if (!process.env.FP8_SKIP_EARLY) {
   for (const label of ["Heart", "Attention", "Question", "Here / Pulse"]) {
     await button(a, "Ping your location").click(); assert.equal(await a.getByRole("group", { name: "Private location ping choices" }).getByRole("button").count(), 4);
     const started = performance.now(); await button(a, `${label} ping · only you`).click();
@@ -65,15 +66,16 @@ try {
   before = await revision(a); await button(a, "Home").click(); await changed(a, before); await a.getByText("Tag saved.", { exact: true }).waitFor();
   await a.keyboard.press("Escape");
   console.log("PASS direct rename, persisted default/revert, A/B reload, immediate tag save feedback");
+  }
   step = "road replay and consent timing";
   await a.getByRole("combobox", { name: "Travel mode", exact: true }).selectOption("drive");
   await a.getByLabel("Route summary", { exact: true }).getByText(/2\.0 km/).waitFor({ timeout: 30000 });
   const count = calls.length;
-  await button(a, "Replay route direction").click(); await button(a, "Stop route replay").waitFor();
+  step = "start replay"; await button(a, "Replay route direction").click(); await button(a, "Stop route replay").waitFor();
   await button(a, "Replay route direction").waitFor({ timeout: 5500 }); assert.equal(calls.length, count);
-  await marker(a, 1).click(); assert.equal(await a.locator("[data-shared-leg-tag]").count(), 1); await a.keyboard.press("Escape");
+  step = "select first leg"; await marker(a, 1).click(); assert.equal(await a.locator("[data-shared-leg-tag]").count(), 1); await a.keyboard.press("Escape");
   await marker(a, 2).click(); assert.equal(await a.locator("[data-shared-leg-tag]").count(), 2); await a.keyboard.press("Escape"); assert.equal(calls.length, count);
-  await button(a, "Route from here").click(); await button(a, "Keep location local").click(); assert.equal(calls.filter(c => c.private).length, 0);
+  step = "private origin consent"; await button(a, "Route from here").click(); await button(a, "Keep location local").click(); assert.equal(calls.filter(c => c.private).length, 0);
   await button(a, "Route from here").click(); await button(a, "Allow private route").click();
   await a.locator("[data-private-origin]").getByText(/YOUR LEG · 1.0 km/).waitFor({ timeout: 35000 });
   evidence.timing = await a.evaluate(() => Object.fromEntries(performance.getEntriesByType("mark").filter(e => e.name.startsWith("tosker-map:")).map(e => [e.name, Math.round(e.startTime)])));
@@ -86,7 +88,7 @@ try {
     assert.equal(await a.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
     await a.screenshot({ path: `${output}/${width}x${height}.png`, fullPage: true }); await a.keyboard.press("Escape");
   }
-  await a.emulateMedia({ reducedMotion: "reduce" }); assert(await button(a, "Replay route direction").isDisabled());
+  await a.emulateMedia({ reducedMotion: "reduce" }); await a.waitForFunction(()=>document.querySelector('[aria-label="Replay route direction"]')?.disabled); assert(await button(a, "Replay route direction").isDisabled());
   await button(a, "Ping your location").click(); await button(a, "Heart ping · only you").click();
   const ping = a.getByRole("img", { name: /Heart above your location/ }); await ping.waitFor();
   assert.equal(await ping.locator("span").evaluate(e => getComputedStyle(e).animationName), "none");
@@ -96,5 +98,5 @@ try {
   console.log("PASS FP8 initial authenticated UI suite; seven viewports, reduced motion, no page errors. Live provider truth and full release gates remain separate.");
 } catch (error) {
   await a.screenshot({ path: `${output}/failure.png`, fullPage: true }).catch(() => {});
-  console.error({ failure: "FP8 browser", step, kind: error.name, assertion: error instanceof assert.AssertionError ? error.message.split("\n")[0] : undefined }); process.exitCode = 1;
+  console.error({ failure: "FP8 browser", step, kind: error.name, operation: error.message.split("\n")[0], assertion: error instanceof assert.AssertionError ? error.message.split("\n")[0] : undefined }); process.exitCode = 1;
 } finally { await browser.close(); await db.$client.end(); }

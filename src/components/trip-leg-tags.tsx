@@ -12,7 +12,7 @@ export function TripLegTags({map,road,points,color,selectedId,privateLeg=false,h
     let disposed=false,frame=0;const markers:Marker[]=[];
     const update=()=>{
       const boxes:DOMRect[]=[];
-      const selector=`button.maplibregl-marker,[data-map-inspector],details${privateLeg?', [data-shared-leg-tag]':''}`;
+      const selector=`button.maplibregl-marker,[data-map-inspector],[data-map-controls],.${styles.cameraControls},.maplibregl-ctrl,details${privateLeg?', [data-shared-leg-tag]':''}`;
       const obstacles=[...(map.getContainer().parentElement??map.getContainer()).querySelectorAll<HTMLElement>(selector)].filter(e=>e.checkVisibility()).map(e=>e.getBoundingClientRect());
       const canvas=map.getContainer().getBoundingClientRect();
       for(const marker of markers){
@@ -47,7 +47,7 @@ export function TripLegTags({map,road,points,color,selectedId,privateLeg=false,h
         const opacity=selectedId&&selectedId!==leg.fromId&&selectedId!==leg.toId?0.45:1;
         markers.push(new Marker({element,anchor:"center",offset:[0,-16],opacity}).setLngLat(point).addTo(map));
       });update();map.on("move",schedule);map.on("resize",schedule);
-      const root=map.getContainer().parentElement??map.getContainer();observer.observe(root);root.querySelectorAll('[data-map-inspector],details').forEach(e=>observer.observe(e));
+      const root=map.getContainer().parentElement??map.getContainer();observer.observe(root);root.querySelectorAll(`[data-map-inspector],[data-map-controls],.${styles.cameraControls},details`).forEach(e=>observer.observe(e));
       root.addEventListener("toggle",schedule,true);schedule();
     });
     return()=>{disposed=true;cancelAnimationFrame(frame);observer.disconnect();map.off("move",schedule);map.off("resize",schedule);(map.getContainer().parentElement??map.getContainer()).removeEventListener("toggle",schedule,true);markers.forEach(m=>m.remove());};

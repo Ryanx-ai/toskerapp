@@ -10,7 +10,7 @@ export function TripPlaceAppearance({ place, revision, disabled, change }: { pla
   const edit = useRef<HTMLButtonElement>(null);
   const close = () => { setRename(null); edit.current?.focus(); };
   return <div className={styles.placeAppearance}>
-    <div className={styles.checkpointHeading}><h2>{place.title}</h2>{place.source === "pin" && !place.providerId && !place.archived && <button ref={edit} className={styles.inspectorClose} aria-label="Rename checkpoint" title="Rename checkpoint" aria-expanded={!!rename} disabled={disabled} onClick={() => rename ? close() : setRename({ title: place.title, revision })}><Pencil size={16} aria-hidden="true" /></button>}</div>
+    <div className={styles.checkpointHeading}><h2 title={place.title}>{place.title}</h2>{place.source === "pin" && !place.providerId && !place.archived && <button ref={edit} className={styles.inspectorClose} aria-label="Rename checkpoint" title="Rename checkpoint" aria-expanded={!!rename} disabled={disabled} onClick={() => rename ? close() : setRename({ title: place.title, revision })}><Pencil size={16} aria-hidden="true" /></button>}</div>
     {rename && <form className={styles.editor} onKeyDown={event => { if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); close(); } }} onSubmit={async event => { event.preventDefault(); if (await change({ type: "rename-checkpoint", placeId: place.id, title: rename.title }, rename.revision)) close(); }}>
       <label>Checkpoint name<input autoFocus required maxLength={120} value={rename.title} onChange={event => setRename({ ...rename, title: event.target.value })} /></label>
       <small>Default: {place.defaultTitle ?? "Not available — refresh the trip"}</small>

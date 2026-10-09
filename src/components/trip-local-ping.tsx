@@ -61,7 +61,7 @@ export function TripLocalPing({ map, location, enabled }: { map: MapInstance | n
     });
     return () => { disposed = true; clearTimeout(timer); marker?.remove(); };
   }, [map, active]);
-  return <div ref={control} className={styles.localPingControl} onPointerDown={event => event.stopPropagation()} onDoubleClick={event => event.stopPropagation()} onKeyDown={event => {
+  return <div ref={control} data-map-controls className={styles.localPingControl} onPointerDown={event => event.stopPropagation()} onDoubleClick={event => event.stopPropagation()} onKeyDown={event => {
     if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); setOpen(false); trigger.current?.focus(); }
   }}>
     {open && available && <div id={optionsId} className={styles.localPingOptions} role="group" aria-label="Private location ping choices">
@@ -70,7 +70,7 @@ export function TripLocalPing({ map, location, enabled }: { map: MapInstance | n
         setPing({ kind: choice.kind, at: Date.now(), location }); setOpen(false); trigger.current?.focus();
       }}>{choice.kind === "heart" ? <Heart size={19} aria-hidden="true" /> : choice.kind === "pulse" ? <CircleDot size={19} aria-hidden="true" /> : <span aria-hidden="true">{choice.symbol}</span>}</button>)}
     </div>}
-    <button ref={trigger} type="button" className={styles.resetMap} disabled={!available} aria-label="Ping your location" aria-expanded={open && available} aria-controls={open && available ? optionsId : undefined} title={available ? "Ping your location · only you" : "Turn Locate on to ping your location"} onClick={() => setOpen(value => !value)}><Radio size={19} aria-hidden="true" /></button>
+    <button ref={trigger} type="button" className={styles.resetMap} disabled={!available} aria-label="Ping your location" aria-expanded={open && available} aria-controls={open && available ? optionsId : undefined} title={available ? "Ping your location · only you" : "Turn Locate on to ping your location"} onClick={() => { setOpen(value => !value); if (!open) requestAnimationFrame(() => control.current?.querySelector<HTMLButtonElement>('[role="group"] button')?.focus()); }}><Radio size={19} aria-hidden="true" /></button>
     <span className={styles.srOnly} role="status">{active ? `${choices.find(choice => choice.kind === active.kind)!.label} ping. Only you can see it; disappears after four seconds.` : ""}</span>
   </div>;
 }

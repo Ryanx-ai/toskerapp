@@ -6,9 +6,12 @@ import { createQaFixture, resolveQaActors } from "./lib/ms73-fixtures";
 import { mutateTrip, readTrip } from "../src/server/trips/service";
 import { prepareRouteTrace, traceAt } from "../src/lib/maps/route-trace";
 import { roadKey, type RoadGeometry } from "../src/lib/maps/road-contract";
-import type { TripCommand } from "../src/lib/trip-contract";
+import { nextCheckpointName, type TripCommand } from "../src/lib/trip-contract";
+import { getPlaceProvider } from "../src/server/maps/provider";
 const db = getDatabase(), rollback = new Error("FP8 rollback");
 async function main() {
+  assert.equal(nextCheckpointName([{title:`Checkpoint ${"9".repeat(100)}`,defaultTitle:"Checkpoint 1"}]),"Checkpoint 2");
+  assert.equal(nextCheckpointName([{title:`Checkpoint ${Number.MAX_SAFE_INTEGER}`,defaultTitle:"Checkpoint 1"}]),"Checkpoint 2");
   const points = [{ id: "1", latitude: 1.3, longitude: 103.8 }, { id: "2", latitude: 1.31, longitude: 103.81 }, { id: "3", latitude: 1.32, longitude: 103.82 }];
   const road: RoadGeometry = { key: roadKey(points, "drive"), mode: "drive", attribution: "QA", segments: [[[103.8, 1.3], [103.81, 1.3], [103.81, 1.31]], [[103.81, 1.31], [103.82, 1.31], [103.82, 1.32]]], estimate: { metres: 4000, seconds: 800, guidance: [], legs: points.slice(1).map((p, i) => ({ fromId: points[i].id, toId: p.id, metres: 2000, seconds: 400 })) } };
   const trace = prepareRouteTrace(road, points, "drive")!; assert(trace);
@@ -18,6 +21,18 @@ async function main() {
   assert.equal(prepareRouteTrace(road, [...points].reverse(), "drive"), null);
   assert.equal(prepareRouteTrace(road, points, "drive", ["2"]), null);
   assert.equal(prepareRouteTrace({ ...road, segments: [road.segments[1], road.segments[0]], key: "stale" }, points, "drive"), null);
+  const fetchBefore = globalThis.fetch;
+  const source = { attribution: "QA source", license: "QA license" };
+  const feature = (name: string, id: string, lat: number, result_type = "amenity") => ({ name, place_id: id, lat, lon: 103.8, country_code: "sg", result_type, formatted: `QA ${name}`, datasource: source });
+  let reverseRequests = 0;
+  globalThis.fetch = async () => { reverseRequests++; return Response.json({ results: [feature("road", "road", 1.3, "street"), feature("near A", "a", 1.30001), feature("near B", "b", 1.30002), feature("far", "far", 1.302), feature("near A", "a", 1.30001)] }); };
+  try {
+    const reverse = await getPlaceProvider().reverse(1.3,103.8,new AbortController().signal);
+    assert.deepEqual(reverse?.nearby?.map(p=>p.providerId),["a","b"]);
+    assert.equal(reverse?.nearby?.[0].latitude,1.30001); assert.equal(reverseRequests,1);
+    assert(reverse?.address.startsWith("Near near A / near B"));
+  } finally { globalThis.fetch = fetchBefore; }
+  if(process.argv.includes("--pure")){console.log("PASS FP8 safe naming bounds, ordered trace and distinct credible nearby candidates; zero network/database writes");return;}
   try { await db.transaction(async tx => {
     const d = tx as unknown as ToskerDatabase, { a, b, founder } = await resolveQaActors(tx);
     const f = await createQaFixture(d, "FP8 rollback checkpoint defaults and fresh Route lifecycle");

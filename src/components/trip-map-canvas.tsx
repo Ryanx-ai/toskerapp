@@ -181,6 +181,9 @@ export default function TripMapCanvas({ pings, inspector, viewerAvatarUrl, mapPi
         const ordinal = document.createElement("span"); ordinal.textContent = String(index + 1); ordinal.className = icon === "destination" ? "" : styles.markerOrdinal; button.append(ordinal);
         button.setAttribute("aria-label", `${ghost ? `Ghost ${routeName}, ` : "Select "}${place.skipped ? "skipped " : ""}${place.starred ? "starred " : ""}${icon} ${index + 1}: ${place.title}${ghost ? ". Make route active" : ""}`);
         button.setAttribute("aria-pressed", String(place.id === selectedId));
+        const routeStops=routes.find(route=>route.id===routeId)?.places.filter(point=>!point.skipped)??[];
+        const positionLabel=place.skipped?"Excluded from routing":routeStops[0]?.id===place.id?"Route start":routeStops.at(-1)?.id===place.id?"Route end":"Intermediate destination";
+        button.setAttribute("aria-description",positionLabel);button.title=`${positionLabel} · ${place.title}`;
         entry.marker.setDraggable(!ghost && canMove && !pinMode && place.source === "pin" && !place.providerId);
         entry.marker.setLngLat([place.longitude, place.latitude]);
       };

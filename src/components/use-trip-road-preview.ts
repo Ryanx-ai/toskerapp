@@ -8,6 +8,7 @@ export function useTripRoadPreview(scope:string,routeId:string|null,points:RoadP
   const [roads,setRoads]=useState<Record<string,RoadGeometry>>({});
   const [pendingKey,setPendingKey]=useState<string|null>(null),[failure,setFailure]=useState<{key:string;message:string}|null>(null);
   const [attempt,setAttempt]=useState(0),[fit,setFit]=useState<{routeId:string;key:string;sequence:number}|null>(null);
+  const [nextPrivateSlotAt,setNextPrivateSlotAt]=useState(0);
   const attempts=useRef<number[]>([]),generation=useRef(0),lastChoice=useRef(""),lastCompleted=useRef(0);
   const denied=useEffectEvent(onDenied);
   const requestKey=`${scope}:${routeId}:${key}`;
@@ -30,11 +31,11 @@ export function useTripRoadPreview(scope:string,routeId:string|null,points:RoadP
         setRoads(previous=>({...previous,[routeId]:data.geometry}));
         if(shouldFit)setFit(previous=>({routeId,key,sequence:(previous?.sequence??0)+1}));
       }catch(error){if(!controller.signal.aborted&&generation.current===epoch){setRoads(previous=>{const next={...previous};delete next[routeId];return next;});setFailure({key:requestKey,message:error instanceof Error&&error.name!=="TypeError"?error.message:"Route calculation could not finish. Your trip is saved; retry when ready."});}}
-      finally{lastCompleted.current=Date.now();if(!controller.signal.aborted&&generation.current===epoch)setPendingKey(null);}
+      finally{lastCompleted.current=Date.now();if(!controller.signal.aborted&&generation.current===epoch){setPendingKey(null);setNextPrivateSlotAt(lastCompleted.current+5500);}}
     },delay);
     return()=>{clearTimeout(timer);controller.abort();};
   },[scope,routeId,key,mode,enabled,eligible,requestKey,attempt]);
   const current=routeId?roads[routeId]:undefined;
   const error=failure?.key===requestKey?failure.message:"";
-  return {roads,fit,current:eligible&&current?.key===key?current:undefined,busy:eligible&&!error&&(pendingKey===requestKey||current?.key!==key),error,retry:()=>setAttempt(n=>n+1)};
+  return {roads,fit,nextPrivateSlotAt,current:eligible&&current?.key===key?current:undefined,busy:eligible&&!error&&(pendingKey===requestKey||current?.key!==key),error,retry:()=>setAttempt(n=>n+1)};
 }

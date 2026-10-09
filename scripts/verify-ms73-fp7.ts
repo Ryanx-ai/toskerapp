@@ -106,8 +106,8 @@ async function main(){
     await change({type:"nuke-route",routeId:sharedId},g.slug);
     assert((await read()).places.some(c=>c.id===copied.resultId));
     assert.deepEqual(await read(f.slug,b),await read(f.slug,founder));
-    const fields=copyPlaceFields({id:"never",planId:"never",routeId:"never",position:99,isStop:false,skipped:true,archivedAt:new Date(),createdAt:new Date(),updatedAt:new Date(),...poi,note:"",icon:"home",starred:true});
-    assert.deepEqual(Object.keys(fields).sort(),["title","latitude","longitude","source","provider","providerId","address","attribution","license","icon","starred","note"].sort());
+    const fields=copyPlaceFields({id:"never",planId:"never",routeId:"never",position:99,isStop:false,skipped:true,archivedAt:new Date(),createdAt:new Date(),updatedAt:new Date(),...poi,defaultTitle:null,note:"",icon:"home",starred:true});
+    assert.deepEqual(Object.keys(fields).sort(),["title","defaultTitle","latitude","longitude","source","provider","providerId","address","attribution","license","icon","starred","note"].sort());
     throw rollback;
   });}catch(error){if(error!==rollback)throw error;}
   console.log("PASS FP7 card/route copies, explicit whitelist, duplicate/archive handling, source independence, receipt replay/mismatch, source revisions, Room/Subroom/accepted Personal/owner Sandbox, pending/removed/forged denial, discovery, A/B/founder reconciliation. Rolled back all fixtures; zero provider calls.");

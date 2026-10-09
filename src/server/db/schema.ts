@@ -91,6 +91,7 @@ export const tripPlaces = pgTable("trip_places", {
   isStop: boolean("is_stop").default(true).notNull(),
   skipped: boolean("skipped").default(false).notNull(),
   title: text("title").notNull(),
+  defaultTitle: text("default_title"),
   icon: text("icon").default("destination").notNull(),
   note: text("note").default("").notNull(),
   starred: boolean("starred").default(false).notNull(),
@@ -114,6 +115,7 @@ export const tripPlaces = pgTable("trip_places", {
   check("trip_places_longitude_valid", sql`${t.longitude} >= -180 and ${t.longitude} <= 180`),
   check("trip_places_text_valid", sql`length(${t.title}) between 1 and 120 and length(${t.note}) <= 1000 and length(${t.address}) <= 400 and length(${t.attribution}) <= 500 and length(${t.license}) <= 120`),
   check("trip_places_source_valid", sql`${t.source} in ('search', 'pin')`),
+  check("trip_places_default_title_valid", sql`${t.defaultTitle} is null or (${t.source} = 'pin' and ${t.providerId} is null and ${t.defaultTitle} ~ '^Checkpoint [1-9][0-9]*$' and length(${t.defaultTitle}) <= 120)`),
   check("trip_places_icon_valid", sql`${t.icon} in ('destination', 'checkpoint', 'home', 'work', 'food', 'stay', 'activity', 'favourite', 'meetup')`),
 ]);
 

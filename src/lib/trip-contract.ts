@@ -8,7 +8,7 @@ export type PlaceCandidate = {
   title: string; latitude: number; longitude: number; source: "search" | "pin";
   provider: string | null; providerId: string | null; address: string; attribution: string; license: string;
 };
-export type TripPlace = PlaceCandidate & { id: string; note: string; archived: boolean; icon?: PlaceIcon; starred?: boolean; skipped?: boolean; commentCount?: number };
+export type TripPlace = PlaceCandidate & { id: string; note: string; archived: boolean; defaultTitle?: string | null; icon?: PlaceIcon; starred?: boolean; skipped?: boolean; commentCount?: number };
 export type TripComment = { id: string; body: string; authorId: string; author: string; createdAt: string };
 export type TripCommentPage = { comments: TripComment[]; hasMore: boolean };
 export type TripRoute = { id: string; name: string; color: TripColor; archived: boolean; lockedPositions?: number[] };
@@ -20,6 +20,7 @@ export type TripCommand =
   | { type: "copy-route"; sourceScope: string; sourceRevision: number; routeId: string }
   | { type: "edit-place"; placeId: string; title: string; note: string }
   | { type: "rename-checkpoint"; placeId: string; title: string }
+  | { type: "reset-checkpoint-name"; placeId: string }
   | { type: "place-icon"; placeId: string; icon: PlaceIcon }
   | { type: "comment"; placeId: string; body: string }
   | { type: "archive-place"; placeId: string; archived: boolean }
@@ -83,8 +84,8 @@ function squaredDistance(a: Pick<TripPlace,"latitude"|"longitude">, b: Pick<Trip
   return Math.sin((b.latitude-a.latitude)*rad/2)**2 + Math.cos(a.latitude*rad)*Math.cos(b.latitude*rad)*Math.sin((b.longitude-a.longitude)*rad/2)**2;
 }
 
-export function nextCheckpointName(places: Pick<TripPlace,"title">[]) {
-  return `Checkpoint ${places.reduce((n,p) => Math.max(n, Number(/^Checkpoint (\d+)$/.exec(p.title)?.[1] ?? 0)), 0) + 1}`;
+export function nextCheckpointName(places: Pick<TripPlace,"title"|"defaultTitle">[]) {
+  return `Checkpoint ${places.reduce((n,p) => Math.max(n, Number(/^Checkpoint (\d+)$/.exec(p.title)?.[1] ?? 0), Number(/^Checkpoint (\d+)$/.exec(p.defaultTitle ?? "")?.[1] ?? 0)), 0) + 1}`;
 }
 
 export function isCoordinatePinTitle(title: string) {

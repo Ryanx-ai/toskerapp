@@ -11,7 +11,7 @@ import { PlaceProviderError } from "@/server/maps/provider";
 import { privateOriginPoint } from "@/lib/maps/private-origin";
 
 export async function POST(request:Request, context:{params:Promise<{slug:string}>}){
-  const reply=(body:unknown,status=200)=>Response.json(body,{status,headers:{"Cache-Control":"private, no-store"}});
+  const reply=(body:unknown,status=200,providerMs?:number)=>Response.json(body,{status,headers:{"Cache-Control":"private, no-store",...(providerMs===undefined?{}:{"Server-Timing":`provider;dur=${Math.round(providerMs)}`})}});
   try{
     if(request.headers.get("origin")!==new URL(request.url).origin)return reply({error:"Request origin unavailable."},403);
     const actor=await requireCurrentActor(), db=getDatabase(), {slug}=await context.params;
@@ -26,11 +26,13 @@ export async function POST(request:Request, context:{params:Promise<{slug:string
     const places=privatePoint&&saved[0]?[privatePoint,saved[0]]:saved;
     if((privatePoint&&!saved[0])||!supportedRoadPoints(places))return reply({error:"Choose 2–8 Singapore or southern Johor places, or a private origin and first stop."},400);
     await reserveRoadRequest(db,actor.userId,places.length);
+    const providerStarted=performance.now();
     const geometry=await getRoadProvider().route(places,mode,request.signal);
+    const providerMs=performance.now()-providerStarted;
     const latest=await readTrip(db,actor,slug); // Reauthorize after provider I/O, including Subroom visibility.
     const latestSaved=routingPlaces(latest,routeId),latestPoints=privatePoint&&latestSaved[0]?[privatePoint,latestSaved[0]]:latestSaved;
     if(!latest.routes.some(r=>r.id===routeId&&!r.archived)||roadKey(latestPoints,mode)!==geometry.key)return reply({error:"Route changed. Retry roads for the latest order."},409);
-    return reply({geometry});
+    return reply({geometry},200,providerMs);
   }catch(error){
     if(error instanceof AuthenticationRequiredError||error instanceof AuthorizationDeniedError)return reply({error:"Your Room access is no longer available."},403);
     if(error instanceof PlaceProviderError)return reply({error:error.message},error.code==="rate"?429:503);

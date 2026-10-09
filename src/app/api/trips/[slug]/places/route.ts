@@ -17,7 +17,7 @@ export async function POST(request: Request, context: { params: Promise<{ slug: 
     await authorizePinScope(db, actor, slug);
     const body = await request.text(); if (body.length > 512) return reply({ error: "Lookup is too large." }, 400);
     const input = JSON.parse(body), provider = getPlaceProvider();
-    let candidates: PlaceCandidate[] = [], notice = "";
+    let candidates: PlaceCandidate[] = [], nearby: PlaceCandidate[] = [], notice = "";
     if (input.kind === "context" && typeof input.placeId === "string") {
       const place = (await readTrip(db, actor, slug)).places.find(p => p.id === input.placeId && !p.archived);
       if (!place) return reply({ error: "This context location is no longer available." }, 404);
@@ -32,6 +32,7 @@ export async function POST(request: Request, context: { params: Promise<{ slug: 
         await reservePlaceRequest(db, actor.userId);
         const context = await provider.reverse(input.latitude, input.longitude, request.signal);
         if (context) {
+          nearby = context.nearby ?? [];
           candidate.address = context.address; candidate.attribution = context.attribution; candidate.license = context.license; candidate.provider = context.provider;
           // No providerId: a reverse polygon/nearby POI is NOT this exact manually placed pin.
           notice = "Nearby address context only. Your pin stays exactly where you placed it.";
@@ -41,7 +42,7 @@ export async function POST(request: Request, context: { params: Promise<{ slug: 
     } else return reply({ error: "Enter at least 3 characters or choose a valid map point." }, 400);
     await authorizePinScope(db, actor, slug); // Reauthorize every source context after external I/O.
     if (request.signal.aborted) return reply({ error: "Lookup cancelled." }, 408);
-    return reply({ candidates: candidates.map(candidate => ({ candidate, token: signCandidate(candidate, actor.userId, slug) })), notice });
+    return reply({ candidates: candidates.map(candidate => ({ candidate, token: signCandidate(candidate, actor.userId, slug) })), nearby: nearby.map(candidate => ({ candidate, token: signCandidate(candidate, actor.userId, slug) })), notice });
   } catch (error) {
     if (error instanceof AuthenticationRequiredError || error instanceof AuthorizationDeniedError) return reply({ error: "Your Room access is no longer available." }, 403);
     if (error instanceof PlaceProviderError) return reply({ error: error.message }, error.code === "rate" ? 429 : 503);

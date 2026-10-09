@@ -10,7 +10,7 @@ import { rankPlaceCandidates } from "@/lib/maps/place-search";
 export class PlaceProviderError extends Error {
   constructor(readonly code: "rate" | "unavailable", message: string) { super(message); }
 }
-export type PlaceProvider = { search(query: string, signal: AbortSignal): Promise<PlaceCandidate[]>; reverse(latitude: number, longitude: number, signal: AbortSignal): Promise<PlaceCandidate | null> };
+export type PlaceProvider = { search(query: string, signal: AbortSignal): Promise<PlaceCandidate[]>; reverse(latitude: number, longitude: number, signal: AbortSignal): Promise<(PlaceCandidate & { nearby?: PlaceCandidate[] }) | null> };
 
 /** Separate server geocoding sub-budget leaves headroom for browser basemap tiles.
  * Counters are global across instances, not a per-process approximation. */
@@ -54,12 +54,18 @@ function geoapifyProvider(): PlaceProvider {
       const result = await response.json();
       if (!Array.isArray(result.results)) throw new Error();
       const raw:Record<string,unknown>[]=result.results.slice(0,5);
-      const projected=raw.map(value=>project(value)).filter((p):p is PlaceCandidate=>!!p);
+      const projected: (PlaceCandidate & { nearby?: PlaceCandidate[] })[]=raw.map(value=>project(value)).filter((p):p is PlaceCandidate=>!!p);
       if(kind==="reverse"&&projected[0]){
         const nearby=raw.filter(value=>{const p=project(value);return p&&p.attribution===projected[0].attribution&&p.license===projected[0].license&&credibleNearby(value,{latitude:Number(params.lat),longitude:Number(params.lon)});});
         const names=[...new Set(nearby.map(value=>bounded(value.name,80)))].slice(0,3);
         // Context stays attached to the exact manual coordinate; no POI conversion.
         if(names.length)projected[0]={...projected[0],address:`Near ${names.join(" / ")} · ${projected[0].address}`.slice(0,400)};
+        // Explicit alternatives, each with its own verified provenance and identity.
+        // The manual candidate stays at the clicked point; nothing auto-selects these.
+        const seen=new Set<string>();
+        projected[0].nearby=raw.filter(value=>credibleNearby(value,{latitude:Number(params.lat),longitude:Number(params.lon)})).map(project).filter((p):p is PlaceCandidate=>{
+          if(!p?.providerId||seen.has(p.providerId))return false;seen.add(p.providerId);return true;
+        }).slice(0,3);
       }
       return projected;
     } catch (error) {

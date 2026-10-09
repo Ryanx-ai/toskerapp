@@ -42,6 +42,7 @@ function normalize(input: TripMutation): TripMutation {
     }
     case "edit-place": return { ...base, command: { type: c.type, placeId: uuid(c.placeId), title: text(c.title, 120), note: text(c.note, 1000, true) } };
     case "rename-checkpoint": return { ...base, command: { type: c.type, placeId: uuid(c.placeId), title: text(c.title, 120) } };
+    case "reset-checkpoint-name": return { ...base, command: { type: c.type, placeId: uuid(c.placeId) } };
     case "place-icon": {
       if (!PLACE_ICONS.includes(c.icon)) return invalid();
       return { ...base, command: { type: c.type, placeId: uuid(c.placeId), icon: c.icon } };
@@ -89,7 +90,7 @@ export async function readTrip(db: ToskerDatabase, actor: AuthenticatedActor, sl
     const counts = await tx.select({ id: tripComments.placeId, n: count() }).from(tripComments).where(eq(tripComments.planId, plan.id)).groupBy(tripComments.placeId);
     const commentCounts = new Map(counts.map(row => [row.id, row.n]));
     return { revision: plan.revision,
-      places: places.map(p => ({ id: p.id, title: p.title, icon: p.icon as PlaceIcon, note: p.note, starred: p.starred, skipped: p.skipped, commentCount: commentCounts.get(p.id) ?? 0, latitude: p.latitude, longitude: p.longitude, source: p.source as "search" | "pin", provider: p.provider, providerId: p.providerId, address: p.address, attribution: p.attribution, license: p.license, archived: !!p.archivedAt })),
+      places: places.map(p => ({ id: p.id, title: p.title, defaultTitle: p.defaultTitle, icon: p.icon as PlaceIcon, note: p.note, starred: p.starred, skipped: p.skipped, commentCount: commentCounts.get(p.id) ?? 0, latitude: p.latitude, longitude: p.longitude, source: p.source as "search" | "pin", provider: p.provider, providerId: p.providerId, address: p.address, attribution: p.attribution, license: p.license, archived: !!p.archivedAt })),
       routes: routes.map(r => ({ id: r.id, name: r.name, color: r.color as TripColor, archived: !!r.archivedAt, lockedPositions: r.lockedPositions })), memberships };
   });
 }
@@ -153,7 +154,8 @@ export async function mutateTrip(db: ToskerDatabase, actor: AuthenticatedActor, 
       else {
         if (all.length >= TRIP_LIMITS.places) throw new TripError("limit", "Up to 200 places, including archived places, fit in this Development trip.");
         const title = p.source === "pin" && isCoordinatePinTitle(p.title) ? nextCheckpointName(routeCards) : p.title;
-        const [created] = await tx.insert(tripPlaces).values({ planId: plan.id, routeId, position:routeCards.length, ...p, title, icon: p.source === "pin" && !p.providerId ? "checkpoint" : "destination" }).returning({ id: tripPlaces.id }); resultId = created.id;
+        const defaultTitle = p.source === "pin" && !p.providerId ? (/^Checkpoint [1-9][0-9]*$/.test(title) ? title : nextCheckpointName(routeCards)) : null;
+        const [created] = await tx.insert(tripPlaces).values({ planId: plan.id, routeId, position:routeCards.length, ...p, title, defaultTitle, icon: p.source === "pin" && !p.providerId ? "checkpoint" : "destination" }).returning({ id: tripPlaces.id }); resultId = created.id;
       }
     } else if (c.type === "copy-route") {
       const [sourcePlan]=await tx.select().from(tripPlans).where(tripScopeWhere(scopes.get(c.sourceScope)!));
@@ -186,11 +188,12 @@ export async function mutateTrip(db: ToskerDatabase, actor: AuthenticatedActor, 
         const [created]=await tx.insert(tripPlaces).values({planId:plan.id,routeId:c.routeId,position:destination.length,...copyPlaceFields(source)}).returning({id:tripPlaces.id});
         resultId=created.id;
       }
-    } else if (c.type === "rename-checkpoint" || c.type === "place-icon") {
+    } else if (c.type === "rename-checkpoint" || c.type === "reset-checkpoint-name" || c.type === "place-icon") {
       const p = await requirePlace(c.placeId); if (p.archivedAt) return invalid();
       await requireRoute(p.routeId);
-      if (c.type === "rename-checkpoint" && (p.source !== "pin" || p.providerId)) throw new TripError("invalid", "Only manual checkpoints can be renamed.");
-      await tx.update(tripPlaces).set(c.type === "rename-checkpoint" ? { title: c.title, updatedAt: new Date() } : { icon: c.icon, updatedAt: new Date() }).where(placeScope(p.id));
+      if (c.type !== "place-icon" && (p.source !== "pin" || p.providerId)) throw new TripError("invalid", "Only manual checkpoints can be renamed.");
+      if (c.type === "reset-checkpoint-name" && !p.defaultTitle) throw new TripError("invalid", "This checkpoint has no saved default name. Refresh before trying again.");
+      await tx.update(tripPlaces).set(c.type === "place-icon" ? { icon: c.icon, updatedAt: new Date() } : { title: c.type === "reset-checkpoint-name" ? p.defaultTitle! : c.title, updatedAt: new Date() }).where(placeScope(p.id));
       resultId = p.id;
     } else if (c.type === "comment") {
       const p = await requirePlace(c.placeId); if (p.archivedAt) return invalid();

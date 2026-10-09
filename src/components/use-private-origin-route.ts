@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState, useEffectEvent } from "react";
 import { roadKey, supportedRoadPoints, type RoadGeometry, type RoadMode, type RoadPoint } from "@/lib/maps/road-contract";
 import { ORIGIN_CONSENT } from "@/lib/maps/private-origin";
+import { markMapPhase } from "@/lib/maps/performance";
 
 /** In-memory, private leg only. No persisted response/cache/telemetry. */
 export function usePrivateOriginRoute(scope:string,routeId:string|null,points:RoadPoint[],mode:RoadMode,enabled:boolean,sharedBusy:boolean,onDenied:()=>void) {
@@ -20,8 +21,10 @@ export function usePrivateOriginRoute(scope:string,routeId:string|null,points:Ro
       lastAttempt.current=Date.now();
       try{
         const point=JSON.parse(key)[1];
+        markMapPhase("origin-dispatch");
         const response=await fetch(`/api/trips/${encodeURIComponent(scope)}/roads`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({routeId,mode,origin:{latitude:point[1],longitude:point[2],consent:ORIGIN_CONSENT}}),signal:controller.signal,cache:"no-store"});
         const data=await response.json();if(controller.signal.aborted||generation.current!==epoch)return;
+        markMapPhase("origin-response");
         if(response.status===403){denied();return;}
         if(!response.ok)throw new Error(data.error||"Your origin leg is unavailable.");
         if(data.geometry?.key!==key||data.geometry?.mode!==mode)throw new Error("Your destination changed. Confirm the origin leg again.");

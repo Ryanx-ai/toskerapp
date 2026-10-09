@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { markMapPhase } from "@/lib/maps/performance";
 
 export type LocalMapLocation = { latitude: number; longitude: number; accuracy: number };
 /** One explicit, ephemeral reading. Never persisted, published, or watched. */
@@ -22,6 +23,7 @@ export function useLocalMapLocation() {
     if (pending.current) return;
     if (!navigator.geolocation) { setStatus("Location is unavailable in this browser."); return; }
     const current = ++generation.current;
+    markMapPhase("geolocation-start");
     pending.current = true; setBusy(true); setStatus("Requesting your location…");
     navigator.geolocation.getCurrentPosition(position => {
       if (current !== generation.current) return;
@@ -29,6 +31,7 @@ export function useLocalMapLocation() {
       const { latitude, longitude, accuracy } = position.coords;
       if (![latitude, longitude, accuracy].every(Number.isFinite) || Math.abs(latitude) > 90 || Math.abs(longitude) > 180 || accuracy < 0) { setStatus("Location unavailable. Try again."); return; }
       setLocation({ latitude, longitude, accuracy });
+      markMapPhase("geolocation-ready");
       setStatus(`Only on your map · accuracy about ${Math.max(1, Math.round(accuracy))} m`);
     }, error => {
       if (current !== generation.current) return;

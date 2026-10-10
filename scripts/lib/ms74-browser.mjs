@@ -1,0 +1,64 @@
+/** Normal Clerk Development sign-in only; never inject cookies or bypass auth. */
+export async function loginLive(page, actor, fixture, origin = "http://localhost:3000") {
+  await page.goto(`${origin}/app`);
+  await page.waitForFunction(() => window.Clerk?.loaded, {}, { timeout: 60000 });
+  const signIn = page.getByRole("button", { name: "Sign in", exact: true });
+  if (await signIn.count()) {
+    const email = `tosker.user.${actor}+clerk_test@example.com`;
+    await signIn.click(); await page.getByRole("textbox", { name: "Email address", exact: true }).fill(email);
+    await page.getByRole("button", { name: "Continue", exact: true }).click();
+    await page.getByRole("link", { name: "Use another method", exact: true }).click();
+    await Promise.all([page.waitForResponse(response => response.url().includes("/prepare_first_factor") && response.status() === 200, { timeout: 30000 }), page.getByRole("button", { name: `Email code to ${email}`, exact: true }).click()]);
+    await page.getByRole("textbox", { name: "Enter verification code", exact: true }).fill("424242");
+    await page.waitForFunction(() => window.Clerk?.session?.status === "active", {}, { timeout: 30000 });
+  }
+  await page.goto(`${origin}/room/${fixture.slug}/live`);
+  await liveReady(page);
+}
+export const liveReady = page => page.waitForFunction(() => { const b = document.querySelector(".live-action"); return b && !b.disabled; }, {}, { timeout: 30000 });
+export const liveCount = (page, count) => page.waitForFunction(count => document.querySelectorAll("[data-live-user]").length === count, count, { timeout: 30000 });
+export const liveJoined = page => page.locator('.live-panel[data-phase="connected"]').waitFor({ timeout: 30000 });
+export const liveButton = (page, name) => page.getByRole("button", { name, exact: true });
+export async function installLiveMetrics(context) {
+  await context.addInitScript(() => {
+    const Native = window.WebSocket, sockets = new Set();
+    let blocked = false;
+    const state = { outgoing: 0, incoming: 0, maxConnections: 0, payloadSafe: true, actions: {}, liveChannels: [], recent: [] };
+    const record = (direction, m) => {
+      state.recent.push({ direction, action: m.action, live: !!m.channel?.startsWith("tosker:live:"), presence: m.presence?.map(p => p.action), errorCode: m.error?.code });
+      if (state.recent.length > 50) state.recent.shift();
+    };
+    const channels = new Set();
+    window.__liveQa = {
+      snapshot: () => ({ ...state, connections: [...sockets].filter(s => s.readyState === 1).length, liveChannels: [...channels].length }),
+      cut: () => { blocked = true; for (const socket of sockets) socket.close(); },
+      restore: () => { blocked = false; },
+    };
+    window.WebSocket = class extends Native {
+      constructor(...args) {
+        // Playwright HTTP offline does not consistently block WebSocket retries.
+        // Test-only transport fault, never shipped in the application bundle.
+        if (blocked && String(args[0]).includes("ably")) throw new DOMException("QA network offline", "NetworkError");
+        super(...args);
+        if (!String(args[0]).includes("ably")) return;
+        sockets.add(this);
+        this.addEventListener("open", () => { state.maxConnections = Math.max(state.maxConnections, [...sockets].filter(s => s.readyState === 1).length); });
+        this.addEventListener("close", () => sockets.delete(this));
+        this.addEventListener("message", event => {
+          state.incoming++;
+          try { const m = JSON.parse(event.data); record("in", m); if (m.channel?.startsWith("tosker:live:")) { if (m.action === 11) channels.add(m.channel); if (m.action === 13) channels.delete(m.channel); } } catch {}
+        });
+      }
+      send(data) {
+        if (sockets.has(this)) {
+          state.outgoing++;
+          try {
+            const m = JSON.parse(data); record("out", m); state.actions[m.action] = (state.actions[m.action] ?? 0) + 1;
+            if (m.channel?.startsWith("tosker:live:") && m.presence) for (const p of m.presence) if (p.data && Object.keys(typeof p.data === "string" ? JSON.parse(p.data) : p.data).some(k => k !== "v")) state.payloadSafe = false;
+          } catch {}
+        }
+        return super.send(data);
+      }
+    };
+  });
+}

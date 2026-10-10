@@ -1,5 +1,17 @@
 # MS7.4 execution and recovery
 
+## C/D audit in progress — recovery note · 10 October 2026
+
+Current application checkpoint B is `8611e9c`; canonical/main remain locked FP8 `35a6f86`, READY receipt `dpl_4jNvKenubueFoVCm24GVZiUDE3Dg`. No push, migration or deployment. Preserve the exact owned retained fixture `ms74-fp1-qa-a39d9eea` and both protected MS7.3 Rooms. Founder8V3X7P1 remains a member; all35 non-fixture table fingerprints match at14:55UTC. Owned B membership and A test nickname are restored in each test's finally block.
+
+**Not a C/D pass or release candidate.** Real A/B cases have passed individually: exact API denial, multi-tab deduplication, primary-surface exit, simulated background exit, short reconnect (2.8–3.8s), sustained-offline peer expiry (55.6s), membership withdrawal plus stale-token denial, logout plus concurrent-token revocation and stale-session replay denial. An integrated run reached the final transport assertion but failed; subsequent runs exposed intermittent reconnect redirect, Join/roster and navigation races. Latest sanitized diagnostic files are under `.git/ms74-recovery/browser/`; they are intentionally not secrets or provider packets. Do not promote partial progress to a green integrated result.
+
+All seven requested responsive dimensions passed geometry/focus/reduced-motion/long-name checks;320 and768 screenshots inspected. The20-cycle resource test is not yet green (first run reached5cycles, ~2.8–3.4s Join, above proposed2s target). Test navigation now waits for the actual Board `/hall` route before returning to Live. Every run checks empty initial presence to avoid attributing a previous abruptly closed QA browser's expiring member to the current run.
+
+Fresh local production build, TypeScript, lint (only pre-existing cleanup-fp4 unused-import warning), secret scan670files/42bundles,29 migration hashes/catalog,11 lifecycle unit cases, workspace source contracts, Chat draft isolation and rollback-only FP8 Map regression pass. No Geoapify calls. Old Hall/Chat mutation scripts were inspected but not run because they do not meet current exact-fixture/founder safeguards. Browser dashboard session expired; final account-wide Ably usage remains unavailable, no billing or restriction changes. Narrow capability configuration and revoked management tokens22319/22320 must not be replayed.
+
+Resume only missing C/D tests and bounded recovery fixes, then E audits. A debounced profile refresh offline guard is being verified locally; it is not claimed as a complete recovery fix. Keep canonical untouched and do not mark FP1 ready until remaining gates are reported honestly.
+
 ## B — Local implementation checkpoint · 10 October 2026
 
 Based on A `4db2474`; checkpoint commit is titled `feat: implement local MS7.4 Live presence foundation` (resolve with Git). Origin/main freshly remains `35a6f86182e36a2f31eca84a9280e965d71f17cd`; canonical unchanged from recovered READY `dpl_4jNvKenubueFoVCm24GVZiUDE3Dg`. **No push, migration or deployment.**

@@ -2,6 +2,10 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## MS7.4 CHECKPOINT R — MS7.3 FORMALLY LOCKED — 2026-10-10
+
+Founder MS7.4 directive explicitly approves lock; [receipt](docs/MS7-3-LOCK-RECEIPT.json) and [recovery ledger](docs/MS7-4-EXECUTION.md). Branch `codex/ms74-foundation` recovered from `08e6164`; exact canonical/origin-main remains FP8 `35a6f86`, READY `dpl_4jNvKenubueFoVCm24GVZiUDE3Dg`. Fresh HTTP, 29 migration hashes/catalog, ownership/DB/protected-data checks pass. No application change, migration, provider change, push or redeploy. Preserve all Design/Art/Web WIP and both retained founder Rooms. Next: architecture checkpoint A, then report execution estimate; stop for approval if material architecture change/new procurement/>8h. No MS7.4 canonical deployment authorized. MS7.1/MS7.2/MS7.3 LOCKED; MS8 NOT STARTED. Earlier unlocked wording below is historical.
+
 ## FP8 CANONICAL VERIFIED — LOCK CANDIDATE — STOP — 2026-10-10
 
 Application/origin-main `35a6f86182e36a2f31eca84a9280e965d71f17cd`; READY Production `dpl_4jNvKenubueFoVCm24GVZiUDE3Dg` explicitly assigned to `toskerapp.vercel.app`. Recovery found deployment complete but live QA unfinished at normal Clerk sign-in; resumed only missing smoke. No app change, rebuild, migration replay, provider configuration or redeploy. Read `docs/MS7-3-FP8-LOCK-REVIEW.md` and the final top section of `docs/MS7-3-FP8-EXECUTION.md`. Live A/B, Map+Chat, rename/revert/tags/reload, four private finite Pings, saved-geometry SVG replay/adjacent label/cancellation, 20-asset client secret scan and bounded runtime error/fatal scan pass. Zero new road/geocoding provider calls. 29 exact migration hashes/catalog, seven ownership guards and retained data pass. Local performance evidence is not a Production benchmark.

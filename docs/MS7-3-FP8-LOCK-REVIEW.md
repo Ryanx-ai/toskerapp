@@ -1,5 +1,7 @@
 # MS7.3 FP8 final lock review
 
+**Formal lock recorded 10 October 2026:** founder explicitly approved MS7.3 lock in the MS7.4 directive. Exact canonical, migration/catalog and protected-data reverification passed. [Lock receipt](MS7-3-LOCK-RECEIPT.json). MS7.1/MS7.2/MS7.3 are LOCKED. The recommendation and approval-required wording below preserve the earlier review state, now superseded by this receipt. No application changes or redeployment accompanied the lock.
+
 10 October 2026. **Recommendation: LOCK, subject to founder approval.** FP8 is canonical and the missing live acceptance gates are complete. No unresolved technical lock blocker was observed within the approved scope. MS7.3 remains unlocked until the founder decides; development stops here.
 
 ## Release identity

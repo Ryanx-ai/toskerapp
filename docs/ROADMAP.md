@@ -1,5 +1,9 @@
 # Tosker roadmap — canonical founder direction
 
+## MS7.3 locked / MS7.4 foundation audit — 10 October 2026 (CURRENT)
+
+**MS7.1 LOCKED; MS7.2 LOCKED; MS7.3 LOCKED.** [Formal receipt](MS7-3-LOCK-RECEIPT.json) records founder approval and exact FP8 canonical `35a6f86`, READY `dpl_4jNvKenubueFoVCm24GVZiUDE3Dg`. MS7.4 is authorized for architecture discovery and, only within the execution gate, bounded local Live presence implementation. [Current execution ledger](MS7-4-EXECUTION.md). No automatic canonical deployment, production migration, media capture, email procurement or precise-location sharing. MS8 NOT STARTED. Older status sections below are historical.
+
 ## Post-lock shell amendment + MS7.3 Gate 1 — 2026-09-28 (CURRENT)
 
 **MS7.1 LOCKED; MS7.2 LOCKED.** Bounded post-lock shell amendment LIVE at application `0e02dfeedf5d7a23215d9cf2d2a7cd1d37143579`, READY `dpl_2p1NKhzJJuX3WMZ3mR1cwo1iAdCR`, exact canonical alias/HTTP200 and normal live A/B verification; [release evidence](MS7-2-POST-LOCK-SHELL.md). Documentation-only closeout may be newer with identical application source. Not FP6 and not an unlocked milestone.

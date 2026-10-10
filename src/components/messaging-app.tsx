@@ -1,6 +1,6 @@
 "use client";
 import { ContextSearch } from "./context-search";
-import LivePreview from "./live-preview";
+import LivePanel from "./live-panel";
 import { useChatCompanion } from "./use-chat-companion";
 import { useConversationRealtime } from "./use-conversation-realtime";
 import { NicknameDialog } from "./nickname-editor";
@@ -1471,7 +1471,7 @@ export function MessagingApp({
               onToggleChatCompanion={canCompanion ? toggleCompanion : undefined}
             />
             {surface !== "chat" ? <div className={`planning-workspace ${companionOpen ? "with-chat" : ""}`}><div className="planning-primary">
-            {surface === "map" ? <RoomMapWorkspace key={selected.slug} roomSlug={selected.kind === "my-room" ? `sandbox--${selected.databaseId}` : selected.kind === "personal" ? `personal--${selected.databaseId}` : selected.slug} conversationId={selected.databaseId ?? ""} /> : surface === "live" ? <LivePreview key={selected.slug} /> : (
+            {surface === "map" ? <RoomMapWorkspace key={selected.slug} roomSlug={selected.kind === "my-room" ? `sandbox--${selected.databaseId}` : selected.kind === "personal" ? `personal--${selected.databaseId}` : selected.slug} conversationId={selected.databaseId ?? ""} /> : surface === "live" ? <LivePanel key={selected.slug} live={realtime.live} userId={identity?.userId} /> : (
               <HallSurface
                 connected={realtime.connected}
                 manualUnreadId={selectedPreference?.manualHallUnreadId}

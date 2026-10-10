@@ -4,6 +4,7 @@ import { requireCurrentActor } from "@/server/auth/clerk";
 import { getDatabase } from "@/server/db/client";
 import { issueConversationToken } from "@/server/realtime/auth";
 import { isConversationId } from "@/lib/realtime-contract";
+import { auth } from "@clerk/nextjs/server";
 
 export const runtime = "nodejs";
 const headers = { "Cache-Control": "no-store, private", "Vary": "Cookie", "X-Content-Type-Options": "nosniff" };
@@ -15,11 +16,13 @@ export async function POST(request: Request) {
   }
   try {
     const actor = await requireCurrentActor();
+    const { sessionId } = await auth();
+    if (!sessionId) throw new AuthenticationRequiredError("Session required.");
     const input = await request.json();
     if (!input || typeof input !== "object" || Array.isArray(input) || Object.keys(input).some((key) => key !== "conversationId") || (input.conversationId !== undefined && !isConversationId(input.conversationId))) {
       return Response.json({ error: "Invalid request" }, { status: 400, headers });
     }
-    const token = await issueConversationToken(getDatabase(), actor, input.conversationId);
+    const token = await issueConversationToken(getDatabase(), actor, input.conversationId, sessionId);
     return Response.json(token, { headers });
   } catch (error) {
     const status = error instanceof AuthenticationRequiredError ? 401

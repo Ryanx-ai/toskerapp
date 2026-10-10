@@ -1,0 +1,27 @@
+/* FP1 presence: existing Tosker geometry/tokens; no media, motion or redesign. */
+.live-panel { flex:1; min-width:0; min-height:0; overflow:auto; padding:clamp(16px,3vw,32px); border:1px solid var(--border); border-radius:20px; background:var(--surface-soft); }
+.live-panel-header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:24px; }
+.live-panel-header > div { min-width:0; max-width:54ch; }
+.live-panel-eyebrow { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--text-secondary); }
+.live-panel h2 { margin:12px 0 8px; font:600 clamp(22px,3vw,28px)/1.25 var(--font-inter),sans-serif; }
+.live-panel p { font-size:13px; line-height:1.6; color:var(--text-secondary); }
+.live-panel-header p { margin:0; }
+.live-action { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:44px; padding:12px 16px; border:1px solid var(--border); border-radius:12px; cursor:pointer; font-size:13px; font-weight:600; }
+.live-action.primary-action { background:var(--action-fill); color:var(--on-action); }
+.live-action.quiet-action { background:var(--surface); color:var(--text-primary); }
+.live-action:hover:not(:disabled) { filter:brightness(1.1); }
+.live-action:disabled { opacity:.55; cursor:not-allowed; }
+.live-action:focus-visible { outline:2px solid var(--ui-highlight); outline-offset:4px; }
+.live-panel .live-panel-status { display:flex; flex-wrap:wrap; gap:8px 16px; margin:24px 0; padding-block:16px; border-block:1px solid var(--border); }
+.live-panel-status strong { color:var(--text-primary); }
+.live-participants { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr)); gap:12px; padding:0; margin:0; list-style:none; }
+.live-participants li { display:flex; align-items:center; gap:12px; min-width:0; padding:16px; border:1px solid var(--border); border-radius:14px; background:var(--surface); }
+.live-participants .avatar { width:44px; height:44px; flex-shrink:0; }
+.live-participants li > div { min-width:0; }
+.live-participants strong { display:block; font-size:13px; line-height:1.5; overflow-wrap:anywhere; }
+.live-participants li > div > span { display:block; margin-top:4px; color:var(--text-secondary); font-size:12px; }
+.live-empty { padding:32px 0; max-width:52ch; color:var(--text-secondary); }
+.live-empty h3 { margin:16px 0 8px; color:var(--text-primary); font-size:15px; }
+.live-empty p { margin:0; }
+.live-panel .live-panel-note { margin-top:32px; max-width:65ch; font-size:12px; }
+@media(max-width:430px) { .live-panel-header { gap:16px; }.live-action { width:100%; } }

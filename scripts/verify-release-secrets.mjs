@@ -20,13 +20,13 @@ if (existsSync(".env.development.local")) {
 }
 const tracked = execFileSync("git", ["ls-files", "-z"], { encoding: "utf8" }).split("\0").filter(Boolean);
 assert(!tracked.some(path => /(^|\/)\.env(\.|$)/.test(path) && path !== ".env.example"), "No local environment files may be tracked");
-const ownedNew = execFileSync("git", ["ls-files", "--others", "--exclude-standard", "-z", "scripts", "src", "drizzle", "docs/MS7-1-FP4*", "docs/MS7-2*", "docs/MS7-3*"], { encoding: "utf8" }).split("\0").filter(Boolean);
+const ownedNew = execFileSync("git", ["ls-files", "--others", "--exclude-standard", "-z", "scripts", "src", "drizzle", "docs/MS7-1-FP4*", "docs/MS7-2*", "docs/MS7-3*", "docs/MS7-4*"], { encoding: "utf8" }).split("\0").filter(Boolean);
 const newDocs = ["docs/MS7-1-OWNER-LIFECYCLE-REVIEW.md", "docs/MS7-1-FOUNDER-WALKTHROUGH.md", "docs/MS7-6-PROVISIONING-BACKLOG.md", "docs/IDENTITY-NAMECARD-CONTRACT.md"];
 function files(path) {
   return readdirSync(path, { withFileTypes: true }).flatMap(entry => entry.isDirectory() ? files(join(path, entry.name)) : [join(path, entry.name)]);
 }
 const bundles = [...files(".next/static"), ...(existsSync("public/maplibre") ? files("public/maplibre") : [])].filter(path => /\.(?:m?js|css|map)$/.test(path));
-const candidates = [...new Set([...tracked, ...ownedNew, ...newDocs, ...bundles])].filter(path => statSync(path).isFile());
+const candidates = [...new Set([...tracked, ...ownedNew, ...newDocs, ...bundles])].filter(path => existsSync(path) && statSync(path).isFile());
 const leaks = candidates.filter(path => {
   const content = readFileSync(path);
   return secrets.some(value => [value, JSON.stringify(value).slice(1, -1), encodeURIComponent(value)].some(variant => content.includes(Buffer.from(variant))));

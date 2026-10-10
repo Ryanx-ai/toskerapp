@@ -2,6 +2,10 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## MS7.4 CHECKPOINT A — ARCHITECTURE COMPLETE / STOP FOR APPROVAL — 2026-10-10
+
+Read [ADR](docs/MS7-4-ARCHITECTURE-ADR.md) and [execution/recovery ledger](docs/MS7-4-EXECUTION.md). R `a605dd5` formally locked MS7.3; A is the local `docs: record MS7.4 architecture gate and presence dependency` commit on `codex/ms74-foundation`. Exact canonical/main remains `35a6f86`, READY `dpl_4jNvKenubueFoVCm24GVZiUDE3Dg`;29 migrations and protected data unchanged. No app implementation, new QA fixture, migration, push, provider change or deployment. Existing Live is synthetic; preferred FP1 is real scoped presence. Token-only probe requested presence+subscribe and received subscribe only. No key/token values logged; no session joined. Need founder approval for **9–12h local wave** (exceeds8h stop gate) and **narrow existing-Ably Live presence capability**. Do not silently broaden keys, introduce polling or add media/email/location. B–E pending. MS7.1/MS7.2/MS7.3 LOCKED; MS7.4 GATE1 COMPLETE / AWAITING APPROVAL; MS8 NOT STARTED. Preserve unrelated WIP and both founder Rooms. Canonical cutover requires a later separate approval.
+
 ## MS7.4 CHECKPOINT R — MS7.3 FORMALLY LOCKED — 2026-10-10
 
 Founder MS7.4 directive explicitly approves lock; [receipt](docs/MS7-3-LOCK-RECEIPT.json) and [recovery ledger](docs/MS7-4-EXECUTION.md). Branch `codex/ms74-foundation` recovered from `08e6164`; exact canonical/origin-main remains FP8 `35a6f86`, READY `dpl_4jNvKenubueFoVCm24GVZiUDE3Dg`. Fresh HTTP, 29 migration hashes/catalog, ownership/DB/protected-data checks pass. No application change, migration, provider change, push or redeploy. Preserve all Design/Art/Web WIP and both retained founder Rooms. Next: architecture checkpoint A, then report execution estimate; stop for approval if material architecture change/new procurement/>8h. No MS7.4 canonical deployment authorized. MS7.1/MS7.2/MS7.3 LOCKED; MS8 NOT STARTED. Earlier unlocked wording below is historical.

@@ -2,6 +2,8 @@
 
 ## MS7.3 locked / MS7.4 foundation audit — 10 October 2026 (CURRENT)
 
+**MS7.4 GATE 1 COMPLETE — architecture checkpoint awaiting approval.** [ADR](MS7-4-ARCHITECTURE-ADR.md) recommends Live presence only; estimated9–12h exceeds the founder's8h gate. Existing local Ably key grants subscribe but not requested presence; narrow capability authorization is required. No implementation or provider change yet. B–E pending; canonical remains FP8.
+
 **MS7.1 LOCKED; MS7.2 LOCKED; MS7.3 LOCKED.** [Formal receipt](MS7-3-LOCK-RECEIPT.json) records founder approval and exact FP8 canonical `35a6f86`, READY `dpl_4jNvKenubueFoVCm24GVZiUDE3Dg`. MS7.4 is authorized for architecture discovery and, only within the execution gate, bounded local Live presence implementation. [Current execution ledger](MS7-4-EXECUTION.md). No automatic canonical deployment, production migration, media capture, email procurement or precise-location sharing. MS8 NOT STARTED. Older status sections below are historical.
 
 ## Post-lock shell amendment + MS7.3 Gate 1 — 2026-09-28 (CURRENT)

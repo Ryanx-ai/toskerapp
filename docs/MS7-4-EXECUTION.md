@@ -1,5 +1,25 @@
 # MS7.4 execution and recovery
 
+## A — Architecture complete; awaiting approval · 10 October 2026
+
+**STOP at the founder's execution-time gate.** [Architecture decision](MS7-4-ARCHITECTURE-ADR.md) covers Live, active coordination and notification foundations and the nine FP1 selection criteria. Recommended ONE slice: genuine Join/Leave + authorized roster + recovery, without media/email/location. Estimated **9–12h** after the presence capability dependency is resolved, exceeding eight hours. B implementation, C A/B/auth, D responsive/performance and E candidate remain NOT STARTED. No new feature or acceptance pass is implied by checkpoint A.
+
+R commit is `a605dd5`, based on recovery `08e6164`; A is the commit titled `docs: record MS7.4 architecture gate and presence dependency` on `codex/ms74-foundation` (resolve with `git log -1`). Remote main and canonical remain exact `35a6f86182e36a2f31eca84a9280e965d71f17cd`, READY `dpl_4jNvKenubueFoVCm24GVZiUDE3Dg`. Migration count29 and all R database invariants/QA inventory remain unchanged; no DB writes occurred in A. No push or deployment.
+
+### Completed audit and bounded probe
+
+Read existing Live preview, workspace/controller/companion, realtime token/provider/hook, exact-context authorization, Room/Subroom/Personal revocation, profile projection, notification/send/unread/schema, map privacy and rate-limit paths. Primary-source research covers Ably presence/recovery/capabilities/pricing, WebRTC/SFU/mobile capture, LiveKit/Daily and Resend/SES. The UX review informed explicit participation and failure/navigation states; it did not authorize a redesign.
+
+One server-only diagnostic resolved QA A and an authorized retained QA primary conversation using `resolveQaActors` and `scopeForConversation`; a60s token requested `[presence, subscribe]` for only `tosker:live:<that conversation ID>`. **Granted operations were `[subscribe]` only.** No token was saved/printed; no channel connection/enter/publish, participant mutation or provider setting changed. This is a capability dependency, not a passed Live smoke. The local key was tested; no assumption is made about every deployed key.
+
+Founder approval is needed for both the9–12h implementation wave and narrowly enabling existing-key presence on `tosker:live:*`, preserving other restrictions/Free budgets. No procurement is necessary for this proposed FP1. If narrow configuration cannot be represented safely, stop rather than broadening permissions. Future media and email providers remain recommendations only.
+
+### Verification and restart boundary
+
+R recovery checks are complete; final scoped documentation/JSON/diff checks apply to A. No application changes means no new app build or MS7.4 performance figures are claimed. Full future acceptance matrix and proposed measurable budgets are in the ADR. No new fixtures to clean. Retain both founder Rooms listed below. Unrelated WIP stays unstaged.
+
+On resume: read A/ADR and inspect Git; recover exact A commit; verify canonical still FP8 and migrations still29. **Do not start B, change Ably permissions or deploy without the requested founder decision.** Once authorized, validate the real presence grant before implementing; do not replay old MS7.3 disposable fixtures or expensive provider tests. Any production migration/canonical cutover still requires separate approval. MS7.1/MS7.2/MS7.3 LOCKED; MS7.4 GATE1 COMPLETE / architecture awaiting approval; MS8 NOT STARTED.
+
 ## R — Recovery and formal MS7.3 lock · 10 October 2026
 
 Founder authority: MS7.4 Live Coordination Foundation directive, attachment `f77eae28-c79c-4846-af3e-6901ddda98a6`. MS7.1, MS7.2 and **MS7.3 LOCKED**. [Durable lock receipt](MS7-3-LOCK-RECEIPT.json). MS8 not started. No application changes during lock.

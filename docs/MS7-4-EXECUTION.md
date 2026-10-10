@@ -2,6 +2,8 @@
 
 ## C core verified / D architecture stop gate — 11 October 2026 SGT
 
+Application checkpoint **`02559b2`**. [Local handoff receipt](MS7-4-FP1-LOCAL-RECEIPT.json). The bounded retry of the redundant retained-data audit passed all35 tables at17:13:58UTC with zero changes; the earlier stall was not a data discrepancy. Headless QA browsers and the local server are now stopped. No disposable cleanup remains. Resume only after the transport-ownership decision.
+
 **FP1 is NOT release-ready. No canonical deployment or push.** This section supersedes the earlier in-progress notes below. Local checkpoint is the commit titled `fix: harden MS7.4 recovery and record transport ownership gate` (resolve with Git). Based on B `8611e9c` and partial-audit checkpoint `1cb41d6`. Fresh origin/main and canonical remain exact `35a6f86182e36a2f31eca84a9280e965d71f17cd`; Vercel confirms READY Production `dpl_4jNvKenubueFoVCm24GVZiUDE3Dg`, alias `toskerapp.vercel.app`. MS7.1/MS7.2/MS7.3 LOCKED; MS7.4 local FP1 incomplete; MS8 untouched.
 
 ### Verified implementation and C core

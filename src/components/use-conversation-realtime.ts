@@ -22,6 +22,13 @@ export function useConversationRealtime(conversationId: string | undefined, user
   const sendRef = useRef<(active: boolean) => void>(() => undefined);
   const sendTyping = useCallback((active: boolean) => sendRef.current(active), []);
   const onChange = useEffectEvent(() => { window.dispatchEvent(new Event(CHAT_REFRESH)); });
+  const sessionToken = useEffectEvent(async () => {
+    // Clerk's session JWT expires after one minute. Recovery can beat its
+    // background cookie refresh; obtain a current token before authenticated I/O.
+    const token = await session?.getToken();
+    if (!token) throw new Error("Session unavailable.");
+    return token;
+  });
   useEffect(() => {
     if (!userId || !isLoaded || !sessionId) return;
     let disposed = false;
@@ -35,9 +42,10 @@ export function useConversationRealtime(conversationId: string | undefined, user
         queueMessages: false,
         authCallback: async (_params, callback) => {
           try {
+            const token = await sessionToken();
             const response = await fetch("/api/realtime/token", {
               method: "POST", credentials: "same-origin", cache: "no-store",
-              headers: { "Content-Type": "application/json" },
+              headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
               body: JSON.stringify({ conversationId }), signal: AbortSignal.timeout(10000),
             });
             if ((response.status === 401 || response.status === 403) && !disposed) {
@@ -64,7 +72,8 @@ export function useConversationRealtime(conversationId: string | undefined, user
         detach: () => presence.detach(),
         members: () => presence.presence.get(),
         profiles: async userIds => {
-          const response = await fetch("/api/live/roster", { method: "POST", credentials: "same-origin", cache: "no-store", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ conversationId, userIds }), signal: AbortSignal.timeout(10000) });
+          const token = await sessionToken();
+          const response = await fetch("/api/live/roster", { method: "POST", credentials: "same-origin", cache: "no-store", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ conversationId, userIds }), signal: AbortSignal.timeout(10000) });
           if ((response.status === 401 || response.status === 403) && !disposed) {
             live.revoke();
             window.dispatchEvent(new CustomEvent(CONVERSATION_ACCESS_LOST, { detail: conversationId }));

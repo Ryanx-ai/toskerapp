@@ -143,7 +143,13 @@ No new MS7.4 QA fixtures were created during architecture. Future collaborative 
 
 Ably's published Free allowance is6M messages/month,200 concurrent connections/channels and500 messages/sec; the actual account's remaining usage must be checked before live QA. [Free package](https://ably.com/docs/platform/pricing/free). One extra Live channel per active context, one existing connection per workspace tab, tiny payload, no application heartbeat polling. Presence fan-out grows with subscribers; proposed single-wave QA cap10,000 delivered events,2 actors plus founder, bounded20 lifecycle cycles, stop on quota/auth/reconnect storm. Actual event accounting and provider dashboard availability remain acceptance work. No Geoapify calls needed. No changes to approved map or other provider budgets.
 
-## Risks and founder review
+## C/D implementation findings — 11 October 2026 SGT
+
+The founder approved the local9–12h wave and narrow presence permission; the historical approval request below is superseded. See the execution ledger for current evidence and the **transport-ownership stop gate**. Core A/B behavior works, but the inherited page-owned Ably client retains global handlers across route remounts. A stable authenticated-workspace owner requires a separately reviewed lifetime/lease refactor before D/E can pass. Estimate3–5 additional local hours; no canonical permission.
+
+Measured abrupt-offline peer expiry was about58.6s including provider disconnect detection, not the nominal presence grace alone. Extended outage can require the existing explicit workspace reload before a new Join; do not claim seamless recovery. Join/peer p95 currently3.34s/3.67s, above the proposed2s target. All authorization/privacy checks still fail closed. Application presence has no persisted history; provider-managed ephemeral state/retention is distinct and remains subject to provider terms.
+
+## Risks and founder review (historical checkpoint A)
 
 Key risks are the missing presence grant, the shared hook's lifecycle ownership, logout/session-token behavior, background-mobile expiry, profile visibility and provider fan-out. No FP1 A/B, responsive or performance result is claimed yet. All existing FP8 evidence belongs to locked MS7.3, not this unimplemented feature.
 

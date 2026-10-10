@@ -19,6 +19,34 @@ export const liveReady = page => page.waitForFunction(() => { const b = document
 export const liveCount = (page, count) => page.waitForFunction(count => document.querySelectorAll("[data-live-user]").length === count, count, { timeout: 30000 });
 export const liveJoined = page => page.locator('.live-panel[data-phase="connected"]').waitFor({ timeout: 30000 });
 export const liveButton = (page, name) => page.getByRole("button", { name, exact: true });
+export async function leaveLiveBeforeClose(page) {
+  if (page.isClosed()) return;
+  const leave = liveButton(page, "Leave Live");
+  if (await leave.count()) {
+    await leave.click({ timeout: 3000 });
+    await liveReady(page);
+  }
+}
+export async function traceLivePort(page) {
+  await page.evaluate(() => {
+    const element = document.querySelector(".live-panel");
+    let fiber = element?.[Object.keys(element).find(k => k.startsWith("__reactFiber"))];
+    while (fiber && !fiber.memoizedProps?.live) fiber = fiber.return;
+    const live = fiber?.memoizedProps.live, port = live?.port;
+    if (!port || port.__qaTraced) return;
+    port.__qaTraced = true;
+    window.__livePortTrace = [];
+    for (const name of ["authorize", "observe", "enter", "leave", "detach", "members", "profiles"]) {
+      const original = port[name];
+      port[name] = async (...args) => {
+        const row = { name, state: "pending", at: Math.round(performance.now()) };
+        window.__livePortTrace.push(row); if (window.__livePortTrace.length > 60) window.__livePortTrace.shift();
+        try { const value = await original(...args); row.state = "done"; return value; }
+        catch (error) { row.state = "failed"; throw error; }
+      };
+    }
+  });
+}
 export async function installLiveMetrics(context) {
   await context.addInitScript(() => {
     const Native = window.WebSocket, sockets = new Set();

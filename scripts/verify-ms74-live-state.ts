@@ -47,6 +47,11 @@ async function main() {
   assert.equal(late.getSnapshot().phase, "not-joined");
   await pause(1000); late.join(); await pause(); late.revoke(); await pause(); late.join(); await pause(); assert(!race.entered(), "Revocation disables rejoin");
   endActive(); endBind();
-  console.log(JSON.stringify({ pass: true, cases: ["strict request", "observe without join", "duplicate join", "deduplicated identity", "idle no polling", "leave", "background/foreground", "reconnect", "recovery expiry", "late join cancellation", "revocation"] }));
+  const frozen = fake(), resumed = new LiveSession(30000), endFrozen = resumed.bind(frozen.port), endResume = resumed.activate();
+  await pause(); resumed.join(); await pause(); frozen.network(false);
+  const realNow = Date.now;
+  try { const advanced = realNow() + 31000; Date.now = () => advanced; frozen.network(true); await pause(); assert(!frozen.entered(), "Delayed expiry timer cannot restore expired Join intent"); }
+  finally { Date.now = realNow; endResume(); endFrozen(); }
+  console.log(JSON.stringify({ pass: true, cases: ["strict request", "observe without join", "duplicate join", "deduplicated identity", "idle no polling", "leave", "background/foreground", "reconnect", "recovery expiry", "late join cancellation", "revocation", "delayed expiry timer"] }));
 }
 main().catch(() => { console.error("MS7.4 state acceptance failed"); process.exitCode = 1; });

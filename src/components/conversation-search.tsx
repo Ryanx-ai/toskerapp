@@ -46,7 +46,7 @@ export function ConversationSearch({ conversationId, name, href, scopeLabel, com
       const params = new URLSearchParams({ q: term }); if (before) params.set("before", before);
       const response = await fetch(`/api/conversations/${encodeURIComponent(conversationId)}/search?${params}`, { cache: "no-store", credentials: "same-origin", signal: AbortSignal.any([controller.signal, AbortSignal.timeout(15000)]) });
       if (controller.signal.aborted || version !== epoch.current) return;
-      if (response.status === 401 || response.status === 403) {
+      if (response.status === 403) {
         setPage(null); setQuery(""); close();
         window.dispatchEvent(new CustomEvent(CONVERSATION_ACCESS_LOST, { detail: conversationId })); return;
       }

@@ -1250,7 +1250,9 @@ export function MessagingApp({
   const companionWidth = useSyncExternalStore(companionSubscribe, companionSnapshot, companionServer);
   useEffect(() => {
     let pending: ReturnType<typeof setTimeout> | undefined;
-    const refresh = () => { clearTimeout(pending); pending = setTimeout(() => { if (!document.hidden) router.refresh(); }, 250); };
+    // Reconnect/profile events are debounced. A second outage can begin before
+    // this callback runs; do not replace the usable local surface while offline.
+    const refresh = () => { clearTimeout(pending); pending = setTimeout(() => { if (!document.hidden && navigator.onLine) router.refresh(); }, 250); };
     window.addEventListener(PROFILE_REFRESH, refresh);
     return () => { clearTimeout(pending); window.removeEventListener(PROFILE_REFRESH, refresh); };
   }, [router]);

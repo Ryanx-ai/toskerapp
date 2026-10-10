@@ -1,5 +1,39 @@
 # MS7.4 execution and recovery
 
+## C core verified / D architecture stop gate — 11 October 2026 SGT
+
+**FP1 is NOT release-ready. No canonical deployment or push.** This section supersedes the earlier in-progress notes below. Local checkpoint is the commit titled `fix: harden MS7.4 recovery and record transport ownership gate` (resolve with Git). Based on B `8611e9c` and partial-audit checkpoint `1cb41d6`. Fresh origin/main and canonical remain exact `35a6f86182e36a2f31eca84a9280e965d71f17cd`; Vercel confirms READY Production `dpl_4jNvKenubueFoVCm24GVZiUDE3Dg`, alias `toskerapp.vercel.app`. MS7.1/MS7.2/MS7.3 LOCKED; MS7.4 local FP1 incomplete; MS8 untouched.
+
+### Verified implementation and C core
+
+Real explicit Join/Leave, authorized basic identity roster, single concurrent workspace transport, deduplication, background/navigation exit and bounded recovery remain implemented. No media, email, coordinate sharing, new schema or persistent application presence history. Added wall-clock recovery expiry (not only a timer), current Clerk JWT acquisition for Live requests, an offline guard for queued profile refresh, and a distinction between expired-auth401 and authenticated context denial403 in Chat history/search. No unauthorized data is returned on either failure.
+
+Latest integrated A/B evidence completed all8 core cases: API denial, multi-tab, surface exit, simulated background, short reconnect3304ms, prolonged expiry58601ms with explicit **Reload workspace** then **Join Live**, membership withdrawal/stale-token denial, logout/concurrent issuance/stale-session denial. The only page exception was the exact test-injected `NetworkError: QA network offline`. Revalidated the saved same-build evidence with `--validate-recorded`, classifying only that exact fault at the injected outage step; zero unexpected application exceptions. This revalidation made no provider calls. Single concurrent WebSocket and minimal `{v:1}` presence payload verified. This is not a claim of seamless long-outage recovery.
+
+Server authorization9-case subset passes exact Room, scoped Subroom viewer/target, forged context, Sandbox owner, exact accepted Personal pair, minimal identity, exact token grants, revoked/stale participant denial and rollback preservation.12 deterministic lifecycle cases plus401/403 recovery regression pass. Extended expiry/dual-disconnect/context-switch/UI-logout coverage must follow the ownership refactor; do not call the entire C matrix complete.
+
+### D results and stop reason
+
+All320/390/430/768/1440/1728 plus844x390 checks pass geometry,44px targets, keyboard focus, reduced motion, long names and mobile single-surface layout. Narrow/landscape disclosure scrolling verified; screenshots under `.git/ms74-recovery/browser/`.320,768,1728 and landscape inspected. Real physical Safari/iOS/Android and assistive-technology testing remain unclaimed.
+
+Final20-cycle run completed with zero API failures/page errors, one connection/Live channel at each sample,325 total observed A-tab protocol frames and no idle Live polling. Join p95 **3336ms** and peer p95 **3665ms** miss the proposed2s target. Heap after route warmup grew615712bytes (below8MiB cap), but listeners grew599→605→611: **resource gate FAIL**, not a pass. Total listeners were586/592/599/605/611 at cycles0/5/10/15/20; DOM nodes/documents stabilized. Do not further loosen the listener threshold.
+
+Root cause confirmed with an observation-only two-roundtrip audit: window `beforeunload`1→3→5, `online`2→4→6, `offline`1→3→5; Tosker-owned handlers stayed stable. Installed Ably2.28.0 registers these global closures in `connectionmanager.ts:292` without removing them in `BaseRealtime.close()`. The page-owned hook creates a fresh client on primary-route remount. This also exists in the inherited transport lifetime; it is not extra Live subscriptions or a reconnect storm.
+
+**Architecture gate:** remediation needs a stable authenticated-workspace transport owner with exact actor/session/context lease changes, serialized reauthorization, stale-callback fencing and channel release. Do not patch vendor code, intercept global event registration, broaden capabilities or hide the growth. Estimate **3–5 additional local hours** for the owner refactor plus cross-context/session/security/resource regressions and final E audit. This is a material ownership change beyond the approved A design and remaining wave estimate; request founder approval before implementation. No canonical permission is implied.
+
+### Quality, data, cost and recovery
+
+Latest production build/TypeScript, full lint (one pre-existing unused-import warning), secret/client scan672files/42bundles,29 exact migration hashes/catalog, DB relational audit,7 ownership guards, Chat draft/workspace contracts and rollback-only FP8 Map regressions pass. No Geoapify calls. Old Hall/Chat mutation scripts were not run because they violate current fixture/founder safeguards; bounded safe regression coverage must be expanded before E. The35-table retained fingerprint audit passed after mutative QA at16:36UTC; founder profiles/messages/Board/settings and protected Rooms unchanged. A later redundant read stalled and was cancelled; do not equate a stalled audit with changed data or a new pass. Recovery audits should use bounded process timeouts.
+
+Retain **MS7.4 FP1 Founder Review — Live a39d9eea** (`ms74-fp1-qa-a39d9eea`), its scoped/open QA Subrooms and exact founder8V3X7P1 membership with A/B. Receipt `.git/ms74-recovery/fixture.json`. B test membership and A Room nickname were restored; no disposable data cleanup is pending. Also retain protected `ms73-founder-review-904a9dea` and `ms73-qa-bfff9475`. No old disposable fixture was recreated. Headless test browsers are closed; local server may be stopped at handoff. The fixture exists in the shared DB, but the new Live implementation is local only.
+
+Fresh dashboard usage **2180/6000000 monthly messages**,4/200 connections,12/200 channels,73KiB/28.6GiB. Observed account increase1165 from preflight1015 is below the10000-event wave cap; dashboard totals are not exact per-test billing attribution. Free plan/restrictions/billing unchanged. Corrected narrow Live capability and immediate revocation of temporary management tokens22319/22320 were verified earlier; do not recreate tokens or reconfigure the key. No credential logged/committed.
+
+Resume by reading this section, ADR and Git; preserve unrelated Art/Web/Design WIP and older handoff hunks. Do not restart implementation or rerun provider permission setup. C evidence is `acceptance.json`, D raw evidence `responsive-performance-progress.json`, diagnosis `listener-audit.json`. Do not advertise FP1 as ready, mark D/E green, push, deploy, or begin voice/video/email/location work. Founder review can inspect the partial local slice, but formal acceptance waits for the ownership gate.
+
+Future media decision remains SFU/managed-provider evaluation with separate approval, not Ably-as-media or mesh by default. Email remains an opt-in, authorized, deduplicated/batched future pipeline; Resend bounded evaluation vsSES alternative is documented in the ADR, neither provisioned. Existing Tosker tokens/Inter/filleted cards and accessibility guidance shaped the compact Live panel; no MS8 redesign.
+
 ## C/D audit in progress — recovery note · 10 October 2026
 
 Current application checkpoint B is `8611e9c`; canonical/main remain locked FP8 `35a6f86`, READY receipt `dpl_4jNvKenubueFoVCm24GVZiUDE3Dg`. No push, migration or deployment. Preserve the exact owned retained fixture `ms74-fp1-qa-a39d9eea` and both protected MS7.3 Rooms. Founder8V3X7P1 remains a member; all35 non-fixture table fingerprints match at14:55UTC. Owned B membership and A test nickname are restored in each test's finally block.

@@ -36,6 +36,7 @@ export class LiveSession {
   private recoveryTimer?: ReturnType<typeof setTimeout>;
   private refreshGeneration = 0;
   private recovering = false;
+  private recoveryDeadline = 0;
   private denied = false;
   private lastJoinAt = 0;
 
@@ -86,7 +87,7 @@ export class LiveSession {
     catch { port.closeUnsafeConnection(); } // Never retain an SDK auto-reentry member after a failed detach.
   }
   private stop(message: string) {
-    this.intent = false; this.recovering = false; this.generation++; this.refreshGeneration++;
+    this.intent = false; this.recovering = false; this.recoveryDeadline = 0; this.generation++; this.refreshGeneration++;
     clearTimeout(this.refreshTimer); clearTimeout(this.recoveryTimer);
     const port = this.port;
     this.update({ phase: "not-joined", participants: [], ready: false, message });
@@ -147,7 +148,7 @@ export class LiveSession {
         if (join && this.intent) {
           await port.enter();
           if (!this.current(port, generation) || !this.intent) { await this.clean(port); return; }
-          clearTimeout(this.recoveryTimer); this.recovering = false;
+          clearTimeout(this.recoveryTimer); this.recovering = false; this.recoveryDeadline = 0;
           this.update({ phase: "connected", ready: true, message: "You’re in Live." });
         } else this.update({ ready: true, message: "You haven’t joined Live." });
         this.refresh();
@@ -161,7 +162,15 @@ export class LiveSession {
   private connectionChanged() {
     const port = this.port;
     if (!port || !this.active || !this.visible || this.denied) return;
-    if (port.connected()) { this.observe(this.intent); return; }
+    if (port.connected()) {
+      // Background/suspended browsers can delay timers. Wall-clock expiry must
+      // be checked before recovery, not inferred from whether a timer ran.
+      if (this.intent && this.recoveryDeadline && Date.now() >= this.recoveryDeadline) {
+        this.stop("Connection lost. Join Live again when connected.");
+        this.update({ phase: "disconnected" });
+      }
+      this.observe(this.intent); return;
+    }
     this.generation++; this.refreshGeneration++;
     clearTimeout(this.refreshTimer);
     port.unobserve();
@@ -169,6 +178,7 @@ export class LiveSession {
     this.update({ participants: [], ready: false, phase: this.intent ? "reconnecting" : "disconnected", message: this.intent ? "Connection interrupted. Reconnecting to Live…" : "Connecting to Live…" });
     if (this.intent && !this.recovering) {
       this.recovering = true;
+      this.recoveryDeadline = Date.now() + this.recoveryMs;
       this.recoveryTimer = setTimeout(() => {
         this.stop("Connection lost. Join Live again when connected.");
         this.update({ phase: "disconnected" });

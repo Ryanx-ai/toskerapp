@@ -13,6 +13,17 @@
     "purpose": "Retained A/B Map + Location Cards + Routes + Board + Chat Founder Walk"
   }],
   "activeDisposableReceipt": null,
+  "fp8Closeout": {
+    "canonicalSha": "35a6f86182e36a2f31eca84a9280e965d71f17cd",
+    "deploymentId": "dpl_4jNvKenubueFoVCm24GVZiUDE3Dg",
+    "publicMigrations": 29,
+    "deletedDisposableRoom": "ms73-qa-1fed56ad",
+    "protectedFounderContentRoom": "ms73-qa-bfff9475",
+    "retainedMapPins": 2,
+    "retainedTablesUnchangedAcrossCleanup": 35,
+    "receiptsAreHistoricalOnly": true,
+    "awaitingFounderLockApproval": true
+  },
   "fp5Closeout": {
     "canonicalSha": "0d6f367e0dbfaac180990a2aa5f3b54074286f95",
     "deploymentId": "dpl_EqFA8D7XnkzLp4SHjD1tTjfx5LeY",
@@ -36,5 +47,5 @@
     "receiptIsHistoricalOnly": true,
     "awaitingFounderAndJenn": true
   },
-  "deletedDisposableSlugs": ["ms73-qa-07148c6b", "ms73-qa-5f5557a1", "ms73-qa-9aacd278", "ms73-qa-dc29faba", "ms73-qa-b04cc204", "ms73-qa-6d3d6f27", "ms73-qa-6896cd50"]
+  "deletedDisposableSlugs": ["ms73-qa-07148c6b", "ms73-qa-5f5557a1", "ms73-qa-9aacd278", "ms73-qa-dc29faba", "ms73-qa-b04cc204", "ms73-qa-6d3d6f27", "ms73-qa-6896cd50", "ms73-qa-1fed56ad"]
 }

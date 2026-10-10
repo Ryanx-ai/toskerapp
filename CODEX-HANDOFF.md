@@ -2,6 +2,12 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP8 CANONICAL VERIFIED — LOCK CANDIDATE — STOP — 2026-10-10
+
+Application/origin-main `35a6f86182e36a2f31eca84a9280e965d71f17cd`; READY Production `dpl_4jNvKenubueFoVCm24GVZiUDE3Dg` explicitly assigned to `toskerapp.vercel.app`. Recovery found deployment complete but live QA unfinished at normal Clerk sign-in; resumed only missing smoke. No app change, rebuild, migration replay, provider configuration or redeploy. Read `docs/MS7-3-FP8-LOCK-REVIEW.md` and the final top section of `docs/MS7-3-FP8-EXECUTION.md`. Live A/B, Map+Chat, rename/revert/tags/reload, four private finite Pings, saved-geometry SVG replay/adjacent label/cancellation, 20-asset client secret scan and bounded runtime error/fatal scan pass. Zero new road/geocoding provider calls. 29 exact migration hashes/catalog, seven ownership guards and retained data pass. Local performance evidence is not a Production benchmark.
+
+Exact disposable `ms73-qa-1fed56ad` deleted after guarded dry-run; all 35 tables' non-fixture fingerprints unchanged. Final 6 Rooms/5 plans/8 Routes/19 cards/5 comments/108 receipts/2 Map Pins. Preserve `ms73-founder-review-904a9dea` and `ms73-qa-bfff9475`, both with exact founder TID8V3X7P1. All FP8 fixture receipts are historical: never reseed/replay or restore backups. QA browsers closed/port3000 free. Final verification/docs checkpoint is local, separate from canonical; exact SHA in ignored `.git/fp8-recovery/release-final.json`. Do not push docs just to cause another deployment. Unrelated Design/Art/Web/inheritance and older handoff WIP preserved. **Recommendation LOCK, subject to founder approval; MS7.3 remains UNLOCKED. MS7.1/MS7.2 LOCKED; MS7.4/MS8 NOT STARTED. STOP.**
+
 ## FP6 CANONICAL VERIFIED — STOP FOR RYAN + JENN — 2026-10-08
 
 Canonical/pushed application c469717a0b7ee5f65429e6a23f545e378b56870c, READY Production dpl_6rKBPSvskuLYR9NN7tMgJRCio9Nq, toskerapp.vercel.app alias/HTTP/auth verified. Read H/G in docs/MS7-3-FP6-EXECUTION.md. Natural reset0/60→seven real road calls16/60 (44remaining); ninegeocode/120; BT→MBS, west/north/Jewel3-stop, SG→JB, shortWalk, consented emulated private origin, true metrics/fit/leglabels pass. Canonical bounded A/B normal login/Route1/MBS/JB/consent/Drive/rename/reload/ephemeralPing/security PASS;20deployed assets free of server secrets; runtime error/fatal scan clean.28migrations unchanged. No provider/env/quota/billing changes or permanent provider approval.

@@ -1,6 +1,24 @@
 # MS7.3 FP8 execution and recovery
 
-FP8 is in development, not deployed or accepted. MS7.3 remains unlocked; MS7.4 and MS8 are not started. Founder approval is required after the final lock review.
+FP8 is canonical and live-verified as of 10 October 2026. Application `35a6f86182e36a2f31eca84a9280e965d71f17cd`, READY Production `dpl_4jNvKenubueFoVCm24GVZiUDE3Dg`, is assigned to `toskerapp.vercel.app`. Recovery did not rebuild, redeploy or change application code. **STOP: MS7.3 is a lock candidate, not automatically locked.** MS7.4 and MS8 remain unstarted. Read [the final lock review](MS7-3-FP8-LOCK-REVIEW.md); older sections below are historical execution checkpoints.
+
+## Final release recovery 10 October 2026
+
+Founder recovery directive `9cfe7943-affc-4ba6-badc-a1e0b831d559/Pasted text.txt` was read in full. Git HEAD and fresh remote main both resolved to the exact application SHA above. Unrelated Design/Art/Web/inheritance and older handoff WIP were preserved. The previous run had completed deployment but not live QA: its screenshot was still at Clerk sign-in and no successful canonical receipt existed. The cause of that earlier sign-in timeout is unconfirmed. A new normal Clerk probe succeeded; no authentication workaround was introduced.
+
+The existing deployment was already READY **and canonical**, so it was not promoted or redeployed. Live normal A/B sign-in and Map loading succeeded. Rename/revert and Work/Home tagging reconciled to B and survived reload. All four local Pings expired without removing the user marker; no Ping endpoint call, coordinate POST, private-coordinate storage, durable trip change or peer visibility occurred in the tested flow. Reduced-motion Question had no animation. Map+Chat and tray collapse worked. Real long-route cards persisted for both users.
+
+Canonical replay used the previously validated short-Drive geometry, injected only at the QA browser network boundary. The deployed SVG tracer produced two ordered leg paths, finished automatically, cleared on mode change and reduced motion, and selected only the adjacent `1 → 2` label for the first stop. Replay and selection caused no further road request. This verifies deployed presentation, not new provider truth or a Production frame-time benchmark. Recovery made **zero new road/geocoding provider requests**; the real basemap remained enabled with 55 successful final-run responses and visible attribution.
+
+The recovery runner initially used `Pulse` instead of the actual accessible label `Here / Pulse`. That selector-only correction resumed the missing checks from its partial receipt; completed A/B mutation tests were not repeated. Final receipt `.git/fp8-recovery/canonical.json`, verified `2026-10-10T03:26:11.335Z`, contains seven passing check groups. Twenty live client JavaScript assets contained none of the configured server credentials. There were no browser page exceptions. Vercel error/fatal scan for this deployment, `02:57:29–03:27:29 UTC`, returned no matching logs; this is a bounded observation, not a claim about every historical request.
+
+Vercel metadata confirms Production and Development assignments for separate `NEXT_PUBLIC_GEOAPIFY_MAP_KEY` and server-only `GEOAPIFY_SEARCH_KEY`, plus required application secrets. No secret values were printed or configuration/billing/restrictions changed. The provider dashboard's complete restriction/plan state was not independently re-audited during this recovery. Existing approved Free-plan limitations and replaceable provider boundary remain in force.
+
+Read-only verification confirmed all **29 migration hashes**, 35 tables, 253 columns, 128 constraints and 15 enums against the catalog. No migration replay. Missing manual defaults and orphan comments were zero. Route ownership, unique positions, mirror consistency and all seven guards passed. Prior all-context authorization, receipt/idempotency, copy/share, lifecycle and security tests in this ledger remain the release evidence; the full suite was not rerun.
+
+Only exact-owned disposable Room `ms73-qa-1fed56ad` was deleted after a fresh contribution/ownership dry-run, preserving founder membership until the Room itself was removed. Cleanup has no UI undo. A pre-cleanup fingerprint of every retained row across all 35 public tables matched after deletion. Final inventory: **6 Rooms, 5 plans, 8 Routes, 19 Route-owned cards, 5 comments, 108 mutation receipts and 2 Map Pins**. Exact founder TID resolves uniquely; both `ms73-founder-review-904a9dea` and `ms73-qa-bfff9475` remain accessible. No founder profile, Sandbox, Personal Chat, retained message, Board content, setting or Map data was modified by cleanup. Receipts `retained-cleanup-baseline.json` and `cleanup-verified.json` are ignored/private. All FP8 fixture receipts are now historical and must not be replayed.
+
+Owned QA browsers closed; no listener remained on local port 3000. Recovery changed only verification scripts and release documentation. Targeted script lint/syntax, final diff check and QA-ledger JSON validation passed. The final source/owned-file secret scan passed for 652 files and 41 local client bundles; canonical HTTPS followed its redirect to HTTP 200. The final recovery/docs commit is local and separate from canonical; do not push documentation merely to trigger another deployment. Exact release/docs SHA is recorded in ignored `.git/fp8-recovery/release-final.json` and is recoverable with `git log -1 --format=%H -- docs/MS7-3-FP8-LOCK-REVIEW.md`.
 
 ## Authority and scope
 
@@ -86,6 +104,6 @@ Final edge pass on the projected tracer: all seven long-name widths, mode/Route 
 
 Test-harness corrections are recorded, not application failures: 121-character test title exceeded the 120-character field; an overly broad response waiter briefly captured replayed shared geometry instead of the private response (no private attempt had dispatched); keyboard focus assertion needed to await the next frame; fixed pixel clicks overlapped existing Map overlays. Corrected assertions then passed. Failed/partial receipts are retained locally for recovery, not silently counted green.
 
-### Release/cleanup state
+### Historical pre-release state
 
 Integrated local gates passed. Final scoped commit/push, exact canonical verification, live A/B, canonical asset scan and exact-owned cleanup are next. The only disposable Room remains `ms73-qa-1fed56ad`, with A/B and exact-resolved founder; it contains the deterministic route, fresh short/long real-provider routes and fresh-after-Nuke route. Cleanup must recheck no founder contributions. Protected `ms73-founder-review-904a9dea` (final Founder Walk) and `ms73-qa-bfff9475` (retained founder content) remain available and are never cleanup targets.

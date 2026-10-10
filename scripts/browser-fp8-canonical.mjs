@@ -8,10 +8,14 @@ import {resolveQaActors,cleanupQaFixture} from "./lib/ms73-fixtures.ts";
 import {routingPlaces} from "../src/lib/trip-contract.ts";
 import {ensureFp6QaLogin} from "./lib/fp6-browser.mjs";
 const fixture=JSON.parse(readFileSync(".git/fp8-recovery/fixture.json","utf8")).fixture;
+const truth=JSON.parse(readFileSync(".git/fp8-recovery/live-truth.json","utf8"));
 const db=getDatabase(),actors=await resolveQaActors(db);await cleanupQaFixture(db,fixture,false);
 const origin="https://toskerapp.vercel.app",browser=await chromium.launch({args:["--use-gl=angle","--use-angle=swiftshader","--enable-unsafe-swiftshader"]});
 const ca=await browser.newContext({viewport:{width:1440,height:900},geolocation:{latitude:1.301234,longitude:103.801234,accuracy:12},permissions:["geolocation"]}),cb=await browser.newContext({viewport:{width:1440,height:900},reducedMotion:"reduce"});
 const a=await ca.newPage(),b=await cb.newPage(),errors=[],tiles=[],outbound=[],checks=[];let step="login";
+const resume=process.env.FP8_RECOVER_REMAINING==="1";
+if(resume){const prior=JSON.parse(readFileSync(".git/fp8-recovery/canonical-partial.json","utf8"));assert.equal(prior.step,"remaining Pings and reduced motion");assert.equal(prior.checks.length,2);checks.push(...prior.checks);}
+let replayArmed=false,replayedRoadResponses=0;
 const button=(p,name)=>p.getByRole("button",{name,exact:true}),read=()=>readTrip(db,actors.a,fixture.slug);
 const ready=async p=>{await p.locator('[data-map-state="ready"]').waitFor({timeout:60000});await p.locator('[data-trip-revision]:not([data-trip-revision=""])').waitFor();};
 const changed=async(p,action)=>{const rev=await p.locator("[data-trip-revision]").getAttribute("data-trip-revision");await action();await p.waitForFunction(r=>document.querySelector("[data-trip-revision]")?.dataset.tripRevision!==r,rev,{timeout:60000});};
@@ -19,10 +23,16 @@ for(const p of [a,b]){
   p.on("pageerror",()=>errors.push("pageerror"));
   p.on("response",r=>{if(new URL(r.url()).hostname==="maps.geoapify.com")tiles.push(r.status());});
   p.on("request",r=>{if(r.url().startsWith(origin))outbound.push({path:new URL(r.url()).pathname,body:r.postData()??""});});
-  await p.route("**/api/trips/*/roads",r=>r.fulfill({status:429,json:{error:"Canonical QA guard: provider roads deliberately not armed"}}));
+  await p.route("**/api/trips/*/places",r=>r.fulfill({status:429,json:{error:"Recovery QA: no repeat geocoding"}}));
+  await p.route("**/api/trips/*/roads",r=>{
+    const input=r.request().postDataJSON();
+    if(replayArmed&&p===a&&input.routeId===truth.routes["FP8 Short — Singapore"]&&input.mode==="drive"&&!input.origin){replayedRoadResponses++;return r.fulfill({json:{geometry:truth.roads["short-drive"].geometry}});}
+    return r.fulfill({status:429,json:{error:"Canonical QA guard: provider roads deliberately not armed"}});
+  });
 }
 try{
-  for(const [p,actor] of [[a,"a"],[b,"b"]]){await p.goto(`${origin}/room/${fixture.slug}/map`);await ensureFp6QaLogin(p,actor);await p.goto(`${origin}/room/${fixture.slug}/map`);await ready(p);await button(p,"Route 1").click();}
+  for(const [p,actor] of [[a,"a"],[b,"b"]]){step=`login ${actor}`;console.log({step});await p.goto(`${origin}/room/${fixture.slug}/map`);await ensureFp6QaLogin(p,actor);step=`Map ${actor}`;await p.goto(`${origin}/room/${fixture.slug}/map`);await ready(p);await button(p,"Route 1").click();console.log({step,passed:true});}
+  if(!resume){
   const route=(await read()).routes.find(r=>r.name==="Route 1"),place=routingPlaces(await read(),route.id)[1];assert.equal(place.defaultTitle,"Checkpoint 2");
   step="rename and live peer";await a.locator(`[data-place-id="${place.id}"]`).getByRole("button",{name:/^Select place/}).click();await button(a,"Rename checkpoint").click();await a.getByLabel("Checkpoint name",{exact:true}).fill("FP8 canonical checkpoint");
   await changed(b,()=>button(a,"Save name").click());await b.locator(`[data-place-id="${place.id}"]`).getByRole("button",{name:/^Select place 2: FP8 canonical checkpoint$/}).waitFor();
@@ -35,6 +45,34 @@ try{
   assert.deepEqual(await read(),before);assert(!outbound.slice(requestStart).some(r=>/1\.301234|103\.801234/.test(r.body)));assert(!outbound.some(r=>r.path.endsWith("/pings")));
   assert(!await a.evaluate(()=>JSON.stringify({...localStorage,...sessionStorage}).includes("103.801234")));await a.reload();await ready(a);assert.equal(await a.locator("[data-private-origin]").count(),0);assert(await button(a,"Ping your location").isDisabled());
   checks.push("Locate and Heart private, no coordinate POST/storage/DB state, finite expiry retains marker, reload clears");
+  }
+  step="remaining Pings and reduced motion";await button(a,"Locate me").click();await a.locator("[data-private-origin]").waitFor();
+  for(const kind of ["Attention","Question","Here / Pulse"]){
+    if(kind==="Question")await a.emulateMedia({reducedMotion:"reduce"});
+    await button(a,"Ping your location").click();await button(a,`${kind} ping · only you`).click();
+    const ping=a.getByRole("img",{name:new RegExp(`${kind} above your location`)});await ping.waitFor();
+    if(kind==="Question")assert.equal(await ping.locator("span").evaluate(e=>getComputedStyle(e).animationName),"none");
+    assert.equal(await b.getByRole("img",{name:/above your location/}).count(),0);await ping.waitFor({state:"detached",timeout:5500});
+    assert.equal(await a.getByRole("img",{name:/^You, accuracy/}).count(),1);
+  }
+  await a.emulateMedia({reducedMotion:"no-preference"});await a.reload();await ready(a);
+  assert(!outbound.some(r=>r.path.endsWith("/pings")||/1\.301234|103\.801234/.test(r.body)));
+  checks.push("All four Pings expire; reduced-motion Question has no animation; no peer coordinate disclosure");
+  step="Map and Chat";await a.getByRole("complementary",{name:"Room Chat companion"}).waitFor();await button(a,"Collapse locations").click();await button(a,"Expand locations").click();
+  checks.push("Canonical Map + Chat companion and collapsible tray render");
+  step="saved geometry replay";await button(a,"FP8 Short — Singapore").click();replayArmed=true;
+  const mode=a.getByRole("combobox",{name:"Travel mode",exact:true});await mode.selectOption("drive");
+  await a.waitForFunction(()=>!document.querySelector('[aria-label="Replay route direction"]')?.disabled);await button(a,"Fit trip").click();
+  const requestsBeforeReplay=outbound.filter(r=>r.path.endsWith("/roads")).length;
+  await button(a,"Replay route direction").click();await a.locator("[data-route-replay] path").first().waitFor();assert.equal(await a.locator("[data-route-replay] path").count(),2);
+  await button(a,"Replay route direction").waitFor({timeout:5500});assert.equal(await a.locator("[data-route-replay]").count(),0);
+  await a.locator('[data-place-id]').getByRole("button",{name:/^Select place 1:/}).click();await a.waitForFunction(()=>document.querySelectorAll('[data-shared-leg-tag]').length===1);
+  assert((await a.locator('[data-shared-leg-tag]').textContent()).startsWith("1 → 2"));await a.keyboard.press("Escape");
+  await button(a,"Replay route direction").click();await a.locator("[data-route-replay]").waitFor();await a.emulateMedia({reducedMotion:"reduce"});await a.locator("[data-route-replay]").waitFor({state:"detached"});assert(await button(a,"Replay route direction").isDisabled());
+  await a.emulateMedia({reducedMotion:"no-preference"});await a.waitForFunction(()=>!document.querySelector('[aria-label="Replay route direction"]')?.disabled);
+  await button(a,"Replay route direction").click();await a.locator("[data-route-replay]").waitFor();await mode.selectOption("planning");await a.locator("[data-route-replay]").waitFor({state:"detached"});
+  assert.equal(outbound.filter(r=>r.path.endsWith("/roads")).length,requestsBeforeReplay);assert.equal(replayedRoadResponses,1);replayArmed=false;
+  checks.push("Deployed optimized SVG replay: two exact saved provider legs, finite completion, selected adjacent label, reduced-motion/mode cancellation, no replay/selection road calls");
   step="fresh real route persistence";for(const p of [a,b]){await button(p,"FP8 Long — Singapore").click();assert.equal(await p.locator("[data-place-id]").count(),3);}
   checks.push("Fresh long Route and three real-provider choices available to A/B on canonical");
   step="canonical bundle scan";const secrets=["DATABASE_URL","CLERK_SECRET_KEY","ABLY_API_KEY","ROOM_INVITE_ENCRYPTION_KEY","GEOAPIFY_SEARCH_KEY"].map(k=>{assert(process.env[k]?.length>=12);return process.env[k];});
@@ -42,6 +80,6 @@ try{
   for(const url of urls){const response=await fetch(url,{signal:AbortSignal.timeout(15000)});assert(response.ok);const text=await response.text();assert(!secrets.some(s=>[s,JSON.stringify(s).slice(1,-1),encodeURIComponent(s)].some(v=>text.includes(v))),"Server secret match; values suppressed");}
   assert(tiles.some(s=>s===200)&&!tiles.some(s=>s>=400));assert((await a.locator(".maplibregl-ctrl-attrib").textContent()).includes("OpenStreetMap"));assert.deepEqual(errors,[]);
   checks.push(`${urls.length} live client assets secret scan PASS; real basemap/attribution; zero page exceptions`);
-  writeFileSync(".git/fp8-recovery/canonical.json",JSON.stringify({passed:true,checks,tileResponses:tiles.length,roadCalls:0},null,2),{mode:0o600});console.log({canonical:"PASS",checks,tileResponses:tiles.length,roadCalls:0});
-}catch(e){await a.screenshot({path:".git/fp8-recovery/canonical-failure.png"}).catch(()=>{});console.error({failure:"FP8 canonical",step,kind:e.name,operation:e.message.split("\n")[0].replace(/https?:\/\/\S+/g,"[URL suppressed]")});process.exitCode=1;}
+  writeFileSync(".git/fp8-recovery/canonical.json",JSON.stringify({passed:true,verifiedAt:new Date().toISOString(),checks,tileResponses:tiles.length,roadCalls:0,replayedRoadResponses},null,2),{mode:0o600});console.log({canonical:"PASS",checks,tileResponses:tiles.length,roadCalls:0});
+}catch(e){await a.screenshot({path:".git/fp8-recovery/canonical-recovery-failure.png"}).catch(()=>{});writeFileSync(".git/fp8-recovery/canonical-partial.json",JSON.stringify({passed:false,step,checks},null,2),{mode:0o600});console.error({failure:"FP8 canonical",step,kind:e.name,operation:e.message.replace(/https?:\/\/\S+/g,"[URL suppressed]")});process.exitCode=1;}
 finally{await browser.close();await db.$client.end();}

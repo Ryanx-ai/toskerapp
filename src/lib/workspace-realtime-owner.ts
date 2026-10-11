@@ -17,6 +17,10 @@ async function createClient(scope: RealtimeScope, authorize: () => Promise<Token
   return new BaseRealtime({
     plugins: { WebSocketTransport, FetchRequest, RealtimePresence },
     clientId: scope.userId, autoConnect: false, queueMessages: false, logLevel: 0,
+    // Bound stale presence after provider disconnect detection. This shortens
+    // only presence grace (default15s), not connection recovery/token lifetime;
+    // no extra heartbeat traffic or background polling is introduced.
+    transportParams: { remainPresentFor: 5000 },
     authCallback: (_params, callback) => {
       void authorize().then(token => callback(null, token), () => callback("Realtime authorization unavailable.", null));
     },

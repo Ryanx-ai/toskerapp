@@ -2,6 +2,10 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## MS7.4 FP1 — RELEASE CANDIDATE / CANONICAL AUTHORIZED — 2026-10-11 SGT
+
+Latest founder request authorizes completing Join/reconnect debt through canonical deployment. Read the top of [MS7.4 execution](docs/MS7-4-EXECUTION.md). Bounded fixes and final local C/D/E gates pass: Join p951317ms, peer1613ms, immediate reconnect navigation with zero background RSC, one workspace transport, scoped/session authorization and logout,7responsive sizes, build/security/schema. Five-second provider presence grace gives50s observed abrupt peer expiry; no heartbeat/polling/permission expansion. Failed network/harness attempts and qualified QA-only read-marker audit remain disclosed, not erased. Candidate commit is `fix: complete MS7.4 Join latency and reconnect release gates`. **Push/deployment/canonical smoke still pending at this checkpoint.** Canonical before cutover remains35a6f86. No schema migration. Preserve exact `ms74-fp1-qa-a39d9eea`, founder8V3X7P1 and both protected MS7.3 Rooms. Preserve unrelated Art/Design/Web/inheritance and older handoff hunks. MS7.1/2/3locked, MS7.4unlocked; no media/email/location/MS8 expansion. Finish exact-SHA canonical verification, save final receipt, then STOP.
+
 ## MS7.4 FP1 — LOCAL FOUNDER WALK CANDIDATE / STOP BEFORE DEPLOY — 2026-10-11 SGT
 
 Application/test checkpoint **`86832632901a056b1077bafb62d2e7abfc291c95`** on `codex/ms74-foundation`; following documentation checkpoint contains [final local receipt](docs/MS7-4-FP1-LOCAL-RECEIPT.json) and [execution ledger](docs/MS7-4-EXECUTION.md). This supersedes the ownership approval gate below. Stable authenticated-workspace Ably owner implemented;20-cycle listener growth0, one realtime connection, exact-context leases/auth, actual Settings logout/session replacement and natural600s token renewal verified. No push, migration, provider reconfiguration or deployment. Canonical/origin-main remain locked MS7.3 `35a6f86`, READY `dpl_4jNvKenubueFoVCm24GVZiUDE3Dg`;29 migration hashes/catalog unchanged.

@@ -1248,14 +1248,6 @@ export function MessagingApp({
   const [activityFailure, setActivityFailure] = useState<string | null>(null);
   const [readingPaused, setReadingPaused] = useState(false);
   const companionWidth = useSyncExternalStore(companionSubscribe, companionSnapshot, companionServer);
-  useEffect(() => {
-    let pending: ReturnType<typeof setTimeout> | undefined;
-    // Reconnect/profile events are debounced. A second outage can begin before
-    // this callback runs; do not replace the usable local surface while offline.
-    const refresh = () => { clearTimeout(pending); pending = setTimeout(() => { if (!document.hidden && navigator.onLine) router.refresh(); }, 250); };
-    window.addEventListener(PROFILE_REFRESH, refresh);
-    return () => { clearTimeout(pending); window.removeEventListener(PROFILE_REFRESH, refresh); };
-  }, [router]);
   useEffect(() => { queueMicrotask(() => setReadingPaused(false)); }, [selectedSlug, requestedSurface]);
   const [toast, setToast] = useState<NotificationActivity | null>(null);
   const seenActivity = useRef<Set<string> | null>(null);
@@ -1274,7 +1266,7 @@ export function MessagingApp({
     let toastTimer: number | undefined;
     let lastRefresh = 0;
     const refresh = async () => {
-      if (document.hidden || !active) return;
+      if (document.hidden || !navigator.onLine || !active) return;
       if (inFlight) { pending = true; return; }
       pending = false;
       lastRefresh = Date.now();
@@ -1306,7 +1298,10 @@ export function MessagingApp({
     const timer = window.setInterval(() => { if (!liveConnected.current || Date.now() - lastRefresh >= 60000) void refresh(); }, 12000);
     document.addEventListener("visibilitychange", refresh);
     window.addEventListener(ACTIVITY_REFRESH, refresh);
-    return () => { active = false; window.clearInterval(timer); window.clearTimeout(toastTimer); window.clearTimeout(pendingTimer); document.removeEventListener("visibilitychange", refresh); window.removeEventListener(ACTIVITY_REFRESH, refresh); };
+    // Profile/reconnect updates use the authorized JSON projection, never a
+    // background RSC route refresh that can cancel an immediate user navigation.
+    window.addEventListener(PROFILE_REFRESH, refresh);
+    return () => { active = false; window.clearInterval(timer); window.clearTimeout(toastTimer); window.clearTimeout(pendingTimer); document.removeEventListener("visibilitychange", refresh); window.removeEventListener(ACTIVITY_REFRESH, refresh); window.removeEventListener(PROFILE_REFRESH, refresh); };
   }, [baseIdentity]);
   const collapsed = useSyncExternalStore(
     collapseStore.subscribe,

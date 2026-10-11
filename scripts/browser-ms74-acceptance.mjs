@@ -53,13 +53,16 @@ try {
   step = "API authorization";
   assert.equal((await post(b, "/api/live/roster", { conversationId: fixture.selectedChatId, userIds: [] })).status, 403);
   assert.equal((await post(b, "/api/realtime/token", { conversationId: fixture.selectedChatId })).status, 403);
+  assert.equal((await post(b, "/api/live/join", { conversationId: fixture.selectedChatId })).status, 403);
+  assert.equal((await post(a, "/api/live/join", { conversationId: fixture.conversationId, latitude: 1 })).status, 400);
+  const hostileJoin = await fetch(`${origin}/api/live/join`, { method: "POST", headers: { Origin: "https://untrusted.invalid", "Content-Type": "application/json" }, body: "{}" }); assert.equal(hostileJoin.status, 403);
   assert.equal((await post(a, "/api/live/roster", { conversationId: fixture.conversationId, userIds: [], latitude: 1 })).status, 400);
   assert.equal((await post(a, "/api/realtime/token", { conversationId: fixture.conversationId, clientId: actors.founder.userId })).status, 400);
   const hostile = await fetch(`${origin}/api/live/roster`, { method: "POST", headers: { Origin: "https://untrusted.invalid", "Content-Type": "application/json" }, body: "{}" }); assert.equal(hostile.status, 403);
   record(step);
   step = "multi-tab deduplication";
   await join(a); await join(b); await liveCount(a, 2);
-  const a2 = await ca.newPage(); await a2.goto(`${origin}/room/${fixture.slug}/live`); await join(a2); await liveCount(b, 2);
+  const a2 = await ca.newPage(); await a2.goto(`${origin}/room/${fixture.slug}/live`, { waitUntil: "domcontentloaded" }); await join(a2); await liveCount(b, 2);
   await liveButton(a, "Leave Live").click(); await liveCount(b, 2);
   await liveButton(a2, "Leave Live").click(); await liveCount(b, 1); await a2.close(); record(step);
   step = "surface navigation leaves";
@@ -92,6 +95,7 @@ try {
   await liveCount(a, 1); await deniedToken(oldB.data);
   assert.equal((await post(b, "/api/live/roster", { conversationId: fixture.conversationId, userIds: [] })).status, 403);
   assert.equal((await post(b, "/api/realtime/token", { conversationId: fixture.conversationId })).status, 403);
+  assert.equal((await post(b, "/api/live/join", { conversationId: fixture.conversationId })).status, 403);
   await restore(); restore = undefined; record(step);
   step = "logout and in-flight issuance";
   await b.goto(`${origin}/room/${fixture.slug}/live`); await join(b); await liveCount(a, 2);
@@ -100,6 +104,7 @@ try {
   const [raceToken, logout] = await Promise.all([post(b, "/api/realtime/token", { conversationId: fixture.conversationId }), post(b, "/api/realtime/logout")]);
   assert.equal(logout.status, 200); await deniedToken(tokenBeforeLogout.data); if (raceToken.status === 200) await deniedToken(raceToken.data); else assert([401, 403].includes(raceToken.status));
   const replay = await fetch(`${origin}/api/realtime/token`, { method: "POST", headers: { Origin: origin, Cookie: oldCookie, "Content-Type": "application/json" }, body: JSON.stringify({ conversationId: fixture.conversationId }), redirect: "manual" }); assert.equal(replay.status, 401);
+  const joinReplay = await fetch(`${origin}/api/live/join`, { method: "POST", headers: { Origin: origin, Cookie: oldCookie, "Content-Type": "application/json" }, body: JSON.stringify({ conversationId: fixture.conversationId }), redirect: "manual" }); assert.equal(joinReplay.status, 401);
   await liveCount(a, 1); record(step, { oldTokenDenied: true, staleSessionDenied: true, raceTokenStatus: raceToken.status });
   evidence.requests = requestCounts; evidence.transport = await a.evaluate(() => window.__liveQa.snapshot());
   writeFileSync(`${output}/acceptance-progress.json`, JSON.stringify(evidence, null, 2));

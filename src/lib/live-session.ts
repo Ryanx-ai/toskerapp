@@ -75,6 +75,7 @@ export class LiveSession {
     return () => { this.active = false; this.stop("You left Live."); };
   };
   setVisible(visible: boolean) {
+    if (this.visible === visible) return;
     this.visible = visible;
     if (!visible) this.stop("You left Live while this page was in the background.");
     else if (this.active) this.connectionChanged();
@@ -124,7 +125,9 @@ export class LiveSession {
       const ids = [...new Set(members.map(member => member.clientId).filter(isConversationId))].sort().slice(0, LIVE_MAX_PARTICIPANTS);
       const participants = await port.profiles(ids);
       if (!this.current(port, generation) || refresh !== this.refreshGeneration || !port.connected()) return;
-      this.update({ participants, ready: this.snapshot.phase !== "joining", message: this.snapshot.phase === "joining" ? "Joining Live…" : this.intent ? "You’re in Live." : "You haven’t joined Live." });
+      // Roster reads are independent of the serialized observe/join queue.
+      // They must not enable Join while that queue is still authorizing/setup.
+      this.update({ participants, message: this.snapshot.phase === "joining" ? "Joining Live…" : this.intent ? "You’re in Live." : "You haven’t joined Live." });
     } catch {
       if (this.current(port, generation) && refresh === this.refreshGeneration) {
         this.update({ participants: [], message: "Participant list unavailable. Leave and join again to retry." });

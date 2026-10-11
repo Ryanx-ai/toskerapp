@@ -1,7 +1,9 @@
 /** Normal Clerk Development sign-in only; never inject cookies or bypass auth. */
 export async function loginLive(page, actor, fixture, origin = "http://localhost:3000") {
-  await page.goto(`${origin}/app`);
+  // Gate on Clerk/application readiness below, not unrelated image/asset load.
+  await page.goto(`${origin}/app`, { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => window.Clerk?.loaded, {}, { timeout: 60000 });
+  await page.waitForFunction(() => document.querySelector('[aria-label="Open your Namecard"]') || [...document.querySelectorAll("button")].some(b => b.textContent === "Sign in"), {}, { timeout: 30000 });
   const signIn = page.getByRole("button", { name: "Sign in", exact: true });
   if (await signIn.count()) {
     const email = `tosker.user.${actor}+clerk_test@example.com`;
@@ -11,8 +13,11 @@ export async function loginLive(page, actor, fixture, origin = "http://localhost
     await Promise.all([page.waitForResponse(response => response.url().includes("/prepare_first_factor") && response.status() === 200, { timeout: 30000 }), page.getByRole("button", { name: `Email code to ${email}`, exact: true }).click()]);
     await page.getByRole("textbox", { name: "Enter verification code", exact: true }).fill("424242");
     await page.waitForFunction(() => window.Clerk?.session?.status === "active", {}, { timeout: 30000 });
+    // Clerk activation precedes its forced /app redirect. Wait for the actual
+    // authenticated shell so that redirect cannot interrupt fixture navigation.
+    await page.getByRole("button", { name: "Open your Namecard", exact: true }).waitFor({ timeout: 60000 });
   }
-  await page.goto(`${origin}/room/${fixture.slug}/live`);
+  await page.goto(`${origin}/room/${fixture.slug}/live`, { waitUntil: "domcontentloaded" });
   await liveReady(page);
 }
 export const liveReady = page => page.waitForFunction(() => { const b = document.querySelector(".live-action"); return b && !b.disabled; }, {}, { timeout: 30000 });
@@ -41,8 +46,9 @@ export async function traceLivePort(page) {
       port[name] = async (...args) => {
         const row = { name, state: "pending", at: Math.round(performance.now()) };
         window.__livePortTrace.push(row); if (window.__livePortTrace.length > 60) window.__livePortTrace.shift();
-        try { const value = await original(...args); row.state = "done"; return value; }
-        catch (error) { row.state = "failed"; throw error; }
+        if (name === "profiles") row.requestedCount = args[0]?.length;
+        try { const value = await original(...args); row.state = "done"; row.durationMs = Math.round(performance.now()) - row.at; if (Array.isArray(value)) row.resultCount = value.length; return value; }
+        catch (error) { row.state = "failed"; row.durationMs = Math.round(performance.now()) - row.at; throw error; }
       };
     }
   });

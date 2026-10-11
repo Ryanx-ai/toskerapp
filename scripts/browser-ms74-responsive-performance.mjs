@@ -17,6 +17,11 @@ const ca = await browser.newContext({ viewport: { width: 1440, height: 900 } }),
 for (const context of [ca, cb]) { await installLiveMetrics(context); await context.route("**/*geoapify.com/**", route => route.abort()); }
 const a = await ca.newPage(), b = await cb.newPage(), evidence = { widths: [], samples: [], resources: [], errors: [], failedApi: [], requests: { token: 0, roster: 0 } };
 let step = "setup";
+const pending = new Map();
+for (const page of [a, b]) {
+  page.on("request", r => { const u = new URL(r.url()); if (u.pathname.includes("/tokens") || u.pathname.startsWith("/api/")) pending.set(r, { actor: page === a ? "a" : "b", host: u.hostname, path: u.pathname.replace(/sess_[^/]+/g, "[session]"), at: Date.now() }); });
+  page.on("requestfinished", r => pending.delete(r)); page.on("requestfailed", r => pending.delete(r));
+}
 for (const page of [a, b]) { page.on("pageerror", error => evidence.errors.push(error.name)); page.on("response", r => { const path = new URL(r.url()).pathname; if (path.startsWith("/api/") && r.status() >= 400) evidence.failedApi.push({ path, status: r.status(), actor: page === a ? "a" : "b" }); }); page.on("request", r => { const path = new URL(r.url()).pathname; if (path === "/api/realtime/token") evidence.requests.token++; if (path === "/api/live/roster") evidence.requests.roster++; }); }
 const save = () => writeFileSync(`${output}/responsive-performance-progress.json`, JSON.stringify(evidence, null, 2));
 try {
@@ -24,7 +29,7 @@ try {
   await db.update(roomMemberships).set({ nickname: "QA LongNameParticipantWithoutSpaces123456" }).where(and(eq(roomMemberships.roomId, room.id), eq(roomMemberships.userId, actors.a.userId)));
   await loginLive(a, "a", fixture); await loginLive(b, "b", fixture);
   await liveCount(a, 0); await liveCount(b, 0);
-  if (process.env.MS74_TRACE === "1") await traceLivePort(a);
+  if (process.env.MS74_TRACE === "1") await Promise.all([traceLivePort(a), traceLivePort(b)]);
   await liveButton(b, "Join Live").click(); await liveJoined(b);
   await liveReady(a); await liveButton(a, "Join Live").focus(); await a.keyboard.press("Enter"); await liveJoined(a); await liveCount(a, 2); await liveCount(b, 2);
   assert(await a.getByText("QA LongNameParticipantWithoutSpaces123456", { exact: true }).count());
@@ -71,10 +76,15 @@ try {
   assert(evidence.heapGrowthAfterRouteWarmup < 8 * 1024 * 1024); assert(evidence.listenerGrowthAfterRouteWarmup <= 10);
   const percentile = key => evidence.samples.map(s => s[key]).sort((x, y) => x - y)[18]; evidence.joinP95Ms = percentile("joinMs"); evidence.peerP95Ms = percentile("peerMs"); evidence.proposedLatencyTargetMet = evidence.joinP95Ms < 2000 && evidence.peerP95Ms < 2000;
   assert.equal(evidence.errors.length, 0);
+  assert.equal(evidence.proposedLatencyTargetMet, true, "Both measured p95 values must remain under2s; do not waive the latency gate");
   writeFileSync(`${output}/responsive-performance.json`, JSON.stringify({ pass: true, ...evidence }, null, 2)); console.log(JSON.stringify({ pass: true, widths: evidence.widths.length, cycles: evidence.samples.length, joinP95Ms: evidence.joinP95Ms, peerP95Ms: evidence.peerP95Ms, proposedLatencyTargetMet: evidence.proposedLatencyTargetMet, heapGrowthAfterRouteWarmup: evidence.heapGrowthAfterRouteWarmup, listenerGrowthAfterRouteWarmup: evidence.listenerGrowthAfterRouteWarmup, requests: evidence.requests }));
 } catch (error) {
-  evidence.transport = await a.evaluate(() => window.__liveQa?.snapshot());
-  evidence.portTrace = await a.evaluate(() => window.__livePortTrace);
+  evidence.transport = await a.evaluate(() => window.__liveQa?.snapshot()).catch(() => null);
+  evidence.portTrace = await a.evaluate(() => window.__livePortTrace).catch(() => null);
+  evidence.peerTrace = await b.evaluate(() => window.__livePortTrace).catch(() => null);
+  evidence.peerTransport = await b.evaluate(() => window.__liveQa?.snapshot()).catch(() => null);
+  evidence.pendingRequests = [...pending.values()].map(r => ({ ...r, elapsedMs: Date.now() - r.at }));
+  evidence.browserClocks = await Promise.all([a, b].map(p => p.evaluate(() => ({ now: performance.now(), online: navigator.onLine, session: window.Clerk?.session?.status })).catch(() => null)));
   evidence.finalPanels = await Promise.all([a, b].map(p => p.locator(".live-panel").innerText().catch(() => "missing"))); save();
   await a.screenshot({ path: `${output}/responsive-failure.png`, fullPage: true }).catch(() => {});
   console.error(JSON.stringify({ pass: false, step, error: error.name, detail: String(error.message).slice(0, 400) })); process.exitCode = 1;

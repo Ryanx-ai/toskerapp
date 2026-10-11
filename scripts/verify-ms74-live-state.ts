@@ -29,6 +29,8 @@ async function main() {
   for (const bad of [null, { conversationId: id, userIds: ["bad"] }, { conversationId: id, userIds: Array(101).fill(id) }, { conversationId: id, userIds: [], userId: id }]) assert(!validLiveRosterRequest(bad));
   const f = fake(), live = new LiveSession(80), unbind = live.bind(f.port), deactivate = live.activate();
   await pause(); assert.equal(f.counts.enters, 0, "Open is observation only"); assert(live.getSnapshot().ready);
+  const observes = f.counts.observes; live.setVisible(true); live.setVisible(true); await pause();
+  assert.equal(f.counts.observes, observes, "Unchanged visibility cannot duplicate observer setup");
   live.join(); live.join(); await pause(); assert.equal(f.counts.enters, 1); assert.equal(live.getSnapshot().phase, "connected");
   assert.equal(live.getSnapshot().participants.length, 1, "Tabs deduplicate and forged IDs are omitted");
   const idle = { ...f.counts }; await pause(); assert.deepEqual(f.counts, idle, "No idle polling");

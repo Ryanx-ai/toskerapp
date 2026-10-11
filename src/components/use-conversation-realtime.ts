@@ -45,7 +45,12 @@ export function useConversationRealtime(conversationId: string | undefined, user
       let observing = false;
       const unbindLive = presence && conversationId ? live.bind({
         connected: () => realtime.connection.state === "connected",
-        authorize: () => realtime.auth.authorize(),
+        authorize: async () => {
+          const token = await sessionToken();
+          const response = await fetch("/api/live/join", { method: "POST", credentials: "same-origin", cache: "no-store", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ conversationId }), signal: AbortSignal.timeout(10000) });
+          if ((response.status === 401 || response.status === 403) && !disposed) denied();
+          if (!response.ok || disposed) throw new Error("Live join unavailable.");
+        },
         observe: async changed => {
           if (!observing) { observing = true; await presence.presence.subscribe(changed); }
           await presence.attach();

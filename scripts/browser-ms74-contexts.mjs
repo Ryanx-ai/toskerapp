@@ -62,10 +62,8 @@ try {
   await Promise.all([ca.setOffline(false), cb.setOffline(false)]);
   await Promise.all([a, b].map(p => p.evaluate(() => { window.__liveQa.restore(); window.dispatchEvent(new Event("online")); })));
   await Promise.all([liveJoined(a), liveJoined(b)]); await liveCount(a, 1); await liveCount(b, 1); await record();
-  // Reconnect schedules a250ms identity refresh. Wait for that settled state
-  // before testing navigation; do not confuse cancellation of an in-flight RSC
-  // refresh with a second SDK client or context subscription.
-  await a.waitForTimeout(750);
+  // Deliberately navigate immediately: profile reconciliation must not race
+  // navigation through a background router.refresh(). No settling sleep.
   step = "Sandbox navigation releases Live without sharing";
   await a.locator('a.conversation-row[href="/personal/my-room"]').click(); await a.waitForURL("**/personal/my-room");
   assert.equal(await a.locator(".live-panel").count(), 0); assert.equal(await a.getByRole("link", { name: "Live", exact: true }).count(), 0);

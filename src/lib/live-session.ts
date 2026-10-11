@@ -66,6 +66,7 @@ export class LiveSession {
       this.stop("Connection closed.");
       this.connectionCleanup?.(); this.connectionCleanup = undefined;
       this.port = undefined;
+      return this.queue;
     };
   }
   activate = () => {

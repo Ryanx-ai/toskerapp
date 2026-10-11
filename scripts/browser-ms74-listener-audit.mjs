@@ -1,5 +1,6 @@
 /** Observation only: locate retained global handlers without entering Live. */
 import { readFileSync, writeFileSync } from "node:fs";
+import assert from "node:assert/strict";
 import { chromium } from "/Users/ryanc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs";
 import { loginLive, liveReady } from "./lib/ms74-browser.mjs";
 const fixture = JSON.parse(readFileSync(".git/ms74-recovery/fixture.json", "utf8"));
@@ -25,6 +26,7 @@ try {
     await page.getByRole("link", { name: "Live", exact: true }).click(); await page.waitForURL("**/live"); await liveReady(page);
     await sample(cycle);
   }
-  writeFileSync(".git/ms74-recovery/browser/listener-audit.json", JSON.stringify({ observationOnly: true, samples }, null, 2));
-  console.log(JSON.stringify({ observationOnly: true, samples }));
+  for (const type of ["beforeunload", "online", "offline"]) for (const sample of samples) assert.equal(sample.counts[type], samples[0].counts[type], `${type} must not grow across surface changes`);
+  writeFileSync(".git/ms74-recovery/browser/listener-audit.json", JSON.stringify({ pass: true, observationOnly: true, samples }, null, 2));
+  console.log(JSON.stringify({ pass: true, observationOnly: true, samples }));
 } finally { await browser.close(); }

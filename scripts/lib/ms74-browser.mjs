@@ -51,7 +51,9 @@ export async function installLiveMetrics(context) {
   await context.addInitScript(() => {
     const Native = window.WebSocket, sockets = new Set();
     let blocked = false;
-    const state = { outgoing: 0, incoming: 0, maxConnections: 0, payloadSafe: true, actions: {}, liveChannels: [], recent: [] };
+    const state = { outgoing: 0, incoming: 0, maxConnections: 0, connectivityProbes: 0, payloadSafe: true, actions: {}, liveChannels: [], recent: [], connectionEvents: [] };
+    let socketId = 0;
+    const socketEvent = (id, event) => { state.connectionEvents.push({ id, event, at: Math.round(performance.now()), open: [...sockets].filter(s => s.readyState === 1).length }); if (state.connectionEvents.length > 60) state.connectionEvents.shift(); };
     const record = (direction, m) => {
       state.recent.push({ direction, action: m.action, live: !!m.channel?.startsWith("tosker:live:"), presence: m.presence?.map(p => p.action), errorCode: m.error?.code });
       if (state.recent.length > 50) state.recent.shift();
@@ -69,9 +71,16 @@ export async function installLiveMetrics(context) {
         if (blocked && String(args[0]).includes("ably")) throw new DOMException("QA network offline", "NetworkError");
         super(...args);
         if (!String(args[0]).includes("ably")) return;
+        // Ably2.28 checkWsConnectivity() opens an unauthenticated ws-up probe.
+        // It is not a second realtime connection. Count it separately, without
+        // recording URLs/query strings (which may contain authentication).
+        const url = new URL(String(args[0]));
+        if (url.hostname === "ws-up.ably-realtime.com" && !url.search) { state.connectivityProbes++; return; }
+        const id = ++socketId;
         sockets.add(this);
-        this.addEventListener("open", () => { state.maxConnections = Math.max(state.maxConnections, [...sockets].filter(s => s.readyState === 1).length); });
-        this.addEventListener("close", () => sockets.delete(this));
+        socketEvent(id, "create");
+        this.addEventListener("open", () => { state.maxConnections = Math.max(state.maxConnections, [...sockets].filter(s => s.readyState === 1).length); socketEvent(id, "open"); });
+        this.addEventListener("close", () => { sockets.delete(this); socketEvent(id, "close"); });
         this.addEventListener("message", event => {
           state.incoming++;
           try { const m = JSON.parse(event.data); record("in", m); if (m.channel?.startsWith("tosker:live:")) { if (m.action === 11) channels.add(m.channel); if (m.action === 13) channels.delete(m.channel); } } catch {}

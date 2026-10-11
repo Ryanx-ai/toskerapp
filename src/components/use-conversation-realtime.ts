@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import { useSession } from "@clerk/nextjs";
+import { useWorkspaceRealtimeOwner } from "./workspace-realtime-provider";
 import { LiveSession } from "@/lib/live-session";
 import { liveChannel, REALTIME_SIGNOUT, type LiveParticipant } from "@/lib/live-contract";
 import { communicationTiming, deliveryTrace } from "@/lib/communication-performance";
@@ -13,6 +14,7 @@ import { conversationChannel, typingChannel, userChannel, MESSAGE_CHANGED, TYPIN
 /** One workspace transport; demos never request a token or connect. */
 export function useConversationRealtime(conversationId: string | undefined, userId: string | undefined) {
   const { session, isLoaded } = useSession();
+  const owner = useWorkspaceRealtimeOwner();
   const sessionId = session?.id;
   // Identity/context changes must create a fresh store with no retained Join intent.
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -30,33 +32,15 @@ export function useConversationRealtime(conversationId: string | undefined, user
     return token;
   });
   useEffect(() => {
-    if (!userId || !isLoaded || !sessionId) return;
+    if (!userId || !isLoaded || !sessionId || !owner) return;
     let disposed = false;
-    let close: (() => void) | undefined;
-    void import("ably/modular").then(({ BaseRealtime, WebSocketTransport, FetchRequest, RealtimePresence }) => {
+    const denied = () => {
       if (disposed) return;
+      live.revoke();
+      if (conversationId) window.dispatchEvent(new CustomEvent(CONVERSATION_ACCESS_LOST, { detail: conversationId }));
+    };
+    const release = owner.acquire({ userId, sessionId, conversationId, token: sessionToken, denied }, realtime => {
       setConnected(false); setTypingCount(0);
-      const realtime = new BaseRealtime({
-        plugins: { WebSocketTransport, FetchRequest, RealtimePresence },
-        logLevel: 0,
-        queueMessages: false,
-        authCallback: async (_params, callback) => {
-          try {
-            const token = await sessionToken();
-            const response = await fetch("/api/realtime/token", {
-              method: "POST", credentials: "same-origin", cache: "no-store",
-              headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-              body: JSON.stringify({ conversationId }), signal: AbortSignal.timeout(10000),
-            });
-            if ((response.status === 401 || response.status === 403) && !disposed) {
-              live.revoke();
-              if (conversationId) window.dispatchEvent(new CustomEvent(CONVERSATION_ACCESS_LOST, { detail: conversationId }));
-            }
-            if (!response.ok || disposed) throw new Error("Realtime authorization unavailable.");
-            callback(null, await response.json());
-          } catch { callback("Realtime authorization unavailable.", null); }
-        },
-      });
       const presence = conversationId ? realtime.channels.get(liveChannel(conversationId)) : undefined;
       let observing = false;
       const unbindLive = presence && conversationId ? live.bind({
@@ -86,7 +70,7 @@ export function useConversationRealtime(conversationId: string | undefined, user
           for (const event of events) realtime.connection.on(event, changed);
           return () => { for (const event of events) realtime.connection.off(event, changed); };
         },
-        closeUnsafeConnection: () => realtime.close(),
+        closeUnsafeConnection: owner.fail,
       }) : undefined;
       live.setVisible(!document.hidden);
       const channel = conversationId ? realtime.channels.get(conversationChannel(conversationId)) : undefined;
@@ -149,12 +133,13 @@ export function useConversationRealtime(conversationId: string | undefined, user
       // Attachment/re-attachment closes the fetch-before-subscribe race.
       channel?.on("attached", () => changed());
       let previouslyConnected = false;
-      realtime.connection.on((state) => {
+      const connectionChanged = (state: { current: string }) => {
         if (disposed) return;
         updateHealth();
         if (state.current === "connected") { changed(); refreshActivity(); window.dispatchEvent(new Event(HALL_REFRESH)); if (previouslyConnected) window.dispatchEvent(new Event(PROFILE_REFRESH)); previouslyConnected = true; }
         else { peers.clear(); updatePeers(); wasTyping = false; refreshActivity(); window.dispatchEvent(new Event(MAP_PING_CLEAR)); }
-      });
+      };
+      realtime.connection.on(connectionChanged);
       const onVisible = () => {
         live.setVisible(!document.hidden);
         if (document.hidden) { sendRef.current(false); peers.clear(); updatePeers(); window.dispatchEvent(new Event(MAP_PING_CLEAR)); }
@@ -164,23 +149,32 @@ export function useConversationRealtime(conversationId: string | undefined, user
       document.addEventListener("visibilitychange", onVisible);
       window.addEventListener("online", onOnline);
       const onPageHide = () => live.setVisible(false);
-      const onSignOut = () => { live.revoke(); realtime.close(); };
-      const onAccessLost = (event: Event) => { if ((event as CustomEvent<string>).detail === conversationId) { live.revoke(); realtime.close(); } };
+      const onSignOut = () => { live.revoke(); owner.retire(); };
+      const onAccessLost = (event: Event) => { if ((event as CustomEvent<string>).detail === conversationId) { live.revoke(); owner.retire(); } };
       window.addEventListener("pagehide", onPageHide);
       window.addEventListener(REALTIME_SIGNOUT, onSignOut);
       window.addEventListener(CONVERSATION_ACCESS_LOST, onAccessLost);
-      close = () => {
-        unbindLive?.();
+      return async () => {
+        disposed = true;
+        const liveStopped = unbindLive?.();
         sendRef.current(false); sendRef.current = () => undefined;
-        clearTimeout(expiry); channel?.unsubscribe(); typing?.unsubscribe(); feed.unsubscribe(); realtime.close();
+        clearTimeout(expiry); channel?.unsubscribe(); typing?.unsubscribe(); feed.unsubscribe();
+        channel?.off(); typing?.off(); feed.off();
+        realtime.connection.off(connectionChanged);
         document.removeEventListener("visibilitychange", onVisible);
         window.removeEventListener("online", onOnline);
         window.removeEventListener("pagehide", onPageHide);
         window.removeEventListener(REALTIME_SIGNOUT, onSignOut);
         window.removeEventListener(CONVERSATION_ACCESS_LOST, onAccessLost);
+        await liveStopped;
+        for (const attached of [presence, channel, typing, feed]) {
+          if (!attached) continue;
+          await attached.detach();
+          realtime.channels.release(attached.name);
+        }
       };
-    }).catch(() => undefined);
-    return () => { disposed = true; close?.(); };
-  }, [conversationId, userId, sessionId, isLoaded, live]);
+    });
+    return () => { disposed = true; release(); };
+  }, [conversationId, userId, sessionId, isLoaded, live, owner]);
   return { typingCount, connected, sendTyping, live };
 }

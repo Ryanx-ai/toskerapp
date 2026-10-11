@@ -1,5 +1,13 @@
 # MS7.4 Live coordination architecture
 
+## Implemented ownership amendment — 11 October 2026
+
+Founder approved the local3–5h extension. Application `8683263` replaces page-owned SDK lifetime with a persistent authenticated-workspace owner. This supersedes the historical ownership stop gate below. The layout owns one lazy SDK, pages acquire cancellable exact-context leases, and cleanup/reauthorization serialize. Current actor/session and authorization lease are checked before/after token I/O; immutable SDK identity is never switched in place. A retired owner requires a fresh document. Dynamic context capability changes use existing `auth.authorize()` on the same SDK, with old channels drained first. See [Ably token authentication](https://ably.com/docs/auth/token?lang=javascript) and [identified clients](https://ably.com/docs/auth/identified-clients).
+
+No vendor edits or global listener interception. Actual browser metrics now distinguish Ably2.28's unauthenticated `checkWsConnectivity()` probe (`node_modules/ably/src/common/lib/transport/connectionmanager.ts`, platform `wsConnectivityCheckUrl`) from an authenticated realtime connection; exact probe host with no query only. Raw connection events omit URLs/tokens. Resource gate passes zero growth after20cycles. Identity/session fences, true600s token renewal, context transitions, revoked scopes and actual UI logout are covered in the [final local ledger](MS7-4-EXECUTION.md).
+
+Local Founder Walk candidate only: join/peer p95 remain3.84/4.17s, above the proposed2s goal. Long-outage recovery requires explicit reload/rejoin. Reconnect profile refresh can cancel an immediate navigation; settling/retrying is a known limitation, not a fixed gate. Retained-data comparison has an explained two-QA-read-timestamp exception, never a rewritten baseline. No canonical cutover is authorized; no media/email/location implementation or new infrastructure.
+
 10 October 2026 · Checkpoint A · **Architecture complete; implementation awaits founder approval.** Canonical remains locked MS7.3 FP8 `35a6f86`. This decision record recommends one local FP1 slice, not media, email or deployment procurement.
 
 ## Decision and execution gate

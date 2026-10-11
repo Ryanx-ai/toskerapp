@@ -2,6 +2,14 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## MS7.4 FP1 — LOCAL FOUNDER WALK CANDIDATE / STOP BEFORE DEPLOY — 2026-10-11 SGT
+
+Application/test checkpoint **`86832632901a056b1077bafb62d2e7abfc291c95`** on `codex/ms74-foundation`; following documentation checkpoint contains [final local receipt](docs/MS7-4-FP1-LOCAL-RECEIPT.json) and [execution ledger](docs/MS7-4-EXECUTION.md). This supersedes the ownership approval gate below. Stable authenticated-workspace Ably owner implemented;20-cycle listener growth0, one realtime connection, exact-context leases/auth, actual Settings logout/session replacement and natural600s token renewal verified. No push, migration, provider reconfiguration or deployment. Canonical/origin-main remain locked MS7.3 `35a6f86`, READY `dpl_4jNvKenubueFoVCm24GVZiUDE3Dg`;29 migration hashes/catalog unchanged.
+
+Local A/B/auth/resource/responsive/build/security checks complete **with disclosed debt**, not an unconditional all-green release: join/peer p95 3840/4165ms miss2s; long outage needs Reload workspace then Join; immediate post-reconnect navigation may need retry after profile refresh. Retained audit34/35 tables match; only exact QA A/B Personal `last_read_at` changes are proven against preserved baseline rows. Founder data unchanged; never rewrite baseline or restore these read markers to hide the difference. Keep original audit plus attribution evidence. Final usage2739/6M (delta1724), Free unchanged, temporary management tokens already revoked. No Geoapify calls/media/email/location.
+
+Keep `ms74-fp1-qa-a39d9eea` with exact founder8V3X7P1, A/B, scoped/open children and one safe owned message+Board note for local Founder Walk. Both protected MS7.3 Rooms remain. No disposable data cleanup pending; close only this run's server/browser processes. Preserve unrelated Art/Web/Design/inheritance WIP and older handoff hunks. MS7.1/7.2/7.3 LOCKED; MS7.4 LOCAL FP1 FOR FOUNDER REVIEW, NOT DEPLOYED/LOCKED; MS8 NOT STARTED. Next: founder local walkthrough/debt disposition and separate canonical authorization. **STOP.**
+
 ## MS7.4 FP1 — C CORE VERIFIED / D OWNERSHIP GATE — 2026-10-11 SGT
 
 Read the newest [execution ledger](docs/MS7-4-EXECUTION.md) section. **Not release-ready; no push or canonical deployment.** B `8611e9c`, audit `1cb41d6`, then the local commit titled `fix: harden MS7.4 recovery and record transport ownership gate` hold this wave. Canonical/main freshly remain locked FP8 `35a6f86`, READY `dpl_4jNvKenubueFoVCm24GVZiUDE3Dg`;29 migrations, retained35-table audit clean. Ably narrow presence permission applied, temporary management tokens revoked, Free/billing unchanged; do not repeat setup.

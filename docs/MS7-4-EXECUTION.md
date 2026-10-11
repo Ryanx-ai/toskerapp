@@ -1,5 +1,64 @@
 # MS7.4 execution and recovery
 
+## Extension complete — local Founder Walk candidate, no deployment · 11 October 2026 SGT
+
+Application/test checkpoint **`86832632901a056b1077bafb62d2e7abfc291c95`**, branch `codex/ms74-foundation`. This section supersedes the ownership stop gate below. Founder approved the3–5h local extension; transport ownership is implemented and remaining local verification completed with the explicit qualifications below. **No push or canonical deployment.** Canonical/origin-main remain locked MS7.3 `35a6f86182e36a2f31eca84a9280e965d71f17cd`, READY Production `dpl_4jNvKenubueFoVCm24GVZiUDE3Dg`. R lock receipt remains [MS7.3 lock](MS7-3-LOCK-RECEIPT.json). Full status: [local receipt](MS7-4-FP1-LOCAL-RECEIPT.json).
+
+### B2 — transport ownership and architecture
+
+Persistent authenticated workspace layout now owns one lazy Ably SDK instance. Page/context leases serialize presence leave, listener removal, detach/release and exact-context reauthorization. In-flight authorization is cancelled/fenced; actor or Clerk session changes retire the owner and require a fresh document. Unsafe cleanup/network setup failures offer explicit Reload workspace without claiming membership withdrawal. Live Join remains deliberate, repeated joins deduplicate, navigation/background leave, and no autojoin survives reload. The existing Chat/Board/Map/typing feeds share this owner. No vendor patch, event-listener interception, broader token grant, second realtime service, migration or new dependency.
+
+Reused infrastructure: existing Ably Free, Clerk identity/session, Room/Subroom/accepted Personal/Sandbox authorization, masked basic profile projection and modular workspace surfaces. No new infrastructure is required. No microphone, camera, media, email, coordinate sharing or persistent application presence history. Tokens remain ten-minute, exact-context presence+subscribe; no Live publish or wildcard client grant. Existing key restriction and temporary-management-token revocation receipts remain authoritative; do not repeat setup.
+
+### C — authorization and actual A/B flow
+
+-11 deterministic owner cases;12 Live lifecycle cases; expired-session401 vs authenticated403 recovery: pass, no provider calls.
+- Core browser acceptance8 cases: API denial, same-user tabs, surface exit, background/foreground, reconnect3299ms, prolonged peer expiry58459ms, membership withdrawal/stale-token denial, logout/issuance race/stale session. One exact intentionally injected NetworkError; zero unexpected page errors.
+- Extended six-step context transport run: Room/open Subroom isolation, late Join cancellation, simultaneous A/B disconnect in separate contexts, Sandbox exit/private behavior, accepted A/B Personal context, return to owned Room. One realtime connection and at most one Live channel. Ably's separate unauthenticated `ws-up.ably-realtime.com` connectivity probe is counted separately, not disguised as a second SDK connection. One probe observed; no application network behavior altered.
+- Natural automatic token renewal: unchanged600000ms TTL, one renewal after572066ms, exact selected Subroom and joined state retained; zero errors. No shortened TTL or auth bypass.
+- Actual Settings→Account→Log out: both same-session tabs leave, old Ably bearer denied, then normal QA B sign-in starts a new identity and requires explicit Join. Temporary503 also stops safely with no false access-lost event. Three cases, zero unexpected errors.
+- Server authorization9 cases pass;10 rollback-only Chat/Board/Personal regressions pass. No persisted regression fixture, no provider calls in rollback suite. Full browser context run additionally sent one safe message and one Board note through UI and observed them on B; exact IDs retained below.
+
+Evidence caveat: the final `contexts.json` was produced with `--transport-only`; its historical final-step label mentions Chat/Board delivery, but that run did not repeat content creation. The earlier full run performed that delivery and recorded exact persisted IDs, then failed the original probe-count assertion. Diagnosis separated the SDK connectivity probe; the later transport-only run passed the one-realtime-connection assertion. Test labels now distinguish these paths. Do not claim one all-inclusive run or replay writes to improve the receipt.
+
+### D — responsive/resource pass, latency target not met
+
+320×740,390×844,430×932,768×1024,1440×900,1728×1000 and844×390 pass geometry,44px targets, keyboard focus, reduced motion, long names and primary-surface constraints. New320/768/1728/short-landscape screenshots visually inspected; narrow/landscape disclosures remain scrollable. Physical iOS/Safari/Android and assistive-technology certification are **not claimed**.
+
+Twenty lifecycle cycles pass: listener growth **0**, heap growth after warmup604784bytes, zero unexpected errors/API failures and no idle Live polling. Focused two-roundtrip SDK-handler audit stays beforeunload1/online2/offline1, replacing the former linear growth. Join p95 **3840ms**, peer p95 **4165ms**: the proposed2s target remains **unmet**, not waived or relabelled green. This is a local Founder Walk candidate with performance debt, not an unconditional release-quality certification.
+
+Recovery limitations remain explicit: prolonged outage/unsafe transport requires Reload workspace then Join. A navigation click immediately after reconnect can be cancelled by the inherited250ms profile-refresh/RSC refresh; context acceptance waits750ms for this known refresh to settle. This race is **not fixed** by the ownership change; retry navigation after recovery. No automatic retry storm or new polling was introduced.
+
+### E — build, data, security and cost
+
+Final production build, TypeScript and lint pass (only existing unused `eq` warning in `cleanup-fp4-qa.ts`); diff check passes.29 exact migration hashes,35 tables/253 columns/128 constraints/15 enums, DB relational invariants and7 ownership guards pass. Chat draft/workspace contracts and rollback-only FP8 Map regression pass with zero Geoapify calls. Secret scan passes680 source/owned files and43 client bundles before final audit/doc additions; subsequent final scan recorded in receipt. Server keys are absent from client output; local env files ignored.
+
+Retained audit is **qualified, not a zero-difference pass**:34 of35 retained-table fingerprints match. Only `conversation_reads` differs. A preserved historical row snapshot exactly reproduces the baseline read-table hash; row-by-row read-only comparison proves only QA A and QA B `last_read_at` changed in their exact existing accepted Personal Chat (`be192eac-38c6-4d46-a6d2-bea19fa324fa`) during normal navigation. Founder read rows and every other retained row match; baseline and original failed audit are preserved. No restore or broad exclusion was used. Attribution: `.git/ms74-recovery/read-marker-attribution.json`; repeat using `scripts/audit-ms74-read-markers.ts`. These are QA read acknowledgments, not new legitimate messages or profile changes.
+
+### Retained fixtures and cleanup
+
+Final refreshed Ably Limits observation: **2739/6000000** monthly messages,4/200 concurrent connections,15/200 channels,93KiB/28.6GiB. Account delta1724 from preflight1015 remains below the10000-event wave budget; this is account-wide observation, not exact per-test attribution or a claim all connections are QA. Free plan/billing/restrictions unchanged; temporary management tokens22319/22320 remain revoked. Final DB invariants pass:8 users/profiles/Sandboxes,7 Rooms/14 memberships,5 Personal Chats,35 messages,13 Board notes/2 pins,6 accepted connections,52 notifications. Added message/note/notifications are contained in the exact owned Founder Review context.
+
+Keep **MS7.4 FP1 Founder Review — Live a39d9eea**, slug `ms74-fp1-qa-a39d9eea`, Room `a87bcbb1-d0df-490c-8392-8c22b6936c1c`, primary conversation `1c0e3785-e158-4a5b-b84d-f8e9e7bfa30c`. Exact server-resolved founder TID8V3X7P1 remains with A/B. Scoped child `31f53f07-9818-43bd-b47b-07e573c7bc12` and open child `d132c3f7-3827-4915-ae26-f673035a2435` remain for authorization walkthrough. No final Founder Walk cleanup. Safe retained message `09dc89ca-e5b5-4575-96c9-150b78d05564` and Board note `524b5cdf-f7aa-4064-a3d1-8b1ad22f709e` are owned test content (`MS7.4 FP1 QA c95f0c45`), not founder content. Membership and QA nickname restored.
+
+Protected `ms73-founder-review-904a9dea` and `ms73-qa-bfff9475` remain untouched. No disposable persisted fixtures or data cleanup remain; rollback-only fixtures were never committed. Isolated browser contexts close in finally. Stop only this run's local server after recording final checks; leave the user's Ably browser/session intact.
+
+### Remaining decisions, walkthrough and recovery
+
+Media remains a future separately approved SFU/managed-provider evaluation, not Ably-as-media or automatic peer mesh. Email recommendation remains opt-in, authorized, deduplicated/batched delivery with unsubscribe and bounded retries; Resend evaluation versus SES alternative is documented in the ADR, neither provisioned. No new consent architecture is silently introduced.
+
+Founder walkthrough on the local build: open retained Room→Live without autojoining; have QA A/B join/leave; check actual names/avatars and tab dedup; switch Map/Board/Chat and confirm departure; test Subroom isolation; refresh/network/logout and explicit rejoin; inspect narrow/mobile and desktop Chat companion. Confirm no mic/camera/location prompt, hidden tracking or synthetic participants. Production still shows MS7.3, not this local Live slice.
+
+Recover from application `8683263` plus the following docs checkpoint; inspect Git before running anything. Evidence lives under `.git/ms74-recovery/` and summarized receipt is tracked. Do not repeat successful provider tests, permission provisioning, fixture creation or cleanup. Preserve unrelated Design/Art/Web/inheritance files and older handoff hunks. Next decision is founder local review and disposition of latency/reconnect-navigation debt, then separate deployment authorization. **MS7.1/MS7.2/MS7.3 LOCKED; MS7.4 local FP1 ready for bounded Founder Walk with disclosed debt, not deployed or locked; MS8 NOT STARTED. STOP.**
+
+## Local ownership extension authorized — 11 October 2026 SGT
+
+Founder approved **3–5 additional local hours** to fix transport ownership, finish C/D/E acceptance and save state. **Stop before canonical deployment; no push or cutover.** Recovered `789ccfd` (application `02559b2`) on `codex/ms74-foundation`; fresh remote main and READY canonical remain `35a6f86` / `dpl_4jNvKenubueFoVCm24GVZiUDE3Dg`. Existing unrelated Design/Art/Web work is preserved. No provider key/permission replay, migration, new fixture or billing change.
+
+Implementation in progress: persistent workspace-layout owner, one lazy SDK instance, cancellable actor/session/context leases, serialized leave/detach/release before context reauthorization, stale-auth fencing and full-document recovery for identity changes. Existing explicit Live Join/Leave and minimal payload remain. Nine deterministic owner cases and12 Live lifecycle cases pass; first production build passes. Browser resource, extended authorization/recovery, regression and final data/security audits remain pending. Do not claim C/D/E green from these early results.
+
+Retain exact owned `ms74-fp1-qa-a39d9eea` with founder8V3X7P1; use only isolated A/B for test membership/session operations. Preserve both protected MS7.3 Rooms. Recover the working diff on interruption; do not discard or deploy it. This authorization supersedes the ownership approval request below, not the no-canonical boundary.
+
 ## C core verified / D architecture stop gate — 11 October 2026 SGT
 
 Application checkpoint **`02559b2`**. [Local handoff receipt](MS7-4-FP1-LOCAL-RECEIPT.json). The bounded retry of the redundant retained-data audit passed all35 tables at17:13:58UTC with zero changes; the earlier stall was not a data discrepancy. Headless QA browsers and the local server are now stopped. No disposable cleanup remains. Resume only after the transport-ownership decision.

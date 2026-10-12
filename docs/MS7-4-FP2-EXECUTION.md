@@ -1,0 +1,19 @@
+# MS7.4 FP2A execution and recovery ledger
+
+## Authorization and rotation handoff — 12 October 2026
+
+Founder explicitly approved controlled rotation of the exposed Geoapify server key followed by the **14–20 hour local FP2A wave**. Preserve provider restrictions and R/A/B/C/D save states. **Stop before FP2A canonical deployment. FP2B remains research only.** This supersedes the research-only approval gate in the R/A documents, not their security or privacy requirements.
+
+Recovered local architecture checkpoint `c12c8f2`, recovery checkpoint `96ac3ad`, branch `codex/ms74-foundation`. Unrelated historical handoff, inheritance and untracked Design/Art/Web work remains untouched. No application change at this checkpoint.
+
+Fresh remote main and canonical remain `7dc332e84256531f96ccc6a0c971279770fa2431`, READY Production `dpl_F8hgv39JpoZv15WRWJH3RSGYr8tc`, exact `toskerapp.vercel.app` alias. The only authorized canonical change is the **credential-only FP1 rollout**, using that application SHA; it must not include FP2A code or unrelated local work.
+
+Fresh Vercel metadata with decryption disabled verifies `GEOAPIFY_SEARCH_KEY` has separate Production and Development entries, both type `sensitive` (Secret). `NEXT_PUBLIC_GEOAPIFY_MAP_KEY` also has separate Production and Development assignments and is not the exposed credential. No Preview Geoapify entry returned. No values printed, no environment mutation performed.
+
+Geoapify `tosker` dashboard remains accessible. Existing server key is the entry created 29 September at 06:23:18 UTC; browser key is the later 07:20 entry. Server settings currently show no IP, Referer or Origin filters and CORS response origin `*`. These are observed existing settings, not new permission grants; CORS is not access control. No per-API restriction control is exposed in this settings view. Preserve compatible existing configuration and Free 3,000/day quota; do not claim nonexistent server filters were verified. Browser-key restrictions remain untouched.
+
+**Handoff blocker:** browser credential-safety instructions require the founder to perform credential creation/entry/submission. The server settings page is prepared, with all agent-visible key-page text redacted before output. No new key created, old key revoked, environment changed or deployment initiated. Founder should create a replacement server key in the same project (not remove/regenerate the old key in place), then save its value directly to the existing ignored local `GEOAPIFY_SEARCH_KEY` in `.env.development.local`, without pasting it into chat. Leave the browser key and old server key intact during overlap. If the UI cannot offer overlapping replacement, stop before revocation and reassess the rollout.
+
+After secure replacement is available: verify restriction/plan parity, update only the exact Development/Production server entries through the secret workflow without logging values, confirm assignments, scan source/client output, stage the exact FP1 SHA with refreshed environment, run bounded search/reverse/road verification and existing application smoke, promote/verify exact canonical, then retire the old key with the required credential handoff and verify old rejection/new success. Preserve a recovery record; do not roll back to a deployment carrying the exposed credential after revocation. No paid plan, new access scope or billing change. Budget tests tightly rather than repeating the provider research suite.
+
+FP2A B implementation remains **NOT STARTED** until rotation and controlled rollout are verified, respecting the founder's requested order. The 14–20-hour local implementation authorization remains valid; no fresh proceed approval is needed after the credential handoff. C acceptance and D local release candidate follow the matrix in [architecture A](MS7-4-FP2-ARCHITECTURE.md). FP2A push/canonical deployment remains prohibited without later approval.

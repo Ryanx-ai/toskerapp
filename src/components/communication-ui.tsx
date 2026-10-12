@@ -21,6 +21,7 @@ import {
   useRef,
   useState,
   useSyncExternalStore,
+  type ReactNode,
 } from "react";
 import { changeOwnMessageAction, markConversationReadAction, sendMessageAction, setMessageReactionAction } from "@/server/conversations/actions";
 import type { HistoryPage } from "@/server/conversations/history";
@@ -129,6 +130,7 @@ export function SurfaceHeader({
   onReadingPause,
   chatCompanionOpen,
   onToggleChatCompanion,
+  surfaceNavigation,
 }: {
   conversation: Conversation;
   surface: WorkspaceSurface;
@@ -142,6 +144,7 @@ export function SurfaceHeader({
   onReadingPause?: (paused: boolean) => void;
   chatCompanionOpen?: boolean;
   onToggleChatCompanion?: () => void;
+  surfaceNavigation?: ReactNode;
 }) {
   const user = useCurrentToskerUser() ?? prototypeUser;
   const identity = useToskerIdentity();
@@ -187,6 +190,7 @@ export function SurfaceHeader({
         </div>
       </div>
       <nav className="surface-tabs" aria-label="Space surfaces">
+        {surfaceNavigation ?? <>
         {identity && hasRoomMap(conversation) ? <Link className={surface === "map" ? "active" : ""} aria-current={surface === "map" ? "page" : undefined} href={surface === "map" ? `${baseHref(conversation)}?surface=chat` : `${baseHref(conversation)}/map`} prefetch={false}><MapIcon size={16} aria-hidden="true" />Map</Link> : null}
         <Link
           className={surface === "hall" ? "active" : ""}
@@ -197,6 +201,7 @@ export function SurfaceHeader({
         </Link>
         {identity && conversation.kind !== "my-room" && hasRoomMap(conversation) ? <Link className={surface === "live" ? "active" : ""} aria-current={surface === "live" ? "page" : undefined} href={surface === "live" ? `${baseHref(conversation)}?surface=chat` : `${baseHref(conversation)}/live`} prefetch={false}><Radio size={16} aria-hidden="true" />Live</Link> : null}
         {onToggleChatCompanion ? <button className={chatCompanionOpen ? "active" : ""} aria-pressed={!!chatCompanionOpen} onClick={onToggleChatCompanion}><MessageCircle size={16} aria-hidden="true" />Chat<AttentionMark count={chatUnread} label="new messages" /></button> : <Link className={surface === "chat" ? "active" : ""} aria-current={surface === "chat" ? "page" : undefined} href={`${baseHref(conversation)}?surface=chat`}><MessageCircle size={16} aria-hidden="true" />Chat<AttentionMark count={chatUnread} label="new messages" /></Link>}
+        </>}
       </nav>
       </div>
       {controlsAnchor ? <InteractionPopover anchor={controlsAnchor} label="Conversation options" onClose={() => { if (!controlBusy) setControlsAnchor(null); }}><div className="room-context-menu communication-options">

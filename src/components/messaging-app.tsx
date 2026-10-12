@@ -2,6 +2,8 @@
 import { ContextSearch } from "./context-search";
 import LivePanel from "./live-panel";
 import { useChatCompanion } from "./use-chat-companion";
+import { CompositionNavigation, WorkspacePanels, useLiveParticipation } from "./workspace-composition";
+import { composeWorkspace, isWorkspaceSurface, normalizeComposition, surfaceIsVisible, type CompositionAction } from "@/lib/workspace-composition";
 import { useConversationRealtime } from "./use-conversation-realtime";
 import { NicknameDialog } from "./nickname-editor";
 import { NamecardProvider } from "./namecard-dialog";
@@ -1400,11 +1402,44 @@ export function MessagingApp({
         : selectedSlug && !identity
           ? conversations[0]
           : undefined));
-  const surface = resolveWorkspaceSurface(requestedSurface ?? (selected?.kind === "my-room" && workspaceQuery.get("surface") !== "chat" && !workspaceQuery.get("message") ? "map" : "chat"), selected);
-  const [companionEnabled, toggleCompanion] = useChatCompanion(identity?.userId, selected?.databaseId);
-  const canCompanion = Boolean(companionWidth && selected && hasRoomMap(selected) && selected.databaseId && surface !== "chat");
-  const companionOpen = canCompanion && companionEnabled;
+  const surfaceQuery = workspaceQuery.get("surface");
+  const requested = isWorkspaceSurface(surfaceQuery) ? surfaceQuery : requestedSurface ?? (selected?.kind === "my-room" && !workspaceQuery.get("message") ? "map" : "chat");
+  const [companionEnabled] = useChatCompanion(identity?.userId, selected?.databaseId);
+  const capabilities = { map: !!identity && !!selected && hasRoomMap(selected), live: !!identity && !!selected && hasRoomMap(selected) && selected.kind !== "my-room" };
+  const composition = normalizeComposition(resolveWorkspaceSurface(requested, selected), workspaceQuery.get("companion") ?? (selected?.databaseId && companionEnabled && capabilities.map ? "chat" : null), capabilities);
+  const surface = composition.primary;
+  const foreground = workspaceQuery.get("pane") === composition.companion ? composition.companion ?? surface : surface;
+  const chatVisible = surfaceIsVisible(composition, "chat", companionWidth, foreground);
+  const pendingFocus = useRef<{ surface: WorkspaceSurface; trigger: boolean } | null>(null);
+  const updateComposition = (action: CompositionAction) => {
+    const next = composeWorkspace(composition, action, capabilities);
+    const closing = composition.companion === action.surface && action.type === "choose";
+    const pane = next.companion === action.surface ? action.surface : next.primary;
+    const url = new URL(window.location.href);
+    url.searchParams.set("surface", next.primary);
+    url.searchParams.set("companion", next.companion ?? "none");
+    url.searchParams.set("pane", pane);
+    pendingFocus.current = { surface: closing ? action.surface : pane, trigger: closing };
+    // Same-context layout navigation must not remount the realtime owner or
+    // discard Map/Board state. Native history integrates with useSearchParams.
+    window.history.pushState(null, "", url);
+  };
+  const focusSurface = (pane: WorkspaceSurface) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("pane", pane);
+    pendingFocus.current = { surface: pane, trigger: false };
+    window.history.replaceState(null, "", url);
+  };
+  const compositionQuery = workspaceQuery.toString();
+  useEffect(() => {
+    const target = pendingFocus.current;
+    if (!target) return;
+    pendingFocus.current = null;
+    const frame = requestAnimationFrame(() => document.querySelector<HTMLElement>(`[${target.trigger ? "data-surface-trigger" : "data-workspace-pane"}="${target.surface}"]`)?.focus({ preventScroll: true }));
+    return () => cancelAnimationFrame(frame);
+  }, [compositionQuery]);
   const realtime = useConversationRealtime(selected?.databaseId, identity?.userId);
+  const participation = useLiveParticipation(realtime.live, identity?.userId, surfaceIsVisible(composition, "live", companionWidth, foreground));
   useEffect(() => {
     const denied = (event: Event) => {
       if ((event as CustomEvent<string>).detail !== selected?.databaseId) return;
@@ -1416,7 +1451,7 @@ export function MessagingApp({
     return () => window.removeEventListener(CONVERSATION_ACCESS_LOST, denied);
   }, [router, selected?.databaseId]);
   useEffect(() => { liveConnected.current = realtime.connected; }, [realtime.connected]);
-  useEffect(() => { activeConversationRef.current = surface === "chat" || companionOpen ? selected?.databaseId ?? null : null; }, [selected?.databaseId, surface, companionOpen]);
+  useEffect(() => { activeConversationRef.current = chatVisible ? selected?.databaseId ?? null : null; }, [selected?.databaseId, chatVisible]);
   const attention = deriveAttention(activity, snapshot.preferences);
   const selectedPreference = snapshot.preferences.find((pref) => pref.conversationId === selected?.databaseId);
   const unreadByConversation = attention.conversations;
@@ -1464,23 +1499,17 @@ export function MessagingApp({
               chatUnread={unreadForSurface("message")}
               hallUnread={unreadForSurface("hall")}
               unreadByConversation={unreadByConversation}
-              chatCompanionOpen={companionOpen}
-              onToggleChatCompanion={canCompanion ? toggleCompanion : undefined}
+              surfaceNavigation={<CompositionNavigation composition={composition} capabilities={capabilities} choose={updateComposition} chatUnread={unreadForSurface("message")} hallUnread={unreadForSurface("hall")} />}
             />
-            {surface !== "chat" ? <div className={`planning-workspace ${companionOpen ? "with-chat" : ""}`}><div className="planning-primary">
-            {surface === "map" ? <RoomMapWorkspace key={selected.slug} roomSlug={selected.kind === "my-room" ? `sandbox--${selected.databaseId}` : selected.kind === "personal" ? `personal--${selected.databaseId}` : selected.slug} conversationId={selected.databaseId ?? ""} /> : surface === "live" ? <LivePanel key={selected.slug} live={realtime.live} userId={identity?.userId} /> : (
-              <HallSurface
-                connected={realtime.connected}
-                manualUnreadId={selectedPreference?.manualHallUnreadId}
-                readingPaused={readingPaused}
-                key={selected.slug}
-                conversation={selected}
-                empty={Boolean(identity) || Boolean(prototypeRoom && !canonical)}
-              />
-            )}
-            </div>{companionOpen && <aside className="planning-chat" aria-label="Room Chat companion"><ChatSurface companion key={selected.slug} conversation={selected} realtime={realtime} manualUnreadId={selectedPreference?.manualChatUnreadId} readingPaused={readingPaused} /></aside>}</div> : (
-              <ChatSurface key={selected.slug} conversation={selected} realtime={realtime} manualUnreadId={selectedPreference?.manualChatUnreadId} readingPaused={readingPaused} />
-            )}
+            {participation.joined && <div className="workspace-live-indicator" role="status"><span>{participation.phase === "connected" ? "In Live" : participation.phase === "joining" ? "Joining Live…" : "Reconnecting Live…"}</span><button className="quiet-action" type="button" onClick={realtime.live.leave}>Leave Live</button></div>}
+            <WorkspacePanels key={`${identity?.userId ?? "demo"}:${selected.databaseId ?? selected.slug}`} composition={composition} foreground={foreground} wide={companionWidth} choose={updateComposition} focusSurface={focusSurface}>
+              {{
+                map: capabilities.map ? <RoomMapWorkspace roomSlug={selected.kind === "my-room" ? `sandbox--${selected.databaseId}` : selected.kind === "personal" ? `personal--${selected.databaseId}` : selected.slug} conversationId={selected.databaseId ?? ""} /> : null,
+                hall: <HallSurface connected={realtime.connected} manualUnreadId={selectedPreference?.manualHallUnreadId} readingPaused={readingPaused || !surfaceIsVisible(composition, "hall", companionWidth, foreground)} conversation={selected} empty={Boolean(identity) || Boolean(prototypeRoom && !canonical)} />,
+                live: capabilities.live ? <LivePanel live={realtime.live} userId={identity?.userId} /> : null,
+                chat: <ChatSurface companion={composition.companion === "chat" && companionWidth} conversation={selected} realtime={realtime} manualUnreadId={selectedPreference?.manualChatUnreadId} readingPaused={readingPaused || !chatVisible} />,
+              }}
+            </WorkspacePanels>
           </NamecardRoomContext.Provider>
         ) : selectedSlug && identity ? (
           <div className="desktop-welcome" role="status"><h2>Conversation unavailable</h2><p>Check your access or return to Chats.</p><Link className="quiet-action" href="/app">Return to Chats</Link></div>

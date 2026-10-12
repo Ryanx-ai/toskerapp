@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "./fp2-customization.css";
 @import "./ms74-live.css";
+@import "./ms74-composition.css";
 
 /* MS7.2.1 owner-only Profile foundation; reuse scoped Settings geometry. */
 .owner-profile-field { display:grid; gap:8px; font-size:12px; color:var(--text-primary); }

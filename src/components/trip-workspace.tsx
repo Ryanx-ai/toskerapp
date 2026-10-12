@@ -39,6 +39,7 @@ export default function TripWorkspace({ roomSlug, conversationId }: { roomSlug: 
   const localLocation = useLocalMapLocation();
   const clearLocalLocation = localLocation.clear;
   const [originConsent,setOriginConsent]=useState<string|null>(null),[originQuestion,setOriginQuestion]=useState<string|null>(null);
+  const [originAsked, setOriginAsked] = useState<string | null>(null);
   const [roadEnabled, setRoadEnabled] = useState(false);
   const [roadMode, setRoadMode] = useState<RoadMode>("walk");
   const [collapsed,setCollapsed]=useState(false);
@@ -88,8 +89,12 @@ export default function TripWorkspace({ roomSlug, conversationId }: { roomSlug: 
     } catch { if (alive.current) setError("Locations could not be refreshed. Check your connection and retry."); }
     finally { reading.current = false; if (queued.current && alive.current) { queued.current = false; void readLatest(); } }
   }, [roomSlug, deny]);
+  const resumePane = useEffectEvent(() => {
+    setSearching(false);
+    if (pending && !writing.current) { setBusy(false); setError("Save acknowledgement was interrupted. Retry the same change to confirm it safely."); }
+  });
   useEffect(() => {
-    alive.current = true; queueMicrotask(() => { if (alive.current) void load(); });
+    alive.current = true; queueMicrotask(() => { if (alive.current) { resumePane(); void load(); } });
     const refresh = () => { if (!document.hidden) void load(); };
     window.addEventListener(TRIP_REFRESH, refresh); window.addEventListener(ACTIVITY_REFRESH, refresh);
     window.addEventListener("online", refresh); document.addEventListener("visibilitychange", refresh);
@@ -184,8 +189,8 @@ export default function TripWorkspace({ roomSlug, conversationId }: { roomSlug: 
       else if(input.command.type==="copy-place") { prefer({...preferences,activeId:input.command.routeId});setArchived(false);setSelectedId(result.value.resultId);setNotice("Destination card selected. The source is unchanged."); }
       else { setNotice(["place-icon","star-place"].includes(input.command.type)?"Tag saved.":["rename-checkpoint","reset-checkpoint-name"].includes(input.command.type)?"Checkpoint name saved.":""); if (input.command.type === "nuke-place") setSelectedId(null); }
       return result.value;
-    } catch { if (alive.current) setError("Save acknowledgement was lost. Retry the same change to confirm it safely."); }
-    finally { writing.current = false; if (alive.current) setBusy(false); }
+    } catch { setError("Save acknowledgement was lost. Retry the same change to confirm it safely."); }
+    finally { writing.current = false; setBusy(false); }
   };
   const change = async (command: Pending["command"], revision = plan?.revision) => { if (plan && revision !== undefined) return write({ protocol:4, roomSlug, expectedRevision: revision, requestId: crypto.randomUUID(), command }); };
   useEffect(() => { if (!notice || preview) return; const timer = setTimeout(() => setNotice(""), 4000); return () => clearTimeout(timer); }, [notice, preview]);
@@ -200,12 +205,18 @@ export default function TripWorkspace({ roomSlug, conversationId }: { roomSlug: 
   const routePlaces = plan && route ? routingPlaces(plan,route.id) : [];
   const roadPreview=useTripRoadPreview(roomSlug,route?.id??null,routePlaces,roadMode,roadEnabled&&!!plan,deny);
   const {roads,fit:roadFit,current:road,busy:roadBusy,error:roadError}=roadPreview;
-  const originPoints = localLocation.location && routePlaces[0] ? [{id:PRIVATE_ORIGIN_ID,latitude:localLocation.location.latitude,longitude:localLocation.location.longitude},routePlaces[0]] : [];
+  const originPoints = localLocation.origin && routePlaces[0] ? [{id:PRIVATE_ORIGIN_ID,latitude:localLocation.origin.latitude,longitude:localLocation.origin.longitude},routePlaces[0]] : [];
   const originKey = originPoints.length ? JSON.stringify([roomSlug,route?.id,...originPoints.map(p=>[p.id,p.latitude,p.longitude])]) : "";
   const consented = !!originKey && originConsent===originKey;
-  const clearOrigin = () => { localLocation.clear(); setOriginConsent(null); setOriginQuestion(null); };
+  const clearOrigin = () => { localLocation.clear(); setOriginConsent(null); setOriginQuestion(null); setOriginAsked(null); };
   const privateRoute = usePrivateOriginRoute(roomSlug,route?.id??null,originPoints,roadMode,consented&&roadEnabled&&!!plan,roadBusy,roadPreview.nextPrivateSlotAt,deny);
   useEffect(()=>{if(originConsent&&originConsent!==originKey)queueMicrotask(()=>setOriginConsent(null));},[originConsent,originKey]);
+  const originEligible = !!localLocation.origin && inPlanningRegion(localLocation.origin.latitude, localLocation.origin.longitude) && roadEnabled && !!routePlaces[0];
+  useEffect(() => {
+    if (!originEligible || !originKey || originAsked === originKey) return;
+    // Removing the old card CTA does not waive explicit provider consent.
+    queueMicrotask(() => { setOriginAsked(originKey); setOriginQuestion(originKey); });
+  }, [originEligible, originKey, originAsked]);
   const previewTitle = preview?.candidate.source==="pin" && isCoordinatePinTitle(preview.candidate.title) ? nextCheckpointName(plan?.places.filter(p=>ownedIds.has(p.id))??[]) : preview?.candidate.title;
   const disabled = busy || !!pending || !plan;
   useEffect(() => {
@@ -233,12 +244,12 @@ export default function TripWorkspace({ roomSlug, conversationId }: { roomSlug: 
     <div className={styles.mobileViews} aria-label="Map view"><button aria-pressed={view === "map"} onClick={() => setView("map")}><MapIcon size={16} aria-hidden="true" />Map</button><button aria-pressed={view === "places"} onClick={() => setView("places")}><List size={16} aria-hidden="true" />Places ({places.length})</button></div>
     {error && <div className={styles.feedback} role="alert"><p>{error}</p>{pending ? <button disabled={busy} onClick={() => void write(pending)}>Retry same change</button> : <div className={styles.actions}><button onClick={() => void load()}>Refresh locations</button>{query.trim().length >= 3 && <button disabled={searching} onClick={() => setSearchAttempt(value => value+1)}>Retry search</button>}</div>}</div>}
     <div className={`${styles.mapPlane} ${view === "places" ? styles.mobileMapHidden : ""}`}>
-      <TripMapCanvas pings={pings.pings} privateRoad={privateRoute.road} viewerAvatarUrl={identity?.avatarUrl} inspector={inspector} mapPins={[]} selectedPinId={null} onSelectPin={()=>{}} places={places} canMove={!disabled&&!moving&&!preview} onMove={(id,latitude,longitude)=>{if(plan)setMoving({id,latitude,longitude,revision:plan.revision});}} estimate={road?.estimate?road:undefined} roadFit={roadFit?.routeId === route?.id && roadFit?.key === road?.key ? roadFit?.sequence ?? 0 : 0} hiddenIds={preferences.hidden} activeVisible={!route || !preferences.hiddenRoutes.includes(route.id)} routes={mapRoutes} roads={roads} roadMode={roadMode} roadEnabled={roadEnabled} localLocation={plan ? localLocation.location : null} onDeselect={closeInspector} snapshotReady={!!plan} candidate={preview?.candidate ?? null} selectedId={selectedId} onSelect={select} onSelectGhost={(routeId, id) => { prefer({ ...preferences, activeId: routeId }); setArchived(false); select(id); }} pinMode={pinMode && !disabled} onPin={(lat, lon) => void pin(lat, lon)} />
+      <TripMapCanvas pings={pings.pings} privateOrigin={plan ? localLocation.origin : null} privateRoad={privateRoute.road} viewerAvatarUrl={identity?.avatarUrl} inspector={inspector} mapPins={[]} selectedPinId={null} onSelectPin={()=>{}} places={places} canMove={!disabled&&!moving&&!preview} onMove={(id,latitude,longitude)=>{if(plan)setMoving({id,latitude,longitude,revision:plan.revision});}} estimate={road?.estimate?road:undefined} roadFit={roadFit?.routeId === route?.id && roadFit?.key === road?.key ? roadFit?.sequence ?? 0 : 0} hiddenIds={preferences.hidden} activeVisible={!route || !preferences.hiddenRoutes.includes(route.id)} routes={mapRoutes} roads={roads} roadMode={roadMode} roadEnabled={roadEnabled} localLocation={plan ? localLocation.location : null} onDeselect={closeInspector} snapshotReady={!!plan} candidate={preview?.candidate ?? null} selectedId={selectedId} onSelect={select} onSelectGhost={(routeId, id) => { prefer({ ...preferences, activeId: routeId }); setArchived(false); select(id); }} pinMode={pinMode && !disabled} onPin={(lat, lon) => void pin(lat, lon)} />
     <div className={styles.searchPanel}>
       <div className={styles.toolbar}>
         <label className={styles.search}><Search size={18} aria-hidden="true" /><span className={styles.srOnly}>Search Singapore and southern Johor places</span><input aria-label="Search places" placeholder="Search Singapore / JB" maxLength={160} disabled={disabled} value={query} onChange={event => { request.current?.abort(); setSearching(false); setQuery(event.target.value); setResults([]); setSearched(false); setPinMode(false); setPreview(null); setNotice(""); }} /></label>
         <select aria-label="Travel mode" className={styles.control} value={roadEnabled ? roadMode : "planning"} onChange={e => { setRoadEnabled(e.target.value !== "planning"); if (e.target.value !== "planning") setRoadMode(e.target.value as RoadMode); }}><option value="planning">Order</option><option value="walk">Walk</option><option value="drive">Drive</option></select>
-        <button className={styles.control} aria-label="Locate me" aria-pressed={!!localLocation.location || localLocation.busy} title="Locate · only on your map" disabled={disabled} onClick={() => { closeInspector(); if (localLocation.location || localLocation.busy) clearOrigin(); else localLocation.locate(); }}><LocateFixed size={17} aria-hidden="true" /><span className={styles.locationLabel}>Locate{localLocation.location ? " on" : ""}</span></button>
+        <button className={styles.control} aria-label="Locate me" aria-pressed={!!localLocation.location || localLocation.busy} title="Locate · only on your map" disabled={disabled} onClick={() => { closeInspector(); if (localLocation.location || localLocation.busy) clearOrigin(); else localLocation.locate(); }}><LocateFixed size={17} aria-hidden="true" /><span className={styles.locationLabel}>Locate</span></button>
         <button className={styles.control} aria-pressed={pinMode} disabled={disabled} onClick={() => { request.current?.abort(); setSearching(false); setQuery(""); setResults([]); setSearched(false); setPreview(null); setSelectedId(null); setView("map"); setPinMode(value => !value); }}><MapPin size={16} aria-hidden="true" />{pinMode ? "Cancel" : "Pin"}</button>
       </div>
       {pings.error&&<p className={styles.helper} role="alert">{pings.error}</p>}
@@ -261,7 +272,7 @@ export default function TripWorkspace({ roomSlug, conversationId }: { roomSlug: 
       {!plan ? <p className={styles.helper} role="status">Loading routes…</p> : <>
         <p className={styles.srOnly} id="trip-card-help">Your private origin comes before shared destination 1. Scroll or drag destination cards; Earlier and Later are available in Place actions.</p>
         <div className={styles.cardStrip} ref={cards} role="list" aria-label="Route locations" aria-describedby="trip-card-help" tabIndex={0}>
-          {!archived && localLocation.location && <TripPrivateOrigin location={localLocation.location} avatar={identity?.avatarUrl} canRoute={roadEnabled&&!!routePlaces[0]&&inPlanningRegion(localLocation.location.latitude,localLocation.location.longitude)} consented={consented&&roadEnabled} road={privateRoute.road} error={privateRoute.error} onConsent={()=>setOriginQuestion(originKey)} onClear={clearOrigin} onRefresh={()=>{clearOrigin();localLocation.locate();}} onRetry={privateRoute.retry}/>}
+          {!archived && localLocation.origin && <TripPrivateOrigin location={localLocation.origin} avatar={identity?.avatarUrl} busy={localLocation.busy} consented={consented&&roadEnabled} road={privateRoute.road} error={privateRoute.error} onClear={clearOrigin} onRefresh={localLocation.locate} onRetry={privateRoute.retry}/>}
           {shown.map((place, index) => <TripPlaceCard key={place.id} place={place} plan={plan} routeId={route?.id ?? null} index={index} total={shown.length} selected={selectedId === place.id} hidden={preferences.hidden.includes(place.id)} toggleHidden={id => prefer({ ...preferences, hidden: preferences.hidden.includes(id) ? preferences.hidden.filter(p => p !== id) : [...preferences.hidden,id] })} disabled={disabled} select={select} copy={id=>setCopyPlace({id,revision:plan.revision})} comments={id => setCommentId(id)} move={(id, offset) => { const target = places[places.findIndex(p => p.id === id)+offset]; if (target) reorder(id,target.id); }} drop={reorder} change={change} />)}
         </div>
         {shown.length===0 && <div className={styles.cardsEmpty}><MapPin size={20} aria-hidden="true" /><p>{archived ? "No archived locations in this route." : !route ? "Search or pin a place. Your first add creates Route 1." : "Search or pin a place to add it to this route."}</p></div>}

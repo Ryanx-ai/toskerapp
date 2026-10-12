@@ -94,18 +94,18 @@
 .results span { font-size:14px; font-weight:600; }
 .results small { margin-top:4px; color:var(--text-secondary); font-size:12px; line-height:1.5; }
 .searchHint { padding:8px 12px; font-size:12px; color:var(--text-secondary); }
-.originCard { display:flex; flex-direction:column; align-self:flex-start; gap:8px; flex:0 0 184px; padding:12px; border:1px dashed var(--border); border-radius:12px; min-width:0; }
-.originCard header,.originCard footer { display:flex; align-items:center; gap:8px; }
+.originCard { border-style:dashed; }
+.originCard .cardInfo { flex:1; min-height:0; overflow:hidden; }
+.originCard .cardVisual { flex:none; }
 .originCard img { width:28px; height:28px; object-fit:cover; border-radius:50%; }
-.originCard header > div { flex:1; min-width:0; }
 .originCard strong { font-size:13px; }
-.originCard small { display:block; font-size:11px; line-height:1.5; color:var(--text-secondary); overflow-wrap:anywhere; }
-.originCard .control { font-size:11px; min-height:44px; padding:6px; }
-.originCard footer .control:last-child { width:44px; flex:none; margin-left:auto; }
+.originCard small { display:block; font-size:11px; line-height:1.5; color:var(--text-secondary); overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.checkpointNameInput { display:flex; align-items:center; gap:8px; min-width:0; }
+.checkpointNameInput input { flex:1; min-width:0; }
+.checkpointNameInput .control { flex:none; width:44px; padding:0; }
 .placeTags { display:flex; flex-wrap:wrap; gap:8px; margin:8px 0; }
 .placeTags .control { flex:1 1 5.6em; flex-direction:column; gap:4px; min-width:max(44px,5.6em); min-height:44px; padding:8px 5px; font-size:10px; }
 .placeTags .control[aria-pressed="true"] { color:var(--brand-gold); border-color:var(--brand-gold); background:var(--surface-hover); }
-@media(max-width:768px) { .originCard { flex:0 0 auto; width:100%; max-width:100%; } }
 .legTag { padding:4px 7px; border-radius:8px; border:1px solid var(--route-color,var(--brand-gold)); background:var(--shell-plane); color:var(--text-primary); box-shadow:var(--depth-raised); font:600 10px/1.4 var(--font-montserrat),sans-serif; white-space:nowrap; pointer-events:none; }
 .legTag[hidden] { display:none; }
 .aboutCopy { display:grid; gap:14px; color:var(--text-secondary); font-size:13px; line-height:1.6; }

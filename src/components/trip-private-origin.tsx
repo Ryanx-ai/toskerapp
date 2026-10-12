@@ -5,19 +5,18 @@ import { roadDistance, roadDuration, type RoadGeometry } from "@/lib/maps/road-c
 import { localOriginArea } from "@/lib/maps/planning-region";
 import type { LocalMapLocation } from "./use-local-map-location";
 import styles from "./room-map-workspace.module.css";
-export function TripPrivateOrigin({location,avatar,canRoute,consented,road,error,onConsent,onClear,onRetry,onRefresh}:{location:LocalMapLocation;avatar?:string|null;canRoute:boolean;consented:boolean;road?:RoadGeometry;error:string;onConsent():void;onClear():void;onRetry():void;onRefresh():void}) {
+export function TripPrivateOrigin({location,avatar,consented,road,error,busy,onClear,onRetry,onRefresh}:{location:LocalMapLocation;avatar?:string|null;consented:boolean;road?:RoadGeometry;error:string;busy:boolean;onClear():void;onRetry():void;onRefresh():void}) {
   const area=localOriginArea(location.latitude,location.longitude);
-  return <aside role="listitem" className={styles.originCard} aria-label="You · private current location" data-private-origin>
-    <header>
+  return <aside role="listitem" className={`${styles.placeCard} ${styles.originCard}`} aria-label="You · private temporary starting location" data-private-origin>
+    <div className={styles.cardVisual}>
     {/* Existing user avatar only; no new external imagery source. */}
     {avatar ? <Image src={avatar} alt="" width={28} height={28} unoptimized referrerPolicy="no-referrer" /> : <LocateFixed size={24} aria-hidden="true"/>}
-    <div><strong>You</strong>{!area.startsWith("Current location")&&<small>{area}</small>}<small>Current location · only you</small>
-      {consented ? <small>{road?.estimate ? `YOUR LEG · ${roadDistance(road.estimate.metres)} · ${roadDuration(road.estimate.seconds)}` : error || "YOUR LEG · waiting for route calculation"}</small> : null}
+    </div><div className={styles.cardInfo}><strong>You · starting location</strong><span className={styles.cardAddress} title={`${area} · Fixed until Locate is turned off or expires`}>{area} · only you</span>
+      {consented ? <small role="status" title={error || undefined}>{road?.estimate ? `Your leg · ${roadDistance(road.estimate.metres)} · ${roadDuration(road.estimate.seconds)}` : error ? "Your leg unavailable" : "Calculating your leg…"}</small> : null}
     </div>
-    </header><footer>
-    {!consented ? <button className={styles.control} disabled={!canRoute} onClick={onConsent} title="Choose Walk or Drive and a destination first">Route from here</button> : error ? <button className={styles.control} onClick={onRetry}>Retry your leg</button> : null}
-    <button className={styles.control} aria-label="Clear my location" title="Clear my location" onClick={onClear}><X size={16} aria-hidden="true"/></button>
-    <button className={styles.control} aria-label="Refresh my location" title="Refresh one-shot location" onClick={onRefresh}><RefreshCw size={16} aria-hidden="true"/></button>
-    </footer>
+    <div className={styles.cardActions}>
+    {error && consented ? <button onClick={onRetry}>Retry leg</button> : <button aria-label="Clear my location" title="Clear my location" onClick={onClear}><X size={16} aria-hidden="true"/></button>}
+    <button disabled={busy} aria-label="Refresh my location marker" title="Refresh marker; starting location stays fixed" onClick={onRefresh}><RefreshCw size={16} aria-hidden="true"/></button>
+    </div>
   </aside>;
 }

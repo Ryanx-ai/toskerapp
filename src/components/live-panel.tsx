@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useSyncExternalStore } from "react";
+import { useSyncExternalStore } from "react";
 import { LogIn, LogOut, Users } from "lucide-react";
 import type { LiveSession } from "@/lib/live-session";
 import { PersonAvatar } from "./identity-avatar";
@@ -8,7 +8,6 @@ import { roomShorthand } from "@/lib/identity-visual";
 
 export default function LivePanel({ live, userId }: { live: LiveSession; userId?: string }) {
   const state = useSyncExternalStore(live.subscribe, live.getSnapshot, live.getServerSnapshot);
-  useEffect(() => userId ? live.activate() : undefined, [live, userId]);
   const joined = state.phase === "connected" || state.phase === "joining" || state.phase === "reconnecting";
   const label = state.phase === "connected" ? "In Live" : state.phase === "joining" ? "Joining" : state.phase === "reconnecting" ? "Reconnecting" : "Not joined";
   return <section className="live-panel" aria-labelledby="live-title" data-phase={state.phase}>
@@ -23,6 +22,6 @@ export default function LivePanel({ live, userId }: { live: LiveSession; userId?
       <PersonAvatar seed={person.userId} initials={roomShorthand(person.displayName)} imageUrl={person.avatarUrl} />
       <div><strong>{person.displayName}</strong><span>{person.userId === userId ? "You · Joined" : "Joined"}</span></div>
     </li>)}</ul> : <div className="live-empty"><Users size={28} aria-hidden="true" /><h3>{state.ready ? "No one has joined yet" : "A shared space to be here"}</h3><p>{state.ready ? "Join when you’re ready. Opening this tab does not announce you." : "Participants appear once the connection is ready."}</p></div>}
-    <p className="live-panel-note">Switching surfaces or putting this page in the background leaves Live. Return here and join again when you’re ready.</p>
+    <p className="live-panel-note">You stay in Live when you change this workspace layout. Leave explicitly when finished. Changing conversations, reloading or putting the page in the background leaves Live.</p>
   </section>;
 }

@@ -1,0 +1,28 @@
+/* FP2A composition: existing Tosker palette, type and control geometry. */
+.fp3-shell .working-surface > .workspace-composition { overflow:hidden; }
+.workspace-composition { display:flex; flex:1; gap:12px; min-width:0; min-height:0; overflow:hidden; }
+.workspace-pane { display:flex; flex-direction:column; flex:1; min-width:0; min-height:0; overflow:hidden; }
+.workspace-pane.is-primary { order:1; }
+.workspace-composition.has-companion .workspace-pane.is-companion { order:2; flex:0 0 clamp(320px,25vw,400px); border:1px solid var(--border); border-radius:20px; background:var(--surface-soft); }
+.workspace-pane > :is(.conversation-surface,.hall-surface) { flex:1; min-height:0; width:100%; }
+.workspace-pane > .conversation-surface { display:flex; flex-direction:column; overflow:hidden; }
+.workspace-pane .message-scroll { flex:1; min-height:0; overflow:auto; }
+.workspace-pane.is-companion .message-scroll { padding:16px; }
+.workspace-pane.is-companion .composer-wrap { flex:none; width:100%; padding:8px; }
+.workspace-pane.is-companion .message-row { max-width:94%; }
+.workspace-pane.is-companion .message-author { flex-wrap:wrap; }
+.workspace-pane.is-companion .conversation-empty { max-width:100%; padding:20px; }
+.workspace-pane.is-companion .conversation-empty h2 { font-size:26px; }
+.workspace-pane-actions { display:flex; align-items:center; gap:4px; min-height:44px; flex:none; padding:0 8px; color:var(--text-secondary); font-size:12px; }
+.workspace-pane-actions > span { flex:1; }
+.workspace-pane-actions .action-icon { width:44px; height:44px; }
+.workspace-pane:focus-visible { outline:2px solid var(--ui-highlight); outline-offset:-2px; border-radius:var(--control-radius); }
+.workspace-pane button:focus-visible,.workspace-foreground button:focus-visible,.workspace-live-indicator button:focus-visible { outline:2px solid var(--ui-highlight); outline-offset:-3px; }
+.workspace-live-indicator { display:flex; flex:none; align-items:center; justify-content:flex-end; gap:12px; min-height:44px; color:var(--text-primary); font-size:12px; }
+.workspace-live-indicator .quiet-action { min-height:44px; }
+.workspace-foreground { order:0; display:flex; gap:8px; flex:none; }
+.workspace-foreground button { display:flex; align-items:center; justify-content:center; gap:8px; flex:1; min-height:44px; border:1px solid var(--border); border-radius:var(--control-radius); background:var(--surface); color:var(--text-secondary); font-size:13px; cursor:pointer; }
+.workspace-foreground button[aria-pressed="true"] { border-color:var(--ui-highlight); color:var(--text-primary); }
+.conversation-header .surface-tabs button[data-surface-trigger] { font-size:14px; position:relative; }
+.conversation-header .surface-tabs button[data-surface-trigger].active::after { content:""; position:absolute; left:12px; right:12px; bottom:0; height:2px; background:var(--action-secondary); }
+@media(max-width:1099px) { .workspace-composition { flex-direction:column; gap:8px; }.workspace-pane { order:1; } }

@@ -1,5 +1,9 @@
 # Tosker roadmap — canonical founder direction
 
+## MS7.4 FP2 research complete — 12 October 2026 (CURRENT)
+
+**MS7.4 FP1 CANONICAL LIVE** at `7dc332e`; fresh READY deployment and exact canonical alias verified. **FP2 ARCHITECTURE + RESEARCH COMPLETE; IMPLEMENTATION NOT STARTED.** [Recovery R](MS7-4-FP2-RECOVERY.md), [architecture/estimate A](MS7-4-FP2-ARCHITECTURE.md), [provider costs and evidence gaps](MS7-4-FP2-PROVIDER-RESEARCH.md). FP2A workspace composition and bounded Map UX is estimated **14–20 local engineering hours** and awaits explicit founder approval under the eight-hour stop gate. FP2B real media remains a separate provider/budget decision; no fake controls or procurement. Newest brief forbids push/deploy without approval. Security remediation of the server Geoapify key exposed in a dashboard tool response is a separate gate; no key value committed or configuration changed. MS7.1/7.2/7.3 locked; MS7.4 unlocked; MS8 not started. All older current/status headings below are historical and superseded by this section.
+
 ## MS7.3 locked / MS7.4 foundation audit — 10 October 2026 (CURRENT)
 
 **MS7.4 GATE 1 COMPLETE — architecture checkpoint awaiting approval.** [ADR](MS7-4-ARCHITECTURE-ADR.md) recommends Live presence only; estimated9–12h exceeds the founder's8h gate. Existing local Ably key grants subscribe but not requested presence; narrow capability authorization is required. No implementation or provider change yet. B–E pending; canonical remains FP8.

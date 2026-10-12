@@ -1415,6 +1415,7 @@ export function MessagingApp({
     const next = composeWorkspace(composition, action, capabilities);
     const closing = composition.companion === action.surface && action.type === "choose";
     const pane = next.companion === action.surface ? action.surface : next.primary;
+    if (next.primary === composition.primary && next.companion === composition.companion && pane === foreground) return;
     const url = new URL(window.location.href);
     url.searchParams.set("surface", next.primary);
     url.searchParams.set("companion", next.companion ?? "none");

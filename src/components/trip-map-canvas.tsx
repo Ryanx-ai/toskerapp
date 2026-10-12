@@ -149,7 +149,7 @@ export default function TripMapCanvas({ pings, inspector, viewerAvatarUrl, mapPi
     })();
     return () => {
       disposed = true;
-      if (instance?.loaded()) { const center = instance.getCenter(); camera.current = { center: [center.lng, center.lat], zoom: instance.getZoom(), bearing: instance.getBearing(), pitch: instance.getPitch() }; }
+      if (instance) { const center = instance.getCenter(); camera.current = { center: [center.lng, center.lat], zoom: instance.getZoom(), bearing: instance.getBearing(), pitch: instance.getPitch() }; }
       disposeMap();
     };
   }, [attempt]);

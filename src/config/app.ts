@@ -1,4 +1,4 @@
-export const APP_VERSION = "MS7.4 FP1";
+export const APP_VERSION = "MS7.4 FP2A";
 export const BUILD_LABEL = "Development";
 // Explicit product-stage policy; canonical review is a production build of Dev.
 // Revisit visibility and remove engineering milestone copy before Beta.

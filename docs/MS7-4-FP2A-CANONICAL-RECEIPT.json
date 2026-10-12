@@ -1,0 +1,41 @@
+{
+  "milestone": "MS7.4 FP2A",
+  "status": "canonical-verified-with-disclosed-qualifications",
+  "dateSingapore": "2026-10-13",
+  "applicationSha": "3e06bf9e5c9ec09ee0c3dedb82e5e7088cc41161",
+  "deploymentId": "dpl_BeaJBAwSj33GQzxWzE2HRXj5vcLh",
+  "deploymentUrl": "https://tosker-jx4c5rym4-pangea6.vercel.app",
+  "canonicalUrl": "https://toskerapp.vercel.app",
+  "ready": true,
+  "exactAliasAndGitShaVerified": true,
+  "canonicalApiChecks": 11,
+  "canonicalGeoapifyRequests": 1,
+  "canonicalAblyPeers": 2,
+  "deployedAssetsSecretScanned": 28,
+  "oldAndReplacementServerKeysScanned": true,
+  "browserKeyChanged": false,
+  "oldServerKeyRevoked": false,
+  "oldKeyRevocationRequiresSeparateApproval": true,
+  "schemaChanged": false,
+  "migrationHashesVerified": 29,
+  "protectedAudit": {
+    "unchangedTableSets": 33,
+    "differentTable": "conversation_reads",
+    "qualification": "Founder Sandbox last_read_at advanced while viewing canonical; no retained content or membership changes; strict immutable baseline not rewritten and comparator still reports the difference."
+  },
+  "limitations": [
+    "Initial stale-document navigation recovered after reload; cause unestablished; subsequent scoped navigation passed.",
+    "Canonical live smoke uses isolated API/SDK peers plus browser observation; full browser acceptance was pre-release.",
+    "Physical mobile/GPS/network interruption certification not claimed.",
+    "Runtime error/fatal checks bounded to recent retention window; six-hour query unavailable on Hobby.",
+    "Fresh account-wide Ably usage totals unavailable."
+  ],
+  "retainedFounderRooms": ["ms74-fp1-qa-a39d9eea", "ms73-founder-review-904a9dea", "ms73-qa-bfff9475"],
+  "disposableRetainedFixturesCreated": 0,
+  "fp2b": "research-complete-awaiting-approval",
+  "mediaProviderConfigured": false,
+  "ms73": "locked",
+  "ms74": "unlocked",
+  "ms8": "not-started",
+  "next": "STOP for Founder Walk"
+}

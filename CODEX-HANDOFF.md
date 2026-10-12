@@ -2,7 +2,15 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
-## MS7.4 FP2A — LOCAL ACCEPTANCE / CANONICAL RELEASE NEXT
+## MS7.4 FP2A — CANONICAL VERIFIED / STOP — 13 October 2026 SGT
+
+Canonical/origin-main **`3e06bf9e5c9ec09ee0c3dedb82e5e7088cc41161`**, READY **`dpl_BeaJBAwSj33GQzxWzE2HRXj5vcLh`**, exact `toskerapp.vercel.app` alias verified. [Final receipt](docs/MS7-4-FP2A-CANONICAL-RECEIPT.json), [ledger E and acceptance evidence](docs/MS7-4-FP2-EXECUTION.md). Canonical A/B authorization/API/provider smoke, real A+B SDK presence visible in browser, deployed28-asset server-secret scan and recent runtime-error checks pass. Local full composition/continuity/responsive/regression gates are recorded separately, not inflated into a duplicate canonical suite. Redundant queued same-SHA staged deployment canceled. No further deployment needed; final local docs/harness checkpoint is not another app release.
+
+Replacement Geoapify server key is verified in Development and Production. **Old exposed key remains active; do NOT revoke without separate explicit founder authorization.** Browser key, Free plan and restrictions unchanged. Preserve all three Founder Walk Rooms with exact founder TID8V3X7P1. Post-release protected audit:33 table sets identical; one founder Sandbox read timestamp advanced by canonical viewing. Strict baseline remains unchanged/failing that one read-marker comparison; no retained content/membership changes. Initial canonical stale-document navigation recovered after reload; subsequent scoped navigation passed, root cause unestablished. Device interruption certification and fresh account-wide Ably totals remain unclaimed. See ledger qualifications, never rewrite them as pristine audit results.
+
+FP2B research complete: recommend separately approved LiveKit voice-first evaluation, Daily alternative; no media configuration/implementation. Local server/temporary SDK peers stopped, isolated API sessions revoked, viewport reset. Canonical review tab open. Unrelated Design/Art/Web work remains unstaged. **MS7.3 LOCKED; FP1 verified; FP2A canonical; FP2B awaiting approval; MS7.4 UNLOCKED; MS8 NOT STARTED. STOP for Founder Walk.**
+
+## MS7.4 FP2A — LOCAL ACCEPTANCE / CANONICAL RELEASE NEXT (historical)
 
 Latest founder directive supersedes local-only restriction. Complete approved FP2A, critical acceptance, push and canonical deployment, then STOP for Founder Walk. FP2B research only. Credential-only FP1 canonical now **`dpl_Dr4GnsrGiBghiaaYNwAfBLPfWQSv`**, unchanged SHA **`7dc332e84256531f96ccc6a0c971279770fa2431`**: READY, exact `toskerapp.vercel.app` alias and authenticated search/reverse/road API smoke verified. Replacement server key assigned sensitive Development + Production; browser key and Free restrictions untouched. **Old server key remains active: do NOT revoke without separate explicit founder authorization.** Receipts/limits in [FP2 ledger](docs/MS7-4-FP2-EXECUTION.md), checkpoint `e210559`.
 

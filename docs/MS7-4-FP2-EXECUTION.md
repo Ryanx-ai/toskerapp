@@ -1,5 +1,32 @@
 # MS7.4 FP2A execution and recovery ledger
 
+## E — FP2A CANONICAL VERIFIED / STOP — 13 October 2026 SGT
+
+Exact canonical application/release SHA **`3e06bf9e5c9ec09ee0c3dedb82e5e7088cc41161`**, pushed to existing `origin/main`. Production **`dpl_BeaJBAwSj33GQzxWzE2HRXj5vcLh`**, immutable `https://tosker-jx4c5rym4-pangea6.vercel.app`, READY. Independent exact alias API confirms **https://toskerapp.vercel.app** points to that deployment; deployment Git metadata and remote main agree. [Machine-readable receipt](MS7-4-FP2A-CANONICAL-RECEIPT.json). Later local documentation/QA-harness commits do not change deployed application code; do not push them merely to trigger another deployment.
+
+Vercel's reported build/Git integration incident delayed the Git deployment. A redundant same-SHA staged source build was queued with automatic alias assignment disabled; after the Git deployment became canonical, redundant `dpl_u3Sn8w48TH6XJmLocKP6jmoQbKSn` was canceled. No second promotion, new project, billing change or partial release.
+
+Canonical verification:
+
+- Authenticated isolated A/B API checks pass: exact Room Join/token/roster and retained Chat access; unauthorized B selected-Subroom Join/token both403; exact presence+subscribe Live capability, no wildcard, minimal roster and no-store responses. One bounded canonical Geoapify search passes with the replacement server environment. Isolated API sessions revoked; zero content writes. Receipt `.git/ms74-fp2/canonical-api.json`.
+- Two real Ably SDK peers authorized through canonical entered the exact owned Room, each observed A+B and exactly one A connection. Canonical browser visibly showed both participants beside Board while founder remained **Not joined**. Both peers subsequently closed with exit0; browser confirmed zero participants. Harness originally omitted short-token renewal and failed with40171; corrected QA-only authCallback, then successful renewed run. No application or permission change was required. Pre-release CUA A/B layout continuity, Leave, reload, context exit and reconnect evidence remains above; do not mislabel the canonical SDK smoke as another full automated browser suite.
+- Founder session was preserved, never signed out or used for synthetic content writes/Join. Initial stale-document Room navigation returned to Sandbox; a normal reload restored the Room/Live connection. Subsequent owned Room→scoped Subroom→Room navigation completed, no automatic Join. Root cause of the initial transient was not established; record it rather than claim an unseen network trace. Final browser error log was empty. Physical device/GPS/network interruption certification remains unclaimed.
+- 28 unique observed canonical JS/CSS assets, 2,809,850 text characters, scanned against old and replacement Geoapify server values plus other configured server secrets: PASS. No credential printed or committed. Local configured production build/source+43 bundle scans and all B/C gates remain valid; QA-only scripts typecheck after release. Replacement Development and Production already independently verified; browser key/Free plan/quotas untouched. **Old exposed key remains active, awaiting separate explicit founder revocation authorization.**
+- Two bounded deployment-specific recent error/fatal log queries returned no groups. A six-hour query exceeded Hobby retention and was rejected; repeated valid30-minute query was clean. This is not a whole-release historical-log guarantee. No paid observability upgrade.
+- Post-release strict fingerprint audit is **qualified, not a clean34/34 pass**:33 protected table sets remain identical; `conversation_reads` retains11 rows but differs. Read-only attribution shows only founder `last_read_at` changes versus historical rows; the sole post-acceptance timestamp is founder Sandbox at `2026-10-12T17:59:32.969Z`, consistent with opening canonical in the existing founder session. Earlier founder Room/Personal timestamps predate capture. No retained content, profile, settings, membership, Map mutation or other protected table changed. Original acceptance baseline remains immutable; strict verifier intentionally continues reporting this timestamp difference, never restored or silently waived. All three protected review Rooms still contain uniquely resolved founder TID8V3X7P1.
+
+Retained Founder Walk inventory (no disposable retained fixtures created this wave):
+
+| Room | Purpose | Retention |
+| --- | --- | --- |
+| `ms74-fp1-qa-a39d9eea` | FP1/FP2 workspace/Live, isolated A+B+founder, scoped/open Subrooms, existing safe Chat/Board | Keep for canonical Founder Walk |
+| `ms73-founder-review-904a9dea` | Singapore Map / Location Cards review | Keep; no cleanup |
+| `ms73-qa-bfff9475` | Earlier Map acceptance with founder contributions | Protected; no cleanup |
+
+No Room or retained content deleted. Rollback-only service fixtures never persisted. Temporary QA SDK/API sessions closed/revoked; owned local dev server stopped; viewport override reset. Canonical Founder Review tab left open. Unrelated Design/Art/Web WIP preserved.
+
+**MS7.3 LOCKED; MS7.4 FP1 canonical verified; FP2A canonical deployed and verified with disclosed audit/transient/device limitations; FP2B research complete awaiting approval; MS7.4 UNLOCKED; MS8 NOT STARTED. STOP for Founder Walk.** FP2B recommends a separately approved LiveKit Cloud voice-first evaluation, Daily alternative; no media provider configured or implemented.
+
 ## D — release candidate audit
 
 Local B/C checkpoint **`34267b3`**. Scoped staged-file review/diff check passes; unrelated historical handoff and Design/Art/Web work remains unstaged. Latest remote main remains FP1 `7dc332e84256531f96ccc6a0c971279770fa2431`; exact canonical alias still points to credential-rotated `dpl_Dr4GnsrGiBghiaaYNwAfBLPfWQSv`. Existing Vercel project `prj_cxYhH8ypeFmuPOiEBC0gf0Rbzmau` / team `team_0V7YbyeIfevX0daNFOIuI2Ob`, `tosker.app`, Next.js / Node24, GitHub `Ryanx-ai/toskerapp`, production branch main, existing automatic Git deployments/domain assignment enabled. Use that existing pipeline, no new project or billing change.

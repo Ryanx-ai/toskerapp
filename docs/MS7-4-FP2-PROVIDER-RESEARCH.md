@@ -1,5 +1,7 @@
 # MS7.4 FP2 — provider research and cost model
 
+**13 October release status:** FP2A has completed its separately authorized canonical rollout at `3e06bf9`; replacement Geoapify server key verified, old key remains active pending separate revocation authorization. [Current ledger](MS7-4-FP2-EXECUTION.md) supersedes the historical no-implementation/no-rotation status at the end of this research snapshot. **FP2B remains research complete / awaiting founder approval**, no media provider configured or implemented. Pricing/quality/capacity assumptions and procurement gates below remain explicit.
+
 12 October 2026. Save state **A**. Official public documentation reviewed today; USD estimates, not quotations or procurement approval. [Recovery](MS7-4-FP2-RECOVERY.md) distinguishes fresh account observations from historical receipts and documents the credential incident. [Architecture and estimate](MS7-4-FP2-ARCHITECTURE.md) is the implementation gate.
 
 ## Decision summary

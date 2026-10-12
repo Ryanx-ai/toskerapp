@@ -52,6 +52,17 @@ async function main() {
     } else {
       const baseline = JSON.parse(readFileSync(path, "utf8"));
       const changed = Object.keys(protectedHashes).filter(t => JSON.stringify(protectedHashes[t]) !== JSON.stringify(baseline.protectedHashes[t]));
+      if (changed.length) {
+        const oldSnapshot = JSON.parse(readFileSync(".git/fp8-recovery/before-apply-01c044b5-7286-41dd-8fc2-fa0973dd57b5.json", "utf8"));
+        const readChanges = retained.conversation_reads.filter(r => ![actors.a.userId, actors.b.userId].includes(String(r.user_id))).flatMap(r => {
+          const old = oldSnapshot.data.conversation_reads.find((v: Record<string, unknown>) => v.user_id === r.user_id && v.conversation_id === r.conversation_id);
+          const fields = Object.keys(r).filter(key => r[key] !== old?.[key]);
+          if (!fields.length) return [];
+          const context = data.conversations.find(v => v.id === r.conversation_id);
+          return [{ actor: r.user_id === actors.founder.userId ? "Founder" : "Other", conversationId: r.conversation_id, kind: context?.kind, fieldsVsHistorical: fields, lastReadAt: r.last_read_at, afterAcceptanceCapture: new Date(String(r.last_read_at)).getTime() > Date.parse(baseline.at) }];
+        });
+        console.log(JSON.stringify({ changedProtectedTables: changed, baselineAt: baseline.at, counts: changed.map(table => ({ table, before: baseline.protectedHashes[table]?.count, after: protectedHashes[table].count })), readChanges, baselineRewritten: false }));
+      }
       assert.deepEqual(changed, [], "Protected data changed since FP2 acceptance capture: inspect, never restore");
     }
     console.log(JSON.stringify({ gate: "FP2 protected data", mode, pass: true, readOnly: true, protectedTables: Object.keys(protectedHashes).length, historicalChanges, knownFounderMapMutationPreserved: true, retainedReviewRooms: reviewSlugs, allIncludeExactFounder: true, providerUsage: data.map_provider_usage.filter(r => ["geoapify:day", "geoapify:roads:day"].includes(String(r.scope))) }));

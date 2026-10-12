@@ -1,5 +1,9 @@
 # Tosker roadmap — canonical founder direction
 
+## MS7.4 FP2A canonical / FP2B research complete — 13 October 2026 (CURRENT)
+
+**FP2A CANONICAL** at `3e06bf9`, READY Production `dpl_BeaJBAwSj33GQzxWzE2HRXj5vcLh`, exact `toskerapp.vercel.app` alias and bounded live A/B/provider/security checks verified. [Release ledger and explicit qualifications](MS7-4-FP2-EXECUTION.md), [receipt](MS7-4-FP2A-CANONICAL-RECEIPT.json). Replacement server key deployed; old key retirement requires separate founder authorization. FP2B [media research](MS7-4-FP2-PROVIDER-RESEARCH.md) complete, recommends separately approved LiveKit voice-first evaluation with Daily alternative; no media implementation/procurement. **MS7.3 LOCKED; FP1 verified; MS7.4 UNLOCKED; MS8 NOT STARTED. STOP for canonical Founder Walk.** Older current headings below are historical.
+
 ## MS7.4 FP2 research complete — 12 October 2026 (CURRENT)
 
 **MS7.4 FP1 CANONICAL LIVE** at `7dc332e`; fresh READY deployment and exact canonical alias verified. **FP2 ARCHITECTURE + RESEARCH COMPLETE; IMPLEMENTATION NOT STARTED.** [Recovery R](MS7-4-FP2-RECOVERY.md), [architecture/estimate A](MS7-4-FP2-ARCHITECTURE.md), [provider costs and evidence gaps](MS7-4-FP2-PROVIDER-RESEARCH.md). FP2A workspace composition and bounded Map UX is estimated **14–20 local engineering hours** and awaits explicit founder approval under the eight-hour stop gate. FP2B real media remains a separate provider/budget decision; no fake controls or procurement. Newest brief forbids push/deploy without approval. Security remediation of the server Geoapify key exposed in a dashboard tool response is a separate gate; no key value committed or configuration changed. MS7.1/7.2/7.3 locked; MS7.4 unlocked; MS8 not started. All older current/status headings below are historical and superseded by this section.

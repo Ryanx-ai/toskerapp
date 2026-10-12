@@ -1,5 +1,13 @@
 # MS7.4 FP2A execution and recovery ledger
 
+## D — release candidate audit
+
+Local B/C checkpoint **`34267b3`**. Scoped staged-file review/diff check passes; unrelated historical handoff and Design/Art/Web work remains unstaged. Latest remote main remains FP1 `7dc332e84256531f96ccc6a0c971279770fa2431`; exact canonical alias still points to credential-rotated `dpl_Dr4GnsrGiBghiaaYNwAfBLPfWQSv`. Existing Vercel project `prj_cxYhH8ypeFmuPOiEBC0gf0Rbzmau` / team `team_0V7YbyeIfevX0daNFOIuI2Ob`, `tosker.app`, Next.js / Node24, GitHub `Ryanx-ai/toskerapp`, production branch main, existing automatic Git deployments/domain assignment enabled. Use that existing pipeline, no new project or billing change.
+
+Configured build and both old/replacement secret scans pass; boolean-only verification proves different server values, unchanged browser value and 0600 local/backup file permissions. Read-only current protected baseline verifies 34 table sets unchanged, including all non-QA read markers. New browser geometry/20-cycle/camera evidence saved under `.git/ms74-fp2/browser-geometry.json`. All local SDK peers left/closed. Subroom exit check additionally confirms no inherited Join. No disposable retained fixture was created, so no room deletion is required; the three protected Founder Walk Rooms remain available. No migration or media setup.
+
+No critical local acceptance failure remains. Real-device interruption/mobile GPS testing is explicitly unclaimed; synthetic lifecycle and responsive browser checks are the release evidence. Fresh Ably account-wide dashboard totals are unavailable (no signed-in usage tab); last verified Free-plan snapshot remains in recovery R, not relabeled as current. This wave's bounded SDK sessions and zero-message composition switches are not an account-wide usage estimate. Canonical release is founder-authorized; proceed with a non-force exact commit push, then independently verify deployment SHA, alias/READY, authenticated A/B and provider smoke, deployed-client scan and runtime logs. Stop on any release failure rather than declare success from a READY build alone.
+
 ## B/C — integrated local acceptance, 12 October 2026
 
 Application slice `4b8a94a` plus acceptance fixes: compact Live indicator excluded from the legacy flex-card rule; no duplicate history entry for the active primary; checkpoint input has its own label, separate from the 44px revert action; Map camera survives even an interrupted initial tile load; settled shared-road successes/failures do not repeat on Activity restoration; obsolete origin consent dialog clears with Locate Off/expiry. Version is MS7.4 FP2A. No schema, media or provider-permission change.

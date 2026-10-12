@@ -1,5 +1,13 @@
 # MS7.4 FP2A execution and recovery ledger
 
+## Full FP2A canonical authorization / rotation in progress — 12 October 2026
+
+Newest founder directive supersedes the local-only release restriction: complete rotation, full FP2A implementation/testing, then push/deploy only after critical gates pass; exact canonical/live A/B verification and STOP for Founder Walk. FP2B remains research only, no media provisioning. **Old server-key revocation requires successful production verification and separate explicit authorization; do not revoke automatically.** Earlier retire-key language below is historical and superseded by this condition.
+
+Replacement exists in ignored owner-only `.env.development.local`, matches the new named provider entry, differs from the old server key and browser key. Provider UI verifies restriction parity: no IP/Referer/Origin filters, CORS `*`; Free 3,000 credits/day, 5 requests/sec unchanged. Old key and browser key remain present. No provider settings changed by the agent. Three bounded direct Development-key probes (Singapore search, public-point reverse, two-point walking route) each return HTTP200 with results; no retries or sensitive response logging.
+
+Updated only `GEOAPIFY_SEARCH_KEY` Development and Production through CLI stdin, both Secret, exact linked `pangea6/tosker.app` project. Post-update metadata verifies separate assignments and unchanged browser-variable timestamps. No value in process arguments/logs or extra env scope. Existing source/client scan passes 691 owned/source files and 43 bundles with the replacement loaded. Fresh canonical still old FP1 `7dc332e`, READY `dpl_F8hgv39JpoZv15WRWJH3RSGYr8tc`. **Credential-only FP1 deployment/production verification pending; replacement is not yet claimed active in canonical.** No FP2A code changes yet.
+
 ## Authorization and rotation handoff — 12 October 2026
 
 Founder explicitly approved controlled rotation of the exposed Geoapify server key followed by the **14–20 hour local FP2A wave**. Preserve provider restrictions and R/A/B/C/D save states. **Stop before FP2A canonical deployment. FP2B remains research only.** This supersedes the research-only approval gate in the R/A documents, not their security or privacy requirements.

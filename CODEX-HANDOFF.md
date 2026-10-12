@@ -2,6 +2,10 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## MS7.4 FP2A — APPROVED / SERVER-KEY ROTATION HANDOFF — 2026-10-12 SGT
+
+Founder approved controlled Geoapify server-key rotation, then **14–20h local FP2A**, stopping before FP2A canonical deployment; FP2B research only. Read [execution ledger](docs/MS7-4-FP2-EXECUTION.md), checkpoint `3584248`. Fresh canonical remains FP1 `7dc332e`, READY original deployment; Development/Production server env entries verified Secret without decryption. Browser credential rules require founder creation/entry of replacement key. Prepared existing Geoapify server settings; no key/env/deployment changed. Await replacement saved securely in ignored `.env.development.local` under `GEOAPIFY_SEARCH_KEY`, never chat; preserve old key until exact-FP1 credential-only rollout is verified, then retire it. FP2A implementation has not begun and does not need another proceed approval after successful rotation. Preserve all unrelated WIP and newer founder data. Earlier research-only approval gate below is superseded, not the privacy/security constraints.
+
 ## MS7.4 FP2 — R/A COMPLETE / STOP FOR APPROVAL — 2026-10-12 SGT
 
 Newest founder brief is **pre-execution research only** and supersedes older continuation/deployment approvals. [Recovery R](docs/MS7-4-FP2-RECOVERY.md), local checkpoint `96ac3ad`; [architecture/estimate A](docs/MS7-4-FP2-ARCHITECTURE.md); [provider research/cost model](docs/MS7-4-FP2-PROVIDER-RESEARCH.md). Fresh canonical/origin-main remain FP1 `7dc332e`, READY `dpl_F8hgv39JpoZv15WRWJH3RSGYr8tc`, exact canonical alias/HTTP200. No application edits, implementation, migration, push or deployment. Proposed FP2A is **14–20 engineering hours locally**, exceeding the eight-hour gate; needs explicit founder approval. FP2B media-provider decision pending; recommend bounded LiveKit voice-first evaluation, Daily alternative, no procurement. B/C/D not started.

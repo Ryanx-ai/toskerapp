@@ -2,6 +2,16 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP3 single Locate verified locally / conditional release authority / RETENTION STOP — 13 October 2026
+
+Recovered beyond the directive's historical3cfde28: application checkpoint`fb84088` consolidates Locate and sharing consent; following small copy fix uses stable Locate tooltip and Refresh snapshot label. Read latest sections of [latest-state ledger](docs/MS7-4-FP3-LATEST-STATE-EXECUTION.md). Synthetic Sensors now works. Actual browser QA A→authorized B API observer passes Keep private/initial empty, broad with NULL coordinate storage, explicit precise matching the approved synthetic fix, manual refresh fixed expiry, LocateOFF Stop and immediate OFF during pending begin with no late resurrection. Screenshots at320/390/430/768/1440/1728; keyboard/default/Escape/focus return and Sandbox private-only pass. This does not equal complete A/B browser/p95/reconnect acceptance.
+
+Newest founder attachment `fe10e29f-59fb-447a-a8e8-c8bc0634b275/Pasted text.txt` read in full. **Canonical now conditionally authorized ONLY after all critical gates pass.** Previous blanket local-only deployment restriction is superseded, but not the critical privacy/retention stop gate. There is still no verified production cleanup mechanism; laptop worker cannot certify expired active-row deletion during downtime. Local-only/Vercel admission guards remain intact. No provider procurement, billing/credential/configuration changes. STOP implementation/release here; do not remove synthetic-only hosted denial or quietly weaken retention. Production scheduler feasibility/approval must be resolved before a deployed candidate.
+
+Newest UX requirement additionally removes normal-production snapshot refresh/Stop/debug controls; Development-only gate and explicit sharing-ended/renewal presentation remain **pending**, not already delivered. Do not confuse the current locally visible QA status with accepted production UI. Post-canonical README/product/roadmap synthesis is expressly ordered AFTER verified release and has NOT started. Preserve all historical evidence and unrelated Art/Design/Web WIP.
+
+Local optimized server, bounded worker and observer stopped. LocateOFF; viewport reset now succeeds (old limitation resolved). Exact local cleanup and qualified preservation audit saved; three founder Rooms remain. No FP3 deployment/receipt exists. Canonical remains prior verified FP2A3e06bf9, MS7.4 unlocked, FP2B research-only, MS8 untouched.
+
 ## FP3 synthetic Sensors handoff — 13 October 2026
 
 Founder confirmed synthetic Sensors configured. Recovered `3cfde28`, independently verified zero worker/payload/consent/rate rows and unchanged qualified preservation drift, then started the existing optimized local app and a bounded worker. Browser remained isolated QA A. Reload redirected to an unrelated existing QA Room; navigated to the exact retained FP1 fixture before Locate. Two UI Locate requests both timed out after the application's ten-second limit; Locate returned OFF, Share stayed disabled. **No position returned, no sender consent or snapshot created; sender UI gate remains blocked.** Do not infer that Sensors reached this tab from the founder confirmation alone, and do not fall back to real GPS or hidden-state injection.

@@ -42,7 +42,7 @@ export function SharedLocationControl({ sharing, localLocation, disabled, sandbo
     });
   };
   return <>
-    <button type="button" className={styles.control} aria-label="Locate" aria-describedby={`${heading}-status`} aria-pressed={active} disabled={disabled && !active} onClick={toggle} title={`Locate · ${status}`}><LocateFixed size={17} aria-hidden="true"/><span>Locate</span>{active && sharing.lease && <Users className={styles.locateSharingIndicator} size={13} aria-hidden="true"/>}</button>
+    <button type="button" className={styles.control} aria-label="Locate" aria-describedby={`${heading}-status`} aria-pressed={active} disabled={disabled && !active} onClick={toggle} title="Locate · turn off to clear your location and stop sharing"><LocateFixed size={17} aria-hidden="true"/><span>Locate</span>{active && sharing.lease && <Users className={styles.locateSharingIndicator} size={13} aria-hidden="true"/>}</button>
     <span id={`${heading}-status`} className={styles.srOnly}>{active ? status : "Off"}</span>
     {open && available && !sandbox && <ModalLayer onClose={() => setOpen(false)}><section className={`creation-panel ${styles.locationConsent}`} aria-labelledby={heading}>
       <h2 id={heading}>Share your location with this conversation?</h2>
@@ -66,7 +66,7 @@ export function SharedLocationControl({ sharing, localLocation, disabled, sandbo
 }
 export function SharedLocationStatus({ sharing }: { sharing: ReturnType<typeof useSharedLocation> }) {
   return <div className={styles.sharingStatus}>
-    {sharing.lease && <div className={styles.sharingActions} role="status"><span>{sharing.stopping ? "Stopping sharing…" : `Snapshot expires ${new Date(sharing.lease.expiresAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`} · {sharing.lease.precision === "area" ? "broad area" : "precise position"}</span><button className={styles.control} disabled={sharing.busy || sharing.stopping || !!sharing.error} onClick={() => void sharing.refresh()}>Share displayed position again</button><button className={styles.control} disabled={sharing.stopping} onClick={() => void sharing.stop()}>Stop sharing</button></div>}
+    {sharing.lease && <div className={styles.sharingActions} role="status"><span>{sharing.stopping ? "Stopping sharing…" : `Snapshot expires ${new Date(sharing.lease.expiresAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`} · {sharing.lease.precision === "area" ? "broad area" : "precise position"}</span><button className={styles.control} disabled={sharing.busy || sharing.stopping || !!sharing.error} onClick={() => void sharing.refresh()}>Refresh snapshot</button><button className={styles.control} disabled={sharing.stopping} onClick={() => void sharing.stop()}>Stop sharing</button></div>}
     {sharing.busy && <p role="status">Sending this snapshot…</p>}
     {sharing.error && <p role="alert">{sharing.error}</p>}
     {!!sharing.peers.length && <ul aria-label="Shared location snapshots">{sharing.peers.map(({ snapshot, identity }) => <li key={snapshot.id}><strong>{identity.displayName}</strong>: {snapshot.label} <small>({snapshot.precision === "area" ? "broad area only" : "precise marker shared"}; temporary snapshot)</small>{snapshot.source === "ura" ? <small> · <a href={REGION_SOURCE} target="_blank" rel="noopener noreferrer">URA MP2019 indicative region</a> (<a href={REGION_LICENSE} target="_blank" rel="noopener noreferrer">licence</a>)</small> : <small> · Area by <a href="https://www.geoapify.com/" target="_blank" rel="noopener noreferrer">Geoapify</a></small>}</li>)}</ul>}

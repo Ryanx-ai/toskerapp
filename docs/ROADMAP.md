@@ -1,5 +1,9 @@
 # Tosker roadmap — canonical founder direction
 
+## MS7.4 FP3 recovery / architecture gate — 13 October 2026 (CURRENT)
+
+FP2A canonical freshly remains `3e06bf9`, READY exact canonical alias. FP3 [recovery](MS7-4-FP3-EXECUTION.md) and [proposed architecture](MS7-4-FP3-ARCHITECTURE.md) saved: worldwide discovery, reliable area labels, separately gated shared snapshots, Map controls and truthful presence-only Live layouts. Estimate **18–26 local engineering hours** exceeds eight-hour gate; **STOP for founder authorization before implementation**. Shared-location privacy/authorization gate and separate canonical deployment approval remain mandatory. No procurement or media implementation. Preserve newer retained data and audit qualifications. MS7.3 LOCKED; FP2B research complete/awaiting approval; MS7.4 UNLOCKED; MS8 NOT STARTED. Older current headings below are historical.
+
 ## MS7.4 FP2A canonical / FP2B research complete — 13 October 2026 (CURRENT)
 
 **FP2A CANONICAL** at `3e06bf9`, READY Production `dpl_BeaJBAwSj33GQzxWzE2HRXj5vcLh`, exact `toskerapp.vercel.app` alias and bounded live A/B/provider/security checks verified. [Release ledger and explicit qualifications](MS7-4-FP2-EXECUTION.md), [receipt](MS7-4-FP2A-CANONICAL-RECEIPT.json). Replacement server key deployed; old key retirement requires separate founder authorization. FP2B [media research](MS7-4-FP2-PROVIDER-RESEARCH.md) complete, recommends separately approved LiveKit voice-first evaluation with Daily alternative; no media implementation/procurement. **MS7.3 LOCKED; FP1 verified; MS7.4 UNLOCKED; MS8 NOT STARTED. STOP for canonical Founder Walk.** Older current headings below are historical.

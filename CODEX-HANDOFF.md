@@ -2,6 +2,12 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## MS7.4 FP3 — R/A SAVED / STOP AT EIGHT-HOUR GATE — 13 October 2026 SGT
+
+Latest founder FP3 brief read in full. [Recovery/execution ledger](docs/MS7-4-FP3-EXECUTION.md), [architecture and estimate](docs/MS7-4-FP3-ARCHITECTURE.md). **18–26 local engineering hours** exceeds the eight-hour gate: await explicit founder authorization before any implementation. Shared location additionally needs dedicated precision/consent/revocation approval and proof. No canonical deployment authority for FP3; older FP2A approval does not carry forward. No media procurement.
+
+Fresh canonical remains exact `3e06bf9`, READY `dpl_BeaJBAwSj33GQzxWzE2HRXj5vcLh`;29 migrations/catalog pass. Geoapify Development/Production metadata still separates sensitive server and browser keys; token-only Ably probe grants exact-context presence+subscribe, no wildcard or presence entry. Old server key remains active pending separate retirement approval. All three retained review Rooms include uniquely resolved founder TID8V3X7P1. Historical FP2 audit now differs in five protected tables, including two newer founder-attributed Map receipts; **do not restore data/rewrite the baseline or claim clean preservation**. See ledger for counts and attribution limits. No app/DB/provider change or new fixture. Preserve unrelated Design/Art/Web WIP and older handoff hunks. B–E not started. **MS7.3 LOCKED; FP2A canonical; FP3 gated; FP2B research only; MS7.4 UNLOCKED; MS8 NOT STARTED.**
+
 ## MS7.4 FP2A — CANONICAL VERIFIED / STOP — 13 October 2026 SGT
 
 Canonical/origin-main **`3e06bf9e5c9ec09ee0c3dedb82e5e7088cc41161`**, READY **`dpl_BeaJBAwSj33GQzxWzE2HRXj5vcLh`**, exact `toskerapp.vercel.app` alias verified. [Final receipt](docs/MS7-4-FP2A-CANONICAL-RECEIPT.json), [ledger E and acceptance evidence](docs/MS7-4-FP2-EXECUTION.md). Canonical A/B authorization/API/provider smoke, real A+B SDK presence visible in browser, deployed28-asset server-secret scan and recent runtime-error checks pass. Local full composition/continuity/responsive/regression gates are recorded separately, not inflated into a duplicate canonical suite. Redundant queued same-SHA staged deployment canceled. No further deployment needed; final local docs/harness checkpoint is not another app release.

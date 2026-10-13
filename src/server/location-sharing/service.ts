@@ -26,7 +26,10 @@ export function locationService(db: ToskerDatabase, overrides: Partial<Dependenc
   const deps: Dependencies = {
     session: assertRealtimeSession,
     publish: async (recipientId, snapshot) => {
-      await getRealtimeServer().channels.get(userChannel(recipientId)).publish({ id: randomUUID(), name: LOCATION_SNAPSHOT, data: snapshot, extras: { ephemeral: true } });
+      const accepted = await getRealtimeServer().channels.get(userChannel(recipientId)).publish({ id: randomUUID(), name: LOCATION_SNAPSHOT, data: snapshot, extras: { ephemeral: true } });
+      // Incident diagnostics: aggregate acknowledgement shape only. Never log
+      // identity, channel, consent ID, coordinates, labels, keys or SDK errors.
+      console.info("[location-dispatch]", { stage: "provider-ack", serialCount: accepted?.serials?.length ?? 0, discarded: accepted?.serials?.filter(value => value === null).length ?? 0 });
     },
     area: async (point, actorId, signal) => {
       const local = await localArea(point.latitude, point.longitude);
@@ -99,6 +102,7 @@ export function locationService(db: ToskerDatabase, overrides: Partial<Dependenc
         // Bounded audience and frequency above. Parallel delivery prevents a
         // slow recipient multiplying the provider timeout while Stop waits.
         const delivery=await Promise.allSettled(recipients.filter(recipient=>recipient!==actor.userId).map(recipient=>deps.publish(recipient,snapshot)));
+        console.info("[location-dispatch]", { stage: "fanout", recipients: delivery.length, accepted: delivery.filter(result=>result.status==="fulfilled").length, failed: delivery.filter(result=>result.status==="rejected").length });
         if(delivery.some(result=>result.status==="rejected"))throw new Error("Snapshot delivery could not be confirmed.");
         return snapshot;
       });

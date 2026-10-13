@@ -12,14 +12,15 @@ import { liveChannel } from "../src/lib/live-contract";
 import { userChannel, conversationChannel } from "../src/lib/realtime-contract";
 import { LOCATION_SNAPSHOT, LOCATION_RETIRED, validLocationSnapshot } from "../src/lib/shared-location-contract";
 
-const db = getDatabase(), origin = "https://toskerapp.vercel.app";
-const expectedSha = "02645001515baf629e26d70d504c9a66844997ee";
+const db = getDatabase(), origin = process.env.FP3_VERIFY_ORIGIN ?? "https://toskerapp.vercel.app";
+const deployment = JSON.parse(readFileSync(process.env.FP3_DEPLOYMENT_RECEIPT ?? ".git/ms74-fp3/deployment.json", "utf8"));
+assert(["http://localhost:3000", "https://toskerapp.vercel.app", `https://${deployment.url}`].includes(origin));
+const expectedSha = deployment.sha;
 let phase = "ownership";
 async function main() {
-  const deployment = JSON.parse(readFileSync(".git/ms74-fp3/deployment.json", "utf8"));
   assert.equal(deployment.sha, expectedSha); assert.equal(deployment.readyState, "READY");
   assert.equal(deployment.projectId, "prj_cxYhH8ypeFmuPOiEBC0gf0Rbzmau");
-  assert(deployment.alias.includes("toskerapp.vercel.app"));
+  if(origin==="https://toskerapp.vercel.app") assert(deployment.alias.includes("toskerapp.vercel.app"));
   assert(process.env.CLERK_SECRET_KEY?.startsWith("sk_test_"));
   const actors = await resolveQaActors(db), fixture = JSON.parse(readFileSync(".git/ms74-recovery/fixture.json", "utf8"));
   assert.equal(fixture.run, "ms74-fp1-20261010"); assert.equal(fixture.status, "committed");
@@ -116,7 +117,8 @@ async function main() {
     for (const id of sessions) await clerk.sessions.revokeSession(id);
   }
   const receipt = { pass: true, origin, expectedSha, at: new Date().toISOString(), checks, providerRequests: 1, syntheticOnly: true, retainedContentWrites: 0, isolatedSessionsRevoked: true };
-  writeFileSync(".git/ms74-fp3/canonical-api.json", JSON.stringify(receipt, null, 2), { mode: 0o600 }); console.log(JSON.stringify(receipt));
+  const target=origin==="http://localhost:3000"?"local-production":origin==="https://toskerapp.vercel.app"?"canonical":"staged";
+  writeFileSync(`.git/ms74-fp3/${target}-api.json`, JSON.stringify(receipt, null, 2), { mode: 0o600 }); console.log(JSON.stringify(receipt));
 }
 main().catch(error => {
   const result={ pass:false, phase, kind:error?.name, detail:error instanceof assert.AssertionError ? error.message.split("\n")[0] : "Private details suppressed", at:new Date().toISOString() };

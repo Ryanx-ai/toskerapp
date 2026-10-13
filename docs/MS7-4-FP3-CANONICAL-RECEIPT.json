@@ -1,0 +1,50 @@
+{
+  "applicationSha": "02645001515baf629e26d70d504c9a66844997ee",
+  "deploymentId": "dpl_EeJQvaso97gJuaGhT8S6oc2SzYk7",
+  "canonicalUrl": "https://toskerapp.vercel.app",
+  "immutableUrl": "https://tosker-gotiyll8r-pangea6.vercel.app",
+  "projectId": "prj_cxYhH8ypeFmuPOiEBC0gf0Rbzmau",
+  "target": "production",
+  "readyState": "READY",
+  "exactAliasAndShaVerified": true,
+  "acceptance": "BLOCKED — not canonical verified or Founder Walk ready",
+  "observedAt": "2026-10-13T07:34:00Z",
+  "blocker": "Canonical snapshot endpoint returns a valid synthetic broad snapshot, but B's connected/attached authorized user feed receives no snapshot in two bounded 12-second checks. Root cause unestablished.",
+  "passingCanonicalChecks": [
+    "A/B actual SDK Live presence with exact scoped capabilities and no wildcard",
+    "Selected Subroom B Join/token/location-consent denial",
+    "FP3 version and real MapLibre/Geoapify basemap, attribution, canvas Expand and Locate-off sharing unavailable observed in browser",
+    "23 observed deployed JS assets scanned against replacement and retained old server credentials with zero matches",
+    "Bounded deployment-specific error/fatal runtime log scans returned no records"
+  ],
+  "diagnosticProbes": [
+    "Non-sensitive ephemeral event published with existing local server SDK reached the canonical-token B subscriber",
+    "Identical synthetic broad snapshot payload and ephemeral message shape published via local server SDK reached B",
+    "These are diagnostic probes, NOT a pass for the canonical endpoint"
+  ],
+  "pendingCanonicalChecks": [
+    "Resolve canonical snapshot delivery and rerun affected privacy/Stop/precise checks",
+    "Canonical worldwide server-provider smoke (not reached; no extra provider test calls made)",
+    "Final A/B release acceptance"
+  ],
+  "cleanup": {
+    "isolatedSdkClientsClosed": true,
+    "isolatedClerkSessionsRevoked": true,
+    "qaLocationRateRowsRemoved": 2,
+    "expiredLeaseRowsRemoved": 0,
+    "privateBackupBeforeCleanup": true,
+    "reviewRoomsRetained": ["ms74-fp1-qa-a39d9eea", "ms73-founder-review-904a9dea", "ms73-qa-bfff9475"]
+  },
+  "preservation": {
+    "strictAuditPass": false,
+    "qualification": "One exact founder-owned Sandbox conversation_reads.last_read_at advanced from normal browser viewing; all other protected table hashes unchanged. Original baseline unchanged; no data restored.",
+    "contentOrMembershipDifferences": false
+  },
+  "ably": {"plan": "Free", "monthlyMessages": 4480, "monthlyMessageLimit": 6000000, "connections": 4, "connectionLimit": 200, "channels": 15, "channelLimit": 200, "transferredKiB": 171},
+  "configurationChanges": false,
+  "oldGeoapifyKeyRevoked": false,
+  "rollbackPerformed": false,
+  "ms73": "LOCKED",
+  "ms74": "UNLOCKED",
+  "ms8": "NOT STARTED"
+}

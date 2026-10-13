@@ -4,6 +4,18 @@
 
 ## Gate status
 
+### CANONICAL READY / ACCEPTANCE BLOCKED — 13 October 07:34 UTC
+
+Existing Git integration deployed exact `02645001515baf629e26d70d504c9a66844997ee` to READY Production `dpl_EeJQvaso97gJuaGhT8S6oc2SzYk7`; exact `toskerapp.vercel.app` alias verified. [Qualified receipt](MS7-4-FP3-CANONICAL-RECEIPT.json). **Not canonical verified; STOP at the failed delivery gate.** No additional deployment, rollback, permission expansion or fallback to persistent location messages.
+
+Actual deployed A/B SDK presence and exact selected-Subroom denials pass. Canonical sharing begin/send return valid broad metadata/payload using the packaged URA region file, but the connected, attached B user feed receives no snapshot in two12-second bounded checks. No receive event of any name was observed. Sessions/clients closed in `finally`; consent stopped. Root cause unestablished. Two focused diagnostic probes show that the existing local server key can deliver a non-sensitive ephemeral event and the identical synthetic snapshot message shape to the canonical-token B subscriber. This isolates a production dispatch-path discrepancy but does **not** establish its cause or certify the feature. Do not count local injected diagnostic delivery as canonical success. Canonical precise/Stop/reload and server-provider smoke remain pending. No extra Geoapify test request was reached.
+
+Read-only browser smoke shows FP3 version, actual basemap/attribution, world search affordance, removed title row/canvas Expand, sharing disabled with Locate OFF. No founder Join/Locate/share action. However opening `/app` reused the signed-in founder session and advanced one founder Sandbox read marker before navigation to the owned QA Room. Strict immutable audit now fails only `conversation_reads.last_read_at`; independent read-only attribution proves one exact founder-owned Sandbox row changed,04:41:17.526→07:22:24.744UTC. No retained content/membership differences; all other protected table hashes unchanged. **Do not erase this qualification, reset the marker or rewrite the baseline.**
+
+Both old/replacement server values pass the23 observed deployed-JS-asset scan. Deployment-specific error/fatal runtime scans over the recent20-minute window returned no records, not a proof of working delivery. Final read-only Ably dashboard:Free/$0,4480/6Mmessages,4/200connections,15/200channels,171KiB; no configuration changes. Exact cleanup removed two QA location rate rows after0600 private backup and found no expired lease rows; all three founder Rooms retained. Browser inspection tab and SDK clients closed; isolated sessions revoked. No founder data repair, key retirement, media setup or unrelated WIP changes.
+
+Next founder decision: authorize a bounded production-dispatch repair investigation or restore the previous verified FP2A release (`3e06bf9`, `dpl_BeaJBAwSj33GQzxWzE2HRXj5vcLh`) while investigating. Current canonical remains FP3 READY but acceptance-blocked. Save this local evidence checkpoint without pushing it merely to trigger another build. MS7.3LOCKED; MS7.4UNLOCKED; MS8NOTSTARTED.
+
 **Founder authorization received after checkpoint `516996e`: proceed with the18–26hour FP3 wave through canonical deployment after acceptance.** This supersedes the earlier time/deployment stop below. **Separate bounded snapshot privacy model approved in-thread.** Implementation is authorized; security acceptance remains mandatory. No media procurement, provider-limit expansion or old-key revocation is authorized. Save B/C/D/E and exact canonical evidence; stop if a critical gate fails. Historical R/A findings below remain unchanged.
 
 ### E — local acceptance complete / canonical release authorized

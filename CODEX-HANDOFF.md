@@ -2,7 +2,13 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
-## MS7.4 FP3 — E LOCAL ACCEPTANCE COMPLETE / RELEASE NEXT — 13 October 2026 SGT
+## MS7.4 FP3 — CANONICAL READY / DELIVERY GATE BLOCKED / STOP — 13 October 2026 SGT
+
+Canonical exact `02645001515baf629e26d70d504c9a66844997ee`, READY `dpl_EeJQvaso97gJuaGhT8S6oc2SzYk7`, `toskerapp.vercel.app` alias verified. **NOT canonical verified.** Read top [FP3 ledger](docs/MS7-4-FP3-EXECUTION.md) and [qualified receipt](docs/MS7-4-FP3-CANONICAL-RECEIPT.json). Production snapshot API returns200/valid broad payload but attached authorized B feed receives none in two bounded checks; actual A/B Live presence and scoped denial pass. Direct local SDK ephemeral/identical-payload probes reach B, but are not canonical success. Root cause unknown; stop gate, no repeat full suite or provider matrix. No rollback/second deploy performed. Founder decision needed: bounded dispatch investigation/repair or restore last verified FP2A while investigating.
+
+23 deployed assets pass old/new server-key scan; recent runtime error/fatal scan has no records. Final AblyFree4480/6M,4/200connections,15/200channels. Exact two QA rate rows cleaned after private backup; no leases/Room deletion; sessions/clients closed, all three founder Rooms retained. Strict preserved-data audit now differs only one exact founder Sandbox read timestamp caused by normal signed-in browser `/app` viewing; all other hashes unchanged. Do not restore/rebaseline or claim pristine preservation. Old exposed Geoapify key remains active; no provider/permissions/billing changes. Preserve unrelated WIP. This subsequent local docs/harness checkpoint is not a new deployed SHA. MS7.3LOCKED; MS7.4UNLOCKED; MS8NOTSTARTED.
+
+## MS7.4 FP3 — E LOCAL ACCEPTANCE COMPLETE / RELEASE NEXT — historical
 
 Application checkpoint `b8ec145`; final session/logout/reconnect, build/type/lint, migration/database, both old/new server-secret scans pass. Exact cleanup removed two QA rate rows after private backup; immutable FP3 audit35table sets has zero differences, all three founder Rooms retained. Fresh AblyFree4402/6Mmessages,4/200connections,15/200channels. E evidence at top of ledger supersedes pending D items below. Founder authorizes scoped push/canonical after green gates; exact-SHA deployed A/B/privacy/provider/assets/runtime checks and final cleanup remain. No FP3 push yet. Preserve unrelated WIP and historical audit qualifications. STOP after canonical verification, not another implementation wave.
 

@@ -9,7 +9,7 @@ import { build } from "esbuild";
 const project = "lucky-queen-41711352", branch = "br-billowing-block-aumzuk79", slug = "toskerfp3rescue";
 const root = `https://console.neon.tech/api/v2/projects/${project}/branches/${branch}`;
 const dir = ".git/ms74-fp3/neon-canary", mode = process.argv[2];
-assert(["deploy", "status", "schedule", "disable"].includes(mode));
+assert(["deploy", "upgrade", "status", "schedule", "enable", "disable"].includes(mode));
 assert(process.env.NEON_API_KEY);
 mkdirSync(dir, { recursive: true, mode: 0o700 });
 async function api(path, options = {}) {
@@ -21,22 +21,35 @@ async function api(path, options = {}) {
 function save(name, data) { writeFileSync(`${dir}/${name}.json`, JSON.stringify({ at: new Date().toISOString(), ...data }), { mode: 0o600 }); }
 async function main() {
   const { branch: actual } = await api(""); assert.equal(actual.id, branch); assert.equal(actual.default, true);
-  if (mode === "deploy") {
+  if (mode === "deploy" || mode === "upgrade") {
     const current = await api("/functions");
-    assert(Array.isArray(current.functions) && !current.functions.some(f => f.slug === slug), "Refuse unknown overwrite; inspect saved deployment first");
+    assert(Array.isArray(current.functions));
+    if (mode === "deploy") assert(!current.functions.some(f => f.slug === slug), "Refuse unknown overwrite");
+    else {
+      const owned = JSON.parse(readFileSync(`${dir}/intent.json`, "utf8"));
+      assert.equal(owned.project, project); assert.equal(owned.branch, branch); assert.equal(owned.slug, slug);
+      assert(current.functions.some(f => f.slug === slug));
+      const trigger = JSON.parse(readFileSync(`${dir}/trigger.json`, "utf8"));
+      const actual = (await api(`/triggers/${trigger.triggerId}`)).trigger;
+      assert.equal(actual.function_slug, slug); assert.equal(actual.name, "tosker-fp3-rescue"); assert.equal(actual.enabled, false);
+      assert.equal(JSON.parse(readFileSync(".git/ms74-fp3/cleanup-migration-apply.json", "utf8")).passed, true);
+    }
     await build({ entryPoints: ["functions/location-rescue.ts"], outfile: `${dir}/index.mjs`, bundle: true, platform: "node", target: "node24", format: "esm", logLevel: "silent",
       banner: { js: "import{createRequire as ___cr}from'node:module';const require=___cr(import.meta.url);" } });
     const bundle = readFileSync(`${dir}/index.mjs`);
     assert(!bundle.includes(Buffer.from(process.env.NEON_API_KEY)));
-    assert(!/\b(?:DELETE|INSERT|UPDATE|ALTER|CREATE TABLE)\b/.test(readFileSync("functions/location-rescue.ts", "utf8").replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "")), "Canary is read-only");
+    const cleanupMode = mode === "upgrade" ? "expiry-rescue" : "canary";
+    if (mode === "deploy") {
+      assert(!/\b(?:DELETE|INSERT|UPDATE|ALTER|CREATE TABLE)\b/.test(bundle.toString()), "Canary is read-only");
+    }
     execFileSync("zip", ["-j", "-q", `${dir}/function.zip`, `${dir}/index.mjs`]);
     const form = new FormData(); form.set("zip", new Blob([readFileSync(`${dir}/function.zip`)]), "function.zip");
-    form.set("runtime", "nodejs24"); form.set("environment", JSON.stringify({ TOSKER_CLEANUP_MODE: "canary" }));
-    save("intent", { project, branch, slug, gitSha: execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim(), sourceSha256: createHash("sha256").update(bundle).digest("hex"), mode: "read-only-canary" });
+    form.set("runtime", "nodejs24"); form.set("environment", JSON.stringify({ TOSKER_CLEANUP_MODE: cleanupMode }));
+    save(mode === "upgrade" ? "upgrade-intent" : "intent", { project, branch, slug, gitSha: execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim(), sourceSha256: createHash("sha256").update(bundle).digest("hex"), mode: cleanupMode });
     const data = await api(`/functions/${slug}/deployments`, { method: "POST", body: form });
     const d = data.deployment ?? data;
     const receipt = { slug, status: d.status ?? d.state ?? null, deploymentId: d.deployment_id ?? d.id ?? null };
-    save("deployment", receipt); console.log(JSON.stringify(receipt));
+    save(mode === "upgrade" ? "upgrade-deployment" : "deployment", receipt); console.log(JSON.stringify(receipt));
   } else if (mode === "status") {
     const data = await api(`/functions/${slug}`); const f = data.function ?? data;
     const receipt = { slug, status: f.status ?? f.state ?? null, url: f.invocation_url ?? null,
@@ -57,8 +70,13 @@ async function main() {
     const owned = JSON.parse(readFileSync(`${dir}/trigger.json`, "utf8"));
     const current = (await api(`/triggers/${owned.triggerId}`)).trigger;
     assert.equal(current.function_slug, slug); assert.equal(current.name, "tosker-fp3-rescue");
-    const data = await api(`/triggers/${owned.triggerId}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ type: "schedule", enabled: false }) });
-    assert.equal(data.trigger.enabled, false); save("disabled", { triggerId: owned.triggerId, disabled: true }); console.log("Owned canary trigger disabled");
+    const enabled = mode === "enable";
+    if (enabled) assert(existsSync(`${dir}/upgrade-deployment.json`));
+    const schedule = enabled ? { schedule: { cron: `${new Date(Date.now() + 120000).getUTCMinutes()} * * * *` } } : {};
+    const data = await api(`/triggers/${owned.triggerId}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ type: "schedule", enabled, ...schedule }) });
+    assert.equal(data.trigger.enabled, enabled);
+    save(enabled ? "enabled" : "disabled", { triggerId: owned.triggerId, enabled, nextRunAt: data.trigger.next_run_at });
+    console.log(JSON.stringify({ ownedTriggerEnabled: enabled, nextRunAt: data.trigger.next_run_at }));
   }
 }
 main().catch(error => { console.error(JSON.stringify({ canaryFailed: true, detail: /^Neon (GET|POST|PATCH) /.test(error.message) ? error.message : "Local precondition/build failed; private details suppressed" })); process.exitCode = 1; });

@@ -53,7 +53,7 @@ function normalizeConstraint(value, table, type) {
   const expanded = String(value).replace(/trim\(both\s+from\s+([^()]+)\)/gi, "trim($1)").replace(/::text(?=\])/g, "")
     .replace(/(length\(trim\((?:"?\w+"?\.)?"?\w+"?\)\))\s+between\s+(\d+)\s+and\s+(\d+)/gi, "$1 >= $2 and $1 <= $3")
     .replace(/(length\((?:"?\w+"?\.)?"?\w+"?\))\s+between\s+(\d+)\s+and\s+(\d+)/gi, "$1 >= $2 and $1 <= $3")
-    .replace(/((?:"?\w+"?\.)?"?(?:latitude|longitude|accuracy)"?)\s+between\s+(-?\d+)\s+and\s+(-?\d+)/gi,"$1 >= $2 and $1 <= $3");
+    .replace(/((?:"?\w+"?\.)?"?(?:latitude|longitude|accuracy|reserved)"?)\s+between\s+(-?\d+)\s+and\s+(-?\d+)/gi,"$1 >= $2 and $1 <= $3");
   return normalize(expanded)
     .replaceAll(`${table}.`, "")
     // PostgreSQL interval deparse; exact five-minute equivalence only. FP3

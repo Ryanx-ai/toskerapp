@@ -12,7 +12,7 @@ export default function LivePanel({ live, userId, companion = false }: { live: L
   const label = state.phase === "connected" ? "In Live" : state.phase === "joining" ? "Joining" : state.phase === "reconnecting" ? "Reconnecting" : "Not joined";
   return <section className="live-panel" aria-labelledby="live-title" data-phase={state.phase} data-live-layout={companion ? "companion" : "expanded"}>
     <header className="live-panel-header">
-      <div><span className="live-panel-eyebrow"><Users size={16} aria-hidden="true" />Presence only</span><h2 id="live-title">Live, together</h2><p>See who has joined this space. No microphone, camera or location is shared.</p></div>
+      <div><span className="live-panel-eyebrow"><Users size={16} aria-hidden="true" />Presence only</span><h2 id="live-title">Live, together</h2><p>See who has joined this space. No microphone or camera is connected. Live itself does not share location.</p></div>
     </header>
     <p className="live-panel-status" role="status" aria-live="polite" aria-atomic="true"><strong>{label}</strong><span>{userId ? state.message : "Sign in to join Live."} {state.ready ? `${state.participants.length} ${state.participants.length === 1 ? "person has" : "people have"} joined.` : ""}</span></p>
     {state.participants.length ? <ul className="live-participants" aria-label="Live participants">{state.participants.map(person => <li key={person.userId} data-live-user={person.userId}>

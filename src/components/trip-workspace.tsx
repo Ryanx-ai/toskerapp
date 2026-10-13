@@ -40,7 +40,7 @@ export default function TripWorkspace({ roomSlug, conversationId, contextName }:
   const [archived, setArchived] = useState(false), [view, setView] = useState<"map" | "places">("map");
   const [commentId, setCommentId] = useState<string | null>(null);
   const localLocation = useLocalMapLocation();
-  const sharing = useSharedLocation(conversationId, localLocation.location, !sandbox && !!plan);
+  const sharing = useSharedLocation(conversationId, localLocation.location, !sandbox && !!plan && view === "map");
   const clearLocalLocation = localLocation.clear;
   const [originConsent,setOriginConsent]=useState<string|null>(null),[originQuestion,setOriginQuestion]=useState<string|null>(null);
   const [originAsked, setOriginAsked] = useState<string | null>(null);

@@ -65,6 +65,11 @@ export function locationService(db: ToskerDatabase, overrides: Partial<Dependenc
       return db.transaction(async tx => {
         await lockActorTokens(tx, actor.userId); await deps.session(actor, sessionId);
         await context(tx, actor, conversationId);
+        const [rate] = await tx.insert(inviteRateLimits).values({userId:actor.userId,operation:"location-consent",windowStart:new Date(),attempts:1}).onConflictDoUpdate({target:[inviteRateLimits.userId,inviteRateLimits.operation],set:{
+          windowStart:sql`case when ${inviteRateLimits.windowStart} < now() - interval '1 minute' then now() else ${inviteRateLimits.windowStart} end`,
+          attempts:sql`case when ${inviteRateLimits.windowStart} < now() - interval '1 minute' then 1 else ${inviteRateLimits.attempts} + 1 end`,
+        }}).returning({attempts:inviteRateLimits.attempts});
+        if(rate.attempts>6)throw new Error("Consent changes paused.");
         const recipients = await audience(tx, conversationId);
         await deps.retire(tx, actor.userId);
         const now = new Date();
@@ -91,7 +96,10 @@ export function locationService(db: ToskerDatabase, overrides: Partial<Dependenc
         const snapshot: LocationSnapshot = { ...lease(row), sentAt: Date.now(), ...area, ...(row.precision === "precise" ? { point } : {}) };
         // Room/relationship locks remain held through delivery. No retained
         // coordinates, retries in durable queues, analytics or payload logging.
-        for (const recipient of recipients) if (recipient !== actor.userId) await deps.publish(recipient, snapshot);
+        // Bounded audience and frequency above. Parallel delivery prevents a
+        // slow recipient multiplying the provider timeout while Stop waits.
+        const delivery=await Promise.allSettled(recipients.filter(recipient=>recipient!==actor.userId).map(recipient=>deps.publish(recipient,snapshot)));
+        if(delivery.some(result=>result.status==="rejected"))throw new Error("Snapshot delivery could not be confirmed.");
         return snapshot;
       });
     },

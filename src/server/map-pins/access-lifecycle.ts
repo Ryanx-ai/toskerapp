@@ -11,7 +11,7 @@ import { retireLocationLease } from "@/server/location-sharing/lifecycle";
 /** Server lifecycle boundary for relationship withdrawal. No new unfriend UI in FP4B.
  * Tokens must be revoked before commit; provider failure rolls back the withdrawal.
  */
-export async function revokePinConnection(db:ToskerDatabase,actor:AuthenticatedActor,connectionId:string,revoke=revokeActorRealtime,notify=publishUserActivity) {
+export async function revokePinConnection(db:ToskerDatabase,actor:AuthenticatedActor,connectionId:string,revoke=revokeActorRealtime,notify=publishUserActivity,retire=retireLocationLease) {
   const ids = await db.transaction(async tx => {
     const [before] = await tx.select().from(connections).where(eq(connections.id,connectionId));
     if (!before || ![before.requesterId,before.addresseeId].includes(actor.userId)) throw new AuthorizationDeniedError();
@@ -21,14 +21,14 @@ export async function revokePinConnection(db:ToskerDatabase,actor:AuthenticatedA
     const [connection] = await tx.select().from(connections).where(eq(connections.id,connectionId)).for("update");
     if (!connection) throw new AuthorizationDeniedError();
     await tx.delete(connections).where(eq(connections.id,connectionId));
-    for (const id of actors) { await retireLocationLease(tx, id, chats.map(chat => chat.id)); await revoke(id); }
+    for (const id of actors) { await retire(tx, id, chats.map(chat => chat.id)); await revoke(id); }
     return actors;
   });
   await Promise.all(ids.map(id=>notify(id)));
 }
 
 /** Selected Subroom grant withdrawal; parent membership/other users' Pins are untouched. */
-export async function revokePinSubroomAccess(db:ToskerDatabase,actor:AuthenticatedActor,subroomId:string,userId:string,revoke=revokeActorRealtime,notify=publishUserActivity) {
+export async function revokePinSubroomAccess(db:ToskerDatabase,actor:AuthenticatedActor,subroomId:string,userId:string,revoke=revokeActorRealtime,notify=publishUserActivity,retire=retireLocationLease) {
   await db.transaction(async tx => {
     await lockActorTokens(tx,userId);
     const [before] = await tx.select().from(subrooms).where(eq(subrooms.id,subroomId));
@@ -40,7 +40,7 @@ export async function revokePinSubroomAccess(db:ToskerDatabase,actor:Authenticat
     const chats = await tx.select({id:conversations.id}).from(conversations).where(eq(conversations.subroomId,subroomId));
     await tx.delete(subroomAccess).where(and(eq(subroomAccess.subroomId,subroomId),eq(subroomAccess.userId,userId)));
     for (const chat of chats) await tx.delete(conversationParticipants).where(and(eq(conversationParticipants.conversationId,chat.id),eq(conversationParticipants.userId,userId)));
-    await retireLocationLease(tx, userId, chats.map(chat => chat.id));
+    await retire(tx, userId, chats.map(chat => chat.id));
     await revoke(userId);
   });
   await notify(userId);

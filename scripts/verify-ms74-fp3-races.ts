@@ -1,0 +1,37 @@
+import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
+import {eq} from "drizzle-orm";
+import {getDatabase,type ToskerDatabase} from "../src/server/db/client";
+import {rooms,roomMemberships,locationShares} from "../src/server/db/schema";
+import {resolveQaActors} from "./lib/ms73-fixtures";
+import {locationService} from "../src/server/location-sharing/service";
+import {retireLocationLease} from "../src/server/location-sharing/lifecycle";
+import {withdrawRoomMember} from "../src/server/rooms/lifecycle";
+const db=getDatabase(),fixture=JSON.parse(readFileSync(".git/ms74-recovery/fixture.json","utf8"));
+const deferred=()=>{let resolve!:()=>void;const promise=new Promise<void>(r=>{resolve=r;});return {promise,resolve};};
+let phase="ownership",leaseId:string|undefined;
+async function main(){
+  assert.equal(fixture.run,"ms74-fp1-20261010");const actors=await resolveQaActors(db);
+  const [room]=await db.select().from(rooms).where(eq(rooms.id,fixture.roomId));assert(room?.ownerId===actors.a.userId&&room.slug===fixture.slug);
+  const before=await db.select().from(roomMemberships).where(eq(roomMemberships.roomId,room.id));assert(before.some(m=>m.userId===actors.founder.userId));
+  const retire:typeof retireLocationLease=(tx,user,ids)=>retireLocationLease(tx,user,ids,async()=>{});
+  let gate=deferred(),entered=deferred(),waitArea=true,published=0;
+  const service=locationService(db,{session:async()=>{},retire,retirement:async()=>{},area:async()=>{if(waitArea){entered.resolve();await gate.promise;}return {label:"Singapore Central",source:"ura"};},publish:async()=>{published++;if(!waitArea){entered.resolve();await gate.promise;}}});
+  const session="fp3-race-qa",point={latitude:1.2834,longitude:103.8607,accuracy:50};
+  phase="Stop during area I/O";
+  leaseId=(await service.begin(actors.a,session,fixture.conversationId,"precise")).id;
+  const sending=service.send(actors.a,session,leaseId,point,new AbortController().signal).then(()=>"sent",()=>"denied");
+  await entered.promise;await service.stop(actors.a,session,leaseId);gate.resolve();assert.equal(await sending,"denied");assert.equal(published,0);
+  phase="withdrawal serializes after dispatch";waitArea=false;gate=deferred();entered=deferred();
+  leaseId=(await service.begin(actors.a,session,fixture.conversationId,"precise")).id;
+  const dispatch=service.send(actors.a,session,leaseId,point,new AbortController().signal);await entered.promise;
+  let withdrawn=false;const rollback=new Error("rollback scoped withdrawal");
+  const withdrawal=db.transaction(async tx=>{await withdrawRoomMember(tx as unknown as ToskerDatabase,actors.a,room.id,actors.b.userId,async()=>{},retire);withdrawn=true;throw rollback;}).catch(e=>{if(e!==rollback)throw e;});
+  await new Promise(r=>setTimeout(r,300));assert.equal(withdrawn,false,"Membership cannot change during locked fanout");
+  gate.resolve();await dispatch;await withdrawal;assert(withdrawn);assert.equal(published,2);
+  await service.stop(actors.a,session,leaseId);leaseId=undefined;
+  const after=await db.select().from(roomMemberships).where(eq(roomMemberships.roomId,room.id));
+  assert.deepEqual(after.sort((a,b)=>a.userId.localeCompare(b.userId)),before.sort((a,b)=>a.userId.localeCompare(b.userId)));
+  console.log(JSON.stringify({pass:true,cases:["Stop wins during external lookup","membership withdrawal waits for locked dispatch"],membershipRolledBack:true,externalCalls:0,founderUntouched:true}));
+}
+main().catch(e=>{console.error(JSON.stringify({pass:false,phase,kind:e.name,detail:e instanceof assert.AssertionError?e.message.split("\n")[0]:"Private details suppressed"}));process.exitCode=1;}).finally(async()=>{if(leaseId)await db.delete(locationShares).where(eq(locationShares.id,leaseId));await db.$client.end();});

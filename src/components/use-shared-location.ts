@@ -33,13 +33,14 @@ export function useSharedLocation(conversationId: string, point: LocalMapLocatio
     if (mounted.current) { setStopping(!!value); setBusy(false); }
     working.current = false;
     if (value) try { await retire(value); if (mounted.current&&epoch===generation.current) {setError("");setLease(null);} }
-    catch { if (mounted.current&&epoch===generation.current) {owned.current=value;setLease(value);setError("Stopped on this device. Peer removal could not be confirmed. Retry Stop; the snapshot expires within five minutes.");} }
+    catch { if (mounted.current&&epoch===generation.current) {if(value.expiresAt>Date.now()){owned.current=value;setLease(value);}else setLease(null);setError("Stopped on this device. Peer removal could not be confirmed. Retry Stop if still available; expiry remains automatic.");} }
     else if(mounted.current)setLease(null);
     if(mounted.current&&epoch===generation.current)setStopping(false);
   }, [retire]);
   const receive = useEffectEvent(async (snapshot: LocationSnapshot, epoch: number) => {
     try {
       const metadata = await call({ action: "validate", id: snapshot.id, conversationId });
+      if (!mounted.current || epoch !== generation.current || document.hidden || tombstones.current.has(snapshot.id)) return;
       if (!validLocationLease(metadata) || ["id", "conversationId", "userId", "precision", "expiresAt"].some(key => metadata[key as keyof LocationLease] !== snapshot[key as keyof LocationLease])) return;
       const token = await session?.getToken();
       const response = await fetch("/api/live/roster", { method: "POST", cache: "no-store", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ conversationId, userIds: [snapshot.userId] }), signal: AbortSignal.timeout(10000) });
@@ -73,6 +74,9 @@ export function useSharedLocation(conversationId: string, point: LocalMapLocatio
     window.addEventListener("pagehide", signout); document.addEventListener("visibilitychange", hidden);
     return () => {
       mounted.current = false; ++generation.current; working.current = false;
+      // Activity preserves React state while hidden; explicitly discard peer
+      // coordinates now, not on a later Map visit. No hidden snapshot cache.
+      setPeers([]);setLease(null);setBusy(false);setStopping(false);setError("");
       const value = owned.current; owned.current = null; if (value) void retire(value).catch(() => undefined);
       window.removeEventListener(LOCATION_RECEIVED, incoming); window.removeEventListener(LOCATION_CLEAR, clear);
       window.removeEventListener(CONVERSATION_ACCESS_LOST, lost); window.removeEventListener(REALTIME_SIGNOUT, signout);

@@ -34,7 +34,7 @@ export async function revokeRoomInvite(db: ToskerDatabase, actor: AuthenticatedA
   });
 }
 
-export async function withdrawRoomMember(db: ToskerDatabase, actor: AuthenticatedActor, roomId: string, userId: string, revoke = revokeActorRealtime) {
+export async function withdrawRoomMember(db: ToskerDatabase, actor: AuthenticatedActor, roomId: string, userId: string, revoke = revokeActorRealtime, retire = retireLocationLease) {
   await db.transaction(async (tx) => {
     await lockActorTokens(tx, userId);
     const [room] = await tx.select().from(rooms).where(eq(rooms.id, roomId)).for("update");
@@ -50,7 +50,7 @@ export async function withdrawRoomMember(db: ToskerDatabase, actor: Authenticate
     if (roomConversations.length) await tx.delete(conversationParticipants).where(and(inArray(conversationParticipants.conversationId, roomConversations.map((row) => row.id)), eq(conversationParticipants.userId, userId)));
     if (children.length) await tx.delete(subroomAccess).where(and(inArray(subroomAccess.subroomId, children.map((row) => row.id)), eq(subroomAccess.userId, userId)));
     await tx.delete(roomMemberships).where(and(eq(roomMemberships.roomId, roomId), eq(roomMemberships.userId, userId)));
-    await retireLocationLease(tx, userId, roomConversations.map(row => row.id));
+    await retire(tx, userId, roomConversations.map(row => row.id));
     // Block new tokens until both provider invalidation and the DB commit finish.
     // If Ably is unavailable, roll back and report failure; do not claim removal.
     await revoke(userId);

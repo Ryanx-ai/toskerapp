@@ -2,7 +2,7 @@
 
 13 October 2026 SGT. Proposal only, not implementation approval. [Recovery evidence](MS7-4-FP3-EXECUTION.md).
 
-**Subsequent founder decision:**18–26hour implementation wave and conditional canonical release approved. Shared-location dedicated gate remains outstanding; its proposal below is not permission to implement sharing. Other architecture and all safety/provider boundaries remain applicable. Earlier deployment-stop wording records the R/A checkpoint and is superseded by this explicit decision.
+**Subsequent founder decisions:**18–26hour implementation wave and conditional canonical release approved; the separate bounded snapshot model was then explicitly approved in-thread. See [privacy gate](MS7-4-FP3-LOCATION-PRIVACY-GATE.md) for the implementation contract and mandatory acceptance. Other architecture and all safety/provider boundaries remain applicable. Earlier approval-stop wording below records the R/A proposal and is superseded by these decisions, not its safety requirements.
 
 ## Estimate and scope
 

@@ -54,6 +54,9 @@ function normalizeConstraint(value, table, type) {
     .replace(/((?:"?\w+"?\.)?"?(?:latitude|longitude)"?)\s+between\s+(-?\d+)\s+and\s+(-?\d+)/gi,"$1 >= $2 and $1 <= $3");
   return normalize(expanded)
     .replaceAll(`${table}.`, "")
+    // PostgreSQL interval deparse; exact five-minute equivalence only. FP3
+    // rollback tests independently reject 300001 ms and accept 300000 ms.
+    .replace(/interval'5minutes'/g, "'00:05:00'")
     .replace(/'(-?\d+(?:\.\d+)?)'/g, "$1")
     .replace(/=anyarray\[([^\]]+)\]/g, "in$1");
 }

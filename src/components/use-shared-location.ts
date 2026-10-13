@@ -20,7 +20,7 @@ export function useSharedLocation(conversationId: string, point: LocalMapLocatio
     const token = await session?.getToken();
     if (!token || signal.aborted) throw new Error("Session unavailable.");
     const response = await fetch("/api/location-sharing", { method: "POST", credentials: "same-origin", cache: "no-store", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify(body), signal });
-    if (!response.ok) throw new Error(response.status === 409 ? "A newer snapshot exists. Stop sharing and choose Share again." : "Sharing could not be confirmed. Stop or wait for expiry; no automatic retry.");
+    if (!response.ok) throw new Error(response.status === 409 ? "A newer snapshot exists. Turn Locate off before sharing again." : "Sharing could not be confirmed. Stop or wait for expiry; no automatic retry.");
     return response.json();
   }, [session]);
   const retire = useCallback((value: LocationLease) => fetch("/api/location-sharing", {
@@ -91,7 +91,7 @@ export function useSharedLocation(conversationId: string, point: LocalMapLocatio
         if (epoch !== generation.current || !mounted.current || document.hidden) { await retire(current); return; }
         owned.current = current; revision.current = 0; setLease(current);
       }
-      if (!current || current.expiresAt <= Date.now()) throw new Error("Sharing expired. Choose Share location again.");
+      if (!current || current.expiresAt <= Date.now()) throw new Error("Sharing expired. Turn Locate off and on to choose sharing again.");
       const result = await call({ action: "send", id: current.id, point, expectedRevision: revision.current, requestId: crypto.randomUUID() });
       if (mounted.current && epoch === generation.current) {
         if (result.id !== current.id || result.revision !== revision.current + 1) throw new Error("Snapshot could not be confirmed. Stop before sharing again.");

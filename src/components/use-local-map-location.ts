@@ -36,7 +36,7 @@ export function useLocalMapLocation() {
     }).catch(() => { /* Some browsers do not expose geolocation permission status. */ });
     return () => { active = false; permission?.removeEventListener("change", check); };
   }, [clear]);
-  const locate = () => {
+  const locate = (onLocated?: () => void) => {
     if (pending.current) return;
     if (!navigator.geolocation) { setStatus("Location is unavailable in this browser."); return; }
     const current = ++generation.current;
@@ -51,6 +51,7 @@ export function useLocalMapLocation() {
       setPosition(previous => acceptLocalFix(previous, fix, Date.now()));
       markMapPhase("geolocation-ready");
       setStatus(`Only on your map · accuracy about ${Math.max(1, Math.round(accuracy))} m`);
+      onLocated?.();
     }, error => {
       if (current !== generation.current) return;
       pending.current = false; setBusy(false);

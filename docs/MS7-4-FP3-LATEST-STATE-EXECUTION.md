@@ -1,5 +1,11 @@
 # FP3 latest-state implementation wave
 
+## Single Locate addendum — impact before implementation
+
+Founder supersedes the separate Locate/Share CTA with one Locate entry, explicit default-broad or separately selected precise consent after a successful fix, Keep private, compact status and LocateOFF revocation. Local-only scope remains. Synthetic Sensors now succeeds in the exact QA A/FP1 tab via keyboard activation: private marker, origin card and50m accuracy visible; turnedOFF without consent/sharing. Initial mouse automation command timed out; keyboard action succeeded, not a geolocation workaround.
+
+Impact: client presentation/state only; reuse existing begin/send/Stop API, five-minute fixed consent, exact-context audience, synthetic-only worker admission and bounded peer removal. No schema, retention, authorization or provider change. LocateOFF must invoke Stop synchronously before clearing the private fix, retiring pending begin/send generations; delayed fixes, background return or context restoration must never open a stale prompt or publish automatically. Sandbox never offers sharing. Manual marker refresh must not re-prompt or publish. Expired/stopped sharing stays stopped until a fresh LocateOFF→ON and explicit confirmation. Keep truthful pending/deletion-error feedback; no second Share CTA. Existing production retention/performance gates remain open.
+
 ## Synthetic sender UI retry — 13 October 2026 (latest handoff)
 
 Founder confirmed Chrome Sensors had been set to the public synthetic point1.2834/103.8607,accuracy50m. Recovered local checkpoint`3cfde28`; read-only preflight passed zero active workers/payloads/consents/QA location rate rows, exact founder memberships and unchanged qualified prior Sandbox read drift. Started the existing optimized application and30-minute supervised worker, waiting for explicit worker readiness.

@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
-import { MapPin, Search, List, Map as MapIcon, LocateFixed, ChevronDown, ChevronUp } from "lucide-react";
+import { MapPin, Search, List, Map as MapIcon, ChevronDown, ChevronUp } from "lucide-react";
 import { readTripAction, mutateTripAction } from "@/server/trips/actions";
 import { ACTIVITY_REFRESH, CONVERSATION_ACCESS_LOST, TRIP_REFRESH } from "@/lib/realtime-contract";
 import { orderedRoutePlaces, routingPlaces, nextCheckpointName, isCoordinatePinTitle, mergeVisibleOrder, recoverActiveRoute, type PlaceCandidate, type TripSnapshot } from "@/lib/trip-contract";
@@ -41,6 +41,7 @@ export default function TripWorkspace({ roomSlug, conversationId, contextName }:
   const [commentId, setCommentId] = useState<string | null>(null);
   const localLocation = useLocalMapLocation();
   const sharing = useSharedLocation(conversationId, localLocation.location, !sandbox && !!plan && view === "map");
+  const [locatePrompt, setLocatePrompt] = useState(false);
   const clearLocalLocation = localLocation.clear;
   const [originConsent,setOriginConsent]=useState<string|null>(null),[originQuestion,setOriginQuestion]=useState<string|null>(null);
   const [originAsked, setOriginAsked] = useState<string | null>(null);
@@ -212,16 +213,16 @@ export default function TripWorkspace({ roomSlug, conversationId, contextName }:
   const originPoints = localLocation.origin && routePlaces[0] ? [{id:PRIVATE_ORIGIN_ID,latitude:localLocation.origin.latitude,longitude:localLocation.origin.longitude},routePlaces[0]] : [];
   const originKey = originPoints.length ? JSON.stringify([roomSlug,route?.id,...originPoints.map(p=>[p.id,p.latitude,p.longitude])]) : "";
   const consented = !!originKey && originConsent===originKey;
-  const clearOrigin = () => { localLocation.clear(); setOriginConsent(null); setOriginQuestion(null); setOriginAsked(null); };
+  const clearOrigin = () => { void sharing.stop(); setLocatePrompt(false); localLocation.clear(); setOriginConsent(null); setOriginQuestion(null); setOriginAsked(null); };
   const privateRoute = usePrivateOriginRoute(roomSlug,route?.id??null,originPoints,roadMode,consented&&roadEnabled&&!!plan,roadBusy,roadPreview.nextPrivateSlotAt,deny);
   useEffect(()=>{if(originConsent&&originConsent!==originKey)queueMicrotask(()=>setOriginConsent(null));},[originConsent,originKey]);
   useEffect(() => { if (!originKey) queueMicrotask(() => { setOriginQuestion(null); setOriginAsked(null); }); }, [originKey]);
   const originEligible = !!localLocation.origin && inPlanningRegion(localLocation.origin.latitude, localLocation.origin.longitude) && roadEnabled && !!routePlaces[0];
   useEffect(() => {
-    if (!originEligible || !originKey || originAsked === originKey) return;
+    if (locatePrompt || !originEligible || !originKey || originAsked === originKey) return;
     // Removing the old card CTA does not waive explicit provider consent.
     queueMicrotask(() => { setOriginAsked(originKey); setOriginQuestion(originKey); });
-  }, [originEligible, originKey, originAsked]);
+  }, [locatePrompt, originEligible, originKey, originAsked]);
   const previewTitle = preview?.candidate.source==="pin" && isCoordinatePinTitle(preview.candidate.title) ? nextCheckpointName(plan?.places.filter(p=>ownedIds.has(p.id))??[]) : preview?.candidate.title;
   const disabled = busy || !!pending || !plan;
   useEffect(() => {
@@ -256,8 +257,7 @@ export default function TripWorkspace({ roomSlug, conversationId, contextName }:
       <div className={styles.toolbar}>
         <label className={styles.search}><Search size={18} aria-hidden="true" /><span className={styles.srOnly}>Search places worldwide</span><input aria-label="Search places" placeholder="Search places worldwide" maxLength={160} disabled={disabled} value={query} onChange={event => { request.current?.abort(); setSearching(false); setQuery(event.target.value); setResults([]); setSearched(false); setPinMode(false); setPreview(null); setNotice(""); }} /></label>
         <select aria-label="Travel mode" className={styles.control} value={roadEnabled ? roadMode : "planning"} onChange={e => { setRoadEnabled(e.target.value !== "planning"); if (e.target.value !== "planning") setRoadMode(e.target.value as RoadMode); }}><option value="planning">Order</option><option value="walk">Walk</option><option value="drive">Drive</option></select>
-        <button className={styles.control} aria-label="Locate me" aria-pressed={!!localLocation.location || localLocation.busy} title="Locate · only on your map" disabled={disabled} onClick={() => { closeInspector(); if (localLocation.location || localLocation.busy) clearOrigin(); else localLocation.locate(); }}><LocateFixed size={17} aria-hidden="true" /><span className={styles.locationLabel}>Locate</span></button>
-        {!sandbox && <SharedLocationControl sharing={sharing} available={!disabled && !!localLocation.location} contextName={contextName}/>}
+        <SharedLocationControl key={conversationId} sharing={sharing} localLocation={localLocation} disabled={disabled} sandbox={sandbox} contextName={contextName} open={locatePrompt} setOpen={setLocatePrompt} onBeforeLocate={closeInspector} onClear={clearOrigin}/>
         <button className={styles.control} aria-pressed={pinMode} disabled={disabled} onClick={() => { request.current?.abort(); setSearching(false); setQuery(""); setResults([]); setSearched(false); setPreview(null); setSelectedId(null); setView("map"); setPinMode(value => !value); }}><MapPin size={16} aria-hidden="true" />{pinMode ? "Cancel" : "Pin"}</button>
       </div>
       {pings.error&&<p className={styles.helper} role="alert">{pings.error}</p>}
@@ -281,7 +281,7 @@ export default function TripWorkspace({ roomSlug, conversationId, contextName }:
       {!plan ? <p className={styles.helper} role="status">Loading routes…</p> : <>
         <p className={styles.srOnly} id="trip-card-help">Your private origin comes before shared destination 1. Scroll or drag destination cards; Earlier and Later are available in Place actions.</p>
         <div className={styles.cardStrip} ref={cards} role="list" aria-label="Route locations" aria-describedby="trip-card-help" tabIndex={0}>
-          {!archived && localLocation.origin && <TripPrivateOrigin location={localLocation.origin} scope={roomSlug} avatar={identity?.avatarUrl} busy={localLocation.busy} consented={consented&&roadEnabled} road={privateRoute.road} error={privateRoute.error} onClear={clearOrigin} onRefresh={localLocation.locate} onRetry={privateRoute.retry}/>}
+          {!archived && localLocation.origin && <TripPrivateOrigin location={localLocation.origin} scope={roomSlug} avatar={identity?.avatarUrl} busy={localLocation.busy} consented={consented&&roadEnabled} road={privateRoute.road} error={privateRoute.error} onClear={clearOrigin} onRefresh={() => localLocation.locate()} onRetry={privateRoute.retry}/>}
           {shown.map((place, index) => <TripPlaceCard key={place.id} place={place} plan={plan} routeId={route?.id ?? null} index={index} total={shown.length} selected={selectedId === place.id} hidden={preferences.hidden.includes(place.id)} toggleHidden={id => prefer({ ...preferences, hidden: preferences.hidden.includes(id) ? preferences.hidden.filter(p => p !== id) : [...preferences.hidden,id] })} disabled={disabled} select={select} copy={id=>setCopyPlace({id,revision:plan.revision})} comments={id => setCommentId(id)} move={(id, offset) => { const target = places[places.findIndex(p => p.id === id)+offset]; if (target) reorder(id,target.id); }} drop={reorder} change={change} />)}
         </div>
         {shown.length===0 && <div className={styles.cardsEmpty}><MapPin size={20} aria-hidden="true" /><p>{archived ? "No archived locations in this route." : !route ? "Search or pin a place. Your first add creates Route 1." : "Search or pin a place to add it to this route."}</p></div>}

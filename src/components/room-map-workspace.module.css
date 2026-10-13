@@ -7,6 +7,12 @@
 .sharingStatus ul { padding-left:20px; }
 .sharingActions { display:flex; flex-wrap:wrap; gap:8px; align-items:center; padding:8px 0; }
 .sharingActions .control { min-height:44px; }
+.locateSharingIndicator { color:var(--brand-gold); flex-shrink:0; }
+.locationConsent { max-width:480px; }
+.locationConsent fieldset { display:grid; gap:8px; min-width:0; }
+.locationConsent label { display:flex; align-items:center; gap:8px; min-height:44px; }
+.locationConsent details { margin-block:12px; }
+.locationConsent summary { cursor:pointer; min-height:32px; }
 .peerLocation { max-width:160px; padding:8px 12px; border:2px solid var(--text-secondary); border-radius:var(--radius-md,12px); background:var(--surface); color:var(--text-primary); font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; pointer-events:none; }
 .pinList { display:flex; gap:8px; overflow-x:auto; list-style:none; margin:0; padding:4px 2px 12px; }
 .pinList li { flex:0 0 220px; min-width:0; }
@@ -337,7 +343,6 @@
 @media(max-width:1100px) { .trayToggle span { display:none; } }
 @media(max-width:768px) { .trayToggle { display:none; } .workspace .toolbar .search { flex-basis:100%; } .routeEstimate { max-width:calc(100% - 32px); } }
 @media (pointer:coarse) { .cardActions button,.workspace .toolbar .control { min-height:44px; min-width:44px; } .workspace .placeCard { height:198px; min-height:198px; } .cardActions { height:48px; } }
-@media (max-width:1100px) { .locationLabel { display:none; } }
 @media (max-width:640px) { .workspace .toolbar .search { flex-basis:100%; } .commentForm textarea { font-size:16px; } }
 @media(pointer:coarse) { .cardMore { width:44px; height:44px; } .routeTab button:last-child { width:44px; } .roadTools select,.roadTools .control { min-height:44px; } }
 @media(max-width:640px) { .workspace { flex:1; min-height:0; overflow:auto; padding:12px; gap:12px; } .canvasRegion { height:360px; } .state { padding:12px; font-size:11px; } .emptyMap { padding:24px 16px; } .toolbar { padding:12px; gap:10px; } .cards { padding:16px; } }

@@ -7,6 +7,8 @@ import { join } from "node:path";
 const keys = ["DATABASE_URL", "CLERK_SECRET_KEY", "ABLY_API_KEY", "ROOM_INVITE_ENCRYPTION_KEY"];
 // Existing environments may not enable Maps. When configured, scan this secret too.
 if (process.env.GEOAPIFY_SEARCH_KEY) keys.push("GEOAPIFY_SEARCH_KEY");
+if (process.env.NEON_API_KEY) keys.push("NEON_API_KEY");
+assert(!existsSync(".env.development.local") || !/^NEON_API_KEY\s*=/m.test(readFileSync(".env.development.local", "utf8")) || process.env.NEON_API_KEY, "Load Development environment before scanning its configured management credential");
 assert(!existsSync(".env.development.local") || !readFileSync(".env.development.local", "utf8").includes("GEOAPIFY_SEARCH_KEY=") || process.env.GEOAPIFY_SEARCH_KEY, "Load Development environment before scanning its configured provider credential");
 const secrets = keys.map(key => {
   assert(process.env[key]?.length >= 12, `Required server configuration missing: ${key}`);
@@ -20,7 +22,7 @@ if (existsSync(".env.development.local")) {
 }
 const tracked = execFileSync("git", ["ls-files", "-z"], { encoding: "utf8" }).split("\0").filter(Boolean);
 assert(!tracked.some(path => /(^|\/)\.env(\.|$)/.test(path) && path !== ".env.example"), "No local environment files may be tracked");
-const ownedNew = execFileSync("git", ["ls-files", "--others", "--exclude-standard", "-z", "scripts", "src", "drizzle", "docs/MS7-1-FP4*", "docs/MS7-2*", "docs/MS7-3*", "docs/MS7-4*"], { encoding: "utf8" }).split("\0").filter(Boolean);
+const ownedNew = execFileSync("git", ["ls-files", "--others", "--exclude-standard", "-z", "scripts", "src", "functions", "drizzle", "docs/MS7-1-FP4*", "docs/MS7-2*", "docs/MS7-3*", "docs/MS7-4*"], { encoding: "utf8" }).split("\0").filter(Boolean);
 const newDocs = ["docs/MS7-1-OWNER-LIFECYCLE-REVIEW.md", "docs/MS7-1-FOUNDER-WALKTHROUGH.md", "docs/MS7-6-PROVISIONING-BACKLOG.md", "docs/IDENTITY-NAMECARD-CONTRACT.md"];
 function files(path) {
   return readdirSync(path, { withFileTypes: true }).flatMap(entry => entry.isDirectory() ? files(join(path, entry.name)) : [join(path, entry.name)]);
@@ -32,5 +34,5 @@ const leaks = candidates.filter(path => {
   return secrets.some(value => [value, JSON.stringify(value).slice(1, -1), encodeURIComponent(value)].some(variant => content.includes(Buffer.from(variant))));
 });
 assert.deepEqual(leaks, [], "Server credential match in listed paths; do not print matched content");
-assert(!Object.keys(process.env).some(key => /^NEXT_PUBLIC_.*(?:SECRET|ABLY_API_KEY|DATABASE_URL|ROOM_INVITE_ENCRYPTION_KEY|GEOAPIFY_SEARCH_KEY)/.test(key)), "No public server-secret variable");
-console.log(JSON.stringify({ secretScan: "PASS", geoapifyServerCredentialScanned: keys.includes("GEOAPIFY_SEARCH_KEY"), sourceAndOwnedFiles: candidates.length - bundles.length, clientBundles: bundles.length, localEnvironmentIgnored: true, credentialsPrinted: false }));
+assert(!Object.keys(process.env).some(key => /^NEXT_PUBLIC_.*(?:SECRET|ABLY_API_KEY|DATABASE_URL|ROOM_INVITE_ENCRYPTION_KEY|GEOAPIFY_SEARCH_KEY|NEON_API_KEY)/.test(key)), "No public server-secret variable");
+console.log(JSON.stringify({ secretScan: "PASS", geoapifyServerCredentialScanned: keys.includes("GEOAPIFY_SEARCH_KEY"), neonManagementCredentialScanned: keys.includes("NEON_API_KEY"), sourceAndOwnedFiles: candidates.length - bundles.length, clientBundles: bundles.length, localEnvironmentIgnored: true, credentialsPrinted: false }));

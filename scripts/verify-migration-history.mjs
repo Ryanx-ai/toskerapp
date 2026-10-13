@@ -50,13 +50,17 @@ const names = (values) => values.map((value) => value.name).sort();
 // equivalent forms only; constraint names/types/column sets remain strict.
 function normalizeConstraint(value, table, type) {
   if (type !== "c") return normalize(value);
-  const expanded = String(value).replace(/::text(?=\])/g, "").replace(/(length\((?:"?\w+"?\.)?"?\w+"?\))\s+between\s+(\d+)\s+and\s+(\d+)/gi, "$1 >= $2 and $1 <= $3")
-    .replace(/((?:"?\w+"?\.)?"?(?:latitude|longitude)"?)\s+between\s+(-?\d+)\s+and\s+(-?\d+)/gi,"$1 >= $2 and $1 <= $3");
+  const expanded = String(value).replace(/trim\(both\s+from\s+([^()]+)\)/gi, "trim($1)").replace(/::text(?=\])/g, "")
+    .replace(/(length\(trim\((?:"?\w+"?\.)?"?\w+"?\)\))\s+between\s+(\d+)\s+and\s+(\d+)/gi, "$1 >= $2 and $1 <= $3")
+    .replace(/(length\((?:"?\w+"?\.)?"?\w+"?\))\s+between\s+(\d+)\s+and\s+(\d+)/gi, "$1 >= $2 and $1 <= $3")
+    .replace(/((?:"?\w+"?\.)?"?(?:latitude|longitude|accuracy)"?)\s+between\s+(-?\d+)\s+and\s+(-?\d+)/gi,"$1 >= $2 and $1 <= $3");
   return normalize(expanded)
     .replaceAll(`${table}.`, "")
     // PostgreSQL interval deparse; exact five-minute equivalence only. FP3
     // rollback tests independently reject 300001 ms and accept 300000 ms.
     .replace(/interval'5minutes'/g, "'00:05:00'")
+    .replace(/interval'4hours'/g, "'04:00:00'")
+    .replace(/\btrim\(/g, "btrim(")
     .replace(/'(-?\d+(?:\.\d+)?)'/g, "$1")
     .replace(/=anyarray\[([^\]]+)\]/g, "in$1");
 }
@@ -81,6 +85,13 @@ for (const table of Object.values(snapshot.tables)) {
     ...Object.values(table.uniqueConstraints).map((key) => ({ name: key.name, type: "u", definition: `UNIQUE (${key.columns.join(", ")})` })),
     ...Object.values(table.checkConstraints).map((key) => ({ name: key.name, type: "c", definition: `CHECK (${key.value})` })),
   ];
+  // PostgreSQL stores at most 63 bytes for an identifier. Generated names here
+  // are ASCII; preserve exact definitions and reject truncation collisions.
+  for (const constraint of expectedConstraints) {
+    assert.match(constraint.name, /^[\x00-\x7f]+$/);
+    constraint.name = constraint.name.slice(0, 63);
+  }
+  assert.equal(new Set(names(expectedConstraints)).size, expectedConstraints.length, "Constraint-name truncation collision");
   const actualConstraints = constraints.filter((value) => value.table_name === table.name);
   assert.deepEqual(names(actualConstraints), names(expectedConstraints), `Constraint set ${table.name}`);
   for (const constraint of expectedConstraints) {

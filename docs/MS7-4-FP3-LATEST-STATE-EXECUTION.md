@@ -43,3 +43,15 @@ Fresh alias lookup still maps `toskerapp.vercel.app` to verified FP2A `dpl_BeaJB
 Read-only migration verifier passes all **30 hashes, 36 tables, 260 columns, 134 constraints and 15 enums**. Strict immutable preservation audit still fails only `conversation_reads.last_read_at`: exact founder Sandbox baseline `04:41:17.526 UTC`, current `07:22:24.744 UTC`, no other fields changed. This matches the already qualified pre-recovery drift; never restore it or rewrite the baseline. Founder TID resolves uniquely and remains in all three retained review Rooms through the audit's fixture checks. No fixtures or data deleted.
 
 Recovery save only. **Implementation has not started; retention gate unresolved.** The 20–30-hour local authorization remains recorded, but is not evidence of completed acceptance. Canonical stays FP2A; FP3 unaccepted; MS7.4 unlocked; FP2B research-only; MS8 untouched.
+
+## Local-QA boundary approved — 13 October 2026
+
+Founder approved the proposed supervised local cleanup-worker boundary after checkpoint `4fa6073`. Resume B–E locally, synthetic isolated A/B only. Production scheduling/canonical remain blocked. The local service must deny deployed execution, require the exact active worker generation and fresh completed-sweep heartbeat, and reject non-QA actors/non-synthetic samples before provider or storage work. Worker runs are time-bounded, final cleanup is exact, and worker failure is a stop condition. Database backup/history remains six hours; this is not a physical-erasure promise. No new hosted resource, provider setting, billing or quota changes.
+
+## B — additive migration applied / local implementation in progress
+
+Migration `0030_ms74_fp3_latest_state_local` hash `20c0731f5a17b0ad0a1b7d794ec28b937fe3310e7f0bb640ebca6bf406c7d259` rehearsed under rollback, then applied at 11:09:35 UTC. Private pre-migration backup/readback and retained-row equality passed; no snapshot payload persisted. Rehearsal rejected six invalid/duplicate writes and verified consent/worker deletion cascades. Receipts: `.git/ms74-fp3/latest-migration-{rehearse,apply}.json`. No existing migration/hash altered.
+
+Fresh read-only catalog verification passes **31 migrations, 38 tables, 277 columns, 144 constraints, 15 enums**. Verifier recognizes PostgreSQL's exact interval/TRIM/BETWEEN deparse and 63-byte generated ASCII constraint-name truncation (collision checked); definitions remain compared, not waived.
+
+Local-only candidate now has latest-row revision/CAS, duplicate-request idempotency, server/context/session authorization and synthetic-point admission. Cleanup worker heartbeat/generation gates both reads and writes; deployed API returns unavailable. Lifecycle deletion cascades before content-free post-commit hints; existing token revocation remains fail-closed. Client integration and QA are unfinished. TypeScript passed at this point; no build/browser/security gate claimed. Canonical stays FP2A. No worker started or payload stored yet at B checkpoint.

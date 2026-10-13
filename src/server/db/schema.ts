@@ -34,10 +34,47 @@ export const locationShares = pgTable("location_shares", {
   expiresAt: timestamp("expires_at", {withTimezone:true}).notNull(),
 }, t => [
   uniqueIndex("location_shares_lease_unique").on(t.id),
+  uniqueIndex("location_shares_snapshot_scope_unique").on(t.id, t.precision, t.expiresAt),
   index("location_shares_context_idx").on(t.conversationId),
   check("location_shares_precision_valid",sql`${t.precision} in ('area','precise')`),
   check("location_shares_lifetime_valid",sql`${t.expiresAt} > ${t.createdAt} and ${t.expiresAt} <= ${t.createdAt} + interval '5 minutes'`),
   check("location_shares_session_valid",sql`length(${t.sessionId}) between 1 and 200`),
+]);
+
+// Local synthetic-QA admission only. This is NOT a production scheduler.
+export const locationCleanupWorkers = pgTable("location_cleanup_workers", {
+  slot: integer("slot").primaryKey(),
+  runId: uuid("run_id").notNull(),
+  startedAt: timestamp("started_at", { withTimezone: true }).notNull(),
+  lastSweepAt: timestamp("last_sweep_at", { withTimezone: true }).notNull(),
+  endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
+}, t => [
+  uniqueIndex("location_cleanup_worker_run_unique").on(t.runId),
+  check("location_cleanup_worker_slot_valid", sql`${t.slot} = 1`),
+  check("location_cleanup_worker_window_valid", sql`${t.endsAt} > ${t.startedAt} and ${t.endsAt} <= ${t.startedAt} + interval '4 hours' and ${t.lastSweepAt} >= ${t.startedAt} and ${t.lastSweepAt} <= ${t.endsAt}`),
+]);
+
+// Exactly one replaceable payload per consent; never a movement history.
+export const locationLatest = pgTable("location_latest", {
+  leaseId: uuid("lease_id").primaryKey(),
+  workerRunId: uuid("worker_run_id").notNull().references(() => locationCleanupWorkers.runId, { onDelete: "cascade" }),
+  precision: text("precision").notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  acceptedAt: timestamp("accepted_at", { withTimezone: true }).notNull(),
+  revision: integer("revision").notNull(),
+  requestId: uuid("request_id").notNull(),
+  label: text("label").notNull(),
+  source: text("source").notNull(),
+  latitude: doublePrecision("latitude"),
+  longitude: doublePrecision("longitude"),
+  accuracy: doublePrecision("accuracy"),
+}, t => [
+  foreignKey({ name: "location_latest_consent_scope_fk", columns: [t.leaseId, t.precision, t.expiresAt], foreignColumns: [locationShares.id, locationShares.precision, locationShares.expiresAt] }).onDelete("cascade"),
+  index("location_latest_expiry_idx").on(t.expiresAt),
+  check("location_latest_revision_valid", sql`${t.revision} > 0`),
+  check("location_latest_lifetime_valid", sql`${t.acceptedAt} < ${t.expiresAt} and ${t.acceptedAt} >= ${t.expiresAt} - interval '5 minutes'`),
+  check("location_latest_text_valid", sql`length(trim(${t.label})) between 1 and 100 and ${t.source} in ('ura','geoapify')`),
+  check("location_latest_precision_valid", sql`(${t.precision} = 'area' and ${t.latitude} is null and ${t.longitude} is null and ${t.accuracy} is null) or (${t.precision} = 'precise' and ${t.latitude} is not null and ${t.longitude} is not null and ${t.accuracy} is not null and ${t.latitude} between -90 and 90 and ${t.longitude} between -180 and 180 and ${t.accuracy} between 0 and 100000)`),
 ]);
 
 // A source conversation owns the canonical Pin; Sandbox memories are authorized views.

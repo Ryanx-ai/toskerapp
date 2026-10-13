@@ -2,6 +2,14 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP3 closeout recovery — cleanup researched / eligibility gate / local UI saved — 13 October 2026
+
+Latest authority pre-approves R–F save states and existing-Free cleanup implementation, then canonical ONLY after critical acceptance. Read [final closeout ledger](docs/MS7-4-FP3-FINAL-CLOSEOUT.md) and [cleanup decision](docs/MS7-4-FP3-DURABLE-CLEANUP.md). R `2c44367`, A research `2752040`, application `3423edac560e7eb6c3b943136d229e184934a2a6`. These supersede older generic approval waits, not safety gates. Recommended demand-driven Vercel Queues plus hourly Neon rescue is NOT implemented. Current Hobby eligibility needs founder clarification (personal non-commercial prototype or provider exception); no plan/billing/configuration change. Fresh account headroom and actual hosted retention evidence remain required. Canonical independently resolves the existing READY FP2A deployment linked to `3e06bf9`; no push/deploy this slice.
+
+Production QA controls now compiled out, sharing feedback/explicit renewal improved; optimized build, typecheck, lint, deterministic regressions and secret/client-bundle scans pass. Real browser A→authorized B API broad/NULL-storage and private-fix-expiry Stop pass; outage UI is truthful, but isolated manual retry and full two-browser/p95 matrix remain unaccepted. Latest-state backend stays synthetic/local-only. Never remove hosted denial to bypass retention. See ledger for precise evidence limits and resume order.
+
+Local server/worker/observer stopped, LocateOFF. Zero worker/payload/consent/rate rows verified; two disposable QA rate rows backed up/removed. Stale stopped-worker configuration preserved outside active path. All three founder Rooms remain. Earlier qualified founder Sandbox read drift unchanged, baseline not rewritten. Unrelated Art/Design/Web work and older handoff hunks preserved. D canonical, E post-release product docs and F final Founder Walk handoff NOT complete. No FP2B media or later milestones; MS7.4 unlocked.
+
 ## FP3 single Locate verified locally / conditional release authority / RETENTION STOP — 13 October 2026
 
 Recovered beyond the directive's historical3cfde28: application checkpoint`fb84088` consolidates Locate and sharing consent; following small copy fix uses stable Locate tooltip and Refresh snapshot label. Read latest sections of [latest-state ledger](docs/MS7-4-FP3-LATEST-STATE-EXECUTION.md). Synthetic Sensors now works. Actual browser QA A→authorized B API observer passes Keep private/initial empty, broad with NULL coordinate storage, explicit precise matching the approved synthetic fix, manual refresh fixed expiry, LocateOFF Stop and immediate OFF during pending begin with no late resurrection. Screenshots at320/390/430/768/1440/1728; keyboard/default/Escape/focus return and Sandbox private-only pass. This does not equal complete A/B browser/p95/reconnect acceptance.

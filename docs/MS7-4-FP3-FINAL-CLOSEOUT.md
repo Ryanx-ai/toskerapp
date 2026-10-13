@@ -27,3 +27,26 @@ Recovery: use this ledger with `MS7-4-FP3-LATEST-STATE-EXECUTION.md` and `CODEX-
 Previous R commit verified: `2c44367ca493b3c5b5f6c313031952a0dd8d85b8`. See [durable cleanup decision](MS7-4-FP3-DURABLE-CLEANUP.md) for the queue-first / hourly Neon rescue design, scheduling-before-storage invariant, healthy-path target versus outage limitations, six-hour backup distinction, bounded Free usage estimates, migration/rollback plan and actual hosted acceptance requirements.
 
 Fresh Vercel project inspection confirms existing `pangea6/tosker.app`, Node24, iad1; read-only team metadata confirms Hobby/active. Hosted eligibility question is outstanding because Hobby is restricted to non-commercial personal use. No hosted service/configuration/migration change. Local-only guard remains. B–F are not passed. Independent Locate production-presentation work is in progress locally; do not confuse it with verified production cleanup.
+
+## B/C partial save — application 3423eda; release gate remains closed
+
+Verified A research checkpoint `27520400fbf9998ebddc92da7fb029b3e067ddd9`; scoped application commit `3423edac560e7eb6c3b943136d229e184934a2a6`. This is validated local presentation work, not completion of cleanup implementation or privacy acceptance.
+
+- Normal production build removes QA refresh/Stop/expiry controls even with `NEXT_PUBLIC_LOCATION_QA_UI=1`. Added contextual atomic sharing status, explicit expiry/no-auto-renewal copy, and single-Locate error recovery presentation. New presentation helper has ten passing deterministic cases; no service/schema/consent changes.
+- Latest optimized build, TypeScript, full-source lint and configured-secret/client-bundle scan pass: 773 source/owned files and 76 client assets. Separate production check finds no QA strings in 69 JavaScript assets. Existing location-view, private-origin, 648 composition, Live state and transport ownership tests pass in this slice.
+- Actual synthetic browser sender A with authorized Clerk B API/Ably observer: initial empty, explicit default-broad delivery with NULL coordinate storage, then empty after private-fix expiry invokes Stop. Read samples 2243/2545/2165ms; two content-free notices. This is not a second browser, end-to-end p95, or a new natural server-consent-deadline test. Older natural-expiry evidence remains separately attributed.
+- Explicit precise synthetic consent accepted in sender UI. Controlled local-server outage followed by LocateOFF removed local marker/origin and displayed unconfirmed server deletion. Following server recovery the next Locate opened a fresh default-broad prompt; kept private and turned LocateOFF. Recovery ultimately left zero payload/consent, but the isolated manual retry path was NOT conclusively certified. Do not claim all failure-recovery UI gates passed.
+- No real founder/Jenn GPS, provider search/reverse/road tests, hosted job/configuration, push or deployment. Browser basemap traffic was not quantified.
+
+### Exact local cleanup / recovery
+
+Observer closed and its exact test session was revoked. Supervised worker stopped; read-only counts independently showed zero workers/payloads/consents. Its stale local admission file remained after interruption; preserved by moving it to `.git/ms74-fp3/stopped-worker-20261013-closeout.json` only after confirming no worker process and no database worker. No secret or coordinate content printed. Two exact QA location rate rows were dry-run checked, privately backed up and deleted; no consent/content/Room deletion. Final closeout passes zero active workers/payloads/consents/rates and all three founder memberships. Strict preservation remains qualified only by the unchanged earlier founder Sandbox read timestamp; immutable baseline not rewritten. Local server shut down; LocateOFF.
+
+### Remaining gates and resume order
+
+1. Founder factual clarification of existing Hobby eligibility (non-commercial personal use or provider exception); no plan upgrade authorized. Research recommendation is within the approved provider boundary but not yet operational.
+2. Fresh Free usage/headroom; hosted cleanup implementation, additive migration rehearsal/backup and actual retention/failure acceptance. Preserve deployed-storage denial until those pass.
+3. Remaining real A/B browser/reconnect/multiple-tab/latency/privacy/responsive gates, including isolated Stop retry. Do not repeat already successful expensive provider investigations.
+4. D exact candidate/canonical SHA and live verification; E post-release README/milestone consolidation; F complete Founder Walk handoff. These remain NOT DONE. This local recovery save is not checkpoint F completion or a release receipt.
+
+Canonical stays verified FP2A `3e06bf9`. Resume from the scoped commits without resetting unrelated WIP. Rollback of this presentation slice, if required, is a new scoped revert of `3423eda`, never a database rollback or force/reset. MS7.4 unlocked; FP2B research-only; later milestones untouched.

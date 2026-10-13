@@ -1,5 +1,9 @@
 # FP3 latest-state implementation wave
 
+## Current closeout checkpoint — 13 October 2026
+
+Latest founder R–F closeout authority supersedes older generic approval/local-only restrictions, conditional on every critical gate. See [stepped closeout](MS7-4-FP3-FINAL-CLOSEOUT.md) for authoritative current status and [durable cleanup](MS7-4-FP3-DURABLE-CLEANUP.md) for researched queue-first/hourly-rescue architecture. R `2c44367`, A research `2752040`, app `3423eda`. Production QA-control hiding and feedback are now locally implemented/tested; historical pending statements below remain history, not current status. No production cleanup implemented or hosted storage enabled. Existing Hobby eligibility clarification and actual retention/usage/remaining A/B gates block release. Canonical remains verified FP2A `3e06bf9`; D/E/F not completed. Local processes stopped, zero location worker/payload/consent/rate rows verified; founder Rooms and qualified baseline preserved. Resume without replaying completed incident investigations or resetting unrelated WIP.
+
 ## Latest founder release directive / stop gate — 13 October 2026
 
 Read the full founder attachment `fe10e29f-59fb-447a-a8e8-c8bc0634b275/Pasted text.txt` during local QA. It conditionally authorizes canonical after critical acceptance, superseding the earlier no-canonical boundary. It does not authorize bypassing retention/privacy gates, new provider procurement, billing/credential changes or continuous movement. It also classifies refresh/Stop/expiry/debug controls as Development-only and requires clear sharing-ended status plus explicit renewal. Those latest production-UI requirements are pending; current code remains the local candidate. Do not claim the separate Share toolbar CTA removal also completed this newer requirement.

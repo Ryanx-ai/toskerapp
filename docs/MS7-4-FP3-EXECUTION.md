@@ -4,6 +4,12 @@
 
 ## Gate status
 
+### P0 containment — FP2A restored, 13 October08:54UTC
+
+Founder P0 two-hour authority starts07:45:20UTC, ends09:45:20UTC; founder separately approves early FP2A rollback then continued bounded diagnosis. Canonical now3e06bf9 /READY dpl_BeaJBAwSj33GQzxWzE2HRXj5vcLh; exactalias and real canonical A/B presence,scoped denial,retained Chat,Leave pass. Browser FP2A Map/Board/Chat and Live navigation continuity pass. No DB rollback or provider changes; main0264500 is deliberately divergent. [Incident ledger](MS7-4-FP3-P0-INCIDENT.md) is current; historical READY-but-blocked evidence below is preserved.
+
+Regional discrepancy: original/diagnostic Virginia deployments fail ephemeral delivery despite acknowledgements; same source Singapore-stage dd3ef47 passes broad/precise/Stop08:59UTC. Local Node22/24 also pass. This is not an accepted permanent regional workaround. Temporary QA-only version/nonce probe82801eb investigates cross-region delivery. Must remove temporary application diagnostics and save recovery before deadline; canonical stays FP2A unless all critical acceptance gates pass. Never persist coordinates to work around ephemeral delivery.
+
 ### CANONICAL READY / ACCEPTANCE BLOCKED — 13 October 07:34 UTC
 
 Existing Git integration deployed exact `02645001515baf629e26d70d504c9a66844997ee` to READY Production `dpl_EeJQvaso97gJuaGhT8S6oc2SzYk7`; exact `toskerapp.vercel.app` alias verified. [Qualified receipt](MS7-4-FP3-CANONICAL-RECEIPT.json). **Not canonical verified; STOP at the failed delivery gate.** No additional deployment, rollback, permission expansion or fallback to persistent location messages.

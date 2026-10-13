@@ -2,6 +2,12 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## MS7.4 FP3 P0 — FP2A CANONICAL RESTORED / BOUNDED DIAGNOSIS — 13 October 2026
+
+Founder authorized early safe rollback followed by continued investigation within the original deadline **09:45:20 UTC /17:45:20 SGT**. Canonical `toskerapp.vercel.app` is now verified FP2A **3e06bf9**, READY `dpl_BeaJBAwSj33GQzxWzE2HRXj5vcLh`. Fresh canonical A/B presence/scoped denials/Chat/Leave pass08:54UTC; isolated browser Map/Board/Live/Chat continuity passes. No DB rollback: all35 FP2A tables unchanged, only additive consent-only0029 exists. Main remains0264500; Vercel rollback pauses automatic production assignment until deliberate promotion. Do not redeploy FP3 merely to align Git.
+
+Read [P0 incident ledger](docs/MS7-4-FP3-P0-INCIDENT.md). Original Virginia ephemeral delivery fails, normal version-only messages work; optimized local Node22 and24 pass. **Unchanged FP3 Singapore-stage dd3ef47 passes broad/precise/Stop**. Not accepted as a repair: cross-region reliability remains to test. QA-only version/nonce regional probe checkpoint82801eb is temporary, must be removed before completion; no location payload persisted. Canonical stays FP2A until all critical gates pass. No billing/key/provider changes. Preserve unrelated WIP, the prior founder Sandbox read-marker qualification and all three Founder Review Rooms. MS7.4 remains unlocked, FP2B research-only.
+
 ## MS7.4 FP3 — CANONICAL READY / DELIVERY GATE BLOCKED / STOP — 13 October 2026 SGT
 
 Canonical exact `02645001515baf629e26d70d504c9a66844997ee`, READY `dpl_EeJQvaso97gJuaGhT8S6oc2SzYk7`, `toskerapp.vercel.app` alias verified. **NOT canonical verified.** Read top [FP3 ledger](docs/MS7-4-FP3-EXECUTION.md) and [qualified receipt](docs/MS7-4-FP3-CANONICAL-RECEIPT.json). Production snapshot API returns200/valid broad payload but attached authorized B feed receives none in two bounded checks; actual A/B Live presence and scoped denial pass. Direct local SDK ephemeral/identical-payload probes reach B, but are not canonical success. Root cause unknown; stop gate, no repeat full suite or provider matrix. No rollback/second deploy performed. Founder decision needed: bounded dispatch investigation/repair or restore last verified FP2A while investigating.

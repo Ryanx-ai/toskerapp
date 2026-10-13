@@ -9,7 +9,7 @@ import { durableLocationService } from "../src/server/location-sharing/durable-s
 import { parseCleanupMessage } from "../src/server/location-sharing/cleanup-policy";
 import { resolveQaActors } from "./lib/ms73-fixtures";
 const db=getDatabase(),clerk=createClerkClient({secretKey:process.env.CLERK_SECRET_KEY});
-const sessions:string[]=[],obligations:string[]=[];let phase="ownership",allowCapacity=true;
+const sessions:string[]=[],obligations:string[]=[];let phase="ownership",failedPhase:string|undefined,allowCapacity=true;
 async function main(){
   assert(process.env.CLERK_SECRET_KEY?.startsWith("sk_test_"));
   const {a,b,founder}=await resolveQaActors(db),fixture=JSON.parse(readFileSync(".git/ms74-recovery/fixture.json","utf8"));
@@ -17,10 +17,12 @@ async function main(){
   assert.equal((await db.execute(sql`select 1 from rooms r join room_memberships m on m.room_id=r.id where r.id=${fixture.roomId}::uuid
     and r.owner_id=${a.userId}::uuid and r.slug=${fixture.slug} and m.user_id=${founder.userId}::uuid`)).rows.length,1);
   assert.equal(Number((await db.execute(sql`select count(*) n from location_shares`)).rows[0].n),0);
+  assert.equal(Number((await db.execute(sql`select count(*) n from location_cleanup_reservations where expires_at<clock_timestamp()-interval '1 minute'`)).rows[0].n),0,
+    "Finish pending retention-failure recovery before testing admission");
   assert.equal(Number((await db.execute(sql`select count(*) n from invite_rate_limits where user_id in (${a.userId}::uuid,${b.userId}::uuid)
     and operation in ('location-consent','location-snapshot')`)).rows[0].n),0);
   const checks:string[]=[],notices:string[]=[];
-  const deps={capacity:()=>allowCapacity,
+  const deps={capacity:()=>allowCapacity,readBudget:async()=>{},
     session:async(actor:typeof a,id:string)=>{const s=await clerk.sessions.getSession(id);assert.equal(s.userId,actor.authSubject);assert.equal(s.status,"active");assert(s.expireAt>Date.now());},
     notify:async(id:string)=>{notices.push(id);},
     publisher:async(input:unknown,options:{retentionSeconds:number;delaySeconds?:number;idempotencyKey:string})=>{
@@ -72,7 +74,7 @@ async function main(){
     writeFileSync(".git/ms74-fp3/durable-service.json",JSON.stringify({passed:true,checks,realClerkSessions:true,cleanupPublisherInjected:true,
       hostedApplicationAcceptance:false,providerCalls:0,notices:notices.length,at:new Date().toISOString()}),{mode:0o600});
     console.log(JSON.stringify({durableService:"PASS",checks,realClerkSessions:true,cleanupPublisherInjected:true,hostedApplicationAcceptance:false,providerCalls:0}));
-  }finally{
+  }catch(error){failedPhase=phase;throw error;}finally{
     phase="exact-cleanup";
     for(const actor of[a,b])if(sessions.length)await db.execute(sql`delete from location_shares where user_id=${actor.userId}::uuid
       and session_id in (${sql.join(sessions.map(id=>sql`${id}`),sql`, `)})`);
@@ -82,4 +84,4 @@ async function main(){
     await db.execute(sql`delete from invite_rate_limits where user_id in (${a.userId}::uuid,${b.userId}::uuid) and operation in ('location-consent','location-snapshot')`);
   }
 }
-main().catch(()=>{console.error(JSON.stringify({durableService:"FAIL",phase,detailsSuppressed:true}));process.exitCode=1;}).finally(()=>db.$client.end());
+main().catch(()=>{console.error(JSON.stringify({durableService:"FAIL",phase:failedPhase??phase,detailsSuppressed:true}));process.exitCode=1;}).finally(()=>db.$client.end());

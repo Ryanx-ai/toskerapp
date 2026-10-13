@@ -18,8 +18,9 @@ import { lockLocalLocationActors, lockLocationReadContext } from "./read-scope";
 import { notifyLocationChanged } from "./notifications";
 import { armCleanup, assertDurableAdmission, lockDurableCleanup, reserveCleanup, type CleanupPublisher } from "./durable-cleanup";
 import { CleanupPolicyError } from "./cleanup-policy";
+import { reserveLocationRead } from "./capacity";
 
-type Dependencies={session:typeof assertRealtimeSession;notify:typeof notifyLocationChanged;
+type Dependencies={session:typeof assertRealtimeSession;notify:typeof notifyLocationChanged;readBudget:typeof reserveLocationRead;
   capacity:()=>boolean;publisher?:CleanupPublisher;area:(p:{latitude:number;longitude:number;accuracy:number},userId:string,signal:AbortSignal)=>Promise<{label:string;source:"ura"|"geoapify"}>};
 const lease=(r:typeof locationShares.$inferSelect):LocationLease=>({id:r.id,userId:r.userId,conversationId:r.conversationId,precision:r.precision as LocationPrecision,expiresAt:r.expiresAt.getTime()});
 const snapshot=(c:typeof locationShares.$inferSelect,r:typeof locationLatest.$inferSelect):LatestLocationSnapshot=>({...lease(c),sentAt:r.acceptedAt.getTime(),revision:r.revision,label:r.label,source:r.source as "ura"|"geoapify",
@@ -38,7 +39,7 @@ async function rate(tx:ToskerTransaction,userId:string,operation:string){
 /** Candidate stays unwired until hosted retention, capacity and full A/B pass.
  * No history, background geolocation, location events, or provider coupling. */
 export function durableLocationService(db:ToskerDatabase,overrides:Partial<Dependencies>={}){
-  const deps:Dependencies={session:assertRealtimeSession,notify:notifyLocationChanged,capacity:()=>false,
+  const deps:Dependencies={session:assertRealtimeSession,notify:notifyLocationChanged,capacity:()=>false,readBudget:reserveLocationRead,
     area:async(point,userId,signal)=>{
       const local=await localArea(point.latitude,point.longitude);if(local)return{label:local,source:"ura"};
       await reservePlaceRequest(db,userId);const label=await getPlaceProvider().area(point.latitude,point.longitude,signal);
@@ -111,6 +112,13 @@ export function durableLocationService(db:ToskerDatabase,overrides:Partial<Depen
     },
     async read(actor:AuthenticatedActor,sessionId:string,conversationId:string):Promise<LocationCurrentView>{
       if(!isConversationId(conversationId))throw new TypeError();capacity();
+      const deadline=performance.now()+4000;
+      const sessionBeforeDeadline=async(actor:AuthenticatedActor,id:string)=>{
+        const remaining=deadline-performance.now();if(remaining<=0)throw new CleanupPolicyError();
+        let timer:ReturnType<typeof setTimeout>|undefined;
+        try{await Promise.race([deps.session(actor,id),new Promise<never>((_,reject)=>{timer=setTimeout(()=>reject(new CleanupPolicyError()),remaining);})]);}
+        finally{if(timer)clearTimeout(timer);}
+      };
       return db.transaction(async tx=>{
         await tx.execute(sql`set local statement_timeout='4s'`);await tx.execute(sql`set local lock_timeout='2s'`);
         // Discover a bounded source set, lock it in sorted order, then re-query
@@ -118,7 +126,8 @@ export function durableLocationService(db:ToskerDatabase,overrides:Partial<Depen
         const candidates=await tx.select({userId:locationShares.userId}).from(locationShares).where(eq(locationShares.conversationId,conversationId)).limit(51);
         if(candidates.length>50)throw new AuthorizationDeniedError();
         const ids=[...new Set([actor.userId,...candidates.map(r=>r.userId)])];
-        await lockLocalLocationActors(tx,ids);await deps.session(actor,sessionId);await lockLocationReadContext(tx,conversationId);
+        await deps.readBudget(db,ids.length);
+        await lockLocalLocationActors(tx,ids);await sessionBeforeDeadline(actor,sessionId);await lockLocationReadContext(tx,conversationId);
         const rows=await tx.select({consent:locationShares,payload:locationLatest,user:users,profileUserId:profiles.userId,
           displayName:contextualName(actor.userId,sql`${conversations.roomId}`,sql`${users.id}`,sql`${profiles.displayName}`),avatarUrl:profiles.avatarUrl}).from(conversations)
           .leftJoin(locationShares,and(eq(locationShares.conversationId,conversations.id),inArray(locationShares.userId,ids),sql`${locationShares.userId}<>${actor.userId}::uuid`,
@@ -128,12 +137,17 @@ export function durableLocationService(db:ToskerDatabase,overrides:Partial<Depen
           .where(and(eq(conversations.id,conversationId),sql`exists(select 1 from conversations c where c.id=${conversations.id} and ${authorizedContext(sql`${actor.userId}::uuid`)})`));
         if(!rows.length)throw new AuthorizationDeniedError();
         const peers:LocationCurrentView["peers"]=[];
-        for(const row of rows){
-          if(!row.consent||!row.payload||!row.user||!row.profileUserId)continue;
-          try{await deps.session({userId:row.user.id,authProvider:row.user.authProvider,authSubject:row.user.authSubject},row.consent.sessionId);
-            if(row.consent.expiresAt.getTime()>Date.now())peers.push({snapshot:snapshot(row.consent,row.payload),identity:{userId:row.user.id,displayName:row.displayName,avatarUrl:approvedAvatarUrl(row.avatarUrl)}});
-          }catch{/* Unverifiable sender is omitted, never cached. */}
-        }
+        let next=0;
+        await Promise.all(Array.from({length:Math.min(4,rows.length)},async()=>{
+          while(next<rows.length&&performance.now()<deadline){
+            const row=rows[next++];
+            if(!row.consent||!row.payload||!row.user||!row.profileUserId)continue;
+            try{await sessionBeforeDeadline({userId:row.user.id,authProvider:row.user.authProvider,authSubject:row.user.authSubject},row.consent.sessionId);
+              if(row.consent.expiresAt.getTime()>Date.now())peers.push({snapshot:snapshot(row.consent,row.payload),identity:{userId:row.user.id,displayName:row.displayName,avatarUrl:approvedAvatarUrl(row.avatarUrl)}});
+            }catch{/* Unverifiable sender is omitted, never cached. */}
+          }
+        }));
+        if(performance.now()>=deadline)throw new CleanupPolicyError();
         const serverNow=Date.now();return{serverNow,validForMs:Math.max(0,Math.min(LOCATION_VIEW_MS,...peers.map(p=>p.snapshot.expiresAt-serverNow))),peers:peers.filter(p=>p.snapshot.expiresAt>serverNow)};
       });
     },

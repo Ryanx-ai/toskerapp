@@ -10,6 +10,10 @@ import { durableLocationService } from "../src/server/location-sharing/durable-s
 import { LOCATION_CLEANUP_TOPIC } from "../src/server/location-sharing/cleanup-consumer";
 import { resolveQaActors } from "./lib/ms73-fixtures";
 const db=getDatabase(),deploymentId=process.env.FP3_QUEUE_DEPLOYMENT;
+assert.equal(process.env.NODE_ENV,"production","Hosted publisher must not use SDK development-mode unpinned sends");
+const oidc=process.env.VERCEL_OIDC_TOKEN;
+assert(oidc&&JSON.parse(Buffer.from(oidc.split('.')[1],'base64url').toString()).environment==='production',
+  "Publisher token environment must match the staged Production consumer");
 assert.equal(deploymentId,"dpl_oawCafcbstwoCDdz3BE4fMtzeHZn");
 const queue=new QueueClient({region:"iad1",deploymentId,telemetry:{isEnabled:false}});
 const clerk=createClerkClient({secretKey:process.env.CLERK_SECRET_KEY});

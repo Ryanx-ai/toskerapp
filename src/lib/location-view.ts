@@ -10,6 +10,7 @@ export class LocationView {
   private epoch = 0;
   private request: AbortController | null = null;
   private dirty = false;
+  private failures = 0;
   private poll: unknown;
   private expiry: unknown;
   private timeout: unknown;
@@ -20,7 +21,7 @@ export class LocationView {
     if (value) this.refresh(); else this.clear();
   }
   clear() {
-    ++this.epoch; this.ready = false; this.request?.abort(); this.request = null; this.dirty = false;
+    ++this.epoch; this.ready = false; this.request?.abort(); this.request = null; this.dirty = false; this.failures = 0;
     this.clock.clear(this.poll); this.clock.clear(this.expiry); this.clock.clear(this.timeout);
     this.changed([]);
   }
@@ -29,7 +30,7 @@ export class LocationView {
     if (this.request) { this.dirty = true; return; }
     this.clock.clear(this.poll);
     const epoch = this.epoch, start = this.clock.now(), controller = new AbortController();
-    let displayedPeers = false;
+    let displayedPeers = false, failed = false;
     this.request = controller;
     this.timeout = this.clock.set(() => { controller.abort(); if (epoch === this.epoch) this.changed([]); }, LOCATION_VIEW_MS);
     // Token acquisition or a transport shim may not observe AbortSignal. Race
@@ -40,11 +41,12 @@ export class LocationView {
       if (!validLocationView(value, this.context)) throw new Error("Invalid location view");
       const remaining = value.validForMs - (this.clock.now() - start);
       this.clock.clear(this.expiry);
-      if (remaining <= 0) { this.changed([]); return; }
+      if (remaining <= 0) { failed = true; this.changed([]); return; }
+      this.failures = 0;
       displayedPeers = value.peers.length > 0;
       this.changed(value.peers);
       this.expiry = this.clock.set(() => this.changed([]), remaining);
-    }).catch(() => { if (epoch === this.epoch) { this.clock.clear(this.expiry); this.changed([]); } })
+    }).catch(() => { failed = true; if (epoch === this.epoch) { this.clock.clear(this.expiry); this.changed([]); } })
       .finally(() => {
         if (epoch !== this.epoch) return;
         this.clock.clear(this.timeout); this.request = null;
@@ -53,8 +55,11 @@ export class LocationView {
         // Recheck sooner only while displaying peers, reserving observed read
         // latency plus 250ms of headroom. Never extend their expiry or overlap
         // requests. Slow (>half-window) reads still clear rather than go stale.
-        const interval = displayedPeers ? Math.min(3000, LOCATION_VIEW_MS - elapsed - 250) : 3000;
-        const delay = this.dirty ? 0 : Math.max(0, interval - elapsed); this.dirty = false;
+        const interval = failed ? Math.min(60000,5000*2**Math.min(this.failures++,4))
+          : displayedPeers ? Math.min(3000, LOCATION_VIEW_MS - elapsed - 250) : 3000;
+        // Failure/quota backoff cannot extend a marker: catch already cleared
+        // it, and its independent request-start expiry is never renewed here.
+        const delay = this.dirty && !failed ? 0 : failed ? interval : Math.max(0, interval - elapsed); this.dirty = false;
         this.poll = this.clock.set(() => this.refresh(), delay);
       });
   }

@@ -56,6 +56,12 @@ async function main() {
   latencyClock.advance(2200); finish(value()); await tick(); assert.equal(shown, 1);
   latencyClock.advance(250); assert.equal(shown, 1); // replacement authorized before old5s fence
   slower.clear(); assert.equal(shown, 0); assert.equal(latencyClock.timers.size, 0);
+  const failureClock=new Clock();let attempts=0;
+  const unavailable=new LocationView(context,async()=>{attempts++;throw new Error("quota/offline");},next=>{assert.equal(next.length,0);},failureClock);
+  unavailable.setReady(true);await tick();assert.equal(attempts,1);
+  failureClock.advance(4999);assert.equal(attempts,1);failureClock.advance(1);await tick();assert.equal(attempts,2);
+  failureClock.advance(9999);assert.equal(attempts,2);failureClock.advance(1);await tick();assert.equal(attempts,3);
+  unavailable.clear();assert.equal(failureClock.timers.size,0);
   console.log(JSON.stringify({ passed: true, cases: ["strict context/precision/revision/identity validation", "readiness required", "request-start deadline", "no late resurrection", "hidden/disconnected clears", "generation isolation", "coalesced invalidations", "error clears", "latency-aware renewal without stale display", "all timers disposed"], providerCalls: 0 }));
 }
 void main();

@@ -93,6 +93,27 @@ async function main() {
       console.log(JSON.stringify({transportProbe:true,canonicalTokenAndExistingLocalPublisherSameApplication:true}));
       return;
     }
+    if(process.argv.includes("--regional-probe")) {
+      const publisher=new Rest({key:process.env.ABLY_API_KEY,logLevel:0,httpRequestTimeout:5000});
+      const regionalSeen:string[]=[];
+      let localPublish:Promise<unknown>|undefined;
+      const receiver=clients[1].channels.get(userChannel(actors.b.userId));
+      await receiver.subscribe(message=>{
+        if(message.name?.startsWith("p0.region."))regionalSeen.push(message.name);
+        if(message.name==="p0.region.ready"&&!localPublish){
+          localPublish=(async()=>{
+            const channel=publisher.channels.get(userChannel(actors.b.userId));
+            await channel.publish({name:"p0.region.local.normal",data:message.data});
+            await channel.publish({name:"p0.region.local.ephemeral",data:message.data,extras:{ephemeral:true}});
+          })();
+        }
+      });
+      const server=await location(1,{action:"regional-diagnostic"});
+      await localPublish;
+      const result={origin,server,localObserved:regionalSeen,payload:"version-and-nonce-only",at:new Date().toISOString()};
+      writeFileSync(".git/ms74-fp3/p0-regional-probe.json",JSON.stringify(result,null,2),{mode:0o600});
+      console.log(JSON.stringify(result));return;
+    }
     const point = { latitude: 1.2834, longitude: 103.8607, accuracy: 50 };
     if(process.argv.includes("--reverse-probe")) {
       const incoming:Array<Record<string,unknown>>=[];

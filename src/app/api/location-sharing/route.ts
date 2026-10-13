@@ -4,11 +4,15 @@ import { AuthenticationRequiredError } from "@/server/auth/actor";
 import { AuthorizationDeniedError } from "@/server/auth/authorize";
 import { getDatabase } from "@/server/db/client";
 import { latestLocationService, LocationRevisionConflict } from "@/server/location-sharing/latest-service";
+import { durableLocationService } from "@/server/location-sharing/durable-service";
+import { locationCapacityVerified } from "@/server/location-sharing/capacity";
 export const runtime = "nodejs";
+export const maxDuration = 10;
 const headers = { "Cache-Control": "private, no-store", "Vary": "Cookie, Authorization", "X-Content-Type-Options": "nosniff" };
 export async function POST(request: Request) {
   const reply = (body: unknown, status = 200) => Response.json(body, { status, headers });
-  if (process.env.VERCEL !== undefined || !["localhost", "127.0.0.1", "[::1]"].includes(new URL(request.url).hostname)) return reply({ error: "Local synthetic QA only." }, 503);
+  const hosted = process.env.VERCEL !== undefined;
+  if (!hosted && !["localhost", "127.0.0.1", "[::1]"].includes(new URL(request.url).hostname)) return reply({ error: "Sharing unavailable." }, 503);
   if (request.headers.get("origin") !== new URL(request.url).origin) return reply({ error: "Forbidden" }, 403);
   try {
     const actor = await requireCurrentActor(), { sessionId } = await auth();
@@ -23,11 +27,20 @@ export async function POST(request: Request) {
     };
     const keys = allowed[input.action];
     if (!keys || Object.keys(input).some(k => !keys.includes(k))) throw new TypeError();
-    const service = latestLocationService(getDatabase());
+    // Default remains closed on every deployment. Only an explicitly staged,
+    // verified Production release may admit/read hosted snapshots. Stop stays
+    // available even when the release/capacity gate is withdrawn.
+    if (hosted && input.action !== "stop" && (process.env.VERCEL_ENV !== "production"
+      || !process.env.VERCEL_DEPLOYMENT_ID || process.env.TOSKER_LOCATION_DURABLE_ENABLED !== "1")) {
+      return reply({ error: "Sharing unavailable." }, 503);
+    }
+    const service = hosted
+      ? durableLocationService(getDatabase(), { capacity: locationCapacityVerified })
+      : latestLocationService(getDatabase());
     switch (input.action) {
       case "begin":
         if (input.consent !== (input.precision === "precise" ? "precise-latest-v2" : "area-latest-v2")) throw new TypeError();
-        return reply(await service.begin(actor, sessionId, input.conversationId, input.precision));
+        return reply(await service.begin(actor, sessionId, input.conversationId, input.precision, request.signal));
       case "send": return reply(await service.send(actor, sessionId, input.id, input.point, input.expectedRevision, input.requestId, request.signal));
       case "stop": await service.stop(actor, sessionId, input.id); return reply({ stopped: true });
       case "current": return reply(await service.read(actor, sessionId, input.conversationId));

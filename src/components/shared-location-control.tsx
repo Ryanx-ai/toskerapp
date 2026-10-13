@@ -54,18 +54,19 @@ export function SharedLocationControl({ sharing, localLocation, disabled, sandbo
     <span id={`${heading}-status`} className={styles.srOnly}>{status}</span>
     {open && available && !sandbox && <ModalLayer onClose={() => setOpen(false)}><section className={`creation-panel ${styles.locationConsent}`} aria-labelledby={heading}>
       <h2 id={heading}>Share your location with this conversation?</h2>
-      <p><strong>Audience: {contextName}</strong><br/>Authorized participants in this conversation only. Local synthetic QA.</p>
+      <p><strong>Audience: {contextName}</strong><br/>Authorized participants in this conversation only.</p>
       <fieldset><legend>Choose what people can see</legend>
         <label><input type="radio" name={heading} checked={precision === "area"} onChange={() => setPrecision("area")}/> Broad area only (default)</label>
         <p>A region or city label. No precise peer marker.</p>
         <label><input type="radio" name={heading} checked={precision === "precise"} onChange={() => setPrecision("precise")}/> Precise position on peers’ Maps</label>
         <p>This reveals your coordinates and accuracy to people in this conversation.</p>
       </fieldset>
-      <p>One snapshot, up to five minutes. Manual refresh only; no tracking. Locate off, leaving the Map, hiding this tab or disconnecting stops sharing. Returning never restarts it.</p>
+      <p>One snapshot, up to five minutes; no tracking. Locate off, leaving the Map, hiding this tab or disconnecting stops sharing. Returning never restarts it. After expiry, turn Locate off and on to choose sharing again.</p>
       <details><summary>Privacy and retention</summary>
         <p>Includes participants granted access while valid; not other chats or Rooms. Tosker stores only the latest snapshot, not a movement trail. Broad area stores no coordinates. Ably carries change notices only.</p>
-        <p>Confirmed Stop deletes the active snapshot. Running peers remove unverified markers within five seconds. The supervised QA worker cleans expired rows; recovery history may retain prior data for six hours. This is not instant physical erasure. Recipients can copy received data.</p>
-        <p>Refresh does not extend expiry. No provider lookup or background tracking in this synthetic QA wave.</p>
+        <p>Confirmed Stop deletes the active snapshot. Running peers remove unverified markers within five seconds. Expired snapshots become inaccessible immediately; hosted cleanup targets active-row deletion within one minute while healthy. During service outages deletion may take longer, with an hourly recovery sweep.</p>
+        <p>Database recovery history may retain prior data for six hours. This is not instant erasure from backups or recipients’ devices. Recipients can copy received data.</p>
+        <p>Broad area uses local Singapore region data where available. Elsewhere, a rounded position may be sent to Geoapify to obtain a city label; precise coordinates are not stored for broad sharing. No background tracking.</p>
       </details>
       {!sharing.connected && <p role="status">Reconnect to this conversation to share. Your location remains private.</p>}
       <div className={styles.actions}><button className={styles.primary} disabled={!sharing.connected || sharing.busy || sharing.stopping || !!sharing.lease} onClick={() => { setOpen(false); void sharing.start(precision); }}>{precision === "area" ? "Share broad area" : "Share precise position"}</button><button className={styles.control} onClick={() => setOpen(false)}>Keep private</button></div>

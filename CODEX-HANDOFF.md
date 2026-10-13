@@ -2,6 +2,14 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## MS7.4 FP3 — LATEST-STATE APPROVED / RETENTION GATE — 13 October 2026
+
+Founder approves the 20–30-hour latest-state API + content-free Ably notification wave, documented backup-retention distinctions and bounded peer-marker removal, **STOP before canonical deployment**. No foreground automatic movement in this wave. Read [latest-state ledger](docs/MS7-4-FP3-LATEST-STATE-EXECUTION.md) before implementation; it supersedes the older architecture-approval wait below, not the safety gates.
+
+Read-only Neon inspection after founder sign-in confirms Free, six-hour history, no snapshots/snapshot schedule, one branch, 0.25 CU and five-minute sleep. `pg_cron` available but not installed; no cleanup Function deployed. Existing Vercel is active Hobby (daily cron only). No verified minute-level sweeper; continuous minute SQL polling would consume approximately 180 CU-hours/month versus published Free 100. Stop at this retention boundary: no schema/storage code, coordinates, provider configuration or deployment added. Proposed local-only supervised worker boundary requires disposition; production cleanup remains a separate gate, never label local laptop scheduling as durable deployed retention.
+
+Fresh canonical alias remains FP2A `3e06bf9` / `dpl_BeaJBAwSj33GQzxWzE2HRXj5vcLh`; source unchanged from `3911488`, base `dc114f9`. Thirty migration/catalog checks pass. Strict audit retains only the same exact founder Sandbox read-marker drift (04:41:17.526→07:22:24.744 UTC), not rebaselined. Three founder Rooms/membership preserved; no cleanup/new fixtures. Preserve unrelated Design/Art/Web WIP and older handoff hunks. Save local docs only; no push or canonical deployment.
+
 ## MS7.4 FP3 — DELIVERY RESEARCH SAVED / FP2A CANONICAL / APPROVAL GATE — 13 October 2026
 
 Read [delivery recovery / architecture](docs/MS7-4-FP3-DELIVERY-RECOVERY.md), top [execution ledger](docs/MS7-4-FP3-EXECUTION.md), and preserved [P0 incident](docs/MS7-4-FP3-P0-INCIDENT.md). New founder attachments authorize research/local prototyping but direct request forbids temporary storage without separate approval. No application/storage implementation or deployment. Fresh canonical remains READY3e06bf9; source original FP3 remains unaccepted. R/harness checkpointda1abe8 followsb5f270a.

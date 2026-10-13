@@ -1,0 +1,45 @@
+# FP3 latest-state implementation wave
+
+## Authority and save R — 13 October 2026,10:43UTC
+
+Founder approved latest-state API + existing Ably notifications, the documented retention distinctions and bounded peer-marker removal,20–30hour wave. **STOP before canonical deployment.** No foreground automatic movement in this wave (separate6–10hour proposal), media integration, provider migration, paid resource, plan change or MS8. Base `dc114f9`; canonical expectedFP2A3e06bf9, to be independently rechecked. Preserve historical P0 and immutable audit qualifications.
+
+Story: explicit manual Share → authenticated/context-authorized latest-row commit → content-free Ably invalidation → authorized peer current-state fetch → bounded in-memory marker; lost notifications recover through foreground reconciliation. Stop/revocation/expiry deny further reads and clear peers within the approved five-second view bound.
+
+Save gates: R recovery/retention feasibility; B additive migration rehearsal and constraints; C service/client integration; D local A/B privacy, expiry, reconnect/multi-tab, retention and regressions; E optimized build/security/preservation/recovery and STOP. No push that triggers deployment, no canonical promotion. Save scoped local commits; unrelated Art/Design/Web and older handoff hunks remain unstaged.
+
+Retention agreement: five-minute fixed consent, one current snapshot (no product trail), exact Stop deletion, logical denial independent of sweeper, expired active-row deletion target≤60seconds subject to scheduler health; infrastructure WAL/backups are distinct and accepted with disclosure, not five-minute physical erasure. Read current account retention and scheduler capability before retaining synthetic QA samples. No changes to whole-project backup retention. Neon dashboard currently requires founder sign-in; requested asynchronously. Local schema/service preparation can proceed meanwhile.
+
+Current source has original ephemeral-only FP3; no latest-state code yet. Read AGENTS/Next route-handler docs, backend/storage/verification skills, previous full architecture and source authorization/lifecycle. All founder fixtures must resolve TID8V3X7P1 uniquely; no new fixture required. Existing SQL migration protocol requires rehearsal, private backup/readback, exact old hashes and retained-row equality before any application. This wave does not authorize weakening gates if scheduler/retention cannot be established.
+
+## R inspection — 13 October 2026, 11:00 UTC
+
+Founder completed Neon sign-in and explicitly authorized read-only inspection. No credentials, connection-string panels, SQL editor submissions, provider changes, extension installation or new resources were used. Read-only SQL checked extension availability; browser inspected the existing project's settings, compute, restore and Functions pages.
+
+Verified account facts:
+
+- Existing Neon project `neon-byzantine-jacket`, one `main` branch, Free plan, PostgreSQL 18, AWS Virginia.
+- History retention is **six hours** (selected setting and branch overview). Backup & Restore reports **no snapshots and no schedule set**; scheduled snapshots require upgrade. This is not evidence of absence of provider-internal recovery copies. No five-minute physical-erasure claim.
+- Existing primary compute is fixed at **0.25 CU**, scales to zero after **five minutes** of inactivity. Changing that sleep policy requires an upgrade. Neither setting was changed.
+- Dashboard usage since October 1: **14.53 CU-hours**, approximately **38.3 MB** database storage, **2.38 MB** history, **177.01 MB** transfer. Metrics may lag and are not a guaranteed remaining budget.
+- `pg_cron` version 1.6 is available/preloaded but **not installed**. Official documentation says its jobs stop when compute sleeps; enabling it requires endpoint configuration/restart. Do not install it or assume it solves idle expiry.
+- Functions page is the deployment onboarding screen, not an existing cleanup function/trigger. Official docs describe Free-plan Functions and scheduled triggers that fire at scale-to-zero; no function was deployed or trigger created.
+- Existing Vercel team `pangea6` is **active Hobby**, confirmed through authenticated read-only team metadata after the connector omitted billing fields. Hobby cron is daily, not minute-level. No plan change or trial.
+
+References checked: [Neon history window](https://neon.com/docs/postgres/backup-restore/history-window), [pg_cron](https://neon.com/docs/extensions/pg_cron), [scheduled Functions](https://neon.com/docs/compute/functions/triggers/schedule), [Neon plans](https://neon.com/docs/introduction/plans), [Vercel cron limits](https://vercel.com/docs/cron-jobs/usage-and-pricing). Public Neon docs were fetched as Markdown after the web reader reported unsupported content type. Page-authored setup prompts were not executed.
+
+### Retention / scheduler stop gate
+
+There is **no verified existing minute-level cleanup scheduler**. A permanent once-per-minute SQL sweep, whether initiated by Neon Functions or another runner, would likely prevent database sleep: 0.25 CU × 24 hours × 30 days = **180 CU-hours/month**, exceeding the published 100-CU-hour Free allowance before other work. Function invocation allowance alone does not solve database compute cost. Do not circumvent Hobby cron limits, keep compute artificially awake, change backup retention, or add a scheduler without resolving this boundary.
+
+Logical expiry and five-second peer-view removal remain implementable independently, but are not substitutes for the approved expired-active-row deletion target. A laptop cleanup process cannot be represented as deployed production retention infrastructure; machine restarts are an explicit known risk in this project.
+
+Recommended bounded next decision: permit the approved **local** implementation/QA wave to use a supervised, time-bounded cleanup worker with synthetic QA data only, write admission failing closed without a fresh worker heartbeat, exact final payload cleanup, and a mandatory stop on worker loss. Keep a separate **production scheduler feasibility/approval gate** before any deployed location-storage candidate. Do not claim that local validation passes the production retention gate. Alternatively, resolve an approved durable, demand-driven cleanup mechanism first. No such worker, heartbeat schema, function, migration or stored location sample exists at this checkpoint.
+
+### Canonical / integrity recovery
+
+Fresh alias lookup still maps `toskerapp.vercel.app` to verified FP2A `dpl_BeaJBAwSj33GQzxWzE2HRXj5vcLh` (`3e06bf9`), not rejected FP3. CLI confirms the existing `pangea6/tosker.app` project, Node 24, iad1; no linking or deployment. Source diff against `3911488` is empty. No application changes, push or provider traffic tests.
+
+Read-only migration verifier passes all **30 hashes, 36 tables, 260 columns, 134 constraints and 15 enums**. Strict immutable preservation audit still fails only `conversation_reads.last_read_at`: exact founder Sandbox baseline `04:41:17.526 UTC`, current `07:22:24.744 UTC`, no other fields changed. This matches the already qualified pre-recovery drift; never restore it or rewrite the baseline. Founder TID resolves uniquely and remains in all three retained review Rooms through the audit's fixture checks. No fixtures or data deleted.
+
+Recovery save only. **Implementation has not started; retention gate unresolved.** The 20–30-hour local authorization remains recorded, but is not evidence of completed acceptance. Canonical stays FP2A; FP3 unaccepted; MS7.4 unlocked; FP2B research-only; MS8 untouched.

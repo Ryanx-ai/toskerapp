@@ -2,6 +2,12 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP3 synthetic Sensors handoff — 13 October 2026
+
+Founder confirmed synthetic Sensors configured. Recovered `3cfde28`, independently verified zero worker/payload/consent/rate rows and unchanged qualified preservation drift, then started the existing optimized local app and a bounded worker. Browser remained isolated QA A. Reload redirected to an unrelated existing QA Room; navigated to the exact retained FP1 fixture before Locate. Two UI Locate requests both timed out after the application's ten-second limit; Locate returned OFF, Share stayed disabled. **No position returned, no sender consent or snapshot created; sender UI gate remains blocked.** Do not infer that Sensors reached this tab from the founder confirmation alone, and do not fall back to real GPS or hidden-state injection.
+
+Worker stopped gracefully with exact-generation cleanup. Local optimized server remains intentionally running on localhost3000 for Sensors handoff (owned Next PID81131 at observation; revalidate before any process action). QA tab704686678 stays open at `/room/ms74-fp1-qa-a39d9eea`, LocateOFF. Ask for a Sensors-panel screenshot on that exact tab, with DevTools left open; never request credentials. Existing viewport-reset limitation remains; avoid resetting the browser session and losing the manual Sensors setup. No application edits, provider lookup, push/deploy or canonical change. Ledger records the bounded failure; all prior acceptance qualifications remain.
+
 ## MS7.4 FP3 — LOCAL QA SAVED / SENDER UI GATES OPEN / NO DEPLOY — 13 October 2026
 
 Current application/worker checkpoint `bd538f0`; subsequent local harness/docs checkpoint extends actual cold/new-connection/two-receiver API evidence. Read the final D section in [latest-state ledger](docs/MS7-4-FP3-LATEST-STATE-EXECUTION.md). Latest authority remains20–30h local latest-state API + content-free Ably wave, **STOP before canonical**. Production cleanup/retention gate remains unresolved; no push/deploy/provider/billing/permissions changes. Fresh alias inspection resolves the same READY FP2A immutable deployment linked to3e06bf9.

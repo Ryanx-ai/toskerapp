@@ -1,5 +1,13 @@
 # FP3 latest-state implementation wave
 
+## Synthetic sender UI retry — 13 October 2026 (latest handoff)
+
+Founder confirmed Chrome Sensors had been set to the public synthetic point1.2834/103.8607,accuracy50m. Recovered local checkpoint`3cfde28`; read-only preflight passed zero active workers/payloads/consents/QA location rate rows, exact founder memberships and unchanged qualified prior Sandbox read drift. Started the existing optimized application and30-minute supervised worker, waiting for explicit worker readiness.
+
+The controlled tab reloaded through Sandbox into an existing MS5 Room while remaining isolated QA A. Before any Locate action, navigated via sidebar to the exact owned FP1 Room`ms74-fp1-qa-a39d9eea`. LocateOFF and Share disabled verified. Two bounded UI Locate attempts each showed Requesting your location, then Location timed out; Locate revertedOFF and Share remained disabled. The hook's configured timeout is10000ms. This identifies the first unverified boundary as browser geolocation callback delivery; root cause is not established. No synthetic coordinates were actually returned to the inspected UI, so sender consent/share was not attempted. No real-location fallback, hidden-state injection or permission/configuration changes.
+
+Stopped the worker gracefully; exact generation/payload cleanup reported. Kept the existing local server running for a Sensors-panel handoff and marked the exact QA tab for continuation. No new Clerk test session, snapshot, fixture, provider search/reverse/routing request, application edit, push or deployment. Basemap asset traffic is not measured. Previous sender-consent/keyboard/precise-responsive and performance/production-retention gates remain open; this is not acceptance. Need inspect the actual Sensors panel on this same tab with DevTools left open before another location attempt. Canonical remains unchanged FP2A by prior immutable receipt; no new canonical inspection was needed for this browser-only retry.
+
 ## Authority and save R — 13 October 2026,10:43UTC
 
 Founder approved latest-state API + existing Ably notifications, the documented retention distinctions and bounded peer-marker removal,20–30hour wave. **STOP before canonical deployment.** No foreground automatic movement in this wave (separate6–10hour proposal), media integration, provider migration, paid resource, plan change or MS8. Base `dc114f9`; canonical expectedFP2A3e06bf9, to be independently rechecked. Preserve historical P0 and immutable audit qualifications.

@@ -7,3 +7,13 @@ Recovery: HEAD3911488; main/canonical0264500; READY dpl_EeJQvaso97gJuaGhT8S6oc2S
 Boundary evidence: explicit consent and authenticated/context-authorized API returns valid snapshots on canonical, but B's attached feed receives none. Existing local SDK can publish an identical ephemeral payload to the canonical-token B subscriber. **Optimized local Production build of0264500 independently passes broad/precise/Stop/fixed refresh/forgery/scoped authorization and Live presence** (07:47UTC, isolatedQA). One bounded Tokyo search passed; no saved place/content mutation. This is local-production evidence, not a repaired canonical.
 
 Next: staged Production-only anonymous dispatch counts (provider acknowledgement count, recipient count, failed count), no coordinates/labels/identities/IDs/credentials or persistent diagnostic messages. Do not move canonical before the boundary and critical tests pass. No environment/key changes; existing Free quotas remain.
+
+## 16:20 SGT boundary checkpoint
+
+Canonical alias remains0264500. Staged diagnostics only:6332879→dpl_6aiPt45RhMFzoHYAfHsAU6zeiLei;cb0c20b→dpl_AkB6w347i5p5zt6W4MoEZZMWD8St;6821440→dpl_FgM8EJi8Huh3HmH9iiCcb8bxsTWy;3ff91c9→dpl_FuN9yN4maiFsM9Apvj7K7N4wpkAY. All targeted existing Production environment with `--skip-domain`; the generated project alias moved, canonical did not.
+
+Two recipients resolve and both provider acknowledgements contain one non-null serial. One-way hashed application/channel correlation matches the local publisher and B subscriber; no key, raw identity, coordinates or labels logged. Custom-ID removal, explicit SDK JSON, and direct ephemeral REST each fail to produce B events; retirement also absent. These experiments are **not accepted fixes**. Both isolated SDK B and normally authenticated isolated browser B fail to display the staged broad snapshot. Existing Map/Chat UI loads.
+
+Room/Subroom/Personal revocation, Stop transport-failure invalidation, expired consent, unavailable-area denial and schema lifetime/precision/session constraints re-pass with rollback/no retained content writes. No additional Geoapify calls in staged tests. Next compare version-only normal/ephemeral diagnostic messages on the same authorized feed, never persist a location payload. Remove diagnostic code before any accepted repair release.
+
+Rollback preflight source comparison:0029 only adds `location_shares` plus its own indexes/FKs/checks; prior FP2A schema otherwise byte-identical. Runtime/read-only data compatibility and exact alias verification remain required before any rollback. No database reversal authorized or performed.

@@ -3,7 +3,7 @@ import { and, eq, inArray } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { locationShares } from "@/server/db/schema";
 import type { ToskerTransaction } from "@/server/db/client";
-import { getRealtimeServer } from "@/server/realtime/provider";
+import { getSnapshotTransport } from "./transport";
 import { conversationChannel, userChannel } from "@/lib/realtime-contract";
 import { LOCATION_RETIRED } from "@/lib/shared-location-contract";
 
@@ -18,5 +18,5 @@ export async function publishLocationRetirement(data: { id: string; conversation
   // Clear contains no location, name, precision or address. A disconnected peer
   // clears locally; an active peer tombstones the opaque lease even if Stop races.
   await Promise.all([conversationChannel(data.conversationId), userChannel(data.userId)].map(channel =>
-    getRealtimeServer().channels.get(channel).publish({ id: randomUUID(), name: LOCATION_RETIRED, data, extras: { ephemeral: true } })));
+    getSnapshotTransport().channels.get(channel).publish({ id: randomUUID(), name: LOCATION_RETIRED, data, extras: { ephemeral: true } })));
 }

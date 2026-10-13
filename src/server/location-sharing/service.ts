@@ -8,7 +8,7 @@ import { inviteRateLimits, locationShares, users } from "@/server/db/schema";
 import { authorizedContext, lockPinScope, scopeForConversation } from "@/server/map-pins/scope";
 import { lockActorTokens } from "@/server/realtime/access-lock";
 import { assertRealtimeSession } from "@/server/realtime/session";
-import { getRealtimeServer } from "@/server/realtime/provider";
+import { getSnapshotTransport } from "./transport";
 import { isConversationId, userChannel } from "@/lib/realtime-contract";
 import { LOCATION_SNAPSHOT, LOCATION_TTL, type LocationLease, type LocationPrecision, type LocationSnapshot, validSnapshotPoint } from "@/lib/shared-location-contract";
 import { localArea } from "@/server/maps/area";
@@ -26,10 +26,10 @@ export function locationService(db: ToskerDatabase, overrides: Partial<Dependenc
   const deps: Dependencies = {
     session: assertRealtimeSession,
     publish: async (recipientId, snapshot) => {
-      const accepted = await getRealtimeServer().channels.get(userChannel(recipientId)).publish({ name: LOCATION_SNAPSHOT, data: snapshot, extras: { ephemeral: true } });
+      const accepted = await getSnapshotTransport().channels.get(userChannel(recipientId)).publish({ name: LOCATION_SNAPSHOT, data: snapshot, extras: { ephemeral: true } });
       // Incident diagnostics: aggregate acknowledgement shape only. Never log
       // identity, channel, consent ID, coordinates, labels, keys or SDK errors.
-      console.info("[location-dispatch]", { stage: "provider-ack", channelDigest:createHash("sha256").update(userChannel(recipientId)).digest("hex").slice(0,12), serialCount: accepted?.serials?.length ?? 0, discarded: accepted?.serials?.filter(value => value === null).length ?? 0 });
+      console.info("[location-dispatch]", { stage: "provider-ack", appDigest:createHash("sha256").update(process.env.ABLY_API_KEY!.split(".")[0]).digest("hex").slice(0,12), channelDigest:createHash("sha256").update(userChannel(recipientId)).digest("hex").slice(0,12), serialCount: accepted?.serials?.length ?? 0, discarded: accepted?.serials?.filter(value => value === null).length ?? 0 });
     },
     area: async (point, actorId, signal) => {
       const local = await localArea(point.latitude, point.longitude);

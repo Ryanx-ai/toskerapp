@@ -1,6 +1,6 @@
 /** Bounded canonical SDK/API smoke. Synthetic public landmark; isolated QA only. */
 import assert from "node:assert/strict";
-import { randomUUID } from "node:crypto";
+import { randomUUID, createHash } from "node:crypto";
 import { spawn } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 import { createClerkClient } from "@clerk/backend";
@@ -84,6 +84,7 @@ async function main() {
     await feed.subscribe(LOCATION_SNAPSHOT, message => snapshots.push(message.data));
     await clients[1].channels.get(conversationChannel(fixture.conversationId)).subscribe(LOCATION_RETIRED, message => retired.push(message.data));
     assert.equal(feed.state,"attached");
+    if(process.argv.includes("--trace-boundary"))console.log(JSON.stringify({stage:"receiver",channelDigest:createHash("sha256").update(userChannel(actors.b.userId)).digest("hex").slice(0,12)}));
     if(process.argv.includes("--transport-probe")) {
       phase="diagnostic non-sensitive ephemeral transport";
       const publisher=new Rest({key:process.env.ABLY_API_KEY,logLevel:0,httpRequestTimeout:5000});
@@ -108,7 +109,15 @@ async function main() {
         return;
       }
       try { await wait(() => snapshots.some(s => s.id === lease.id), "B receives ephemeral snapshot"); }
-      catch(error) { console.log(JSON.stringify({diagnostic:"snapshot receipt",connection:clients[1].connection.state,feed:feed.state,observed,snapshotCount:snapshots.length,matchingIds:snapshots.map(s=>s.id===lease.id)})); throw error; }
+      catch(error) {
+        console.log(JSON.stringify({diagnostic:"snapshot receipt",connection:clients[1].connection.state,feed:feed.state,observed,snapshotCount:snapshots.length,matchingIds:snapshots.map(s=>s.id===lease.id)}));
+        if(process.argv.includes("--trace-boundary")){
+          await location(0,{action:"stop",id:lease.id});activeLease=undefined;
+          await new Promise(resolve=>setTimeout(resolve,3000));
+          console.log(JSON.stringify({stage:"retirement",received:retired.some(s=>s.id===lease.id)}));
+        }
+        throw error;
+      }
       const peer = snapshots.find(s => s.id === lease.id)!;
       assert(validLocationSnapshot(peer)); assert.equal(peer.precision, precision);
       assert.equal((await location(1, { action: "validate", id: lease.id, conversationId: fixture.conversationId })).precision, precision);

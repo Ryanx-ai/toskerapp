@@ -29,6 +29,7 @@ export class LocationView {
     if (this.request) { this.dirty = true; return; }
     this.clock.clear(this.poll);
     const epoch = this.epoch, start = this.clock.now(), controller = new AbortController();
+    let displayedPeers = false;
     this.request = controller;
     this.timeout = this.clock.set(() => { controller.abort(); if (epoch === this.epoch) this.changed([]); }, LOCATION_VIEW_MS);
     // Token acquisition or a transport shim may not observe AbortSignal. Race
@@ -40,6 +41,7 @@ export class LocationView {
       const remaining = value.validForMs - (this.clock.now() - start);
       this.clock.clear(this.expiry);
       if (remaining <= 0) { this.changed([]); return; }
+      displayedPeers = value.peers.length > 0;
       this.changed(value.peers);
       this.expiry = this.clock.set(() => this.changed([]), remaining);
     }).catch(() => { if (epoch === this.epoch) { this.clock.clear(this.expiry); this.changed([]); } })
@@ -47,7 +49,12 @@ export class LocationView {
         if (epoch !== this.epoch) return;
         this.clock.clear(this.timeout); this.request = null;
         if (!this.ready) return;
-        const delay = this.dirty ? 0 : Math.max(0, 3000 - (this.clock.now() - start)); this.dirty = false;
+        const elapsed = this.clock.now() - start;
+        // Recheck sooner only while displaying peers, reserving observed read
+        // latency plus 250ms of headroom. Never extend their expiry or overlap
+        // requests. Slow (>half-window) reads still clear rather than go stale.
+        const interval = displayedPeers ? Math.min(3000, LOCATION_VIEW_MS - elapsed - 250) : 3000;
+        const delay = this.dirty ? 0 : Math.max(0, interval - elapsed); this.dirty = false;
         this.poll = this.clock.set(() => this.refresh(), delay);
       });
   }

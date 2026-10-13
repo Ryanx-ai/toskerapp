@@ -48,6 +48,14 @@ async function main() {
   view.refresh(); view.refresh(); view.refresh(); assert.equal(reads, count + 3); // coalesced
   requests.at(-1)!.reject(); await tick(); assert.equal(peers.length, 0);
   view.clear(); assert.equal(clock.timers.size, 0);
-  console.log(JSON.stringify({ passed: true, cases: ["strict context/precision/revision/identity validation", "readiness required", "request-start deadline", "no late resurrection", "hidden/disconnected clears", "generation isolation", "coalesced invalidations", "error clears", "all timers disposed"], providerCalls: 0 }));
+  const latencyClock = new Clock(); let shown = 0, started = 0, finish: (v: unknown) => void = () => {};
+  const slower = new LocationView(context, () => { started++; return new Promise(resolve => { finish = resolve; }); }, next => { shown = next.length; }, latencyClock);
+  slower.setReady(true); latencyClock.advance(2200); finish(value()); await tick(); assert.equal(shown, 1);
+  latencyClock.advance(349); assert.equal(started, 1);
+  latencyClock.advance(1); assert.equal(started, 2); // request starts at2550, not3000
+  latencyClock.advance(2200); finish(value()); await tick(); assert.equal(shown, 1);
+  latencyClock.advance(250); assert.equal(shown, 1); // replacement authorized before old5s fence
+  slower.clear(); assert.equal(shown, 0); assert.equal(latencyClock.timers.size, 0);
+  console.log(JSON.stringify({ passed: true, cases: ["strict context/precision/revision/identity validation", "readiness required", "request-start deadline", "no late resurrection", "hidden/disconnected clears", "generation isolation", "coalesced invalidations", "error clears", "latency-aware renewal without stale display", "all timers disposed"], providerCalls: 0 }));
 }
 void main();

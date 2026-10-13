@@ -117,22 +117,24 @@ export function latestLocationService(db: ToskerDatabase, overrides: Partial<Dep
         await tx.execute(sql`set local statement_timeout='4s'`);
         const worker = await lockHealthyLocationWorker(tx, config);
         await lockLocalLocationActors(tx, config.userIds);
-        await deps.session(actor, sessionId); await lockLocationReadContext(tx, actor, conversationId);
+        await deps.session(actor, sessionId); await lockLocationReadContext(tx, conversationId);
+        // A fresh post-lock statement authorizes the viewer AND every source.
+        // Start from the context so an authorized empty view has one null peer
+        // row, whereas an unauthorized context has zero rows (and is denied).
         const rows = await tx.select({ consent: locationShares, payload: locationLatest, user: users,
-          displayName: contextualName(actor.userId, sql`${conversations.roomId}`, sql`${users.id}`, sql`${profiles.displayName}`), avatarUrl: profiles.avatarUrl }).from(locationShares)
-          .innerJoin(locationLatest, eq(locationLatest.leaseId, locationShares.id)).innerJoin(users, eq(users.id, locationShares.userId))
-          .innerJoin(profiles, eq(profiles.userId, users.id)).innerJoin(conversations, eq(conversations.id, locationShares.conversationId))
-          .where(and(inArray(locationShares.userId, config.userIds), eq(locationShares.conversationId, conversationId), eq(locationLatest.workerRunId, config.runId), sql`${locationShares.expiresAt}>clock_timestamp()`,
-            // The viewer's context lock already fences membership/relationship
-            // changes for this exact context. Recheck each source in this query,
-            // rather than resolving and reacquiring the same locks per source.
-            sql`exists(select 1 from conversations c where c.id=${locationShares.conversationId} and ${authorizedContext(sql`${locationShares.userId}`)})`));
-        const permitted: typeof rows = [];
+          profileUserId: profiles.userId, displayName: contextualName(actor.userId, sql`${conversations.roomId}`, sql`${users.id}`, sql`${profiles.displayName}`), avatarUrl: profiles.avatarUrl }).from(conversations)
+          .leftJoin(locationShares, and(eq(locationShares.conversationId, conversations.id), inArray(locationShares.userId, config.userIds), sql`${locationShares.userId} <> ${actor.userId}::uuid`,
+            sql`${locationShares.expiresAt}>clock_timestamp()`, sql`exists(select 1 from conversations c where c.id=${locationShares.conversationId} and ${authorizedContext(sql`${locationShares.userId}`)})`))
+          .leftJoin(locationLatest, and(eq(locationLatest.leaseId, locationShares.id), eq(locationLatest.workerRunId, config.runId)))
+          .leftJoin(users, eq(users.id, locationShares.userId)).leftJoin(profiles, eq(profiles.userId, users.id))
+          .where(and(eq(conversations.id, conversationId), sql`exists(select 1 from conversations c where c.id=${conversations.id} and ${authorizedContext(sql`${actor.userId}::uuid`)})`));
+        if (!rows.length) throw new AuthorizationDeniedError();
+        const permitted: { consent: typeof locationShares.$inferSelect; payload: typeof locationLatest.$inferSelect; user: typeof users.$inferSelect; displayName: string; avatarUrl: string | null }[] = [];
         for (const row of rows) {
-          if (row.consent.userId === actor.userId) continue;
+          if (!row.consent || !row.payload || !row.user || !row.profileUserId) continue;
           try {
             await deps.session({ userId: row.user.id, authProvider: row.user.authProvider, authSubject: row.user.authSubject }, row.consent.sessionId);
-            if (row.consent.expiresAt.getTime() > Date.now()) permitted.push(row);
+            if (row.consent.expiresAt.getTime() > Date.now()) permitted.push({ ...row, consent: row.consent, payload: row.payload, user: row.user });
           } catch { /* A revoked/unverifiable source is omitted, never cached. */ }
         }
         const serverNow = Date.now();

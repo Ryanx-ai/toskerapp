@@ -1,9 +1,7 @@
 import "server-only";
 import { sql } from "drizzle-orm";
 import type { ToskerTransaction } from "@/server/db/client";
-import type { AuthenticatedActor } from "@/server/auth/actor";
 import { AuthorizationDeniedError } from "@/server/auth/authorize";
-import { authorizedContext } from "@/server/map-pins/scope";
 
 /** The local worker admits only its exact two isolated users. Lock both, in the
  * same sorted order as relationship withdrawal, before taking context locks.
@@ -15,9 +13,9 @@ export async function lockLocalLocationActors(tx: ToskerTransaction, userIds: st
 
 /** Same parent→child→conversation lock order as Map authorization, without
  * resolving a slug and fetching the same context again for every source.
- * Caller holds ALL admitted actor locks. Authorize in a subsequent statement:
+ * Caller holds ALL admitted actor locks and MUST authorize in its next query:
  * a statement's pre-lock MVCC snapshot must never authorize a post-revoke read. */
-export async function lockLocationReadContext(tx: ToskerTransaction, actor: AuthenticatedActor, id: string) {
+export async function lockLocationReadContext(tx: ToskerTransaction, id: string) {
   // Dependencies enforce parent -> child -> conversation, in one round trip.
   // These CTEs ONLY lock; authorization below uses a fresh statement snapshot.
   const locked = await tx.execute(sql`with parent as materialized (
@@ -29,6 +27,4 @@ export async function lockLocationReadContext(tx: ToskerTransaction, actor: Auth
       and (c.room_id is null or c.room_id in (select id from parent))
       and (c.subroom_id is null or c.subroom_id in (select id from child)) for share of c`);
   if (locked.rows.length !== 1) throw new AuthorizationDeniedError();
-  const permitted = await tx.execute(sql`select c.id from conversations c where c.id=${id}::uuid and ${authorizedContext(sql`${actor.userId}::uuid`)}`);
-  if (permitted.rows.length !== 1) throw new AuthorizationDeniedError();
 }

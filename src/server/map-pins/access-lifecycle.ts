@@ -7,6 +7,7 @@ import { connections, conversations, conversationParticipants, rooms, subrooms, 
 import { lockActorTokens } from "@/server/realtime/access-lock";
 import { revokeActorRealtime, publishUserActivity } from "@/server/realtime/provider";
 import { retireLocationLease } from "@/server/location-sharing/lifecycle";
+import { notifyLocationContexts } from "@/server/location-sharing/notifications";
 
 /** Server lifecycle boundary for relationship withdrawal. No new unfriend UI in FP4B.
  * Tokens must be revoked before commit; provider failure rolls back the withdrawal.
@@ -22,14 +23,15 @@ export async function revokePinConnection(db:ToskerDatabase,actor:AuthenticatedA
     if (!connection) throw new AuthorizationDeniedError();
     await tx.delete(connections).where(eq(connections.id,connectionId));
     for (const id of actors) { await retire(tx, id, chats.map(chat => chat.id)); await revoke(id); }
-    return actors;
+    return { actors, contexts: chats.map(chat => chat.id) };
   });
-  await Promise.all(ids.map(id=>notify(id)));
+  await notifyLocationContexts(ids.contexts);
+  await Promise.all(ids.actors.map(id=>notify(id)));
 }
 
 /** Selected Subroom grant withdrawal; parent membership/other users' Pins are untouched. */
 export async function revokePinSubroomAccess(db:ToskerDatabase,actor:AuthenticatedActor,subroomId:string,userId:string,revoke=revokeActorRealtime,notify=publishUserActivity,retire=retireLocationLease) {
-  await db.transaction(async tx => {
+  const contexts = await db.transaction(async tx => {
     await lockActorTokens(tx,userId);
     const [before] = await tx.select().from(subrooms).where(eq(subrooms.id,subroomId));
     if (!before) throw new AuthorizationDeniedError();
@@ -42,6 +44,8 @@ export async function revokePinSubroomAccess(db:ToskerDatabase,actor:Authenticat
     for (const chat of chats) await tx.delete(conversationParticipants).where(and(eq(conversationParticipants.conversationId,chat.id),eq(conversationParticipants.userId,userId)));
     await retire(tx, userId, chats.map(chat => chat.id));
     await revoke(userId);
+    return chats.map(chat => chat.id);
   });
+  await notifyLocationContexts(contexts);
   await notify(userId);
 }

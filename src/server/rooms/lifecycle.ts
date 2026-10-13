@@ -9,6 +9,7 @@ import { normalizeRoomTags } from "@/lib/room-tags";
 import { lockActorTokens } from "@/server/realtime/access-lock";
 import { revokeActorRealtime } from "@/server/realtime/provider";
 import { retireLocationLease } from "@/server/location-sharing/lifecycle";
+import { notifyLocationContexts } from "@/server/location-sharing/notifications";
 
 export async function updateRoom(db: ToskerDatabase, actor: AuthenticatedActor, input: { roomId: string; name: string; tags: string[] }) {
   const name = input.name.trim().replace(/\s+/g, " ");
@@ -35,7 +36,7 @@ export async function revokeRoomInvite(db: ToskerDatabase, actor: AuthenticatedA
 }
 
 export async function withdrawRoomMember(db: ToskerDatabase, actor: AuthenticatedActor, roomId: string, userId: string, revoke = revokeActorRealtime, retire = retireLocationLease) {
-  await db.transaction(async (tx) => {
+  const contexts = await db.transaction(async (tx) => {
     await lockActorTokens(tx, userId);
     const [room] = await tx.select().from(rooms).where(eq(rooms.id, roomId)).for("update");
     if (!room) throw new AuthorizationDeniedError("Room unavailable.");
@@ -54,7 +55,9 @@ export async function withdrawRoomMember(db: ToskerDatabase, actor: Authenticate
     // Block new tokens until both provider invalidation and the DB commit finish.
     // If Ably is unavailable, roll back and report failure; do not claim removal.
     await revoke(userId);
+    return roomConversations.map(row => row.id);
   });
+  await notifyLocationContexts(contexts);
 }
 
 export async function joinRoomInvite(db: ToskerDatabase, actor: AuthenticatedActor, token: string) {

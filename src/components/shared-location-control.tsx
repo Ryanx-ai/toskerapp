@@ -14,7 +14,7 @@ export function SharedLocationControl({ sharing, available, contextName }: { sha
     <button type="button" className={styles.control} disabled={!available || sharing.busy || !!sharing.lease} onClick={() => { setPrecision("area"); setOpen(true); }} title={available ? "Share a temporary location snapshot" : "Turn Locate on before sharing"}><Users size={17} aria-hidden="true"/><span>Share location</span></button>
     {open && <ModalLayer onClose={() => setOpen(false)}><section className="creation-panel" aria-labelledby={heading}>
       <h2 id={heading}>Share location in {contextName}?</h2>
-      <p>Visible to authorized members of this exact conversation, including members who join before a manual refresh. Not your other chats or Rooms.</p>
+      <p>Local synthetic QA only. Visible to authorized test participants in this exact conversation, including participants granted access while the snapshot is valid. Not your other chats or Rooms.</p>
       <fieldset><legend>Choose what people can see</legend>
         <label><input type="radio" name={heading} checked={precision === "area"} onChange={() => setPrecision("area")}/> Broad area only (default)</label>
         <p>A region or city label. No precise peer marker.</p>
@@ -22,8 +22,9 @@ export function SharedLocationControl({ sharing, available, contextName }: { sha
         <p>This reveals your coordinates and accuracy to people in this conversation.</p>
       </fieldset>
       <p>One snapshot, expiring within five minutes. Refresh is manual and does not extend expiry. Stop anytime. Leaving the Map, hiding this tab or disconnecting stops sharing; returning does not restart it.</p>
-      <p>Tosker does not keep location history. Ably delivers the snapshot to connected authorized peers. Outside Singapore’s mapped regions, a rounded position is sent to Geoapify for a city label. These providers process requests under their privacy policies. People can copy a snapshot they already received; Stop cannot undo that.</p>
-      <p><a href="https://ably.com/privacy" target="_blank" rel="noopener noreferrer">Ably privacy</a> · <a href="https://www.geoapify.com/privacy-policy/" target="_blank" rel="noopener noreferrer">Geoapify privacy</a></p>
+      <p>Tosker stores only your latest snapshot during this consent window, not a movement trail. Broad-area snapshots store no coordinates. Ably carries change notices only; authorized peers fetch the current snapshot from Tosker.</p>
+      <p>Confirmed Stop deletes the active snapshot. Peers recheck access and remove an unverified marker within five seconds while the app is running. Expired rows are cleaned by the supervised QA worker. Database recovery history may retain prior data for six hours; this is not instant physical erasure. People can copy what they already received.</p>
+      <p>No provider lookup or background tracking is used in this synthetic QA wave.</p>
       <div className={styles.actions}><button className={styles.primary} disabled={!available || sharing.busy} onClick={() => { setOpen(false); void sharing.start(precision); }}>{precision === "area" ? "Share broad area" : "Share precise position"}</button><button className={styles.control} onClick={() => setOpen(false)}>Keep private</button></div>
     </section></ModalLayer>}
   </>;

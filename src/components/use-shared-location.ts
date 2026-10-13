@@ -1,112 +1,101 @@
 "use client";
-import { useCallback, useEffect, useEffectEvent, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSession } from "@clerk/nextjs";
 import { CONVERSATION_ACCESS_LOST } from "@/lib/realtime-contract";
-import { REALTIME_SIGNOUT, type LiveParticipant } from "@/lib/live-contract";
-import { LOCATION_CLEAR, LOCATION_RECEIVED, validLocationLease, validLocationSnapshot, type LocationLease, type LocationPrecision, type LocationSnapshot } from "@/lib/shared-location-contract";
+import { REALTIME_SIGNOUT } from "@/lib/live-contract";
+import { LOCATION_CLEAR, LOCATION_REFRESH, LOCATION_HEALTH, LOCATION_HEALTH_REQUEST, validLocationLease, type LocationLease, type LocationPrecision, type LocationCurrentView } from "@/lib/shared-location-contract";
+import { LocationView } from "@/lib/location-view";
 import type { LocalMapLocation } from "./use-local-map-location";
-export type SharedLocationPeer = { snapshot: LocationSnapshot; identity: LiveParticipant };
+export type SharedLocationPeer = LocationCurrentView["peers"][number];
 
-/** Ephemeral in-memory view. Map suspension, disconnect or context loss retires
- * own intent; returning/reconnecting never resumes sharing automatically. */
+/** Sharing intent is manual. Peer reads never sample geolocation or publish. */
 export function useSharedLocation(conversationId: string, point: LocalMapLocation | null, enabled: boolean) {
   const { session } = useSession(), sessionId = session?.id;
   const [lease, setLease] = useState<LocationLease | null>(null), [peers, setPeers] = useState<SharedLocationPeer[]>([]);
-  const [busy, setBusy] = useState(false), [error, setError] = useState("");
-  const [stopping,setStopping]=useState(false);
-  const owned = useRef<LocationLease | null>(null), generation = useRef(0), mounted = useRef(false), working = useRef(false);
-  const tombstones = useRef(new Set<string>());
-  const call = useCallback(async (body: unknown) => {
+  const [busy, setBusy] = useState(false), [error, setError] = useState(""), [stopping, setStopping] = useState(false);
+  const owned = useRef<LocationLease | null>(null), pendingStop = useRef<LocationLease | null>(null);
+  const generation = useRef(0), mounted = useRef(false), working = useRef(false), revision = useRef(0), ready = useRef(false);
+  const call = useCallback(async (body: unknown, signal = AbortSignal.timeout(12000)) => {
     const token = await session?.getToken();
-    if (!token) throw new Error("Session unavailable.");
-    const response = await fetch("/api/location-sharing", { method: "POST", credentials: "same-origin", cache: "no-store", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify(body), signal: AbortSignal.timeout(12000) });
-    if (!response.ok) throw new Error("Sharing could not be confirmed. Stop or wait for expiry; no automatic retry.");
+    if (!token || signal.aborted) throw new Error("Session unavailable.");
+    const response = await fetch("/api/location-sharing", { method: "POST", credentials: "same-origin", cache: "no-store", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify(body), signal });
+    if (!response.ok) throw new Error(response.status === 409 ? "A newer snapshot exists. Stop sharing and choose Share again." : "Sharing could not be confirmed. Stop or wait for expiry; no automatic retry.");
     return response.json();
   }, [session]);
   const retire = useCallback((value: LocationLease) => fetch("/api/location-sharing", {
     method: "POST", credentials: "same-origin", cache: "no-store", keepalive: true,
-    headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "stop", id: value.id }),
+    headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "stop", id: value.id }), signal: AbortSignal.timeout(12000),
   }).then(response => { if (!response.ok) throw new Error(); }), []);
   const stop = useCallback(async () => {
-    const epoch=++generation.current;
-    const value = owned.current; owned.current = null;
+    const epoch = ++generation.current, value = owned.current ?? pendingStop.current;
+    owned.current = null; pendingStop.current = value; working.current = false;
     if (mounted.current) { setStopping(!!value); setBusy(false); }
-    working.current = false;
-    if (value) try { await retire(value); if (mounted.current&&epoch===generation.current) {setError("");setLease(null);} }
-    catch { if (mounted.current&&epoch===generation.current) {if(value.expiresAt>Date.now()){owned.current=value;setLease(value);}else setLease(null);setError("Stopped on this device. Peer removal could not be confirmed. Retry Stop if still available; expiry remains automatic.");} }
-    else if(mounted.current)setLease(null);
-    if(mounted.current&&epoch===generation.current)setStopping(false);
-  }, [retire]);
-  const receive = useEffectEvent(async (snapshot: LocationSnapshot, epoch: number) => {
     try {
-      const metadata = await call({ action: "validate", id: snapshot.id, conversationId });
-      if (!mounted.current || epoch !== generation.current || document.hidden || tombstones.current.has(snapshot.id)) return;
-      if (!validLocationLease(metadata) || ["id", "conversationId", "userId", "precision", "expiresAt"].some(key => metadata[key as keyof LocationLease] !== snapshot[key as keyof LocationLease])) return;
-      const token = await session?.getToken();
-      const response = await fetch("/api/live/roster", { method: "POST", cache: "no-store", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ conversationId, userIds: [snapshot.userId] }), signal: AbortSignal.timeout(10000) });
-      if (!response.ok) return;
-      const identity = (await response.json()).participants?.find((p: LiveParticipant) => p.userId === snapshot.userId) as LiveParticipant | undefined;
-      if (!identity || !mounted.current || epoch !== generation.current || document.hidden || tombstones.current.has(snapshot.id) || !validLocationSnapshot(snapshot)) return;
-      setPeers(previous => previous.some(p=>p.snapshot.userId===snapshot.userId&&p.snapshot.sentAt>=snapshot.sentAt)?previous:[...previous.filter(p => p.snapshot.userId !== snapshot.userId && p.snapshot.expiresAt > Date.now()), { snapshot, identity }].slice(-50));
-    } catch { /* Missing current authorization never renders cached coordinates. */ }
-  });
+      if (value) await retire(value);
+      if (epoch === generation.current) { pendingStop.current = null; if (mounted.current) { setLease(null); setError(""); } }
+    } catch {
+      if (mounted.current && epoch === generation.current) {
+        if (value && value.expiresAt <= Date.now()) { pendingStop.current = null; setLease(null); }
+        setError("Stopped on this device. Server deletion is unconfirmed. Retry Stop; expiry remains automatic. Sharing will not restart by itself.");
+      }
+    } finally { if (mounted.current && epoch === generation.current) setStopping(false); }
+  }, [retire]);
   useEffect(() => {
-    mounted.current = true;
-    queueMicrotask(() => { if (mounted.current) { setPeers([]); setLease(null); setBusy(false); } });
-    const incoming = (event: Event) => {
-      const snapshot = (event as CustomEvent).detail;
-      if (enabled && validLocationSnapshot(snapshot) && snapshot.conversationId === conversationId && !tombstones.current.has(snapshot.id)) void receive(snapshot, generation.current);
-    };
-    const clear = (event: Event) => {
+    let active = true, revoked = false;
+    const lifecycleGeneration = generation;
+    mounted.current = true; ready.current = false;
+    const view = new LocationView(conversationId, signal => call({ action: "current", conversationId }, signal), next => { if (active) setPeers(next); });
+    const suspend = () => { ready.current = false; view.clear(); void stop(); };
+    const health = (event: Event) => {
       const value = (event as CustomEvent).detail;
-      if (value?.id && value.conversationId === conversationId) {
-        tombstones.current.add(value.id);
-        if (tombstones.current.size > 200) tombstones.current.delete(tombstones.current.values().next().value!);
-        setPeers(previous => previous.filter(p => p.snapshot.id !== value.id));
-        if (owned.current?.id === value.id) { owned.current = null; setLease(null); }
-      } else if (!value) { setPeers([]); void stop(); }
+      if (value?.conversationId !== conversationId) return;
+      const available = enabled && !revoked && !!value.ready && !document.hidden;
+      ready.current = available; view.setReady(available);
+      if (!available) void stop();
     };
-    const lost = (event: Event) => { if ((event as CustomEvent).detail === conversationId) { setPeers([]); void stop(); } };
-    const hidden = () => { if (document.hidden) { setPeers([]); void stop(); } };
-    const signout = () => { setPeers([]); void stop(); };
-    window.addEventListener(LOCATION_RECEIVED, incoming); window.addEventListener(LOCATION_CLEAR, clear);
+    const refresh = (event: Event) => { if ((event as CustomEvent).detail === conversationId) view.refresh(); };
+    const clear = () => suspend();
+    const lost = (event: Event) => { if ((event as CustomEvent).detail === conversationId) { revoked = true; suspend(); } };
+    const hidden = () => { if (document.hidden) suspend(); else window.dispatchEvent(new Event(LOCATION_HEALTH_REQUEST)); };
+    const signout = () => { revoked = true; suspend(); };
+    window.addEventListener(LOCATION_HEALTH, health); window.addEventListener(LOCATION_REFRESH, refresh); window.addEventListener(LOCATION_CLEAR, clear);
     window.addEventListener(CONVERSATION_ACCESS_LOST, lost); window.addEventListener(REALTIME_SIGNOUT, signout);
-    window.addEventListener("pagehide", signout); document.addEventListener("visibilitychange", hidden);
+    window.addEventListener("pagehide", clear); document.addEventListener("visibilitychange", hidden);
+    queueMicrotask(() => { if (active) { setPeers([]); setLease(null); setBusy(false); window.dispatchEvent(new Event(LOCATION_HEALTH_REQUEST)); } });
     return () => {
-      mounted.current = false; ++generation.current; working.current = false;
-      // Activity preserves React state while hidden; explicitly discard peer
-      // coordinates now, not on a later Map visit. No hidden snapshot cache.
-      setPeers([]);setLease(null);setBusy(false);setStopping(false);setError("");
-      const value = owned.current; owned.current = null; if (value) void retire(value).catch(() => undefined);
-      window.removeEventListener(LOCATION_RECEIVED, incoming); window.removeEventListener(LOCATION_CLEAR, clear);
+      active = false; mounted.current = false; ready.current = false; ++lifecycleGeneration.current; working.current = false; view.clear();
+      setPeers([]); setLease(null); setBusy(false); setStopping(false); setError("");
+      const value = owned.current ?? pendingStop.current; owned.current = null; pendingStop.current = null;
+      if (value) void retire(value).catch(() => undefined);
+      window.removeEventListener(LOCATION_HEALTH, health); window.removeEventListener(LOCATION_REFRESH, refresh); window.removeEventListener(LOCATION_CLEAR, clear);
       window.removeEventListener(CONVERSATION_ACCESS_LOST, lost); window.removeEventListener(REALTIME_SIGNOUT, signout);
-      window.removeEventListener("pagehide", signout); document.removeEventListener("visibilitychange", hidden);
+      window.removeEventListener("pagehide", clear); document.removeEventListener("visibilitychange", hidden);
     };
-  }, [conversationId, sessionId, enabled, stop, retire]);
-  const nextExpiry = Math.min(lease?.expiresAt ?? Infinity, ...peers.map(p => p.snapshot.expiresAt));
+  }, [conversationId, sessionId, enabled, call, stop, retire]);
   useEffect(() => {
-    if (!Number.isFinite(nextExpiry)) return;
-    const timer = setTimeout(() => {
-      setPeers(previous => previous.filter(p => p.snapshot.expiresAt > Date.now()));
-      if (owned.current && owned.current.expiresAt <= Date.now()) void stop();
-    }, Math.max(0, nextExpiry - Date.now()));
+    if (!lease) return;
+    const timer = setTimeout(() => void stop(), Math.max(0, lease.expiresAt - Date.now()));
     return () => clearTimeout(timer);
-  }, [nextExpiry, stop]);
-  useEffect(() => { let active=true;if (!point) queueMicrotask(()=>{if(active)void stop();});return()=>{active=false;}; }, [point, stop]);
+  }, [lease, stop]);
+  useEffect(() => { let active = true; if (!point) queueMicrotask(() => { if (active) void stop(); }); return () => { active = false; }; }, [point, stop]);
   const send = async (precision?: LocationPrecision) => {
-    if (!point || !enabled || working.current || !mounted.current) return;
+    if (!point || !enabled || !ready.current || working.current || pendingStop.current || !mounted.current) return;
     working.current = true; setBusy(true); setError("");
     const epoch = generation.current;
     let current = owned.current;
     try {
       if (precision) {
-        current = await call({ action: "begin", conversationId, precision, consent: precision === "precise" ? "precise-snapshot-v1" : "area-snapshot-v1" });
+        current = await call({ action: "begin", conversationId, precision, consent: precision === "precise" ? "precise-latest-v2" : "area-latest-v2" });
         if (!validLocationLease(current)) throw new Error("Sharing consent unavailable.");
         if (epoch !== generation.current || !mounted.current || document.hidden) { await retire(current); return; }
-        owned.current = current; setLease(current);
+        owned.current = current; revision.current = 0; setLease(current);
       }
       if (!current || current.expiresAt <= Date.now()) throw new Error("Sharing expired. Choose Share location again.");
-      await call({ action: "send", id: current.id, point });
+      const result = await call({ action: "send", id: current.id, point, expectedRevision: revision.current, requestId: crypto.randomUUID() });
+      if (mounted.current && epoch === generation.current) {
+        if (result.id !== current.id || result.revision !== revision.current + 1) throw new Error("Snapshot could not be confirmed. Stop before sharing again.");
+        revision.current = result.revision;
+      }
     } catch (failure) {
       if (mounted.current && epoch === generation.current) setError(failure instanceof Error ? failure.message : "Sharing unavailable.");
     } finally { if (epoch === generation.current) { working.current = false; if (mounted.current) setBusy(false); } }

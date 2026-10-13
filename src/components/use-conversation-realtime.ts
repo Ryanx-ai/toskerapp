@@ -8,8 +8,7 @@ import { liveChannel, REALTIME_SIGNOUT, type LiveParticipant } from "@/lib/live-
 import { communicationTiming, deliveryTrace } from "@/lib/communication-performance";
 import { PROFILE_CHANGED, PROFILE_REFRESH } from "@/lib/realtime-contract";
 import { MAP_PING, MAP_PING_RECEIVED, MAP_PING_CLEAR, validPing } from "@/lib/maps/ping-contract";
-import { LOCATION_SNAPSHOT, LOCATION_RETIRED, LOCATION_RECEIVED, LOCATION_CLEAR, validLocationSnapshot } from "@/lib/shared-location-contract";
-import { isConversationId } from "@/lib/realtime-contract";
+import { LOCATION_CHANGED, LOCATION_REFRESH, LOCATION_CLEAR, LOCATION_HEALTH, LOCATION_HEALTH_REQUEST } from "@/lib/shared-location-contract";
 import { TRIP_CHANGED, TRIP_REFRESH } from "@/lib/realtime-contract";
 import { conversationChannel, typingChannel, userChannel, MESSAGE_CHANGED, TYPING_CHANGED, TYPING_TTL, USER_ACTIVITY, ACTIVITY_REFRESH, CHAT_REFRESH, HALL_REFRESH, CONVERSATION_ACCESS_LOST } from "@/lib/realtime-contract";
 
@@ -83,18 +82,16 @@ export function useConversationRealtime(conversationId: string | undefined, user
       const channel = conversationId ? realtime.channels.get(conversationChannel(conversationId)) : undefined;
       const typing = conversationId ? realtime.channels.get(typingChannel(conversationId)) : undefined;
       const feed = realtime.channels.get(userChannel(userId));
-      const retireLocation = (message: { data?: { id?: unknown; conversationId?: unknown; userId?: unknown } }) => {
-        const value = message.data;
-        if (!disposed && value && value.conversationId === conversationId && isConversationId(value.id) && isConversationId(value.userId))
-          window.dispatchEvent(new CustomEvent(LOCATION_CLEAR, { detail: value }));
+      const locationHealth = () => {
+        if (!disposed && conversationId) window.dispatchEvent(new CustomEvent(LOCATION_HEALTH, { detail: { conversationId, ready: !document.hidden && realtime.connection.state === "connected" && channel?.state === "attached" } }));
       };
-      void feed.subscribe(LOCATION_SNAPSHOT, message => {
-        if (!disposed && !document.hidden && message.data?.conversationId === conversationId && validLocationSnapshot(message.data))
-          window.dispatchEvent(new CustomEvent(LOCATION_RECEIVED, { detail: message.data }));
-      }).catch(() => undefined);
-      void feed.subscribe(LOCATION_RETIRED, retireLocation).catch(() => undefined);
-      void channel?.subscribe(LOCATION_RETIRED, retireLocation).catch(() => undefined);
-      const updateHealth = () => { if (!disposed) setConnected(realtime.connection.state === "connected" && feed.state === "attached" && (!channel || channel.state === "attached")); };
+      const refreshLocation = () => {
+        locationHealth();
+        if (!disposed && !document.hidden && conversationId) window.dispatchEvent(new CustomEvent(LOCATION_REFRESH, { detail: conversationId }));
+      };
+      void channel?.subscribe(LOCATION_CHANGED, refreshLocation).then(refreshLocation).catch(() => undefined);
+      window.addEventListener(LOCATION_HEALTH_REQUEST, locationHealth);
+      const updateHealth = () => { if (!disposed) { setConnected(realtime.connection.state === "connected" && feed.state === "attached" && (!channel || channel.state === "attached")); locationHealth(); } };
       feed.on(updateHealth); channel?.on(updateHealth);
       const refreshActivity = () => { if (!disposed) window.dispatchEvent(new Event(ACTIVITY_REFRESH)); };
       const refreshTrip = () => { if (!disposed) window.dispatchEvent(new Event(TRIP_REFRESH)); };
@@ -160,6 +157,7 @@ export function useConversationRealtime(conversationId: string | undefined, user
       realtime.connection.on(connectionChanged);
       const onVisible = () => {
         live.setVisible(!document.hidden);
+        locationHealth();
         if (document.hidden) { sendRef.current(false); peers.clear(); updatePeers(); window.dispatchEvent(new Event(MAP_PING_CLEAR)); window.dispatchEvent(new Event(LOCATION_CLEAR)); }
         else { realtime.connect(); changed(); refreshActivity(); window.dispatchEvent(new Event(HALL_REFRESH)); window.dispatchEvent(new Event(PROFILE_REFRESH)); }
       };
@@ -174,6 +172,8 @@ export function useConversationRealtime(conversationId: string | undefined, user
       window.addEventListener(CONVERSATION_ACCESS_LOST, onAccessLost);
       return async () => {
         disposed = true;
+        window.removeEventListener(LOCATION_HEALTH_REQUEST, locationHealth);
+        if (conversationId) window.dispatchEvent(new CustomEvent(LOCATION_HEALTH, { detail: { conversationId, ready: false } }));
         const liveStopped = unbindLive?.();
         sendRef.current(false); sendRef.current = () => undefined;
         clearTimeout(expiry); channel?.unsubscribe(); typing?.unsubscribe(); feed.unsubscribe();

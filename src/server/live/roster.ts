@@ -10,7 +10,7 @@ import { validLiveRosterRequest, type LiveParticipant } from "@/lib/live-contrac
 
 /** Presence supplies only candidate IDs. Both viewer and each candidate must still
  * be authorized for this exact context; optional profile fields never leave here. */
-export async function liveRoster(db: ToskerDatabase, actor: AuthenticatedActor, input: unknown): Promise<LiveParticipant[]> {
+export async function liveRoster(db: Pick<ToskerDatabase, "execute">, actor: AuthenticatedActor, input: unknown): Promise<LiveParticipant[]> {
   if (!validLiveRosterRequest(input)) throw new TypeError("Invalid roster request.");
   const ids = [...new Set(input.userIds)];
   // One statement snapshot authorizes viewer AND candidates. The left join keeps

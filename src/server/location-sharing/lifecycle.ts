@@ -7,12 +7,12 @@ import { getRealtimeServer } from "@/server/realtime/provider";
 import { conversationChannel, userChannel } from "@/lib/realtime-contract";
 import { LOCATION_RETIRED } from "@/lib/shared-location-contract";
 
-/** Coordinate-free invalidation only. Caller holds actor lock (then context lock
- * for membership changes). Throw on failure: never claim a successful withdrawal. */
-export async function retireLocationLease(tx: ToskerTransaction, userId: string, contextIds?: string[], publish = publishLocationRetirement) {
+/** Delete under actor/context locks; callers send hints AFTER commit. The optional
+ * publisher supports historical ephemeral-service tests, not the latest API. */
+export async function retireLocationLease(tx: ToskerTransaction, userId: string, contextIds?: string[], publish?: typeof publishLocationRetirement) {
   if (contextIds && !contextIds.length) return;
   const rows = await tx.delete(locationShares).where(and(eq(locationShares.userId, userId), contextIds ? inArray(locationShares.conversationId, contextIds) : undefined)).returning();
-  for (const row of rows) await publish({ id: row.id, conversationId: row.conversationId, userId });
+  if (publish) for (const row of rows) await publish({ id: row.id, conversationId: row.conversationId, userId });
 }
 export async function publishLocationRetirement(data: { id: string; conversationId: string; userId: string }) {
   // Clear contains no location, name, precision or address. A disconnected peer

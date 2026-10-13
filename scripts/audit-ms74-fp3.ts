@@ -18,6 +18,9 @@ async function main() {
     const data: Record<string, Record<string, unknown>[]> = {};
     for (const { tablename } of names.rows) {
       assert(/^[a-z_]+$/.test(String(tablename)));
+      if (tablename === "location_latest") {
+        assert.equal(Number((await tx.execute(sql`select count(*) count from location_latest`)).rows[0].count), 0, "Stop QA and clean exact payloads before preservation audit; never capture location rows");
+      }
       data[String(tablename)] = (await tx.execute(sql.raw(`select to_jsonb(t) as row from public.${tablename} t`))).rows.map(r => r.row as Record<string, unknown>);
     }
     const room = data.rooms.find(r => r.id === fixture.roomId);
@@ -39,10 +42,11 @@ async function main() {
     } else {
       const old = JSON.parse(readFileSync(path,"utf8"));
       const added=Object.keys(hashes).filter(t=>!(t in old.hashes));
-      assert(added.every(t=>t==="location_shares"),"Unexpected new public table");
+      assert(added.every(t=>["location_shares","location_latest","location_cleanup_workers"].includes(t)),"Unexpected new public table");
       // Additive consent schema was rehearsed/applied separately. A release
       // audit requires no retained non-QA consent; original baseline is immutable.
       if(added.includes("location_shares"))assert.equal(retained.location_shares.length,0,"Unexpected retained sharing consent");
+      for (const table of ["location_latest", "location_cleanup_workers"]) if (added.includes(table)) assert.equal(data[table].length, 0, "Local QA must be stopped and cleaned before closeout");
       const changed = Object.keys(old.hashes).filter(t => JSON.stringify(hashes[t]) !== JSON.stringify(old.hashes[t]));
       const differences = changed.map(table => ({table, before:old.hashes[table]?.count, after:hashes[table].count, fields:[...new Set(retained[table].flatMap(row => {
         const previous = old.data[table].find((r:Record<string,unknown>) => row.id ? r.id===row.id : JSON.stringify(Object.entries(r).filter(([k])=>k.endsWith("_id")))===JSON.stringify(Object.entries(row).filter(([k])=>k.endsWith("_id"))));

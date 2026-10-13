@@ -4,6 +4,9 @@ import type { ToskerDatabase } from "@/server/db/client";
 import { lockActorTokens } from "./access-lock";
 import { revokeActorRealtime } from "./provider";
 import { retireLocationLease } from "@/server/location-sharing/lifecycle";
+import { notifyLocationContexts } from "@/server/location-sharing/notifications";
+import { locationShares } from "@/server/db/schema";
+import { eq } from "drizzle-orm";
 
 /** Recheck provider session under the issuance lock, not only a cached JWT.
  * No session metadata, IP address or device details are retained or returned. */
@@ -17,14 +20,17 @@ export async function assertRealtimeSession(actor: AuthenticatedActor, sessionId
 
 export async function endRealtimeSession(db: ToskerDatabase, actor: AuthenticatedActor, sessionId: string) {
   const { clerkClient } = await import("@clerk/nextjs/server");
-  await db.transaction(async tx => {
+  const contexts = await db.transaction(async tx => {
     await lockActorTokens(tx, actor.userId);
     await assertRealtimeSession(actor, sessionId);
+    const shares = await tx.select({ conversationId: locationShares.conversationId }).from(locationShares).where(eq(locationShares.userId, actor.userId));
     await retireLocationLease(tx, actor.userId);
     // Existing clientId revocation also interrupts other devices for this actor.
     // Still-valid sessions can reauthorize. No other Clerk session is revoked.
     await revokeActorRealtime(actor.userId);
     await (await clerkClient()).sessions.revokeSession(sessionId);
     // A waiting token request now rechecks session status and fails closed.
+    return shares.map(row => row.conversationId);
   });
+  await notifyLocationContexts(contexts);
 }

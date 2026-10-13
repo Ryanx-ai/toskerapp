@@ -21,3 +21,9 @@ Read the latest-state ledger, recovery architecture and original P0 incident evi
 Outstanding: A production cleanup architecture and eligibility, B implementation/migration validation, C remaining real A/B browser and latency/privacy/UI gates, D staged/canonical verification, E post-release documentation, F final handoff. Any hosted resource requires confirmed Free-plan eligibility; generic approval is already present.
 
 Recovery: use this ledger with `MS7-4-FP3-LATEST-STATE-EXECUTION.md` and `CODEX-HANDOFF.md`. Keep canonical FP2A until acceptance. No database rollback is needed or authorized during research. Never remove the current deployed-storage denial just to make a staged candidate work.
+
+## A — researched architecture; operational gate still open
+
+Previous R commit verified: `2c44367ca493b3c5b5f6c313031952a0dd8d85b8`. See [durable cleanup decision](MS7-4-FP3-DURABLE-CLEANUP.md) for the queue-first / hourly Neon rescue design, scheduling-before-storage invariant, healthy-path target versus outage limitations, six-hour backup distinction, bounded Free usage estimates, migration/rollback plan and actual hosted acceptance requirements.
+
+Fresh Vercel project inspection confirms existing `pangea6/tosker.app`, Node24, iad1; read-only team metadata confirms Hobby/active. Hosted eligibility question is outstanding because Hobby is restricted to non-commercial personal use. No hosted service/configuration/migration change. Local-only guard remains. B–F are not passed. Independent Locate production-presentation work is in progress locally; do not confuse it with verified production cleanup.

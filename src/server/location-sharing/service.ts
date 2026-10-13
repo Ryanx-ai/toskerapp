@@ -1,5 +1,6 @@
 import "server-only";
 import { and, eq, sql } from "drizzle-orm";
+import { randomUUID } from "node:crypto";
 import type { AuthenticatedActor } from "@/server/auth/actor";
 import { AuthorizationDeniedError } from "@/server/auth/authorize";
 import type { ToskerDatabase, ToskerTransaction } from "@/server/db/client";
@@ -7,12 +8,12 @@ import { inviteRateLimits, locationShares, users } from "@/server/db/schema";
 import { authorizedContext, lockPinScope, scopeForConversation } from "@/server/map-pins/scope";
 import { lockActorTokens } from "@/server/realtime/access-lock";
 import { assertRealtimeSession } from "@/server/realtime/session";
+import { getRealtimeServer } from "@/server/realtime/provider";
 import { isConversationId, userChannel } from "@/lib/realtime-contract";
 import { LOCATION_SNAPSHOT, LOCATION_TTL, type LocationLease, type LocationPrecision, type LocationSnapshot, validSnapshotPoint } from "@/lib/shared-location-contract";
 import { localArea } from "@/server/maps/area";
 import { getPlaceProvider, reservePlaceRequest } from "@/server/maps/provider";
 import { retireLocationLease, publishLocationRetirement } from "./lifecycle";
-import { publishEphemeralBatch } from "./transport";
 
 type Dependencies = {
   session: typeof assertRealtimeSession;
@@ -24,7 +25,9 @@ type Dependencies = {
 export function locationService(db: ToskerDatabase, overrides: Partial<Dependencies> = {}) {
   const deps: Dependencies = {
     session: assertRealtimeSession,
-    publish: async (recipientId, snapshot) => publishEphemeralBatch([{channel:userChannel(recipientId),name:LOCATION_SNAPSHOT,data:snapshot}]),
+    publish: async (recipientId, snapshot) => {
+      await getRealtimeServer().channels.get(userChannel(recipientId)).publish({ id: randomUUID(), name: LOCATION_SNAPSHOT, data: snapshot, extras: { ephemeral: true } });
+    },
     area: async (point, actorId, signal) => {
       const local = await localArea(point.latitude, point.longitude);
       if (local) return { label: local, source: "ura" };
@@ -95,11 +98,8 @@ export function locationService(db: ToskerDatabase, overrides: Partial<Dependenc
         // coordinates, retries in durable queues, analytics or payload logging.
         // Bounded audience and frequency above. Parallel delivery prevents a
         // slow recipient multiplying the provider timeout while Stop waits.
-        const peers=recipients.filter(recipient=>recipient!==actor.userId);
-        if(overrides.publish){
-          const delivery=await Promise.allSettled(peers.map(recipient=>deps.publish(recipient,snapshot)));
-          if(delivery.some(result=>result.status==="rejected"))throw new Error("Snapshot delivery could not be confirmed.");
-        } else await publishEphemeralBatch(peers.map(recipient=>({channel:userChannel(recipient),name:LOCATION_SNAPSHOT,data:snapshot})));
+        const delivery=await Promise.allSettled(recipients.filter(recipient=>recipient!==actor.userId).map(recipient=>deps.publish(recipient,snapshot)));
+        if(delivery.some(result=>result.status==="rejected"))throw new Error("Snapshot delivery could not be confirmed.");
         return snapshot;
       });
     },

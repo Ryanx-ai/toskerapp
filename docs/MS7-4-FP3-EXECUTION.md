@@ -4,6 +4,10 @@
 
 ## Gate status
 
+### P0 final — FP2A canonical verified / FP3 repair unresolved / STOP
+
+See [final incident findings](MS7-4-FP3-P0-INCIDENT.md) and [receipt](MS7-4-FP3-P0-RECEIPT.json). Founder-approved early rollback completed safely; both application aliases3e06bf9,READY dpl_BeaJBAwSj33GQzxWzE2HRXj5vcLh. Canonical real A/B presence/scoped denials/Chat/Leave and isolated browser Map/Board/Live/Chat pass.30migrations/catalog unchanged; no DB reversal. Original FP3 and rejected candidate remain unaccepted. First boundary is acknowledged ephemeral publish→remote reception; cold Virginia→Singapore immediate event drops, warmed event after2seconds arrives. No arbitrary sleep, regional migration or persistent location fallback shipped. All temporary code removed and11owned staged deployments deleted; source retained in Git history. No new founder drift; pre-existing Sandbox read-marker qualification preserved. Save recovery andSTOP within original two-hour maximum. No automatic MS7.4 lock or further provider/media work.
+
 ### P0 containment — FP2A restored, 13 October08:54UTC
 
 Founder P0 two-hour authority starts07:45:20UTC, ends09:45:20UTC; founder separately approves early FP2A rollback then continued bounded diagnosis. Canonical now3e06bf9 /READY dpl_BeaJBAwSj33GQzxWzE2HRXj5vcLh; exactalias and real canonical A/B presence,scoped denial,retained Chat,Leave pass. Browser FP2A Map/Board/Chat and Live navigation continuity pass. No DB rollback or provider changes; main0264500 is deliberately divergent. [Incident ledger](MS7-4-FP3-P0-INCIDENT.md) is current; historical READY-but-blocked evidence below is preserved.

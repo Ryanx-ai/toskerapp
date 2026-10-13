@@ -1,5 +1,40 @@
 # FP3 P0 snapshot delivery incident — 13 October 2026
 
+## Final outcome — contained on FP2A, no accepted FP3 repair
+
+Implementation stopped before the two-hour maximum. Canonical and generated project alias both point to verified FP2A **3e06bf9e5c9ec09ee0c3dedb82e5e7088cc41161**, READY **dpl_BeaJBAwSj33GQzxWzE2HRXj5vcLh**, independently rechecked09:19UTC. No database rollback:30 hashes/catalog remain valid, all prior35 tables compatible, consent-only0029 retained. FP3 is **NOT ACCEPTED**; MS7.4 remains unlocked. Git main remains0264500. Vercel rollback pauses auto-assignment until a deliberate future promotion; do not promote unvalidated FP3 to reconcile Git.
+
+The first failing boundary is **acknowledged ephemeral publish → remote attached subscriber receipt**, before B reconciliation/rendering. Authenticated A, exact context, consent, audience and provider ACK succeeded. Normal version-only messages reached the same B feed. Presence is not snapshot evidence. Actual original canonical A→B and B→A failed; retirement failed too.
+
+Further isolation after founder-approved rollback:
+
+- Unchanged source in Singapore (`dd3ef47`, stage8) passes broad/precise/Stop to Singapore A/B. Unchanged optimized local Node22 and24 also pass. A simple regional move is not certified as a reliability fix.
+- QA-only coordinate-free cross-region probe `82801eb`,stage9 `dpl_ALShgMyKNnDbz6qsiPEwFegMNXXJ`,had a Virginia subscriber plus normal/control exchange and delivered ephemeral messages both directions. This disproves categorical cross-region incompatibility.
+- Attach→publish→close candidate `febe850`,stage10 `dpl_AMzRVHH96swHoCrCif7E5jXkFGVr`,still fails actual broad snapshot and retirement. **Rejected**, not promoted. DB race regression overlapped the API smoke; the observed zero SDK receive events is still the transport failure, not successful rendering. No acceptance inferred from this run.
+- Refined probe `efe87c6`,stage11 `dpl_2ZND7XHEG9tGWZNgLUdFG2W5EL1N`,09:15:24UTC: Virginia receives its immediate ephemeral event locally; Singapore misses it. After2seconds, a second ephemeral event reaches Singapore **before any persistent control publish**. The subsequent normal and ephemeral events arrive. This is evidence of a cold regional delivery/readiness discrepancy, not vendor-confirmed root cause. Do not ship an arbitrary sleep or persistent location-message fallback as a guarantee.
+
+All experimental application code removed; `git diff3911488 -- src` is empty. Original FP3 source remains locally for recovery, not accepted for deployment. Failed candidate and diagnostic source survive in local Git history. All11 exact incident-created remote deployments removed with `--safe` after restoring both aliases to FP2A; their URLs no longer serve. Deployment receipts and sanitized observations remain in `.git/ms74-fp3` and this ledger. Original FP3 and verified FP2A deployments were not deleted. No environment/key/provider-permission/billing changes, no extra resource procurement, no provider migration.
+
+### Acceptance and preservation qualification
+
+| Gate | Outcome |
+| --- | --- |
+| FP2A exact canonical SHA/READY/alias | PASS; existing immutable release restored, not rebuilt |
+| FP2A real isolated A/B Join/presence/retained Chat/roster/scoped denial/Leave | PASS08:54:10UTC; one earlier overlapping harness run failed final Leave assertion, sequential rerun passes |
+| FP2A browser Map/Chat/Board, Live Join→Board navigation→Leave | PASS with isolated B; no founder session used during P0 |
+| FP3 real deployed snapshot delivery | FAIL; no release candidate accepted |
+| Room/Subroom/Personal revocation, Sandbox/forgery denial, fixed expiry, Stop failure, schema and DB dispatch race | Rechecked PASS with isolated actors and rolled-back DB/injected transport tests; not claimed as deployed end-to-end snapshot acceptance |
+| Natural five-minute client expiry, reload/reconnect and full client privacy matrix | Prior local evidence retained; not rerun/certified against a repaired canonical because none passed transport |
+| Restored source TypeScript, targeted lint, optimized build, both server-key source/client scans | PASS; no temporary diagnostics remain in application source |
+| Fresh runtime error/fatal scan | No records09:00–09:20UTC; not proof of working FP3 snapshots |
+| Founder preservation | No new P0 drift. Strict audit still fails only the pre-P0 founder Sandbox read marker04:41:17.526→07:22:24.744UTC; all other protected hashes unchanged. Baseline not rewritten and no data restored |
+
+Final exact metadata cleanup backed up and removed2additional QA rate rows,0consent rows; earlier incident cleanup removed4. No Room/content deletion or quota reset. Keep all three founder-accessible review Rooms: `ms74-fp1-qa-a39d9eea` (Live/workspace), `ms73-founder-review-904a9dea` (Singapore Map), `ms73-qa-bfff9475` (protected founder QA content). SDK test sessions/clients closed/revoked. Browser QA sessions are logged out as part of closeout. Geoapify new P0 server queries2, cumulative FP3 queries11; no road calls. Browser basemap requests are separate. Ably plan/restrictions unchanged;4480/6M is the historical pre-P0 account reading, **not a fresh final total**.
+
+### Recommended next investigation (not executed)
+
+Prepare a founder-approved Ably support escalation using only version/nonce events, timestamps, SDK2.28.0, Node24 and the cold/warm regional observations. Ask for supported ephemeral-channel readiness/delivery semantics and provider-side correlation. No credentials, coordinates, personal labels or raw user/channel identifiers in an external report. No support ticket sent. Any future repair must pass the complete requested real A/B privacy/expiry/reconnect matrix and cold cross-region tests before promotion. No permanent regional pinning, new provider or persistence compromise approved.
+
 ## Current containment — 16:54 SGT
 
 Update08:59:31UTC: unchanged application Singapore-stage `dd3ef474803d1d7c3351efe4c7d8e08fceb68471`,READY dpl_Fran2BDwGsbTjW9cs5hfRsmLxbFC,`tosker-9g950uhxq-pangea6.vercel.app`,regions[sin1],passes A→B broad/precise/fixed expiry/forgery/Stop/scoped denial/Live,zeroGeoapify. Fresh alias confirms canonical remainsFP2A. Browser B joinsLive,navigatesBoardwithpresenceintact,returnsMap/Chat,leaves; retained Board content reads correctly. No content writes. Local server-secret/source/client scan744files43bundles passes,TypeScript passes. Temporary QA-only regional echo diagnostic82801eb next distinguishes same/cross-region; only version+randomnonce persist, no coordinates/identity payload. No new provider grants or environment config. Region is deployment-only, not project default.

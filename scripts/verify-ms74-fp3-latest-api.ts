@@ -10,7 +10,7 @@ import { locationShares, locationLatest } from "../src/server/db/schema";
 import { resolveQaActors } from "./lib/ms73-fixtures";
 import { conversationChannel } from "../src/lib/realtime-contract";
 import { LOCATION_CHANGED, validLocationView } from "../src/lib/shared-location-contract";
-const origin = "http://localhost:3100", db = getDatabase(), clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
+const origin = "http://localhost:3000", db = getDatabase(), clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
 const sessions: string[] = [], leases: string[] = [], clients: Realtime[] = [], timings: { action: string; status: number; ms: number }[] = [];
 let stage = "recovery", events = 0;
 async function main() {

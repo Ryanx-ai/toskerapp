@@ -3,22 +3,38 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { readFileSync, writeFileSync, renameSync, unlinkSync } from "node:fs";
 import { eq, sql } from "drizzle-orm";
+import { Pool } from "@neondatabase/serverless";
 import { getDatabase } from "../src/server/db/client";
 import { locationCleanupWorkers } from "../src/server/db/schema";
 import { LOCAL_LOCATION_WORKER_FILE, type LocalLocationWorker } from "../src/server/location-sharing/local-qa";
 import { resolveQaActors } from "./lib/ms73-fixtures";
 const db = getDatabase(), runId = randomUUID();
+// A session advisory lock MUST NOT travel through transaction-mode PgBouncer.
+// Use the already configured direct endpoint for this one bounded owner only.
+const directUrl = process.env.DATABASE_URL_UNPOOLED;
+assert(directUrl && process.env.DATABASE_URL);
+const direct = new URL(directUrl), pooled = new URL(process.env.DATABASE_URL);
+assert(!direct.hostname.includes("-pooler") && direct.hostname === pooled.hostname.replace("-pooler", "")
+  && direct.pathname === pooled.pathname && direct.username === pooled.username);
+const ownerPool = new Pool({ connectionString: directUrl, max: 1, connectionTimeoutMillis: 5000 });
+// v1 used an unsupported pooled session lock. Its orphan may remain on a
+// provider pool backend; never terminate that shared backend to release it.
+// v2 is direct-session-only. No v1 process/config/payload remained at cutover.
+const ownershipKey = "tosker-local-location-worker-v2-direct";
 const minutes = Number(process.argv[2] ?? 60);
 assert(!process.env.VERCEL && Number.isInteger(minutes) && minutes >= 10 && minutes <= 120);
-let stopped = false, wake: (() => void) | undefined;
+let stopped = false, wake: (() => void) | undefined, stage = "connect";
 for (const signal of ["SIGINT", "SIGTERM"] as const) process.once(signal, () => { stopped = true; wake?.(); });
 
 async function main() {
-  const owner = await db.$client.connect();
+  const owner = await ownerPool.connect();
+  owner.on("error", () => { stopped = true; process.exitCode = 1; wake?.(); });
   let owns = false;
   try {
-    owns = Boolean((await owner.query("select pg_try_advisory_lock(hashtextextended('tosker-local-location-worker',0)) ok")).rows[0].ok);
+    stage = "exclusive worker ownership";
+    owns = Boolean((await owner.query("select pg_try_advisory_lock(hashtextextended($1,0)) ok", [ownershipKey])).rows[0].ok);
     assert(owns, "Another supervised worker is active");
+    stage = "exact QA fixture admission";
     const config = await db.transaction(async tx => {
       const actors = await resolveQaActors(tx);
       const fixture = JSON.parse(readFileSync(".git/ms74-recovery/fixture.json", "utf8"));
@@ -35,15 +51,17 @@ async function main() {
       await tx.insert(locationCleanupWorkers).values({ slot: 1, runId, startedAt: now, lastSweepAt: now, endsAt });
       return { runId, userIds: [actors.a.userId, actors.b.userId], conversationIds: contexts, endsAt: endsAt.getTime() } satisfies LocalLocationWorker;
     });
+    stage = "worker configuration";
     const tmp = `${LOCAL_LOCATION_WORKER_FILE}.${runId}`;
     writeFileSync(tmp, JSON.stringify(config), { mode: 0o600, flag: "wx" }); renameSync(tmp, LOCAL_LOCATION_WORKER_FILE);
     console.log(JSON.stringify({ worker: "ready", syntheticOnly: true, minutes, founderMembershipVerified: true }));
     let sweeps = 0;
     while (!stopped && Date.now() < config.endsAt) {
+      stage = "bounded sweep";
       const started = performance.now();
       await db.transaction(async tx => {
         await tx.execute(sql`set local statement_timeout='5s'`);
-        const rows = await tx.select().from(locationCleanupWorkers).where(eq(locationCleanupWorkers.runId, runId)).for("update");
+        const rows = await tx.select().from(locationCleanupWorkers).where(eq(locationCleanupWorkers.runId, runId)).for("no key update");
         assert.equal(rows.length, 1, "Worker ownership lost");
         await tx.execute(sql`delete from location_latest where worker_run_id=${runId}::uuid and expires_at <= clock_timestamp()`);
         await tx.update(locationCleanupWorkers).set({ lastSweepAt: sql`clock_timestamp()` }).where(eq(locationCleanupWorkers.runId, runId));
@@ -58,9 +76,10 @@ async function main() {
       // atomically cascades every payload belonging to this exact run.
       await db.delete(locationCleanupWorkers).where(eq(locationCleanupWorkers.runId, runId));
       try { if (JSON.parse(readFileSync(LOCAL_LOCATION_WORKER_FILE, "utf8")).runId === runId) unlinkSync(LOCAL_LOCATION_WORKER_FILE); } catch { /* Absent/stale file remains fail-closed through DB generation. */ }
-      await owner.query("select pg_advisory_unlock(hashtextextended('tosker-local-location-worker',0))");
+      const released = await owner.query("select pg_advisory_unlock(hashtextextended($1,0)) ok", [ownershipKey]);
+      assert(released.rows[0].ok, "Worker ownership was lost");
       console.log(JSON.stringify({ worker: "stopped", exactRunPayloadsDeleted: true }));
-    } } finally { owner.release(); }
+    } } finally { owner.release(true); }
   }
 }
-main().catch(() => { console.error("Cleanup worker failed. STOP QA; writes fail closed. Inspect exact-run payload cleanup before resuming."); process.exitCode = 1; }).finally(() => db.$client.end());
+main().catch(error => { const candidate = error?.code ?? error?.cause?.code; const sqlState = typeof candidate === "string" && /^[0-9A-Z]{5}$/.test(candidate) ? candidate : undefined; console.error(JSON.stringify({ worker: "failed", stage, sqlState, stopQa: true })); process.exitCode = 1; }).finally(async () => { await db.$client.end(); await ownerPool.end(); });

@@ -11,7 +11,7 @@ export function SharedLocationControl({ sharing, available, contextName }: { sha
   const [open, setOpen] = useState(false), [precision, setPrecision] = useState<LocationPrecision>("area");
   const heading = useId();
   return <>
-    <button type="button" className={styles.control} disabled={!available || sharing.busy || !!sharing.lease} onClick={() => { setPrecision("area"); setOpen(true); }} title={available ? "Share a temporary location snapshot" : "Turn Locate on before sharing"}><Users size={17} aria-hidden="true"/><span>Share location</span></button>
+    <button type="button" className={styles.control} disabled={!available || !sharing.connected || sharing.busy || !!sharing.lease} onClick={() => { setPrecision("area"); setOpen(true); }} title={!available ? "Turn Locate on before sharing" : !sharing.connected ? "Reconnect to this conversation before sharing" : "Share a temporary location snapshot"}><Users size={17} aria-hidden="true"/><span>Share location</span></button>
     {open && <ModalLayer onClose={() => setOpen(false)}><section className="creation-panel" aria-labelledby={heading}>
       <h2 id={heading}>Share location in {contextName}?</h2>
       <p>Local synthetic QA only. Visible to authorized test participants in this exact conversation, including participants granted access while the snapshot is valid. Not your other chats or Rooms.</p>
@@ -25,7 +25,7 @@ export function SharedLocationControl({ sharing, available, contextName }: { sha
       <p>Tosker stores only your latest snapshot during this consent window, not a movement trail. Broad-area snapshots store no coordinates. Ably carries change notices only; authorized peers fetch the current snapshot from Tosker.</p>
       <p>Confirmed Stop deletes the active snapshot. Peers recheck access and remove an unverified marker within five seconds while the app is running. Expired rows are cleaned by the supervised QA worker. Database recovery history may retain prior data for six hours; this is not instant physical erasure. People can copy what they already received.</p>
       <p>No provider lookup or background tracking is used in this synthetic QA wave.</p>
-      <div className={styles.actions}><button className={styles.primary} disabled={!available || sharing.busy} onClick={() => { setOpen(false); void sharing.start(precision); }}>{precision === "area" ? "Share broad area" : "Share precise position"}</button><button className={styles.control} onClick={() => setOpen(false)}>Keep private</button></div>
+      <div className={styles.actions}><button className={styles.primary} disabled={!available || !sharing.connected || sharing.busy} onClick={() => { setOpen(false); void sharing.start(precision); }}>{precision === "area" ? "Share broad area" : "Share precise position"}</button><button className={styles.control} onClick={() => setOpen(false)}>Keep private</button></div>
     </section></ModalLayer>}
   </>;
 }

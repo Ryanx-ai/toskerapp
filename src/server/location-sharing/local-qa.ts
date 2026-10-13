@@ -32,7 +32,9 @@ export async function lockHealthyLocationWorker(tx: ToskerTransaction, config: L
     sql`${locationCleanupWorkers.lastSweepAt} > clock_timestamp() - interval '15 seconds'`,
     sql`${locationCleanupWorkers.lastSweepAt} <= clock_timestamp()`,
     sql`${locationCleanupWorkers.endsAt} > clock_timestamp() + ${requireRemainingMs} * interval '1 millisecond'`,
-  )).for("share");
+  // Fence worker deletion/generation changes, not its non-key heartbeat update.
+  // FOR SHARE would let slow authorized reads starve the cleanup heartbeat.
+  )).for("key share");
   if (!worker || worker.endsAt.getTime() !== config.endsAt) throw new Error("Cleanup worker unavailable; sharing is closed.");
   return worker;
 }

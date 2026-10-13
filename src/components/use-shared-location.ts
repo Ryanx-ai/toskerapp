@@ -13,6 +13,7 @@ export function useSharedLocation(conversationId: string, point: LocalMapLocatio
   const { session } = useSession(), sessionId = session?.id;
   const [lease, setLease] = useState<LocationLease | null>(null), [peers, setPeers] = useState<SharedLocationPeer[]>([]);
   const [busy, setBusy] = useState(false), [error, setError] = useState(""), [stopping, setStopping] = useState(false);
+  const [connected, setConnected] = useState(false);
   const owned = useRef<LocationLease | null>(null), pendingStop = useRef<LocationLease | null>(null);
   const generation = useRef(0), mounted = useRef(false), working = useRef(false), revision = useRef(0), ready = useRef(false);
   const call = useCallback(async (body: unknown, signal = AbortSignal.timeout(12000)) => {
@@ -45,12 +46,12 @@ export function useSharedLocation(conversationId: string, point: LocalMapLocatio
     const lifecycleGeneration = generation;
     mounted.current = true; ready.current = false;
     const view = new LocationView(conversationId, signal => call({ action: "current", conversationId }, signal), next => { if (active) setPeers(next); });
-    const suspend = () => { ready.current = false; view.clear(); void stop(); };
+    const suspend = () => { ready.current = false; setConnected(false); view.clear(); void stop(); };
     const health = (event: Event) => {
       const value = (event as CustomEvent).detail;
       if (value?.conversationId !== conversationId) return;
       const available = enabled && !revoked && !!value.ready && !document.hidden;
-      ready.current = available; view.setReady(available);
+      ready.current = available; setConnected(available); view.setReady(available);
       if (!available) void stop();
     };
     const refresh = (event: Event) => { if ((event as CustomEvent).detail === conversationId) view.refresh(); };
@@ -64,7 +65,7 @@ export function useSharedLocation(conversationId: string, point: LocalMapLocatio
     queueMicrotask(() => { if (active) { setPeers([]); setLease(null); setBusy(false); window.dispatchEvent(new Event(LOCATION_HEALTH_REQUEST)); } });
     return () => {
       active = false; mounted.current = false; ready.current = false; ++lifecycleGeneration.current; working.current = false; view.clear();
-      setPeers([]); setLease(null); setBusy(false); setStopping(false); setError("");
+      setPeers([]); setLease(null); setBusy(false); setStopping(false); setError(""); setConnected(false);
       const value = owned.current ?? pendingStop.current; owned.current = null; pendingStop.current = null;
       if (value) void retire(value).catch(() => undefined);
       window.removeEventListener(LOCATION_HEALTH, health); window.removeEventListener(LOCATION_REFRESH, refresh); window.removeEventListener(LOCATION_CLEAR, clear);
@@ -100,5 +101,5 @@ export function useSharedLocation(conversationId: string, point: LocalMapLocatio
       if (mounted.current && epoch === generation.current) setError(failure instanceof Error ? failure.message : "Sharing unavailable.");
     } finally { if (epoch === generation.current) { working.current = false; if (mounted.current) setBusy(false); } }
   };
-  return { lease, peers, busy, stopping, error, stop, start: (precision: LocationPrecision) => send(precision), refresh: () => send() };
+  return { lease, peers, busy, stopping, error, connected, stop, start: (precision: LocationPrecision) => send(precision), refresh: () => send() };
 }

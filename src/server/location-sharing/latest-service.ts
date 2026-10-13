@@ -3,7 +3,7 @@ import { and, eq, inArray, sql } from "drizzle-orm";
 import type { AuthenticatedActor } from "@/server/auth/actor";
 import { AuthorizationDeniedError } from "@/server/auth/authorize";
 import type { ToskerDatabase, ToskerTransaction } from "@/server/db/client";
-import { inviteRateLimits, locationLatest, locationShares, users } from "@/server/db/schema";
+import { inviteRateLimits, locationLatest, locationShares, users, profiles, conversations } from "@/server/db/schema";
 import { authorizedContext, lockPinScope, scopeForConversation } from "@/server/map-pins/scope";
 import { lockActorTokens } from "@/server/realtime/access-lock";
 import { assertRealtimeSession } from "@/server/realtime/session";
@@ -11,8 +11,10 @@ import { isConversationId } from "@/lib/realtime-contract";
 import { LOCATION_TTL, LOCATION_VIEW_MS, type LocationLease, type LocationPrecision, type LatestLocationSnapshot, type LocationCurrentView } from "@/lib/shared-location-contract";
 import { notifyLocationChanged } from "./notifications";
 import { localArea } from "@/server/maps/area";
-import { liveRoster } from "@/server/live/roster";
-import { assertSyntheticLocationPoint, localLocationWorker, lockHealthyLocationWorker } from "./local-qa";
+import { contextualName } from "@/server/profiles/context-name";
+import { approvedAvatarUrl } from "@/lib/identity-visual";
+import { lockLocalLocationActors, lockLocationReadContext } from "./read-scope";
+import { assertSyntheticLocationPoint, localLocationWorker, lockHealthyLocationWorker, WORKER_HEALTH_MS } from "./local-qa";
 
 type Dependencies = { session: typeof assertRealtimeSession; notify: (conversationId: string) => Promise<void> };
 export class LocationRevisionConflict extends Error {}
@@ -113,20 +115,18 @@ export function latestLocationService(db: ToskerDatabase, overrides: Partial<Dep
       const config = await localLocationWorker(actor.userId, conversationId);
       return db.transaction(async tx => {
         await tx.execute(sql`set local statement_timeout='4s'`);
-        await lockHealthyLocationWorker(tx, config);
-        // Capture only metadata before locks. New leases wait for a later read.
-        // Sorted actor locks precede context locks, matching removal/session paths.
-        const candidates = await tx.select({ id: locationShares.id, userId: locationShares.userId }).from(locationShares).where(and(eq(locationShares.conversationId, conversationId), sql`${locationShares.expiresAt}>clock_timestamp()`)).limit(51);
-        if (candidates.length > 50) throw new AuthorizationDeniedError();
-        for (const id of [...new Set([actor.userId, ...candidates.map(r => r.userId)])].sort()) await lockActorTokens(tx, id);
-        await deps.session(actor, sessionId); await context(tx, actor, conversationId);
-        const rows = candidates.length ? await tx.select({ consent: locationShares, payload: locationLatest, user: users }).from(locationShares)
+        const worker = await lockHealthyLocationWorker(tx, config);
+        await lockLocalLocationActors(tx, config.userIds);
+        await deps.session(actor, sessionId); await lockLocationReadContext(tx, actor, conversationId);
+        const rows = await tx.select({ consent: locationShares, payload: locationLatest, user: users,
+          displayName: contextualName(actor.userId, sql`${conversations.roomId}`, sql`${users.id}`, sql`${profiles.displayName}`), avatarUrl: profiles.avatarUrl }).from(locationShares)
           .innerJoin(locationLatest, eq(locationLatest.leaseId, locationShares.id)).innerJoin(users, eq(users.id, locationShares.userId))
-          .where(and(inArray(locationShares.id, candidates.map(r => r.id)), eq(locationShares.conversationId, conversationId), eq(locationLatest.workerRunId, config.runId), sql`${locationShares.expiresAt}>clock_timestamp()`,
+          .innerJoin(profiles, eq(profiles.userId, users.id)).innerJoin(conversations, eq(conversations.id, locationShares.conversationId))
+          .where(and(inArray(locationShares.userId, config.userIds), eq(locationShares.conversationId, conversationId), eq(locationLatest.workerRunId, config.runId), sql`${locationShares.expiresAt}>clock_timestamp()`,
             // The viewer's context lock already fences membership/relationship
             // changes for this exact context. Recheck each source in this query,
             // rather than resolving and reacquiring the same locks per source.
-            sql`exists(select 1 from conversations c where c.id=${locationShares.conversationId} and ${authorizedContext(sql`${locationShares.userId}`)})`)) : [];
+            sql`exists(select 1 from conversations c where c.id=${locationShares.conversationId} and ${authorizedContext(sql`${locationShares.userId}`)})`));
         const permitted: typeof rows = [];
         for (const row of rows) {
           if (row.consent.userId === actor.userId) continue;
@@ -135,14 +135,15 @@ export function latestLocationService(db: ToskerDatabase, overrides: Partial<Dep
             if (row.consent.expiresAt.getTime() > Date.now()) permitted.push(row);
           } catch { /* A revoked/unverifiable source is omitted, never cached. */ }
         }
-        const identities = await liveRoster(tx, actor, { conversationId, userIds: permitted.map(r => r.consent.userId) });
-        await lockHealthyLocationWorker(tx, config);
         const serverNow = Date.now();
-        const peers = permitted.filter(r => r.consent.expiresAt.getTime() > serverNow).flatMap(r => {
-          const identity = identities.find(p => p.userId === r.consent.userId);
-          return identity ? [{ snapshot: snapshot(r.consent, r.payload), identity }] : [];
-        });
-        return { serverNow, validForMs: Math.max(0, Math.min(LOCATION_VIEW_MS, ...peers.map(p => p.snapshot.expiresAt - serverNow))), peers };
+        // The key-share fence still prevents shutdown/generation replacement.
+        // Reuse the observed heartbeat deadline conservatively: don't extend it
+        // just because a concurrent sweep may have renewed it. No extra read.
+        const workerRemaining = Math.min(worker.lastSweepAt.getTime() + WORKER_HEALTH_MS, worker.endsAt.getTime()) - serverNow;
+        if (workerRemaining <= 0) throw new Error("Cleanup worker health expired during read.");
+        const peers = permitted.filter(r => r.consent.expiresAt.getTime() > serverNow).map(r => ({ snapshot: snapshot(r.consent, r.payload),
+          identity: { userId: r.user.id, displayName: r.displayName, avatarUrl: approvedAvatarUrl(r.avatarUrl) } }));
+        return { serverNow, validForMs: Math.max(0, Math.min(LOCATION_VIEW_MS, workerRemaining, ...peers.map(p => p.snapshot.expiresAt - serverNow))), peers };
       });
     },
   };

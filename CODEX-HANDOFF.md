@@ -2,6 +2,16 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## MS7.4 FP3 — LOCAL LATEST-STATE QA IN PROGRESS / NO DEPLOY — 13 October 2026
+
+Latest founder approval authorizes the supervised synthetic-only local worker and20–30h latest-state wave, **STOP before canonical**. Read [current ledger](docs/MS7-4-FP3-LATEST-STATE-EXECUTION.md); it supersedes the earlier no-implementation scheduler gate below only for local QA. Production scheduler/retention approval remains blocked. Canonical remains verified FP2A3e06bf9; no push or deployment. New additive0030 applied after backup/rehearsal,31migrations verified. Integration base5dbf67c; newer local read/worker hardening and tests are scoped work.
+
+Real A/B service/API, natural5min expiry (active-row deletion observed10.5s after expiry), Subroom/Personal isolation and precision downgrade pass. Browser QA A received B broad/precise, cleared on context switch/Stop, recovered after reload with LocateOFF. Full UI consent/bidirectional/reconnect/multi-tab/responsive/keyboard and final privacy/regression gates are unfinished. Older optimized reads3.5s remain performance debt; fresh read-roundtrip optimization passes affected real-context and explicit-barrier actor-lock race tests, but needs new API/browser measurement. Never extend the5s request-start display bound to hide latency.
+
+Worker hit fail-closed sweep stop; exact zero payload/worker cleanup verified before recovery. Fixed heartbeat lock contention with key-share/no-key-update and tested stale admission/deletion fencing. Session mutex MUST use existing direct Neon endpoint, not transaction-pooled DATABASE_URL. Worker now uses direct-only v2 mutex; competing start rejected. Legacy v1 pool-backend mutex was NOT forcibly cleared (never terminate shared DB sessions). Current supervised30min v2 worker/local optimized server may be running: inspect owned processes and receipts before continuing; stop worker and verify zero payload/config before final audit. Browser tests use synthetic API peers only, not founder GPS. Basemap assets were loaded; no search/reverse/routing calls in this slice.
+
+No founder content/profile/settings edits. Three retained founder Rooms stay available. Preserve qualified prior founder Sandbox read timestamp drift and unrelated Art/Design/Web WIP/older handoff hunks. Save scoped commits throughout, no blanket staging. Production remains gated; FP3 unaccepted; MS7.4 unlocked; FP2B research-only; MS8 untouched.
+
 ## MS7.4 FP3 — LATEST-STATE APPROVED / RETENTION GATE — 13 October 2026
 
 Founder approves the 20–30-hour latest-state API + content-free Ably notification wave, documented backup-retention distinctions and bounded peer-marker removal, **STOP before canonical deployment**. No foreground automatic movement in this wave. Read [latest-state ledger](docs/MS7-4-FP3-LATEST-STATE-EXECUTION.md) before implementation; it supersedes the older architecture-approval wait below, not the safety gates.

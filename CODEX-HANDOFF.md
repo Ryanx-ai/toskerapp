@@ -2,7 +2,11 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
-## MS7.4 FP3 — D ACCEPTANCE IN PROGRESS, CANONICAL UNCHANGED — 13 October 2026 SGT
+## MS7.4 FP3 — E LOCAL ACCEPTANCE COMPLETE / RELEASE NEXT — 13 October 2026 SGT
+
+Application checkpoint `b8ec145`; final session/logout/reconnect, build/type/lint, migration/database, both old/new server-secret scans pass. Exact cleanup removed two QA rate rows after private backup; immutable FP3 audit35table sets has zero differences, all three founder Rooms retained. Fresh AblyFree4402/6Mmessages,4/200connections,15/200channels. E evidence at top of ledger supersedes pending D items below. Founder authorizes scoped push/canonical after green gates; exact-SHA deployed A/B/privacy/provider/assets/runtime checks and final cleanup remain. No FP3 push yet. Preserve unrelated WIP and historical audit qualifications. STOP after canonical verification, not another implementation wave.
+
+## MS7.4 FP3 — D ACCEPTANCE IN PROGRESS, CANONICAL UNCHANGED — historical
 
 Founder approved the18–26hour wave **through canonical deployment after green gates**, then separately approved bounded location snapshots (broad default; explicit precise choice; per-context consent; manual refresh; five-minute expiry; Stop; no background/history). This supersedes the older gate-stop below. Base implementation `16389a9`; read top [FP3 ledger](docs/MS7-4-FP3-EXECUTION.md) and [privacy gate](docs/MS7-4-FP3-LOCATION-PRIVACY-GATE.md).
 

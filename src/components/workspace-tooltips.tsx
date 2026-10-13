@@ -15,12 +15,12 @@ export function WorkspaceTooltips() {
       if (panel.matches(":popover-open")) panel.hidePopover();
     };
     const show = (event: Event) => {
-      const target = event.target instanceof Element ? event.target.closest<HTMLElement>(".messaging-app [data-tip], .sidebar-collapsed .conversation-row[data-name], .sidebar-collapsed .tooltip-item[data-tooltip]") : null;
+      const target = event.target instanceof Element ? event.target.closest<HTMLElement>('.messaging-app [data-tip], .sidebar-collapsed .conversation-row[data-name], .sidebar-collapsed .tooltip-item[data-tooltip], .messaging-app [aria-label="Trip Map"] button[aria-label], .messaging-app [aria-label="Trip Map"] button[title]') : null;
       if (!target || target === anchor) return;
       close(); anchor = target;
       timer = setTimeout(() => {
         if (!target.isConnected || anchor !== target) return;
-        panel.textContent = target.dataset.tip ?? target.dataset.name ?? target.dataset.tooltip ?? "";
+        panel.textContent = target.dataset.tip ?? target.dataset.name ?? target.dataset.tooltip ?? target.getAttribute("title") ?? target.getAttribute("aria-label") ?? "";
         panel.showPopover();
         const rect = target.getBoundingClientRect(), gap = 8;
         const collapsed = Boolean(target.closest(".sidebar-collapsed .messenger-sidebar"));

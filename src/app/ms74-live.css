@@ -25,3 +25,18 @@
 .live-empty p { margin:0; }
 .live-panel .live-panel-note { margin-top:32px; max-width:65ch; font-size:12px; }
 @media(max-width:430px) { .live-panel-header { gap:16px; }.live-action { width:100%; } }
+
+/* FP3: one lifecycle, two presentation densities. No media controls or capture. */
+.live-panel[data-live-layout="expanded"] .live-participants { grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr)); gap:16px; }
+.live-panel[data-live-layout="expanded"] .live-participants li { flex-direction:column; justify-content:center; text-align:center; min-height:200px; padding:24px; }
+.live-panel[data-live-layout="expanded"] .live-participants .avatar { width:80px; height:80px; }
+.live-panel[data-live-layout="expanded"] .live-participants strong { font-size:16px; }
+.live-panel[data-live-layout="companion"] { padding:16px; border:0; border-radius:0; }
+.live-panel[data-live-layout="companion"] .live-participants { display:flex; flex-direction:column; }
+.live-panel[data-live-layout="companion"] .live-participants li { padding:12px; }
+.live-panel[data-live-layout="companion"] h2 { font-size:22px; }
+.live-panel[data-live-layout="companion"] .live-panel-status { margin:16px 0; }
+.live-control-dock { position:sticky; bottom:0; display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:12px; padding:12px; margin-top:24px; border:1px solid var(--border); border-radius:var(--control-radius); background:var(--shell-plane); z-index:1; }
+.live-control-dock > span { color:var(--text-secondary); font-size:12px; }
+.live-panel .live-panel-note { margin-top:16px; }
+.live-panel :is(button,li) { scroll-margin-block:16px 100px; }

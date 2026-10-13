@@ -3,14 +3,15 @@ import { eq, sql } from "drizzle-orm";
 import type { PlaceCandidate } from "@/lib/trip-contract";
 import type { ToskerDatabase } from "@/server/db/client";
 import { mapProviderUsage } from "@/server/db/schema";
-import { inPlanningRegion, PLACE_REGION_FILTER } from "@/lib/maps/planning-region";
+import { projectGeoapifyPlace as project } from "@/lib/maps/place-projection";
 import { credibleNearby } from "@/lib/maps/nearby-place";
 import { rankPlaceCandidates } from "@/lib/maps/place-search";
+import { projectBroadArea } from "@/lib/maps/area-label";
 
 export class PlaceProviderError extends Error {
   constructor(readonly code: "rate" | "unavailable", message: string) { super(message); }
 }
-export type PlaceProvider = { search(query: string, signal: AbortSignal): Promise<PlaceCandidate[]>; reverse(latitude: number, longitude: number, signal: AbortSignal): Promise<(PlaceCandidate & { nearby?: PlaceCandidate[] }) | null> };
+export type PlaceProvider = { search(query: string, signal: AbortSignal): Promise<PlaceCandidate[]>; reverse(latitude: number, longitude: number, signal: AbortSignal): Promise<(PlaceCandidate & { nearby?: PlaceCandidate[] }) | null>; area(latitude:number,longitude:number,signal:AbortSignal):Promise<string|null> };
 
 /** Separate server geocoding sub-budget leaves headroom for browser basemap tiles.
  * Counters are global across instances, not a per-process approximation. */
@@ -32,17 +33,9 @@ export async function reservePlaceRequest(db: ToskerDatabase, userId: string) {
 }
 
 const bounded = (value: unknown, max: number) => typeof value === "string" ? value.replace(/[\u0000-\u001F]/g, " ").trim().slice(0, max) : "";
-function project(value: Record<string, unknown>): PlaceCandidate | null {
-  if (!["sg","my"].includes(String(value.country_code)) || typeof value.lat !== "number" || typeof value.lon !== "number" || !inPlanningRegion(value.lat,value.lon)) return null;
-  const source = value.datasource as Record<string, unknown> | undefined;
-  // Preserve the actual source/license, including OpenAddresses; never assume OSM.
-  const attribution = bounded(source?.attribution || source?.sourcename, 450), license = bounded(source?.license, 120);
-  if (!attribution || !license) return null; // Unknown storage provenance is not silently saved.
-  return { title: bounded(value.name || value.address_line1 || value.formatted, 120), address: bounded(value.formatted, 400), latitude: value.lat, longitude: value.lon, source: "search", provider: "geoapify", providerId: bounded(value.place_id, 1024) || null, attribution: `Geoapify · ${attribution}`, license };
-}
 
 function geoapifyProvider(): PlaceProvider {
-  async function request(kind: "autocomplete" | "reverse", params: Record<string, string>, signal: AbortSignal) {
+  async function rawRequest(kind: "autocomplete" | "reverse", params: Record<string, string>, signal: AbortSignal):Promise<Record<string,unknown>[]> {
     const key = process.env.GEOAPIFY_SEARCH_KEY;
     if (!key) throw new PlaceProviderError("unavailable", "Place lookup is not configured. Saved trip places remain available.");
     const url = new URL(`https://api.geoapify.com/v1/geocode/${kind}`);
@@ -54,6 +47,15 @@ function geoapifyProvider(): PlaceProvider {
       const result = await response.json();
       if (!Array.isArray(result.results)) throw new Error();
       const raw:Record<string,unknown>[]=result.results.slice(0,5);
+      return raw;
+    } catch (error) {
+      if (error instanceof PlaceProviderError) throw error;
+      throw new PlaceProviderError("unavailable", "Place lookup could not finish. Check your connection and try again.");
+    }
+  }
+  async function request(kind: "autocomplete" | "reverse", params: Record<string, string>, signal: AbortSignal) {
+    try {
+      const raw=await rawRequest(kind,params,signal);
       const projected: (PlaceCandidate & { nearby?: PlaceCandidate[] })[]=raw.map(value=>project(value)).filter((p):p is PlaceCandidate=>!!p);
       if(kind==="reverse"&&projected[0]){
         const nearby=raw.filter(value=>{const p=project(value);return p&&p.attribution===projected[0].attribution&&p.license===projected[0].license&&credibleNearby(value,{latitude:Number(params.lat),longitude:Number(params.lon)});});
@@ -75,8 +77,13 @@ function geoapifyProvider(): PlaceProvider {
     }
   }
   return {
-    search: async (query, signal) => rankPlaceCandidates(await request("autocomplete", { text: query, limit: "5", filter: PLACE_REGION_FILTER, bias: "proximity:103.8198,1.3521" }, signal),query),
+    search: async (query, signal) => rankPlaceCandidates(await request("autocomplete", { text: query, limit: "5", bias: "countrycode:none" }, signal),query),
     reverse: async (latitude, longitude, signal) => (await request("reverse", { lat: String(latitude), lon: String(longitude), limit: "5" }, signal))[0] ?? null,
+    area: async (latitude,longitude,signal) => {
+      // Explicit consent upstream; broad lookup minimizes precision sent to the provider.
+      const values=await rawRequest("reverse",{lat:latitude.toFixed(2),lon:longitude.toFixed(2),type:"city",limit:"1"},signal);
+      return values.map(projectBroadArea).find(Boolean)??null;
+    },
   };
 }
 /** Replace here for a later provider evaluation; Room/card services remain vendor-neutral. */

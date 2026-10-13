@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useEffectEvent, useRef, useState, type ReactNode } from "react";
-import { Map as MapIcon, RotateCcw, Maximize } from "lucide-react";
+import { Map as MapIcon, RotateCcw, Maximize, Maximize2, Minimize2 } from "lucide-react";
+import { useMapWorkspaceActions } from "./map-workspace-actions";
 import type { Map as MapInstance, Marker, GeoJSONSource } from "maplibre-gl";
 import type { PlaceCandidate, TripPlace, TripRoute } from "@/lib/trip-contract";
 import { routeBounds, roadDistance, roadDuration, type RoadGeometry, type RoadMode } from "@/lib/maps/road-contract";
@@ -20,12 +21,14 @@ import { type MapPing as EphemeralPing } from "@/lib/maps/ping-contract";
 import { TripLocalPing } from "./trip-local-ping";
 import { TripRouteReplay } from "./trip-route-replay";
 import { markMapPhase } from "@/lib/maps/performance";
+import { mapCoordinate, planningSegments } from "@/lib/maps/world-geometry";
 
 type Status = "loading" | "ready" | "unavailable" | "failed";
 type PlanningRoute = TripRoute & { ghost: boolean; places: (TripPlace & { isStop: boolean })[] };
 
 export default function TripMapCanvas({ pings, inspector, viewerAvatarUrl, mapPins, selectedPinId, onSelectPin, places, canMove, onMove, estimate, privateRoad, privateOrigin, roadFit = 0, hiddenIds, activeVisible, routes, roads, roadMode, roadEnabled, localLocation, onDeselect, snapshotReady, candidate, selectedId, onSelect, onSelectGhost, pinMode, onPin }: { pings:EphemeralPing[];inspector?: ReactNode; viewerAvatarUrl?: string | null; mapPins:MapPin[];selectedPinId:string|null;onSelectPin(id:string):void;places: TripPlace[]; canMove:boolean; onMove(id:string,latitude:number,longitude:number):void; estimate?:RoadGeometry; privateRoad?:RoadGeometry; privateOrigin?:LocalMapLocation|null; roadFit?: number; hiddenIds: string[]; activeVisible: boolean; routes: PlanningRoute[]; roads: Record<string,RoadGeometry>; roadMode: RoadMode; roadEnabled: boolean; localLocation: LocalMapLocation | null; onDeselect(): void; snapshotReady: boolean; candidate: PlaceCandidate | null; selectedId: string | null; onSelect(id: string): void; onSelectGhost(routeId: string, id: string): void; pinMode: boolean; onPin(latitude: number, longitude: number): void }) {
   const container = useRef<HTMLDivElement>(null);
+  const workspaceActions = useMapWorkspaceActions();
   const mapRef = useRef<MapInstance | null>(null);
   const [readyMap,setReadyMap]=useState<MapInstance|null>(null);
   const initialCamera = useRef(false);
@@ -109,7 +112,7 @@ export default function TripMapCanvas({ pings, inspector, viewerAvatarUrl, mapPi
           zoom: camera.current?.zoom ?? 11,
           bearing: camera.current?.bearing ?? 0,
           pitch: camera.current?.pitch ?? 0,
-          minZoom: 9,
+          minZoom: 0,
           maxZoom: 18,
           renderWorldCopies: false,
           dragRotate: false,
@@ -141,7 +144,7 @@ export default function TripMapCanvas({ pings, inspector, viewerAvatarUrl, mapPi
           setReadyMap(instance);
         });
         instance.addControl(new NavigationControl({ showCompass: false }), "top-right");
-        instance.getCanvas().setAttribute("aria-label", "Singapore planning map. Arrow keys pan; plus and minus zoom. No live location is shared.");
+        instance.getCanvas().setAttribute("aria-label", "World planning map. Arrow keys pan; plus and minus zoom. No live location is shared.");
         observer = new ResizeObserver(() => instance?.resize());
         observer.observe(container.current);
         timer = setTimeout(fail, 20000);
@@ -170,11 +173,11 @@ export default function TripMapCanvas({ pings, inspector, viewerAvatarUrl, mapPi
         let entry = pointMarkers.current.get(key);
         if (!entry) {
           const button = document.createElement("button"); button.type = "button";
-          const marker = new Marker({ element: button, anchor: "center" }).setLngLat([place.longitude, place.latitude]).addTo(map);
+          const marker = new Marker({ element: button, anchor: "center" }).setLngLat(mapCoordinate(place.longitude, place.latitude)).addTo(map);
           entry = { marker, place, routeId, ghost };
           pointMarkers.current.set(key, entry);
           button.addEventListener("click", event => { event.stopPropagation(); const current = pointMarkers.current.get(key); if (current?.ghost) selectedGhost(current.routeId, current.place.id); else if (current) selected(current.place.id); });
-          marker.on("dragend", () => { const current = pointMarkers.current.get(key); if (!current) return; const point = marker.getLngLat(); marker.setLngLat([current.place.longitude, current.place.latitude]); moved(current.place.id, point.lat, point.lng); });
+          marker.on("dragend", () => { const current = pointMarkers.current.get(key); if (!current) return; const point = marker.getLngLat(); marker.setLngLat(mapCoordinate(current.place.longitude, current.place.latitude)); moved(current.place.id, point.lat, point.lng); });
         }
         entry.place = place; entry.ghost = ghost;
         const button = entry.marker.getElement();
@@ -197,7 +200,7 @@ export default function TripMapCanvas({ pings, inspector, viewerAvatarUrl, mapPi
         const positionLabel=place.skipped?"Excluded from routing":routeStops[0]?.id===place.id?"Route start":routeStops.at(-1)?.id===place.id?"Route end":"Intermediate destination";
         button.setAttribute("aria-description",positionLabel);button.title=`${positionLabel} · ${place.title}`;
         entry.marker.setDraggable(!ghost && canMove && !pinMode && place.source === "pin" && !place.providerId);
-        entry.marker.setLngLat([place.longitude, place.latitude]);
+        entry.marker.setLngLat(mapCoordinate(place.longitude, place.latitude));
       };
       routes.filter(r => r.ghost).forEach(route => route.places.forEach((place, index) => { if (!activeIds.has(place.id)) reconcileMarker(place, index, route.id, route.color, true, route.name); }));
       const active = routes.find(r => !r.ghost);
@@ -206,7 +209,7 @@ export default function TripMapCanvas({ pings, inspector, viewerAvatarUrl, mapPi
       if (candidate) {
         const element = document.createElement("span"); element.className = `${styles.pin} ${styles.candidatePin}`;
         element.textContent = "+"; element.setAttribute("aria-label", "Unsaved preview pin");
-        previewMarker = new Marker({ element, anchor: "center" }).setLngLat([candidate.longitude, candidate.latitude]).addTo(map);
+        previewMarker = new Marker({ element, anchor: "center" }).setLngLat(mapCoordinate(candidate.longitude, candidate.latitude)).addTo(map);
       }
     });
     return () => { disposed = true; previewMarker?.remove(); };
@@ -223,7 +226,7 @@ export default function TripMapCanvas({ pings, inspector, viewerAvatarUrl, mapPi
         button.textContent=state.icon;button.setAttribute("aria-label",`${state.label} Map Pin: ${pin.title}`);button.setAttribute("aria-pressed",String(pin.id===selectedPinId));
         button.addEventListener("click",event=>{event.stopPropagation();selectedMemory(pin.id);});
         // Above/right of a co-located numbered Route marker so both remain selectable.
-        markers.push(new Marker({element:button,anchor:"bottom-left",offset:[16,-16]}).setLngLat([pin.longitude,pin.latitude]).addTo(map));
+        markers.push(new Marker({element:button,anchor:"bottom-left",offset:[16,-16]}).setLngLat(mapCoordinate(pin.longitude,pin.latitude)).addTo(map));
       }
     });
     return()=>{disposed=true;markers.forEach(m=>m.remove());};
@@ -239,7 +242,9 @@ export default function TripMapCanvas({ pings, inspector, viewerAvatarUrl, mapPi
       return eligible.slice(1).flatMap((place,index) => {
         const previous = eligible[index];
         const leg = routeLegPresentation(eligible,index,selectedId,route.ghost,roadEnabled,roadMode,roads[route.id]);
-        return !leg || hiddenIds.includes(place.id) || hiddenIds.includes(previous.id) ? [] : [{ type: "Feature" as const, properties: { name: route.name, ghost: route.ghost, opacity: leg.opacity, width: leg.width, color: tokens.getPropertyValue(`--trip-${route.color}`).trim() }, geometry: { type: "LineString" as const, coordinates: leg.coordinates } }];
+        if (!leg || hiddenIds.includes(place.id) || hiddenIds.includes(previous.id)) return [];
+        const segments = roadEnabled ? [leg.coordinates] : planningSegments([previous.longitude,previous.latitude],[place.longitude,place.latitude]);
+        return segments.map(coordinates => ({ type: "Feature" as const, properties: { name: route.name, ghost: route.ghost, opacity: leg.opacity, width: leg.width, color: tokens.getPropertyValue(`--trip-${route.color}`).trim() }, geometry: { type: "LineString" as const, coordinates } }));
       });
     }) };
     const source = map.getSource("tosker-planning") as GeoJSONSource | undefined;
@@ -261,10 +266,10 @@ export default function TripMapCanvas({ pings, inspector, viewerAvatarUrl, mapPi
       element.setAttribute("role", "img"); element.setAttribute("aria-label", `You, accuracy about ${Math.round(localLocation.accuracy)} metres. Visible only to you.`);
       if (viewerAvatarUrl) { const avatar = document.createElement("img"); avatar.src = viewerAvatarUrl; avatar.alt = ""; avatar.referrerPolicy = "no-referrer"; element.append(avatar); }
       const label = document.createElement("span"); label.textContent = "You"; element.append(label);
-      marker = new Marker({ element }).setLngLat([localLocation.longitude, localLocation.latitude]).addTo(map);
+      marker = new Marker({ element }).setLngLat(mapCoordinate(localLocation.longitude, localLocation.latitude)).addTo(map);
       if (locatedCamera.current !== localLocation) {
         locatedCamera.current = localLocation;
-        map.jumpTo({ center: [localLocation.longitude, localLocation.latitude], zoom: 14 });
+        map.jumpTo({ center: mapCoordinate(localLocation.longitude, localLocation.latitude), zoom: 14 });
       }
     });
     return () => { disposed = true; marker?.remove(); };
@@ -291,7 +296,7 @@ export default function TripMapCanvas({ pings, inspector, viewerAvatarUrl, mapPi
     const selection = candidate ? `preview:${candidate.latitude}:${candidate.longitude}` : selectedId;
     if (selectionCamera.current === selection) return;
     selectionCamera.current = selection;
-    if (point && mapRef.current) mapRef.current.easeTo({ center: [point.longitude, point.latitude], offset: [(container.current?.clientWidth ?? 320) >= 560 ? -140 : 0, 0], zoom: Math.max(14, mapRef.current.getZoom()), duration: 0 });
+    if (point && mapRef.current) mapRef.current.easeTo({ center: mapCoordinate(point.longitude, point.latitude), offset: [(container.current?.clientWidth ?? 320) >= 560 ? -140 : 0, 0], zoom: Math.max(14, mapRef.current.getZoom()), duration: 0 });
     // Camera reacts only to this viewer's selection, never a peer's snapshot.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [candidate, selectedId, status]);
@@ -320,7 +325,7 @@ export default function TripMapCanvas({ pings, inspector, viewerAvatarUrl, mapPi
       const region=canvas.getBoundingClientRect();
       const visibleTop=Math.max(8,8-region.top),visibleBottom=Math.min(canvas.clientHeight-32,window.innerHeight-region.top-8);
       element.style.maxHeight=`${Math.max(80,visibleBottom-visibleTop)}px`;
-      const point = map && status === "ready" ? map.project([inspectorPoint.longitude, inspectorPoint.latitude]) : { x: canvas.clientWidth / 2, y: canvas.clientHeight / 2 };
+      const point = map && status === "ready" ? map.project(mapCoordinate(inspectorPoint.longitude, inspectorPoint.latitude)) : { x: canvas.clientWidth / 2, y: canvas.clientHeight / 2 };
       const width = element.offsetWidth, height = element.offsetHeight;
       const side = point.x + width + 36 <= canvas.clientWidth ? point.x + 28 : point.x - width - 28 >= 8 ? point.x - width - 28 : point.x - width / 2;
       const x = Math.max(8, Math.min(canvas.clientWidth - width - 8, side));
@@ -335,6 +340,7 @@ export default function TripMapCanvas({ pings, inspector, viewerAvatarUrl, mapPi
 
   return <div className={styles.canvasRegion} data-map-state={status}>
     <div ref={container} className={styles.canvas} />
+    {workspaceActions && <button type="button" data-map-controls className={`${styles.resetMap} ${styles.expandMap}`} aria-label={workspaceActions.expanded ? "Restore Map companion" : "Expand Map"} data-tip={workspaceActions.expanded ? "Restore Map companion" : "Expand Map"} aria-pressed={workspaceActions.expanded} onClick={workspaceActions.toggle}>{workspaceActions.expanded ? <Minimize2 size={18} aria-hidden="true" /> : <Maximize2 size={18} aria-hidden="true" />}</button>}
     {status==="ready"&&<TripMapPings map={readyMap} pings={pings}/>}
     {status === "ready" && <TripLocalPing map={readyMap} location={localLocation} enabled={snapshotReady} />}
     {inspector && <div key={inspectorKey} ref={inspectorRef} data-map-inspector className={styles.mapInspector} tabIndex={-1} onKeyDown={event => { if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); onDeselect(); } }}>{inspector}</div>}
@@ -346,11 +352,11 @@ export default function TripMapCanvas({ pings, inspector, viewerAvatarUrl, mapPi
     {status==="ready"&&currentPrivateRoad&&<TripLegTags map={readyMap} road={currentPrivateRoad} points={originPoints} color="sky" selectedId={selectedId} privateLeg/>}
     {privateOrigin && originTarget && !currentPrivateRoad && <p className={styles.srOnly} role="status">Private visual connector from your starting location to {originTarget.title}. No distance or travel time is inferred.</p>}
     {status === "ready" && <div className={styles.cameraControls}><button type="button" className={styles.resetMap} aria-label="Reset map to Singapore" title="Singapore" onClick={() => mapRef.current?.jumpTo({ center: SINGAPORE_CENTER, zoom: 11, bearing: 0, pitch: 0 })}><RotateCcw size={16} aria-hidden="true" /></button>{(places.length > 0 || mapPins.length > 0) && <button type="button" className={styles.resetMap} aria-label={places.length?"Fit trip":"Fit Pins"} title="Fit visible places" onClick={fitTrip}><Maximize size={16} aria-hidden="true" /></button>}<TripRouteReplay map={readyMap} road={roadEnabled && activeVisible ? estimate : undefined} points={eligiblePlaces} mode={roadMode} routeId={activeRoute?.id} hiddenIds={hiddenIds} /></div>}
-    <p className={styles.mapStatus} role="status">{status === "ready" ? "Map ready. No live location is shared." : status === "loading" ? "Loading Singapore map…" : ""}</p>
+    <p className={styles.mapStatus} role="status">{status === "ready" ? "Map ready. No live location is shared." : status === "loading" ? "Loading map…" : ""}</p>
     {status !== "ready" && <div className={styles.emptyMap}>
       <MapIcon size={36} strokeWidth={1.25} aria-hidden="true" />
       <h1>{status === "loading" ? "Finding our bearings." : "Map unavailable"}</h1>
-      <p>{status === "loading" ? "Loading the Singapore basemap." : status === "unavailable" ? "Map access has not been configured for this environment." : "The map could not load. Check your connection and try again. Nothing has been saved or changed."}</p>
+      <p>{status === "loading" ? "Loading the basemap." : status === "unavailable" ? "Map access has not been configured for this environment." : "The map could not load. Check your connection and try again. Nothing has been saved or changed."}</p>
       {status === "failed" && (attempt < 2 ? <button type="button" className={styles.retryMap} onClick={() => { setStatus("loading"); setAttempt(value => value + 1); }}>Try loading map again</button> : <p>Retries paused. Return later when your connection or map access is restored.</p>)}
     </div>}
   </div>;

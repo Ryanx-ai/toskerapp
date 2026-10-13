@@ -6,6 +6,7 @@ import type { LiveSession } from "@/lib/live-session";
 import type { WorkspaceSurface } from "@/lib/workspace-surfaces";
 import { surfaceAvailable, surfaceIsVisible, surfaceNames, workspaceSurfaces, type CompositionAction, type SurfaceCapabilities, type WorkspaceComposition } from "@/lib/workspace-composition";
 import { AttentionMark } from "./attention-mark";
+import { MapWorkspaceActions } from "./map-workspace-actions";
 
 const icons = { map: MapIcon, hall: LayoutDashboard, live: Radio, chat: MessageCircle };
 export function CompositionNavigation({ composition, capabilities, choose, chatUnread, hallUnread }: {
@@ -40,18 +41,26 @@ export function WorkspacePanels({ composition, foreground, wide, choose, focusSu
   const [visited, setVisited] = useState<WorkspaceSurface[]>(visible);
   if (visible.some(surface => !visited.includes(surface))) setVisited([...new Set([...visited, ...visible])]);
   const root = useRef<HTMLDivElement>(null);
+  const [mapCompanion, setMapCompanion] = useState<"chat" | "live" | null>(null);
+  const mapActions = composition.primary === "map" && (composition.companion || mapCompanion) ? {
+    expanded: !composition.companion,
+    toggle: () => {
+      if (composition.companion) { setMapCompanion(composition.companion); choose({ type: "alone", surface: "map" }); }
+      else if (mapCompanion) choose({ type: "choose", surface: mapCompanion });
+    },
+  } : null;
   return <div ref={root} className={`workspace-composition ${wide && composition.companion ? "has-companion" : ""}`} data-layout={`${composition.primary}:${composition.companion ?? "none"}`}>
     {!wide && composition.companion && <div className="workspace-foreground" role="group" aria-label="Visible workspace pane">
       {[composition.primary, composition.companion].map(surface => <button type="button" key={surface} aria-pressed={foreground === surface} onClick={() => focusSurface(surface)}>{surface === composition.primary && <ArrowLeft size={15} aria-hidden="true" />}{surfaceNames[surface]}</button>)}
     </div>}
     {workspaceSurfaces.map(surface => visited.includes(surface) && <Activity key={surface} mode={visible.includes(surface) ? "visible" : "hidden"}>
       <section className={`workspace-pane ${surface === composition.companion ? "is-companion" : "is-primary"}`} data-workspace-pane={surface} aria-label={`${surfaceNames[surface]} workspace`} tabIndex={-1}>
-        <div className="workspace-pane-actions">
+        {surface !== "map" && <div className="workspace-pane-actions">
           <span>{surfaceNames[surface]}</span>
           {composition.companion && <button type="button" className="action-icon" aria-label={`Open ${surfaceNames[surface]} alone`} title={`Open ${surfaceNames[surface]} alone`} onClick={() => choose({ type: "alone", surface })}><Maximize2 size={16} aria-hidden="true" /></button>}
           {surface === composition.companion && <button type="button" className="action-icon" aria-label={`Close ${surfaceNames[surface]} companion`} title={`Close ${surfaceNames[surface]} companion`} onClick={() => choose({ type: "choose", surface })}><X size={16} aria-hidden="true" /></button>}
-        </div>
-        {children[surface]}
+        </div>}
+        {surface === "map" ? <MapWorkspaceActions.Provider value={mapActions}>{children[surface]}</MapWorkspaceActions.Provider> : children[surface]}
       </section>
     </Activity>)}
   </div>;

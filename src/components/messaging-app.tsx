@@ -1507,7 +1507,7 @@ export function MessagingApp({
               {{
                 map: capabilities.map ? <RoomMapWorkspace roomSlug={selected.kind === "my-room" ? `sandbox--${selected.databaseId}` : selected.kind === "personal" ? `personal--${selected.databaseId}` : selected.slug} conversationId={selected.databaseId ?? ""} /> : null,
                 hall: <HallSurface connected={realtime.connected} manualUnreadId={selectedPreference?.manualHallUnreadId} readingPaused={readingPaused || !surfaceIsVisible(composition, "hall", companionWidth, foreground)} conversation={selected} empty={Boolean(identity) || Boolean(prototypeRoom && !canonical)} />,
-                live: capabilities.live ? <LivePanel live={realtime.live} userId={identity?.userId} /> : null,
+                live: capabilities.live ? <LivePanel live={realtime.live} userId={identity?.userId} companion={composition.companion === "live" && companionWidth} /> : null,
                 chat: <ChatSurface companion={composition.companion === "chat" && companionWidth} conversation={selected} realtime={realtime} manualUnreadId={selectedPreference?.manualChatUnreadId} readingPaused={readingPaused || !chatVisible} />,
               }}
             </WorkspacePanels>

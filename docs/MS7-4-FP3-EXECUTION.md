@@ -4,9 +4,17 @@
 
 ## Gate status
 
+**Founder authorization received after checkpoint `516996e`: proceed with the18–26hour FP3 wave through canonical deployment after acceptance.** This supersedes the earlier time/deployment stop below. Shared-location implementation remains behind its dedicated privacy gate; precision/audience/expiry proposal has been sent for explicit decision. Continue non-sharing slices while waiting. No media procurement, provider-limit expansion or old-key revocation is authorized. Save B/C/D/E and exact canonical evidence; stop if a critical gate fails. Historical R/A findings below remain unchanged.
+
 **R recovered with preservation qualifications; A proposed; STOP before implementation.** Full local scope is estimated at **18–26 engineering hours**, exceeding Section 09's eight-hour gate. Explicit founder time authorization is required. Shared-location implementation additionally requires the dedicated privacy/authorization gate in [architecture](MS7-4-FP3-ARCHITECTURE.md). Canonical deployment requires separate explicit approval. B/C/D/E have NOT begun. No application change, migration, fixture write, provider configuration, push or deployment was made during this recovery.
 
 ## R — fresh recovery evidence
+
+### B1 working slice — implementation checkpoint, not acceptance
+
+Worldwide provider projection preserves identity/provenance, neutral bias and explicit save flow; road-region guards remain separate. Map zoom now allows world views, Order connectors split at the date line, polar display is clamped without changing saved coordinates. Removed guessed Bukit Timah box; original licensed URA five-region dataset downloaded, local private label lookup added, explicit one-shot coarse provider area consent for elsewhere. Map title row removed with canvas Expand/restore; Live primary/companion layout and truthful Join/Leave dock implemented without changing transport ownership. Map icon tooltip coverage widened using the existing top-layer system.
+
+TypeScript, lint and mocked global Map contracts pass at this slice. Browser/provider/A/B/privacy acceptance NOT yet run. New write-once `.git/ms74-fp3/protected-baseline.json` captures current retained state, with exact private rows for future attribution; it does not replace FP2's qualified historical evidence. All three founder memberships verified. Founder has now explicitly approved the bounded shared-snapshot model; [dedicated technical gate](MS7-4-FP3-LOCATION-PRIVACY-GATE.md) records design and required release proof. Next: shared lease migration rehearsal + snapshot lifecycle implementation, then integrated acceptance. Canonical unchanged.
 
 - Actual repository `/Users/ryanc/Developer/toskerapp`, branch `codex/ms74-foundation`, starting HEAD `9c9a07a`; local origin/main `3e06bf9e5c9ec09ee0c3dedb82e5e7088cc41161`.
 - Fresh Vercel alias/deployment reads: `toskerapp.vercel.app` points to READY `dpl_BeaJBAwSj33GQzxWzE2HRXj5vcLh`, immutable `tosker-jx4c5rym4-pangea6.vercel.app`, exact Git SHA `3e06bf9e5c9ec09ee0c3dedb82e5e7088cc41161`. FP2A live A/B evidence remains in its release receipt/ledger; this recovery did not rerun or claim a new browser acceptance suite.

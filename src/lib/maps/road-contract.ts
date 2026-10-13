@@ -1,4 +1,5 @@
 import { inPlanningRegion } from "./planning-region";
+import { MERCATOR_LATITUDE } from "./world-geometry";
 export type RoadMode = "drive" | "walk";
 export type RoadPoint = { id: string; latitude: number; longitude: number };
 export type RoadLegEstimate = { fromId: string; toId: string; metres: number; seconds: number };
@@ -16,5 +17,8 @@ export function routeBounds(places: RoadPoint[], road?: RoadGeometry, extra: Pic
   if(road && road.key===roadKey(places,road.mode))points.push(...road.segments.flat());
   let west=Infinity,east=-Infinity,south=Infinity,north=-Infinity;
   for(const [lon,lat] of points){if(!Number.isFinite(lon)||!Number.isFinite(lat)||Math.abs(lon)>180||Math.abs(lat)>90)return null;west=Math.min(west,lon);east=Math.max(east,lon);south=Math.min(south,lat);north=Math.max(north,lat);}
-  return [[west,south],[east,north]];
+  // With world copies disabled, keep both sides of a date-line route visible.
+  // A wide fit is intentional; never wrap one of the saved markers off screen.
+  const latitude = (value: number) => Math.max(-MERCATOR_LATITUDE,Math.min(MERCATOR_LATITUDE,value));
+  return [[west,latitude(south)],[east,latitude(north)]];
 }

@@ -2,6 +2,12 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP3 14 October — eligibility clarified / capacity sign-in gate / policy checkpoint
+
+Founder declares current personal non-commercial use; prior factual Hobby eligibility hold is resolved on that declaration, with MS14 or earlier actual commercial-use reassessment. No paid plan/billing authorization. Recovered `05512b6`, saved declaration `abaf1f7`, local cleanup policy/tests `7f0edee7a9ec4c30718cfd5f1e7e0355bbc65500`. See [final closeout](docs/MS7-4-FP3-FINAL-CLOSEOUT.md). Fresh migration/zero-location-state/qualified preservation checks pass; exact canonical still READY FP2A deployment `dpl_BeaJBAwSj33GQzxWzE2HRXj5vcLh`. No hosted change.
+
+32 unsafe cleanup-policy cases rejected; TypeScript/targeted lint/secret scan pass. Pure policy is NOT wired in; no queue/Neon function/SDK/migration created. Hosted guard remains. Vercel CLI usage returned 404, not zero consumption; Neon and Vercel in-app dashboards require sign-in to establish fresh Free-plan headroom/function access. Founder asked for sign-in, not generic approval. Preserve browser handoff tabs; do not retrieve/print credentials. Continue capacity check → implementation/migration → actual retention and A/B gates → conditional canonical → post-release docs. D/E/F NOT complete. No local server/worker/session started. Founder Rooms, historical baseline qualification and unrelated WIP preserved. MS7.4 unlocked; later milestones untouched.
+
 ## FP3 closeout recovery — cleanup researched / eligibility gate / local UI saved — 13 October 2026
 
 Latest authority pre-approves R–F save states and existing-Free cleanup implementation, then canonical ONLY after critical acceptance. Read [final closeout ledger](docs/MS7-4-FP3-FINAL-CLOSEOUT.md) and [cleanup decision](docs/MS7-4-FP3-DURABLE-CLEANUP.md). R `2c44367`, A research `2752040`, application `3423edac560e7eb6c3b943136d229e184934a2a6`. These supersede older generic approval waits, not safety gates. Recommended demand-driven Vercel Queues plus hourly Neon rescue is NOT implemented. Current Hobby eligibility needs founder clarification (personal non-commercial prototype or provider exception); no plan/billing/configuration change. Fresh account headroom and actual hosted retention evidence remain required. Canonical independently resolves the existing READY FP2A deployment linked to `3e06bf9`; no push/deploy this slice.

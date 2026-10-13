@@ -1,5 +1,9 @@
 # FP3 latest-state implementation wave
 
+## 14 October continuation
+
+Founder non-commercial hosting declaration resolves the prior eligibility clarification; no upgrade/billing change. Fresh recovery and local cleanup-policy preparation saved (`abaf1f7`, `7f0edee`); see [closeout ledger](MS7-4-FP3-FINAL-CLOSEOUT.md) for exact evidence. Hosted cleanup remains unimplemented; current Free usage/function access needs dashboard sign-in, since Vercel CLI usage returned 404. No canonical change or critical-gate bypass. Historical eligibility holds below are superseded, not the retention/privacy/capacity requirements.
+
 ## Current closeout checkpoint — 13 October 2026
 
 Latest founder R–F closeout authority supersedes older generic approval/local-only restrictions, conditional on every critical gate. See [stepped closeout](MS7-4-FP3-FINAL-CLOSEOUT.md) for authoritative current status and [durable cleanup](MS7-4-FP3-DURABLE-CLEANUP.md) for researched queue-first/hourly-rescue architecture. R `2c44367`, A research `2752040`, app `3423eda`. Production QA-control hiding and feedback are now locally implemented/tested; historical pending statements below remain history, not current status. No production cleanup implemented or hosted storage enabled. Existing Hobby eligibility clarification and actual retention/usage/remaining A/B gates block release. Canonical remains verified FP2A `3e06bf9`; D/E/F not completed. Local processes stopped, zero location worker/payload/consent/rate rows verified; founder Rooms and qualified baseline preserved. Resume without replaying completed incident investigations or resetting unrelated WIP.

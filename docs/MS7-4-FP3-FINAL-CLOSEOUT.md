@@ -10,6 +10,14 @@ Fresh read-only checks: 31 migration hashes/catalog match (38 tables/277 columns
 
 Next: current account usage and Neon scheduled-function access, bounded cleanup implementation, then remaining B–F gates. Neon Console currently requires sign-in in the in-app browser; founder asked to sign in without sharing credentials. No new API key/account created. Local preparation can continue independently; hosted activation still requires actual capacity/retention verification.
 
+### Local preparation save — 14 October
+
+Verified recovery/declaration commit `abaf1f7`; local policy/test checkpoint `7f0edee7a9ec4c30718cfd5f1e7e0355bbc65500`. Added strict coordinate-free queue envelopes, fixed DB-derived five-minute reservation/publication policy, readiness/rescue/capacity admission predicates, early-delivery deferral and bounded retry/exhaustion classification. No SDK installation, active route, queue, database adapter, migration or scheduler. This module is not wired into the application; it cannot enable hosted storage. The existing local-only guard remains intact.
+
+Pure tests pass 32 unsafe-case rejections plus positive expiry/readiness/retry cases; full TypeScript and changed-file lint pass. Secret scan passes 775 source/owned files and 76 existing client assets. The assets are from the previous verified optimized build, not a newly rebuilt integrated cleanup candidate. No new build/deployed-retention acceptance claimed for unused policy code.
+
+Capacity/access gate: authenticated Vercel CLI can inspect project/canonical but `usage --scope pangea6 --format json` returns `Costs not found (404)`, not a zero-usage report. In-app Neon and Vercel dashboards both require founder sign-in; requested without credentials. Do not provision scheduling until actual account headroom and function access are established. No consent/payload/test session or local worker/server was started this slice. D canonical, E post-release consolidation and F final handoff remain outstanding; no push or deployment. Resume with the retained dashboard tabs, capacity verification, then actual adapter/schema implementation and full B/C acceptance. No further generic proceed approval needed.
+
 ## Authority and boundaries
 
 Read the full founder pre-authorization attachment `d6e2f84e-b982-4620-9a6d-9d45fc6611c7/Pasted text.txt` and accompanying closeout directive. Necessary additive schema, bounded jobs and scheduling within existing Free infrastructure are approved. Conditional canonical release is approved only after privacy, retention, authorization and delivery acceptance. No new external provider, billing/plan changes, continuous movement, media implementation or later milestone. R–F local checkpoints are pre-authorized. Post-release product/README consolidation must wait for verified canonical; preserve historical documents.

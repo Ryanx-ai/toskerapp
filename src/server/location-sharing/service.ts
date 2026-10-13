@@ -1,6 +1,6 @@
 import "server-only";
 import { and, eq, sql } from "drizzle-orm";
-import { randomUUID } from "node:crypto";
+import { createHash } from "node:crypto";
 import type { AuthenticatedActor } from "@/server/auth/actor";
 import { AuthorizationDeniedError } from "@/server/auth/authorize";
 import type { ToskerDatabase, ToskerTransaction } from "@/server/db/client";
@@ -26,10 +26,10 @@ export function locationService(db: ToskerDatabase, overrides: Partial<Dependenc
   const deps: Dependencies = {
     session: assertRealtimeSession,
     publish: async (recipientId, snapshot) => {
-      const accepted = await getRealtimeServer().channels.get(userChannel(recipientId)).publish({ id: randomUUID(), name: LOCATION_SNAPSHOT, data: snapshot, extras: { ephemeral: true } });
+      const accepted = await getRealtimeServer().channels.get(userChannel(recipientId)).publish({ name: LOCATION_SNAPSHOT, data: snapshot, extras: { ephemeral: true } });
       // Incident diagnostics: aggregate acknowledgement shape only. Never log
       // identity, channel, consent ID, coordinates, labels, keys or SDK errors.
-      console.info("[location-dispatch]", { stage: "provider-ack", serialCount: accepted?.serials?.length ?? 0, discarded: accepted?.serials?.filter(value => value === null).length ?? 0 });
+      console.info("[location-dispatch]", { stage: "provider-ack", channelDigest:createHash("sha256").update(userChannel(recipientId)).digest("hex").slice(0,12), serialCount: accepted?.serials?.length ?? 0, discarded: accepted?.serials?.filter(value => value === null).length ?? 0 });
     },
     area: async (point, actorId, signal) => {
       const local = await localArea(point.latitude, point.longitude);

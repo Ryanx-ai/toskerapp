@@ -1,6 +1,7 @@
 /** Bounded canonical SDK/API smoke. Synthetic public landmark; isolated QA only. */
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
+import { spawn } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 import { createClerkClient } from "@clerk/backend";
 import { Realtime, Rest } from "ably";
@@ -33,7 +34,22 @@ async function main() {
   const request = async (role: number, path: string, body?: object, expected = 200) => {
     phase = `${role === 0 ? "A" : "B"} ${path}`;
     const token = await clerk.sessions.getToken(sessions[role]);
-    const response = await fetch(origin + path, { method: body ? "POST" : "GET", headers: { Authorization: `Bearer ${token.jwt}`, Origin: origin, "Content-Type": "application/json" }, ...(body ? { body: JSON.stringify(body) } : {}), signal: AbortSignal.timeout(25000) });
+    const response = process.env.FP3_VERCEL_CURL ? await new Promise<Response>((resolve,reject)=>{
+      // Credentials travel on stdin, never command arguments or persisted files.
+      const child=spawn(process.env.FP3_VERCEL_CURL!,["curl",path,"--deployment",origin,"--scope","pangea6","--","--config","-","--silent","--max-time","25","--include"],{stdio:["pipe","pipe","pipe"]});
+      let output=""; child.stdout.on("data",chunk=>output+=chunk); child.stderr.resume();
+      child.on("error",()=>reject(new Error("Protected request unavailable")));
+      child.on("close",code=>{
+        if(code!==0)return reject(new Error("Protected request failed"));
+        const boundary=output.indexOf("\r\n\r\n");
+        const lines=output.slice(0,boundary).split("\r\n");
+        const status=Number(lines.shift()?.split(" ")[1]);
+        const headers=new Headers(); for(const line of lines){const split=line.indexOf(":");if(split>0)headers.append(line.slice(0,split),line.slice(split+1).trim());}
+        resolve(new Response(output.slice(boundary+4),{status,headers}));
+      });
+      const entry=(name:string,value:string)=>`${name} = ${JSON.stringify(value)}\n`;
+      child.stdin.end(entry("request",body?"POST":"GET")+entry("header",`Authorization: Bearer ${token.jwt}`)+entry("header",`Origin: ${origin}`)+entry("header","Content-Type: application/json")+(body?entry("data",JSON.stringify(body)):""));
+    }) : await fetch(origin + path, { method: body ? "POST" : "GET", headers: { Authorization: `Bearer ${token.jwt}`, Origin: origin, "Content-Type": "application/json" }, ...(body ? { body: JSON.stringify(body) } : {}), signal: AbortSignal.timeout(25000) });
     assert.equal(response.status, expected, `Expected ${expected}, received ${response.status}`);
     assert.match(response.headers.get("cache-control") ?? "", /no-store/);
     return response.json();
@@ -104,9 +120,11 @@ async function main() {
       checks.push(`${precision}: explicit consent, B delivery, fixed refresh expiry, forged sender denied, Stop invalidates`);
     }
     assert((await request(0, `/api/conversations/${fixture.conversationId}/messages`)).messages.length > 0);
+    if(!process.argv.includes("--skip-provider")) {
     const search = await request(0, `/api/trips/${fixture.slug}/places`, { kind: "search", query: "Tokyo Tower" });
     assert(search.candidates?.some((c: { candidate: { provider: string; longitude: number } }) => c.candidate.provider === "geoapify" && c.candidate.longitude > 130));
     checks.push("retained Chat readable; canonical worldwide server-provider search; no automatic save");
+    }
     await clients[0].channels.get(liveChannel(fixture.conversationId)).presence.leave();
     const remaining = await clients[1].channels.get(liveChannel(fixture.conversationId)).presence.get();
     assert(remaining.some(p => p.clientId === actors.b.userId)); assert(!remaining.some(p => p.clientId === actors.a.userId));
@@ -116,7 +134,7 @@ async function main() {
     for (const client of clients) { await client.channels.get(liveChannel(fixture.conversationId)).presence.leave().catch(() => {}); client.close(); }
     for (const id of sessions) await clerk.sessions.revokeSession(id);
   }
-  const receipt = { pass: true, origin, expectedSha, at: new Date().toISOString(), checks, providerRequests: 1, syntheticOnly: true, retainedContentWrites: 0, isolatedSessionsRevoked: true };
+  const receipt = { pass: true, origin, expectedSha, at: new Date().toISOString(), checks, providerRequests: process.argv.includes("--skip-provider")?0:1, syntheticOnly: true, retainedContentWrites: 0, isolatedSessionsRevoked: true };
   const target=origin==="http://localhost:3000"?"local-production":origin==="https://toskerapp.vercel.app"?"canonical":"staged";
   writeFileSync(`.git/ms74-fp3/${target}-api.json`, JSON.stringify(receipt, null, 2), { mode: 0o600 }); console.log(JSON.stringify(receipt));
 }

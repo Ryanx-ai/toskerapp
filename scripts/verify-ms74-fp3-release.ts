@@ -94,12 +94,24 @@ async function main() {
       return;
     }
     const point = { latitude: 1.2834, longitude: 103.8607, accuracy: 50 };
+    if(process.argv.includes("--reverse-probe")) {
+      const incoming:Array<Record<string,unknown>>=[];
+      await clients[0].channels.get(userChannel(actors.a.userId)).subscribe(LOCATION_SNAPSHOT,message=>incoming.push(message.data));
+      const reverse=await location(1,{action:"begin",conversationId:fixture.conversationId,precision:"area",consent:"area-snapshot-v1"});
+      try {
+        assert(validLocationSnapshot(await location(1,{action:"send",id:reverse.id,point})));
+        await wait(()=>incoming.some(item=>item.id===reverse.id),"A receives B snapshot");
+        console.log(JSON.stringify({reverseDelivery:true,origin}));
+      } finally {await location(1,{action:"stop",id:reverse.id});}
+      return;
+    }
     for (const precision of ["area", "precise"] as const) {
       const lease = await location(0, { action: "begin", conversationId: fixture.conversationId, precision, consent: `${precision === "area" ? "area" : "precise"}-snapshot-v1` });
       activeLease = lease.id; assert.equal(lease.audienceCount, 2);
       const sent = await location(0, { action: "send", id: lease.id, point });
       assert(validLocationSnapshot(sent)); assert.equal(sent.source, "ura"); assert.equal(sent.label, "Singapore Central");
       if (precision === "area") assert.equal(sent.point, undefined); else assert.deepEqual(sent.point, point);
+      if(process.argv.includes("--browser-hold")){console.log(JSON.stringify({stage:"browser-observation",precision,leaseActive:true}));await new Promise(resolve=>setTimeout(resolve,60000));}
       if(process.argv.includes("--delivery-probe")) {
         phase="diagnostic identical ephemeral message shape";
         const publisher=new Rest({key:process.env.ABLY_API_KEY,logLevel:0,httpRequestTimeout:5000});

@@ -64,6 +64,8 @@ main().catch(error => { console.error(JSON.stringify({ passed: false, kind: erro
   clearTimeout(timeout); lines.close(); client?.close();
   if (sessionId) await clerk.sessions.revokeSession(sessionId).catch(() => {});
   await db.$client.end();
-  writeFileSync(".git/ms74-fp3/latest-ui-receiver.json", JSON.stringify({ results, notices, observerPassed: !process.exitCode, senderMutation: false, canonicalUnchanged: true }), { mode: 0o600 });
+  const receipt = JSON.stringify({ results, notices, observerPassed: !process.exitCode, senderMutation: false, canonicalUnchanged: true });
+  writeFileSync(`.git/ms74-fp3/ui-receiver-${Date.now()}.json`, receipt, { mode: 0o600, flag: "wx" });
+  writeFileSync(".git/ms74-fp3/latest-ui-receiver.json", receipt, { mode: 0o600 });
   console.log("Observer closed; its exact session revoked. Sender state unchanged.");
 });

@@ -2,6 +2,12 @@
 
 Status: researched recommendation, **not operational or accepted**. Founder pre-authorizes existing Free-plan mechanisms; hosted eligibility and real failure/recovery evidence remain gates. Prior R checkpoint `2c44367ca493b3c5b5f6c313031952a0dd8d85b8` verified before this decision. No new provider, plan change, credential, function, queue, trigger or migration has been created.
 
+## 14 October eligibility clarification
+
+Founder Ryan declares Tosker currently a personal, non-commercial development project: MS1–MS13 experimentation/testing/product validation, no subscriptions, advertising revenue, paid customer deployments, commercial client services or revenue-generating use. MS14 is the intended Commercial Foundation reassessment; any earlier actual commercial activity triggers immediate reassessment. The declaration expressly does not override provider terms. No upgrade or billing authorization.
+
+Fresh official Vercel fair-use review remains consistent with this stated personal non-commercial use. The prior factual eligibility hold is resolved on that declaration, not a provider exception or a permanent entitlement. Paid development, sale advertising or other financial-gain use would require reassessment even without revenue. Ordinary FP3 execution may continue under existing Free allowances; actual usage/headroom, hosted cleanup and release acceptance remain separate gates. Historical unresolved statements below describe the earlier checkpoint.
+
 ## Selected approach, subject to the gates below
 
 Use **demand-driven Vercel Queues for expiry cleanup**, plus an **hourly Neon Function safety sweep** on the existing database branch. Keep the existing authorized latest-state API and content-free Ably notifications. Neither job carries coordinates, identities, context IDs, profile copies or location labels. No job writes location history.

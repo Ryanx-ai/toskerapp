@@ -2,6 +2,14 @@
 
 13 October 2026, Singapore. This is execution evidence, not a release receipt.
 
+## R resumed — 14 October 2026
+
+Recovered `05512b6e142b70922559ad80601129ab2a8e0a34` and application `3423edac560e7eb6c3b943136d229e184934a2a6`. Founder hosting declaration resolves the prior factual eligibility hold for stated personal non-commercial use; see the dated amendment in the cleanup decision. Reassess at MS14 or immediately on earlier commercial activity. No billing/plan change.
+
+Fresh read-only checks: 31 migration hashes/catalog match (38 tables/277 columns/144 constraints/15 enums); zero location workers/payloads/consents/QA rate rows; three founder memberships preserved; precisely qualified earlier read drift unchanged. Existing `pangea6/tosker.app` link verified. Canonical independently still READY `dpl_BeaJBAwSj33GQzxWzE2HRXj5vcLh` / `tosker-jx4c5rym4-pangea6.vercel.app`, linked by retained receipt to FP2A `3e06bf9`. No source/database reset, hosted change or redeploy. Unrelated Art/Design/Web WIP remains.
+
+Next: current account usage and Neon scheduled-function access, bounded cleanup implementation, then remaining B–F gates. Neon Console currently requires sign-in in the in-app browser; founder asked to sign in without sharing credentials. No new API key/account created. Local preparation can continue independently; hosted activation still requires actual capacity/retention verification.
+
 ## Authority and boundaries
 
 Read the full founder pre-authorization attachment `d6e2f84e-b982-4620-9a6d-9d45fc6611c7/Pasted text.txt` and accompanying closeout directive. Necessary additive schema, bounded jobs and scheduling within existing Free infrastructure are approved. Conditional canonical release is approved only after privacy, retention, authorization and delivery acceptance. No new external provider, billing/plan changes, continuous movement, media implementation or later milestone. R–F local checkpoints are pre-authorized. Post-release product/README consolidation must wait for verified canonical; preserve historical documents.

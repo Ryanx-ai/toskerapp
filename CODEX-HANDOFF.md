@@ -2,6 +2,12 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP3 overnight recovery — 14 October / exact Neon deployment-access gate
+
+Read overnight authority `e26cd956-15da-4e5d-b568-733ad546702a`; recovered exact `981c131d57305d6813f8d4a3f8c7be0a6db5148e`. [Closeout ledger](docs/MS7-4-FP3-FINAL-CLOSEOUT.md) records fresh READY canonical FP2A deployment, 31 migration/catalog pass, zero location state, three founder memberships and unchanged historical qualified read drift. Authenticated Neon/Vercel usage now inspected: Neon 15.45 CU-hours; Vercel displayed window ~60K invocations / 38m35s CPU / 2.8 GB-hours / zero queue ops. No plan/billing/resource changes.
+
+Concrete next gate: Vercel-managed Neon requires an API key for function deployment; none configured in existing environment/documented CLI path. Console offers project-scoped Editor credential, not function-only access. Unsubmitted scope form inspected; no key created. Founder must specifically authorize/provide temporary exact-project deployment access via ignored local secret workflow, never chat. Runtime must not retain management key. Private scope screenshot `.git/ms74-fp3/neon-project-key-approval.jpg`; provider tabs retained. No generic proceed approval needed, but do not bypass this security-sensitive access gate or substitute an unverified cleanup design. Pure policy remains unwired/local-only guard intact; no new application/schema/hosted changes, push or deploy. B/C/D/E/F remain incomplete. Preserve unrelated WIP; resume from scoped docs commit, no reset. Canonical unchanged; MS7.4 unlocked.
+
 ## FP3 14 October — eligibility clarified / capacity sign-in gate / policy checkpoint
 
 Founder declares current personal non-commercial use; prior factual Hobby eligibility hold is resolved on that declaration, with MS14 or earlier actual commercial-use reassessment. No paid plan/billing authorization. Recovered `05512b6`, saved declaration `abaf1f7`, local cleanup policy/tests `7f0edee7a9ec4c30718cfd5f1e7e0355bbc65500`. See [final closeout](docs/MS7-4-FP3-FINAL-CLOSEOUT.md). Fresh migration/zero-location-state/qualified preservation checks pass; exact canonical still READY FP2A deployment `dpl_BeaJBAwSj33GQzxWzE2HRXj5vcLh`. No hosted change.

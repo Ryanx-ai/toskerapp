@@ -10,6 +10,14 @@ Fresh official Vercel fair-use review remains consistent with this stated person
 
 ## Selected approach, subject to the gates below
 
+### Overnight account/access evidence — 14 October
+
+Fresh authenticated dashboard observations and exact recovery results are in the newest [closeout entry](MS7-4-FP3-FINAL-CLOSEOUT.md). Neon Free usage is 15.45 CU-hours since October 1; Vercel's displayed 30-day window shows roughly 60K function invocations, 38m35s CPU, 2.8 GB-hours memory and zero queue operations. These leave apparent evaluation headroom, not an acceptance result or a guarantee of remaining capacity. Preserve reserve budgets and measure actual polling/cleanup consumption before release. The hourly rescue estimate remains 15 CU-hours per 30-day month plus query time, not permanent minute polling.
+
+Neon function deployment access is not yet established. [Official CLI authentication](https://neon.com/docs/cli/install) requires a Neon API key for Vercel-managed projects; the authenticated Console shows only CLI deployment instructions. No such key is configured in the existing local environment or documented CLI credential path. The inspected, unsubmitted Console form offers project-scoped access. [Project-scoped keys](https://neon.com/docs/manage/api-keys) confer Editor access to the whole selected project, not function-only rights. Do not mint this security-sensitive access under generic infrastructure approval. Request a temporary, exact-project founder credential handoff and narrow operational authorization, use no management key at runtime, and retire it after verified setup. No resource/key has been created.
+
+[Queue pricing](https://vercel.com/docs/queues/pricing) was freshly checked: 1M Hobby operations, 4 KiB metering, idempotent sends and max-concurrency push notifications double that operation's units, separate function compute. [Hobby limits](https://vercel.com/docs/plans/hobby) pause affected usage when exhausted rather than authorizing paid overages. Actual callback/rescue operation and retention guarantees remain unverified; canonical must remain FP2A.
+
 Use **demand-driven Vercel Queues for expiry cleanup**, plus an **hourly Neon Function safety sweep** on the existing database branch. Keep the existing authorized latest-state API and content-free Ably notifications. Neither job carries coordinates, identities, context IDs, profile copies or location labels. No job writes location history.
 
 The queue is the normal expiry mechanism. The independent Neon sweep is recovery for lost/exhausted queue delivery, a deleted old deployment, or misconfiguration—not an hourly replacement for the approved healthy-path deletion target. Two small idempotent entrypoints share a reviewed deletion predicate; neither may delete Rooms, messages, profiles, saved places or retained content.

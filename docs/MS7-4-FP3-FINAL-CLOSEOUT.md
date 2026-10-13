@@ -2,6 +2,25 @@
 
 13 October 2026, Singapore. This is execution evidence, not a release receipt.
 
+## Overnight R/A recovery — 14 October 2026; deployment-access hold
+
+Read the complete overnight authorization `e26cd956-15da-4e5d-b568-733ad546702a/Pasted text.txt`. Recovered exact checkpoint `981c131d57305d6813f8d4a3f8c7be0a6db5148e`. Conditional FP3 canonical approval, existing-Free infrastructure and R–F saves are reaffirmed; security/access and all privacy/retention stop gates remain. No new application implementation or hosted mutation in this recovery slice.
+
+Fresh independent checks:
+
+- Canonical alias still resolves to READY `dpl_BeaJBAwSj33GQzxWzE2HRXj5vcLh`, immutable `tosker-jx4c5rym4-pangea6.vercel.app`, project `pangea6/tosker.app`. Retained receipt associates this deployment with FP2A `3e06bf9e5c9ec09ee0c3dedb82e5e7088cc41161`; inspection does not itself report SHA. The separate dashboard project named `toskerapp` is NOT the canonical project and was not changed.
+- All 31 migration hashes and catalog pass: 38 tables, 277 columns, 144 constraints, 15 enums. The first closeout runner lacked Node's `react-server` condition and stopped at import; corrected read-only invocation passes zero workers/payloads/consents/QA rates and all three founder memberships. Earlier qualified founder Sandbox read drift is unchanged; baseline not rewritten and pristine strict preservation is NOT claimed.
+- Authenticated Neon Console: existing `neon-byzantine-jacket` / `lucky-queen-41711352`, main `br-billowing-block-aumzuk79`, Virginia, PG18, Free, fixed 0.25 CU, six-hour history. Displayed usage since October 1: 15.45 CU-hours, 38.42 MB storage, 2.29 MB history, 184.27 MB network. Dashboard metrics can lag. No plan/compute/retention setting changed.
+- Authenticated Vercel usage page: displayed Last 30 Days, Sep 13 10:00–Oct 13 10:00. About 60K function invocations, 38m35s Fluid CPU, 2.8 GB-hours provisioned memory, 762.86 MB fast transfer, 465.58 MB origin transfer; queue sends/receives/deletes/notifications/visibility changes all zero, cron zero. These are the displayed window, not guaranteed instantaneous totals. Official Hobby allowances remain 1M invocations, 4 CPU-hours, 360 GB-hours, 100 GB fast transfer, 10 GB origin transfer; queue allowance 1M operations. No automatic paid upgrade or billing change authorized or performed. Headroom supports further bounded evaluation, not yet measured production admission/polling capacity.
+
+**Concrete access gate:** Neon Functions Console offers CLI deployment only for this branch. Official Neon CLI documentation explicitly requires an API key for Vercel-managed projects. Presence-only checks found no `NEON_API_KEY` / `NEON_API_TOKEN` in the process or existing local environment files and no documented Neon CLI credential/config directory. No secrets were printed or retrieved. Browser sign-in permits inspection but does not provide CLI deployment access.
+
+Inspected the unsubmitted key form: Project-scoped is available for the exact existing project. Such a key has project-wide Editor access, including resource changes/deletion within that project; it is not a function-only grant. No key created, no form submitted. This security-sensitive access requires a specific founder handoff/approval, not another generic proceed. Recommended handoff: founder creates a temporary project-scoped key for `neon-byzantine-jacket`, stores it as server-only `NEON_API_KEY` in ignored `.env.development.local` (never chat), and authorizes its use solely to deploy/verify the bounded rescue function and schedule, then retire the credential after verification. Do not request an org-wide/personal key or weaken project restrictions. Runtime function must not need this management credential.
+
+Private screenshot of the unsubmitted scope form: `.git/ms74-fp3/neon-project-key-approval.jpg`. Neon and Vercel tabs retained for handoff. No local server, worker, consent, snapshot, queue, function, scheduler, migration, push or deployment started. The pure policy `7f0edee` remains unwired; hosted denial remains intact. Queue-only operation is not silently substituted for the reviewed independent rescue, and hourly rescue is not relabeled as a passing 60-second deletion mechanism.
+
+Remaining: deployment credential gate; B integrated cleanup/migration rehearsal; actual hosted queue/rescue/retention/failure tests; C real A/B, latency and remaining UI/privacy gates; D canonical; E post-release documentation; F final Founder Walk handoff. This is a recovery save, NOT completed checkpoint F. Resume from this scoped documentation commit without resetting unrelated Art/Design/Web WIP. Canonical rollback is unnecessary because canonical was unchanged. MS7.4 remains unlocked.
+
 ## R resumed — 14 October 2026
 
 Recovered `05512b6e142b70922559ad80601129ab2a8e0a34` and application `3423edac560e7eb6c3b943136d229e184934a2a6`. Founder hosting declaration resolves the prior factual eligibility hold for stated personal non-commercial use; see the dated amendment in the cleanup decision. Reassess at MS14 or immediately on earlier commercial activity. No billing/plan change.

@@ -4,6 +4,14 @@
 
 ## Gate status
 
+### Delivery recovery / architecture — 13 October, FP2A unchanged, STOP for architecture approval
+
+Recovery checkpoint `b5f270a`; R/harness checkpoint `da1abe8`. Read both new founder architecture/movement attachments fully and applied the direct delivery-recovery storage gate. [Research, measurements, cost model and approval plan](MS7-4-FP3-DELIVERY-RECOVERY.md). No application or storage implementation, migration, provider configuration, push or deployment.
+
+Fresh canonical alias/READY remains FP2A3e06bf9. Thirty migration hashes/catalog pass. New non-canonical real A/B diagnostic against retained0264500: initial fully attached receiver misses snapshot and Stop; three subsequent trials succeed, including two explicit ordinary+ephemeral receipt-confirmed trials.3/4 snapshots overall, not acceptance. Successful request→SDK receipt median3282.4ms/max3290.8ms (includes Clerk/CLI/API, NOT render latency); one missing excluded. No arbitrary sleep. Cold/warm correlation is not a proven repair. Server-internal and UI timing unavailable without new instrumentation; no fabricated measurements. Full downstream canonical privacy/reconnect/multi-tab gates remain blocked at first failure.
+
+Recommend latest-state authorized API with coordinate-free Ably invalidation, subject to separate storage approval. Neon WAL/backups mean latest-only rows are not equivalent to no recoverable history; expiry scheduler and bounded peer-view revocation policy require decisions. Movement addendum's≤60s automatic cadence and fixed300s consent modeled, not implemented.20–30h proposed snapshot wave plus6–10h movement, no procurement or media implementation. Exact4QA rate rows backed up/removed,0leases, all3founder Rooms retained; sessions/clients closed. Strict preservation retains the same prior founder Sandbox read-marker qualification. No new geocoding/routing calls. STOP: FP3 unaccepted; FP2A canonical; MS7.4unlocked.
+
 ### P0 final — FP2A canonical verified / FP3 repair unresolved / STOP
 
 See [final incident findings](MS7-4-FP3-P0-INCIDENT.md) and [receipt](MS7-4-FP3-P0-RECEIPT.json). Founder-approved early rollback completed safely; both application aliases3e06bf9,READY dpl_BeaJBAwSj33GQzxWzE2HRXj5vcLh. Canonical real A/B presence/scoped denials/Chat/Leave and isolated browser Map/Board/Live/Chat pass.30migrations/catalog unchanged; no DB reversal. Original FP3 and rejected candidate remain unaccepted. First boundary is acknowledged ephemeral publish→remote reception; cold Virginia→Singapore immediate event drops, warmed event after2seconds arrives. No arbitrary sleep, regional migration or persistent location fallback shipped. All temporary code removed and11owned staged deployments deleted; source retained in Git history. No new founder drift; pre-existing Sandbox read-marker qualification preserved. Save recovery andSTOP within original two-hour maximum. No automatic MS7.4 lock or further provider/media work.

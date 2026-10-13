@@ -55,7 +55,7 @@ async function main() {
   let active: { role: number; id: string } | undefined;
   const request = async (role: number, path: string, body: object) => {
     const token = await clerk.sessions.getToken(sessions[role]);
-    return new Promise<Record<string, any>>((resolve, reject) => {
+    return new Promise<Record<string, unknown> & { token: string; capability: string; id: string; audienceCount: number }>((resolve, reject) => {
       const child = spawn("/Users/ryanc/.npm/_npx/69f9afb961c37556/node_modules/.bin/vercel", ["curl", path, "--deployment", origin, "--scope", "pangea6", "--", "--config", "-", "--silent", "--max-time", "25", "--include"], { stdio: ["pipe", "pipe", "pipe"] });
       let output = ""; child.stdout.on("data", chunk => output += chunk); child.stderr.resume();
       child.on("error", () => reject(new Error("request unavailable")));

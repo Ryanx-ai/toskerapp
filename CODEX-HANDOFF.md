@@ -2,6 +2,14 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## MS7.4 FP3 — DELIVERY RESEARCH SAVED / FP2A CANONICAL / APPROVAL GATE — 13 October 2026
+
+Read [delivery recovery / architecture](docs/MS7-4-FP3-DELIVERY-RECOVERY.md), top [execution ledger](docs/MS7-4-FP3-EXECUTION.md), and preserved [P0 incident](docs/MS7-4-FP3-P0-INCIDENT.md). New founder attachments authorize research/local prototyping but direct request forbids temporary storage without separate approval. No application/storage implementation or deployment. Fresh canonical remains READY3e06bf9; source original FP3 remains unaccepted. R/harness checkpointda1abe8 followsb5f270a.
+
+New bounded diagnostic of existing immutable0264500: first attached A→B snapshot/Stop missing despite attachment completing3.72s before request; subsequent3trials pass including2receipt-confirmed. This is cold/warm evidence, not a verified repair. Anonymous timings saved, no coordinates/identities/context IDs/credentials. No arbitrary sleep, Geoapify request or provider configuration. Server-internal/UI metrics unavailable; full canonical privacy/reconnect/multi-tab gates remain blocked, not waived. Recommend latest-state API + coordinate-free Ably invalidation; Neon historical WAL/backups and expiry deletion scheduler require explicit founder decision. Proposed20–30h snapshot implementation plus6–10h foreground movement after approval. No media, no MS8.
+
+QA sessions/clients closed;4exact QA rate rows backed up/removed,0leases. Three founder review Rooms retained. Thirty migrations/catalog pass; strict preservation still has only previously qualified founder Sandbox read marker. Never rewrite baseline/restore founder state. Unrelated design/art/website WIP preserved. No push or alias changes; main0264500 versus canonicalFP2A divergence is intentional. STOP for storage/retention/privacy architecture approval; do not resume failed deployment merely from old instructions.
+
 ## MS7.4 FP3 P0 — FP2A CANONICAL VERIFIED / REPAIR UNRESOLVED / STOP — 13 October 2026
 
 Founder authorized early safe rollback followed by continued investigation within the original deadline **09:45:20 UTC /17:45:20 SGT**. Canonical `toskerapp.vercel.app` is now verified FP2A **3e06bf9**, READY `dpl_BeaJBAwSj33GQzxWzE2HRXj5vcLh`. Fresh canonical A/B presence/scoped denials/Chat/Leave pass08:54UTC; isolated browser Map/Board/Live/Chat continuity passes. No DB rollback: all35 FP2A tables unchanged, only additive consent-only0029 exists. Main remains0264500; Vercel rollback pauses automatic production assignment until deliberate promotion. Do not redeploy FP3 merely to align Git.

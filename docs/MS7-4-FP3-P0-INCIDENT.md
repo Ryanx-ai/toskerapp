@@ -1,5 +1,9 @@
 # FP3 P0 snapshot delivery incident — 13 October 2026
 
+## Subsequent authorized investigation — original incident evidence preserved
+
+13October10:34:37UTC, [delivery recovery report](MS7-4-FP3-DELIVERY-RECOVERY.md), anonymous write-once receipt `.git/ms74-fp3/readiness-1791887677152.json`. Existing immutable non-canonical0264500 only; no deployment. First A→B publication begins3720.2ms after recipient attachment completes and is still missing, as is Stop. Later A→B with explicit ordinary/ephemeral probe receipt succeeds; fresh B→A later in same run and receipt-confirmed B→A also succeed.3/4snapshot deliveries; no causal readiness fix established. No deliberate sleep or persistent location fallback. Unknown regional/provider cause remains; no vendor assertion. Full measurement caveats, latency statistics, storage/retention proposal and future privacy gates are in the report. Canonical remains3e06bf9, FP3unaccepted. No modification to historical findings below.
+
 ## Final outcome — contained on FP2A, no accepted FP3 repair
 
 Implementation stopped before the two-hour maximum. Canonical and generated project alias both point to verified FP2A **3e06bf9e5c9ec09ee0c3dedb82e5e7088cc41161**, READY **dpl_BeaJBAwSj33GQzxWzE2HRXj5vcLh**, independently rechecked09:19UTC. No database rollback:30 hashes/catalog remain valid, all prior35 tables compatible, consent-only0029 retained. FP3 is **NOT ACCEPTED**; MS7.4 remains unlocked. Git main remains0264500. Vercel rollback pauses auto-assignment until a deliberate future promotion; do not promote unvalidated FP3 to reconcile Git.

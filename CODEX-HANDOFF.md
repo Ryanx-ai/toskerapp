@@ -2,6 +2,16 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP3 durable cleanup checkpoint B — 14 October, continued
+
+Latest application checkpoint `4c5ada8ff98989b81d2bed3a1d41b65259a9a0a9` contains the **unwired** durable snapshot service and hosted acceptance harness. Canonical independently remains READY FP2A `3e06bf9`, deployment `dpl_BeaJBAwSj33GQzxWzE2HRXj5vcLh`; never promote the cleanup-only staged candidate as accepted FP3. Full 33-migration/catalog verification passes (41 tables, 290 columns, 153 constraints, 15 enums). Migrations 0031/0032 were backed up/rehearsed/applied forward only; old hashes unchanged.
+
+Neon `toskerfp3rescue` deployment 2 and hourly `tosker-fp3-rescue` are operational; genuine scheduled deletion, unexpired-row preservation, aggregate-only logging and public/spoofed request denial passed. Queue candidate `7fb1c53`, READY `dpl_oawCafcbstwoCDdz3BE4fMtzeHZn`, `tosker-o5klw2f05-pangea6.vercel.app`, proved real private push readiness (3908ms) and metadata deletion within1675ms of expiry. These are not yet integrated retention/privacy/browser acceptance. Temporary project management key is not in runtime; exact irreversible UI revocation confirmation was requested and is still pending. Do not retire another key or infer that the temporary key has been revoked.
+
+Injected-publisher service assertions passed broad NULL coordinates, precise consent, bidirectional read, fixed-expiry refresh, stale Stop isolation, unauthorized Subroom denial, Stop during projection, and enqueue-failure no-payload behavior. Its original teardown failed on array parameter SQL after writing the assertion receipt: four exact QA rate rows were privately backed up/deleted and the two exact isolated test sessions were recovered by creation timestamps and revoked. Harness now records session intent and uses explicit bound IN parameters; do not describe the old receipt as a clean full test run. No founder data/profile/Room cleanup.
+
+Real hosted five-minute synthetic expiry test is in progress; inspect `.git/ms74-fp3/durable-hosted.json` and process/intent before rerunning. Initial actual queue-backed admission7998ms, standalone service reads2551/2710/2618/2541/2510ms. Not HTTP/browser/p95 acceptance. Capacity controls are uncommitted/in progress, and hosted API remains503. Next: finish retention/failure tests, capacity/latency bounds, integration and all C–F gates. Preserve unrelated Art/Design/Web handoff hunks. No push/promotion, no MS7.4 lock, no media/later milestone work.
+
 ## FP3 overnight recovery — 14 October / exact Neon deployment-access gate
 
 Read overnight authority `e26cd956-15da-4e5d-b568-733ad546702a`; recovered exact `981c131d57305d6813f8d4a3f8c7be0a6db5148e`. [Closeout ledger](docs/MS7-4-FP3-FINAL-CLOSEOUT.md) records fresh READY canonical FP2A deployment, 31 migration/catalog pass, zero location state, three founder memberships and unchanged historical qualified read drift. Authenticated Neon/Vercel usage now inspected: Neon 15.45 CU-hours; Vercel displayed window ~60K invocations / 38m35s CPU / 2.8 GB-hours / zero queue ops. No plan/billing/resource changes.

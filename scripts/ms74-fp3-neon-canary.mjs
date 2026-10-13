@@ -40,7 +40,7 @@ async function main() {
   } else if (mode === "status") {
     const data = await api(`/functions/${slug}`); const f = data.function ?? data;
     const receipt = { slug, status: f.status ?? f.state ?? null, url: f.invocation_url ?? null,
-      deploymentStatus: f.deployment?.status ?? f.latest_deployment?.status ?? null, responseKeys: Object.keys(f).filter(k => !/env|secret|key/i.test(k)) };
+      deploymentStatus: f.active_deployment?.status ?? f.current_deployment?.status ?? null, responseKeys: Object.keys(f).filter(k => !/env|secret|key/i.test(k)) };
     save("status", receipt); console.log(JSON.stringify(receipt));
   } else if (mode === "schedule") {
     assert(existsSync(`${dir}/deployment.json`));

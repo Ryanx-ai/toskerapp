@@ -218,6 +218,13 @@
       "when": 1791889389731,
       "tag": "0030_ms74_fp3_latest_state_local",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1791912293652,
+      "tag": "0031_ms74_fp3_cleanup_metadata",
+      "breakpoints": true
     }
   ]
 }

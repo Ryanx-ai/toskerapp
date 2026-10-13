@@ -55,6 +55,35 @@ export const locationCleanupWorkers = pgTable("location_cleanup_workers", {
 ]);
 
 // Exactly one replaceable payload per consent; never a movement history.
+// Anonymous cleanup obligations. No actor, context, point or label is retained.
+export const locationCleanupReservations = pgTable("location_cleanup_reservations", {
+  id: uuid("id").primaryKey(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  armed: boolean("armed").default(false).notNull(),
+}, t => [
+  uniqueIndex("location_cleanup_reservation_scope_unique").on(t.id, t.expiresAt, t.armed),
+  index("location_cleanup_reservation_expiry_idx").on(t.expiresAt),
+  check("location_cleanup_reservation_lifetime_valid", sql`${t.expiresAt} = ${t.createdAt} + interval '5 minutes'`),
+]);
+
+export const locationCleanupHealth = pgTable("location_cleanup_health", {
+  slot: integer("slot").primaryKey(),
+  readyNonce: uuid("ready_nonce"),
+  readyRequestedAt: timestamp("ready_requested_at", { withTimezone: true }),
+  readyAckAt: timestamp("ready_ack_at", { withTimezone: true }),
+  rescueAt: timestamp("rescue_at", { withTimezone: true }),
+  failureAt: timestamp("failure_at", { withTimezone: true }),
+}, t => [check("location_cleanup_health_slot_valid", sql`${t.slot} = 1`)]);
+
+export const locationCleanupBudget = pgTable("location_cleanup_budget", {
+  day: text("day").primaryKey(),
+  reserved: integer("reserved").notNull(),
+}, t => [
+  check("location_cleanup_budget_valid", sql`${t.reserved} between 1 and 100`),
+  check("location_cleanup_budget_day_valid", sql`${t.day} ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'`),
+]);
+
 export const locationLatest = pgTable("location_latest", {
   leaseId: uuid("lease_id").primaryKey(),
   workerRunId: uuid("worker_run_id").notNull().references(() => locationCleanupWorkers.runId, { onDelete: "cascade" }),

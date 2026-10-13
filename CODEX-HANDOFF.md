@@ -2,6 +2,14 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP3 checkpoint C candidate — 14 October, key retired / hosted API staging
+
+Application `2aecb43` supersedes the older unwired-state notes below. Durable service/context/session tests passed with real isolated Clerk A/B actors and injected queue publisher; exact teardown passed. This is not hosted API/browser acceptance. New hosted route is default closed, requires explicit Production deployment flag and a fresh seven-day capacity attestation; Stop remains available if these gates close. Fresh optimized build/typecheck pass, full lint has zero errors/two pre-existing warnings, fresh secret scan passes805 source/owned files and43 client assets.
+
+Temporary Neon management key is absent in authenticated Console and returns401. Founder confirmed revocation; this continuation issued no second revocation. Genuine18:35UTC rescue ran afterward, proving no runtime dependency on the retired key. Production-origin queue retry/early-duplicate probe passed at `9739516` plus a **staging-only diagnostic overlay**: NEVER promote `dpl_BV5ZeaefzRoFGmQEbWDA1XCVqqEa`. Earlier local-publisher evidence is qualified because Development OIDC failed follow-up acknowledgments; do not repeat that investigation.
+
+Canonical remains FP2A `3e06bf9` / `dpl_BeaJBAwSj33GQzxWzE2HRXj5vcLh`. Next: clean exact-SHA protected application stage, real hosted A/B/natural expiry and security checks, remaining browser/latency/responsive gates, then conditional canonical and separate documentation. No generic approval wait; all critical gates still apply. Current Neon usage15.79CUh/38.54MB storage/2.27MB history/188.86MB network;6h recovery unchanged. Vercel account-wide displayed window is America/Los_Angeles Sep13–Oct13 10:00, not a real-time counter; apparent headroom is not final consumption certification. Preserve independent rescue and old queue consumers until drained. Latest local closeout: zero workers/payloads/consents/QA rates, three founder memberships; prior qualified Sandbox-read drift unchanged. Unrelated Art/Design/Web WIP retained.
+
 ## FP3 durable cleanup checkpoint B — 14 October, continued
 
 Latest application checkpoint `4c5ada8ff98989b81d2bed3a1d41b65259a9a0a9` contains the **unwired** durable snapshot service and hosted acceptance harness. Canonical independently remains READY FP2A `3e06bf9`, deployment `dpl_BeaJBAwSj33GQzxWzE2HRXj5vcLh`; never promote the cleanup-only staged candidate as accepted FP3. Full 33-migration/catalog verification passes (41 tables, 290 columns, 153 constraints, 15 enums). Migrations 0031/0032 were backed up/rehearsed/applied forward only; old hashes unchanged.

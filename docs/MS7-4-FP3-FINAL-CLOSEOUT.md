@@ -133,3 +133,11 @@ Local policy/consumer/trigger/feedback tests, TypeScript, changed-file lint and 
 
 Remaining: candidate service/context/session/race/latency acceptance, measured Free capacity and production UI gates, fresh integrated build/client scan, protected-stage A/B/browser/responsive checks, then conditional canonical/live smoke. No push/promotion or post-release README consolidation yet. Preserve independent rescue and staged consumers while jobs drain. MS7.4 remains unlocked.
 
+## C candidate — guarded hosted API, 14 October
+
+Verified `7ce03ab`, saved application `2aecb43`. Real isolated Clerk sessions with injected publisher pass broad/precise bidirectional service behavior, fixed expiry/revision/Stop races, enqueue failure, selected/everyone Subroom isolation, Personal relationship revocation, Sandbox denial, source/viewer membership and session revocation. Exact teardown succeeds. These are database/service tests, not deployed HTTP/browser acceptance. Latest zero-state/preservation audit passes with unchanged historical read-drift qualification and all three retained founder memberships.
+
+Hosted API now requires Production, deployment identity, explicit durable enablement and fresh capacity attestation; default closed. Stop remains available when admission closes. Production consent text discloses healthy minute-target deletion, hourly outage rescue and6h recovery history without claiming instant physical erasure. Fresh optimized build/typecheck pass; full lint zero errors/two existing warnings. Fresh secret scan805 source/owned files and43 client assets passes, including retired Neon key and server Geoapify credential. No source secret printed.
+
+New protected-stage harness carries auth through stdin only and is not yet run. Planned stage uses exact application commit without the prior private publisher overlay and no canonical alias. Remaining: actual hosted A/B/privacy/retention/latency, remaining browser gates, final headroom verification, conditional D/E/F. README and milestone post-release consolidation remain deliberately untouched.
+

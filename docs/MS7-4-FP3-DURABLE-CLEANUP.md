@@ -70,6 +70,14 @@ Queue callbacks need short timeouts and bounded batches; retries must not exhaus
 
 ## Alternatives rejected for this wave
 
+### 14 October implemented-capacity correction (supersedes sizing above)
+
+Actual queue and location API maxDuration are10 seconds, not the proposed5 seconds. At2GB,48,000 worst-case queue invocations would be266.7GB-hours/month; do not reuse the earlier133GB-hour figure as implemented evidence. The service now requires a manually established capacity attestation valid less than seven days, never auto-renewed.100 new consents/day,2000 admitted reads/day and30 source/viewer session checks per10-second bucket are bounded founder-review limits, not200-user beta capacity. At3-second reads2000/day is about1.67 aggregate viewer-hours/day. Read-budget failures consume their attempted allowance, clear client state and back off; Stop and cleanup do not depend on read admission.
+
+Seven full days at worst-case queue retries would be62.2GB-hours and at the read cap77.8GB-hours before admission/send/Stop/other app work. These are conservative wall-time memory envelopes, not CPU measurements or guarantees; don't conflate them with the4-hour active-CPU allowance. Recheck actual account usage before canonical and before any renewed attestation. Stage QA is a small finite workload; canonical capacity acceptance remains open pending hosted measurements. No quotas are reset to make tests pass.
+
+Latest Neon Console:15.79CU-hours sinceOct1,38.54MB storage,2.27MB history,188.86MB network,0.25CU/6h retention unchanged. Vercel displayed account-wide window endsOct13 10:00 America/Los_Angeles and shows~60K invocations,38m35s activeCPU,2.8GB-hours memory; it is delayed evidence, not zero-cost proof of the recent queue tests. The Console rejects an end date beyond its allowed range. No plan, key, permission or billing change.
+
 - Vercel Hobby cron: once/day with up-to-hour timing variance; cannot provide normal minute-level expiry cleanup. Do not split cron jobs to circumvent this limitation. [Cron limits](https://vercel.com/docs/cron-jobs/usage-and-pricing).
 - Permanent minute SQL sweeps, including Neon Function cron: likely prevents five-minute database sleep; 0.25 × 24 × 30 = **180 CU-hours/month**, beyond Free before app traffic. Native `pg_cron` also stops when compute sleeps.
 - Laptop worker, browser timer, serverless `setTimeout`/after-response task: cannot survive loss of their owning runtime; not production retention.

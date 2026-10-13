@@ -2,6 +2,16 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## MS7.4 FP3 — LOCAL QA SAVED / SENDER UI GATES OPEN / NO DEPLOY — 13 October 2026
+
+Current application/worker checkpoint `bd538f0`; subsequent local harness/docs checkpoint extends actual cold/new-connection/two-receiver API evidence. Read the final D section in [latest-state ledger](docs/MS7-4-FP3-LATEST-STATE-EXECUTION.md). Latest authority remains20–30h local latest-state API + content-free Ably wave, **STOP before canonical**. Production cleanup/retention gate remains unresolved; no push/deploy/provider/billing/permissions changes. Fresh alias inspection resolves the same READY FP2A immutable deployment linked to3e06bf9.
+
+Real A/B broad/precise, late subscriber, new connection, two receivers, Stop, context/session/membership authorization, crash/restart worker fail-closed gates pass. Full build/type/lint/current-key bundle scan,31migrations/catalog and deterministic regressions pass. Latest peer reads2.44–2.51s and sends7.0–8.2s remain latency debt, not p95 acceptance. Adaptive client renewal preserves request-start5s expiry, one in-flight read; production query cost unaccepted. Browser receiver recovery/second tab, Live Join→Board/Map continuity, unsent draft preservation and six base layout widths pass partially; full sender consent/reconnect/keyboard/precise responsive/timed removal still open.
+
+Synthetic Sensors setup was requested from founder because native DevTools control timed out: public QA1.2834/103.8607,accuracy50m, LocateOFF. Never use founder GPS or hidden-state injection. Remaining local QA tab704686678 marked handoff; stale owned tab704686671 prevents viewport reset (valid tab remains1440×900). Browser IDs are observations, not permanent. Recover controlled browser and reset temporary viewport; no additional browser driver. Local server shutdown initiated; inspect exact owned process before restart. No supervised worker remains: zero worker/config/payload/consent and QA location rate rows independently verified. Four exact rate rows backed up/cleaned; no Room/content cleanup. API/SDK sessions closed.
+
+Strict immutable audit remains failed ONLY for the already-qualified founder Sandbox read timestamp; exact prior drift independently unchanged. Never restore/rebaseline. Preserve all three founder Rooms and unrelated Art/Design/Web WIP/older handoff hunks. Next: concrete synthetic sender UI setup, remaining D/E local gates, scoped save, STOP before canonical. FP3 unaccepted; MS7.3 locked, MS7.4 unlocked, FP2B research-only, MS8 untouched.
+
 ## MS7.4 FP3 — LOCAL LATEST-STATE QA IN PROGRESS / NO DEPLOY — 13 October 2026
 
 Latest founder approval authorizes the supervised synthetic-only local worker and20–30h latest-state wave, **STOP before canonical**. Read [current ledger](docs/MS7-4-FP3-LATEST-STATE-EXECUTION.md); it supersedes the earlier no-implementation scheduler gate below only for local QA. Production scheduler/retention approval remains blocked. Canonical remains verified FP2A3e06bf9; no push or deployment. New additive0030 applied after backup/rehearsal,31migrations verified. Integration base5dbf67c; newer local read/worker hardening and tests are scoped work.

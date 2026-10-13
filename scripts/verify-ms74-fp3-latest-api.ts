@@ -45,7 +45,41 @@ async function main() {
   await request(0, { action: "stop", id: lease.id });
   assert.equal((await db.select().from(locationLatest).where(eq(locationLatest.leaseId, lease.id))).length, 0);
   assert.equal((await request(1, { action: "current", conversationId: fixture.conversationId })).peers.length, 0);
-  const result = { passed: true, timings, contentFreeEvents: events, providerLookups: 0, canonicalUnchanged: true };
+  stage = "reverse precise delivery before subscriber attachment";
+  const reverse = await request(1, { action: "begin", conversationId: fixture.conversationId, precision: "precise", consent: "precise-latest-v2" }); leases.push(reverse.id);
+  const point = { latitude: 1.286, longitude: 103.859, accuracy: 50 };
+  await request(1, { action: "send", id: reverse.id, point, expectedRevision: 0, requestId: randomUUID() });
+  // A was not subscribed at publication. Current truth must not depend on a
+  // history replay, ephemeral hint delivery, or arbitrary warm-up sleeps.
+  async function attachA() {
+    const value = await request(0, { conversationId: fixture.conversationId }, "/api/realtime/token");
+    const client = new Realtime({ token: value.token, clientId: actors.a.userId, logLevel: 0 }); clients.push(client);
+    const feed = client.channels.get(conversationChannel(fixture.conversationId));
+    let notices = 0;
+    await feed.subscribe(LOCATION_CHANGED, message => { assert.deepEqual(message.data, { version: 1 }); notices++; });
+    await feed.attach(); assert.equal(feed.state, "attached");
+    return { client, feed, notices: () => notices };
+  }
+  const cold = await attachA();
+  const recovered = await request(0, { action: "current", conversationId: fixture.conversationId });
+  assert(validLocationView(recovered, fixture.conversationId)); assert.equal(recovered.peers.length, 1); assert.deepEqual(recovered.peers[0].snapshot.point, point);
+  stage = "new connection and two receiver clients";
+  cold.client.close();
+  const warm = await attachA(), second = await attachA();
+  assert.equal((await request(0, { action: "current", conversationId: fixture.conversationId })).peers[0].snapshot.revision, 1);
+  const receipts = [warm, second].map(target => new Promise<boolean>(resolve => {
+    const timer = setTimeout(() => resolve(false), 15000);
+    void target.feed.subscribe(LOCATION_CHANGED, () => { clearTimeout(timer); resolve(true); });
+  }));
+  const refreshed = await request(1, { action: "send", id: reverse.id, point, expectedRevision: 1, requestId: randomUUID() });
+  assert.equal(refreshed.expiresAt, reverse.expiresAt);
+  assert((await Promise.all(receipts)).every(Boolean));
+  const renewed = await request(0, { action: "current", conversationId: fixture.conversationId });
+  assert.equal(renewed.peers[0].snapshot.revision, 2); assert.equal(warm.notices(), 1); assert.equal(second.notices(), 1);
+  stage = "reverse Stop and empty current";
+  await request(1, { action: "stop", id: reverse.id });
+  assert.equal((await request(0, { action: "current", conversationId: fixture.conversationId })).peers.length, 0);
+  const result = { passed: true, timings, contentFreeEvents: events, reversePrecise: true, coldSubscriberRecovery: true, newConnectionRecovery: true, twoReceiverClients: true, oneNoticePerClientPerRefresh: true, fixedRefreshExpiry: true, providerLookups: 0, canonicalUnchanged: true };
   writeFileSync(".git/ms74-fp3/latest-api.json", JSON.stringify(result), { mode: 0o600 }); console.log(JSON.stringify(result));
 }
 main().catch(error => { console.error(JSON.stringify({ passed: false, stage, timings, kind: error?.name, detail: error instanceof assert.AssertionError ? error.message.split("\n")[0] : "Private details suppressed" })); process.exitCode = 1; })

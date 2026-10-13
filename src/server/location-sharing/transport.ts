@@ -11,5 +11,6 @@ export async function publishSnapshotEvent(channel:string,name:string,data:Locat
     body:JSON.stringify({id:randomUUID(),name,data,extras:{ephemeral:true}}),
   });
   if(response.status!==201){await response.body?.cancel();throw new Error("Snapshot delivery could not be confirmed.");}
-  await response.body?.cancel();
+  const ack=await response.json();
+  console.info("[location-dispatch]",{stage:"direct-rest-ack",status:response.status,channelMatches:ack.channel===channel,ackFields:Object.keys(ack)});
 }

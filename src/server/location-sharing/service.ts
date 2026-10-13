@@ -8,6 +8,7 @@ import { authorizedContext, lockPinScope, scopeForConversation } from "@/server/
 import { lockActorTokens } from "@/server/realtime/access-lock";
 import { assertRealtimeSession } from "@/server/realtime/session";
 import { publishSnapshotEvent } from "./transport";
+import { getRealtimeServer } from "@/server/realtime/provider";
 import { isConversationId, userChannel } from "@/lib/realtime-contract";
 import { LOCATION_SNAPSHOT, LOCATION_TTL, type LocationLease, type LocationPrecision, type LocationSnapshot, validSnapshotPoint } from "@/lib/shared-location-contract";
 import { localArea } from "@/server/maps/area";
@@ -25,6 +26,9 @@ export function locationService(db: ToskerDatabase, overrides: Partial<Dependenc
   const deps: Dependencies = {
     session: assertRealtimeSession,
     publish: async (recipientId, snapshot) => {
+      // Temporary bounded diagnostic only: no location or identity in payload.
+      await getRealtimeServer().channels.get(userChannel(recipientId)).publish({name:"p0.transport.normal",data:{version:1}});
+      await getRealtimeServer().channels.get(userChannel(recipientId)).publish({name:"p0.transport.ephemeral",data:{version:1},extras:{ephemeral:true}});
       await publishSnapshotEvent(userChannel(recipientId), LOCATION_SNAPSHOT, snapshot);
     },
     area: async (point, actorId, signal) => {

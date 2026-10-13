@@ -54,7 +54,6 @@ export const locationCleanupWorkers = pgTable("location_cleanup_workers", {
   check("location_cleanup_worker_window_valid", sql`${t.endsAt} > ${t.startedAt} and ${t.endsAt} <= ${t.startedAt} + interval '4 hours' and ${t.lastSweepAt} >= ${t.startedAt} and ${t.lastSweepAt} <= ${t.endsAt}`),
 ]);
 
-// Exactly one replaceable payload per consent; never a movement history.
 // Anonymous cleanup obligations. No actor, context, point or label is retained.
 export const locationCleanupReservations = pgTable("location_cleanup_reservations", {
   id: uuid("id").primaryKey(),
@@ -84,9 +83,11 @@ export const locationCleanupBudget = pgTable("location_cleanup_budget", {
   check("location_cleanup_budget_day_valid", sql`${t.day} ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'`),
 ]);
 
+// Exactly one replaceable payload per consent; never a movement history.
 export const locationLatest = pgTable("location_latest", {
   leaseId: uuid("lease_id").primaryKey(),
-  workerRunId: uuid("worker_run_id").notNull().references(() => locationCleanupWorkers.runId, { onDelete: "cascade" }),
+  workerRunId: uuid("worker_run_id").references(() => locationCleanupWorkers.runId, { onDelete: "cascade" }),
+  cleanupArmed: boolean("cleanup_armed"),
   precision: text("precision").notNull(),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   acceptedAt: timestamp("accepted_at", { withTimezone: true }).notNull(),
@@ -99,6 +100,8 @@ export const locationLatest = pgTable("location_latest", {
   accuracy: doublePrecision("accuracy"),
 }, t => [
   foreignKey({ name: "location_latest_consent_scope_fk", columns: [t.leaseId, t.precision, t.expiresAt], foreignColumns: [locationShares.id, locationShares.precision, locationShares.expiresAt] }).onDelete("cascade"),
+  foreignKey({ name: "location_latest_cleanup_scope_fk", columns: [t.leaseId, t.expiresAt, t.cleanupArmed], foreignColumns: [locationCleanupReservations.id, locationCleanupReservations.expiresAt, locationCleanupReservations.armed] }).onDelete("cascade"),
+  check("location_latest_cleanup_fence_valid", sql`(${t.workerRunId} is not null and ${t.cleanupArmed} is null) or (${t.workerRunId} is null and ${t.cleanupArmed} is not null and ${t.cleanupArmed} = true)`),
   index("location_latest_expiry_idx").on(t.expiresAt),
   check("location_latest_revision_valid", sql`${t.revision} > 0`),
   check("location_latest_lifetime_valid", sql`${t.acceptedAt} < ${t.expiresAt} and ${t.acceptedAt} >= ${t.expiresAt} - interval '5 minutes'`),

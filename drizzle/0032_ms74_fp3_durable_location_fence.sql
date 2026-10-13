@@ -1,0 +1,4 @@
+ALTER TABLE "location_latest" ALTER COLUMN "worker_run_id" DROP NOT NULL;--> statement-breakpoint
+ALTER TABLE "location_latest" ADD COLUMN "cleanup_armed" boolean;--> statement-breakpoint
+ALTER TABLE "location_latest" ADD CONSTRAINT "location_latest_cleanup_scope_fk" FOREIGN KEY ("lease_id","expires_at","cleanup_armed") REFERENCES "public"."location_cleanup_reservations"("id","expires_at","armed") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "location_latest" ADD CONSTRAINT "location_latest_cleanup_fence_valid" CHECK (("location_latest"."worker_run_id" is not null and "location_latest"."cleanup_armed" is null) or ("location_latest"."worker_run_id" is null and "location_latest"."cleanup_armed" is not null and "location_latest"."cleanup_armed" = true));

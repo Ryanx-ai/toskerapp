@@ -225,6 +225,13 @@
       "when": 1791912293652,
       "tag": "0031_ms74_fp3_cleanup_metadata",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1791913394255,
+      "tag": "0032_ms74_fp3_durable_location_fence",
+      "breakpoints": true
     }
   ]
 }

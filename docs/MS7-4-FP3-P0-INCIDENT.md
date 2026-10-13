@@ -1,5 +1,11 @@
 # FP3 P0 snapshot delivery incident — 13 October 2026
 
+## Current containment — 16:54 SGT
+
+Founder approved early restoration and continuing diagnosis within the original two-hour limit. Exact FP2A `3e06bf9e5c9ec09ee0c3dedb82e5e7088cc41161` / `dpl_BeaJBAwSj33GQzxWzE2HRXj5vcLh` restored using Vercel rollback; canonical alias independently verified. Fresh canonical real A/B smoke passed08:54:10UTC with no provider request; browser shows FP2A Map/Chat and sharing control absent. Error log scan08:42–08:52UTC returned no records. No DB reversal, key/billing changes or data deletion. Main remains0264500; rollback pauses auto-assignment until deliberate promotion.
+
+First canonical smoke overlapped the Node24 local A/B smoke and failed its final presence-leave assertion; phase attribution was inadequate. Rerun sequentially with explicit leave phase/one-second propagation bound passes. Do not suppress this harness qualification. Node24 local unchanged optimized0264500 passes broad/precise/Stop and scoped A/B,08:52:36UTC, excluding Node major version alone as sufficient cause. Next one staged regional diagnostic, not a release: same restored source, one Singapore deployment region, no canonical assignment/project-default change/provider migration. No new Geoapify calls. Deadline remains09:45:20UTC.
+
 Founder explicitly authorizes two hours of focused repair, starting15:45SGT /07:45UTC; implementation deadline17:45SGT /09:45UTC. If unresolved, verify previous FP2A compatibility and restore only if safe; never roll back migrations blindly. No generic proceed approval needed. No new features/provider/billing/media work.
 
 Recovery: HEAD3911488; main/canonical0264500; READY dpl_EeJQvaso97gJuaGhT8S6oc2SzYk7 and exactalias.30 migration hashes/catalog pass; additive consent-only0029 unchanged. All unrelated WIP and historical read-marker qualification preserved.
@@ -17,3 +23,17 @@ Two recipients resolve and both provider acknowledgements contain one non-null s
 Room/Subroom/Personal revocation, Stop transport-failure invalidation, expired consent, unavailable-area denial and schema lifetime/precision/session constraints re-pass with rollback/no retained content writes. No additional Geoapify calls in staged tests. Next compare version-only normal/ephemeral diagnostic messages on the same authorized feed, never persist a location payload. Remove diagnostic code before any accepted repair release.
 
 Rollback preflight source comparison:0029 only adds `location_shares` plus its own indexes/FKs/checks; prior FP2A schema otherwise byte-identical. Runtime/read-only data compatibility and exact alias verification remain required before any rollback. No database reversal authorized or performed.
+
+## 16:43 SGT containment checkpoint
+
+First failing boundary narrowed to deployed ephemeral delivery: staged ordinary `p0.transport.normal` `{version:1}` arrives on B's attached feed; ephemeral version-only probes, snapshot and retirement do not. Direct REST returns201 and confirms the expected channel. Application/channel digests match. A bounded server WebSocket ephemeral probe and five documented Ably fallback-host probes also produce no observed ephemeral event (fallback per-host acknowledgement not captured, so do not claim each host accepted). No location payload was sent persistently. All diagnostics stay behind existing deployment protection and are NOT canonical fixes.
+
+Further staged receipts:9ce43c1→dpl_BbvRt4ua4Jtja3WipJ6LhfSsLac7;ca7dc47→dpl_C5Lm7HM5vGkBmSuLbuLVSs66UXHo;8a7a847→dpl_BqE16pNsHiqnitxwBXAmCaXrqBrk. Reverse canonical B→A also fails. Unchanged optimized local0264500 passes again08:29UTC with zero new Geoapify calls. This rules out a provider-wide outage in this observation window, but underlying provider/runtime cause remains unproven. Do not describe these transport experiments as repairs. Experimental application changes have been removed; `git diff3911488 -- src/server/location-sharing` is empty.
+
+Exact previous FP2A immutable deployment `tosker-jx4c5rym4-pangea6.vercel.app`,READY dpl_BeaJBAwSj33GQzxWzE2HRXj5vcLh,3e06bf9,passes fresh real A/B presence,Join,roster,retained Chat reads,selected-Subroom denials,Leave independence and one bounded Geoapify query at08:36UTC. Sharing endpoint404. Snapshot comparison proves all35 prior tables/enums/indexes/columns unchanged; only `location_shares` is additive. No DB rollback is required. Preflight receipt `.git/ms74-fp3/p0-rollback-preflight.json`. This does not claim the canonical alias has moved.
+
+Four exact A/B location-rate rows removed after private0600 recoverable backup; zero consent rows remained. No Room/content/founder removal and no provider quota reset. Earlier cleanup count2 is historical. Retain all three founder review Rooms. Total new P0 server geocoding calls2 (one local-production smoke, one rollback preflight), no road calls; cumulative FP3 server queries11. Free plan/keys/restrictions unchanged.
+
+Founder was asked specifically whether to restore verified FP2A **before** the two-hour deadline; no early rollback without that answer. Original17:45SGT maximum remains. Once rollback is authorized/due, use exact existing FP2A deployment,verify aliases/live A/B/runtime/browser,save recovery,STOP. Vercel rollback disables production auto-assignment until a later deliberate promotion; record main0264500 versus canonicalFP2A divergence rather than resetting Git.
+
+Official references consulted: [Ably ephemeral semantics](https://ably.com/docs/pub-sub/advanced), [REST publish](https://ably.com/docs/api/rest-api), [edge/fallback routing](https://ably.com/docs/platform/architecture/edge-network). Public status reported operational, not evidence that this application flow succeeds. No vendor support ticket or account configuration change was made.

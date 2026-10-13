@@ -1,5 +1,6 @@
 import "server-only";
 import { and, eq, sql } from "drizzle-orm";
+import { randomUUID } from "node:crypto";
 import type { AuthenticatedActor } from "@/server/auth/actor";
 import { AuthorizationDeniedError } from "@/server/auth/authorize";
 import type { ToskerDatabase, ToskerTransaction } from "@/server/db/client";
@@ -7,7 +8,6 @@ import { inviteRateLimits, locationShares, users } from "@/server/db/schema";
 import { authorizedContext, lockPinScope, scopeForConversation } from "@/server/map-pins/scope";
 import { lockActorTokens } from "@/server/realtime/access-lock";
 import { assertRealtimeSession } from "@/server/realtime/session";
-import { publishSnapshotEvent } from "./transport";
 import { getRealtimeServer } from "@/server/realtime/provider";
 import { isConversationId, userChannel } from "@/lib/realtime-contract";
 import { LOCATION_SNAPSHOT, LOCATION_TTL, type LocationLease, type LocationPrecision, type LocationSnapshot, validSnapshotPoint } from "@/lib/shared-location-contract";
@@ -26,10 +26,7 @@ export function locationService(db: ToskerDatabase, overrides: Partial<Dependenc
   const deps: Dependencies = {
     session: assertRealtimeSession,
     publish: async (recipientId, snapshot) => {
-      // Temporary bounded diagnostic only: no location or identity in payload.
-      await getRealtimeServer().channels.get(userChannel(recipientId)).publish({name:"p0.transport.normal",data:{version:1}});
-      await getRealtimeServer().channels.get(userChannel(recipientId)).publish({name:"p0.transport.ephemeral",data:{version:1},extras:{ephemeral:true}});
-      await publishSnapshotEvent(userChannel(recipientId), LOCATION_SNAPSHOT, snapshot);
+      await getRealtimeServer().channels.get(userChannel(recipientId)).publish({ id: randomUUID(), name: LOCATION_SNAPSHOT, data: snapshot, extras: { ephemeral: true } });
     },
     area: async (point, actorId, signal) => {
       const local = await localArea(point.latitude, point.longitude);
@@ -102,7 +99,6 @@ export function locationService(db: ToskerDatabase, overrides: Partial<Dependenc
         // Bounded audience and frequency above. Parallel delivery prevents a
         // slow recipient multiplying the provider timeout while Stop waits.
         const delivery=await Promise.allSettled(recipients.filter(recipient=>recipient!==actor.userId).map(recipient=>deps.publish(recipient,snapshot)));
-        console.info("[location-dispatch]", { stage: "fanout", recipients: delivery.length, accepted: delivery.filter(result=>result.status==="fulfilled").length, failed: delivery.filter(result=>result.status==="rejected").length });
         if(delivery.some(result=>result.status==="rejected"))throw new Error("Snapshot delivery could not be confirmed.");
         return snapshot;
       });

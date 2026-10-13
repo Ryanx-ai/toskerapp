@@ -1,6 +1,5 @@
 import "server-only";
 import { and, eq, sql } from "drizzle-orm";
-import { createHash } from "node:crypto";
 import type { AuthenticatedActor } from "@/server/auth/actor";
 import { AuthorizationDeniedError } from "@/server/auth/authorize";
 import type { ToskerDatabase, ToskerTransaction } from "@/server/db/client";
@@ -8,7 +7,7 @@ import { inviteRateLimits, locationShares, users } from "@/server/db/schema";
 import { authorizedContext, lockPinScope, scopeForConversation } from "@/server/map-pins/scope";
 import { lockActorTokens } from "@/server/realtime/access-lock";
 import { assertRealtimeSession } from "@/server/realtime/session";
-import { getSnapshotTransport } from "./transport";
+import { publishSnapshotEvent } from "./transport";
 import { isConversationId, userChannel } from "@/lib/realtime-contract";
 import { LOCATION_SNAPSHOT, LOCATION_TTL, type LocationLease, type LocationPrecision, type LocationSnapshot, validSnapshotPoint } from "@/lib/shared-location-contract";
 import { localArea } from "@/server/maps/area";
@@ -26,10 +25,7 @@ export function locationService(db: ToskerDatabase, overrides: Partial<Dependenc
   const deps: Dependencies = {
     session: assertRealtimeSession,
     publish: async (recipientId, snapshot) => {
-      const accepted = await getSnapshotTransport().channels.get(userChannel(recipientId)).publish({ name: LOCATION_SNAPSHOT, data: snapshot, extras: { ephemeral: true } });
-      // Incident diagnostics: aggregate acknowledgement shape only. Never log
-      // identity, channel, consent ID, coordinates, labels, keys or SDK errors.
-      console.info("[location-dispatch]", { stage: "provider-ack", appDigest:createHash("sha256").update(process.env.ABLY_API_KEY!.split(".")[0]).digest("hex").slice(0,12), channelDigest:createHash("sha256").update(userChannel(recipientId)).digest("hex").slice(0,12), serialCount: accepted?.serials?.length ?? 0, discarded: accepted?.serials?.filter(value => value === null).length ?? 0 });
+      await publishSnapshotEvent(userChannel(recipientId), LOCATION_SNAPSHOT, snapshot);
     },
     area: async (point, actorId, signal) => {
       const local = await localArea(point.latitude, point.longitude);

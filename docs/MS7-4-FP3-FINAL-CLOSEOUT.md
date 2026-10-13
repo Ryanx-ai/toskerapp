@@ -95,3 +95,15 @@ Observer closed and its exact test session was revoked. Supervised worker stoppe
 4. D exact candidate/canonical SHA and live verification; E post-release README/milestone consolidation; F complete Founder Walk handoff. These remain NOT DONE. This local recovery save is not checkpoint F completion or a release receipt.
 
 Canonical stays verified FP2A `3e06bf9`. Resume from the scoped commits without resetting unrelated WIP. Rollback of this presentation slice, if required, is a new scoped revert of `3423eda`, never a database rollback or force/reset. MS7.4 unlocked; FP2B research-only; later milestones untouched.
+# Checkpoint B — hosted rescue / queue candidate, 14 October 2026
+
+Recovered `51335f6` and its successful additive migration receipt before continuing. The exact catalog now passes: 32 migrations, 41 tables, 289 columns, 151 constraints, 15 enums. Historical migration hashes remain unchanged. PostgreSQL's equivalent deparse of the bounded budget CHECK required only a verifier normalization; no migration was rewritten.
+
+Application checkpoints: `4ac44a6` (bounded Neon rescue and exact-owned verification), `0c5d540` (private queue consumer and pinned SDK 0.8.0). Neon function `toskerfp3rescue`, deployment 2, completed. Genuine hourly trigger at 17:35 UTC deleted an expired isolated QA consent/reservation, preserved an unexpired consent, updated aggregate health, and passed exact retained-row comparison. No coordinates were used. Exact synthetic rows subsequently cleaned; retained Founder Review Rooms and founder membership remain. Public and forged-trigger requests both returned 403. The independent hourly rescue is operational, but is **not** normal sub-minute retention acceptance.
+
+Temporary founder-provided management key remains confined to ignored Development environment and deployment/verification process. Runtime receives no management key. Key retirement remains due after infrastructure verification. Source/owned-file and existing client-asset scans passed; fresh integrated build scan is still outstanding.
+
+Canonical reread: `dpl_BeaJBAwSj33GQzxWzE2HRXj5vcLh`, READY, `tosker-jx4c5rym4-pangea6.vercel.app`, aliases include `toskerapp.vercel.app`. No promotion or canonical deployment occurred. Correct existing project verified as `pangea6/tosker.app`, Node 24, iad1.
+
+Next: staged queue consumer capability/delayed delivery and negative-access tests; production admission and database fencing transition; all remaining privacy/A/B/latency/responsive/security gates. Local-only storage denial remains intact. Preserve the current independent rescue on rollback while obligations exist; never roll back migration history or restore retained founder data. Do not promote this infrastructure candidate as an accepted FP3 application.
+

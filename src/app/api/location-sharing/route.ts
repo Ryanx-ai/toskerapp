@@ -4,6 +4,7 @@ import { AuthenticationRequiredError } from "@/server/auth/actor";
 import { AuthorizationDeniedError } from "@/server/auth/authorize";
 import { getDatabase } from "@/server/db/client";
 import { locationService } from "@/server/location-sharing/service";
+import { regionalDiagnostic } from "@/server/location-sharing/diagnostic";
 export const runtime = "nodejs";
 const headers = { "Cache-Control": "private, no-store", "Vary": "Cookie, Authorization", "X-Content-Type-Options": "nosniff" };
 export async function POST(request: Request) {
@@ -16,6 +17,7 @@ export async function POST(request: Request) {
     if (text.length > 1000) throw new TypeError();
     const input = JSON.parse(text);
     if (!input || typeof input !== "object" || Array.isArray(input)) throw new TypeError();
+    if(input.action==="regional-diagnostic"&&Object.keys(input).length===1)return reply(await regionalDiagnostic(actor,sessionId));
     const allowed: Record<string, string[]> = {
       begin: ["action", "conversationId", "precision", "consent"], send: ["action", "id", "point"],
       stop: ["action", "id"], validate: ["action", "id", "conversationId"],

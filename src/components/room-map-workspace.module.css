@@ -2,6 +2,12 @@
 .pinMemory { flex:none; min-width:0; padding:8px 16px; border:1px solid var(--border); border-radius:var(--control-radius); background:var(--shell-plane); }
 .pinMemory summary { min-height:44px; padding:12px 0; cursor:pointer; font-size:13px; font-weight:600; }
 .pinMemory .helper { padding:0; }
+.sharingStatus:empty { display:none; }
+.sharingStatus { padding:0 12px; color:var(--text-secondary); font-size:12px; line-height:1.6; }
+.sharingStatus ul { padding-left:20px; }
+.sharingActions { display:flex; flex-wrap:wrap; gap:8px; align-items:center; padding:8px 0; }
+.sharingActions .control { min-height:44px; }
+.peerLocation { max-width:160px; padding:8px 12px; border:2px solid var(--text-secondary); border-radius:var(--radius-md,12px); background:var(--surface); color:var(--text-primary); font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; pointer-events:none; }
 .pinList { display:flex; gap:8px; overflow-x:auto; list-style:none; margin:0; padding:4px 2px 12px; }
 .pinList li { flex:0 0 220px; min-width:0; }
 .pinChip { width:100%; min-height:64px; display:flex; align-items:center; gap:12px; padding:12px; border:1px solid var(--border); border-radius:var(--control-radius); background:var(--surface-hover); color:var(--text-primary); text-align:left; font:inherit; }
@@ -240,6 +246,10 @@
 .workspace .toolbar .control { flex:0 0 auto; min-height:40px; padding:8px 10px; font-size:12px; }
 .workspace .searchPanel > .helper { margin:0; padding:0 12px 8px; font-size:11px; }
 .workspace .placeCard { height:190px; min-height:190px; }
+.workspace .originCard { height:auto; min-height:190px; }
+.workspace .originCard .cardVisual { height:40px; }
+.workspace .originCard .cardInfo { flex:none; }
+.workspace .originCard .helper { margin:0 12px 8px; padding:0; }
 .workspace .cardSelect { height:150px; min-height:150px; }
 .workspace .cardVisual { height:62px; }
 .workspace .cardInfo { padding:10px 12px; }

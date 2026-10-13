@@ -22,6 +22,7 @@ import { TripLocalPing } from "./trip-local-ping";
 import { TripRouteReplay } from "./trip-route-replay";
 import { markMapPhase } from "@/lib/maps/performance";
 import { mapCoordinate, planningSegments } from "@/lib/maps/world-geometry";
+import { SharedLocationMarkers } from "./shared-location-markers";
 
 type Status = "loading" | "ready" | "unavailable" | "failed";
 type PlanningRoute = TripRoute & { ghost: boolean; places: (TripPlace & { isStop: boolean })[] };
@@ -278,7 +279,8 @@ export default function TripMapCanvas({ pings, inspector, viewerAvatarUrl, mapPi
   useEffect(() => {
     const map = mapRef.current;
     if (!map || status !== "ready" || !container.current) return;
-    const data: GeoJSON.FeatureCollection<GeoJSON.LineString> = { type: "FeatureCollection", features: privateOrigin && originTarget ? [{ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: currentPrivateRoad?.segments[0] ?? [[privateOrigin.longitude, privateOrigin.latitude], [originTarget.longitude, originTarget.latitude]] } }] : [] };
+    const segments=privateOrigin&&originTarget?(currentPrivateRoad?.segments??planningSegments([privateOrigin.longitude,privateOrigin.latitude],[originTarget.longitude,originTarget.latitude])):[];
+    const data: GeoJSON.FeatureCollection<GeoJSON.LineString> = { type: "FeatureCollection", features: segments.map(coordinates=>({ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates } })) };
     const source = map.getSource("tosker-local-origin") as GeoJSONSource | undefined;
     if (source) source.setData(data);
     else {
@@ -342,6 +344,7 @@ export default function TripMapCanvas({ pings, inspector, viewerAvatarUrl, mapPi
     <div ref={container} className={styles.canvas} />
     {workspaceActions && <button type="button" data-map-controls className={`${styles.resetMap} ${styles.expandMap}`} aria-label={workspaceActions.expanded ? "Restore Map companion" : "Expand Map"} data-tip={workspaceActions.expanded ? "Restore Map companion" : "Expand Map"} aria-pressed={workspaceActions.expanded} onClick={workspaceActions.toggle}>{workspaceActions.expanded ? <Minimize2 size={18} aria-hidden="true" /> : <Maximize2 size={18} aria-hidden="true" />}</button>}
     {status==="ready"&&<TripMapPings map={readyMap} pings={pings}/>}
+    {status === "ready" && <SharedLocationMarkers map={readyMap}/>}
     {status === "ready" && <TripLocalPing map={readyMap} location={localLocation} enabled={snapshotReady} />}
     {inspector && <div key={inspectorKey} ref={inspectorRef} data-map-inspector className={styles.mapInspector} tabIndex={-1} onKeyDown={event => { if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); onDeselect(); } }}>{inspector}</div>}
     {status === "ready" && activeVisible && activeRoute && <details className={styles.routeSummary} aria-label="Route summary"><summary><strong>{activeRoute.name}</strong><span>{eligiblePlaces.length} {eligiblePlaces.length === 1 ? "stop" : "stops"}{roadEnabled && estimate?.estimate ? ` · ${roadDistance(estimate.estimate.metres)} · ${roadDuration(estimate.estimate.seconds)}` : ""}</span></summary><div>
@@ -352,7 +355,7 @@ export default function TripMapCanvas({ pings, inspector, viewerAvatarUrl, mapPi
     {status==="ready"&&currentPrivateRoad&&<TripLegTags map={readyMap} road={currentPrivateRoad} points={originPoints} color="sky" selectedId={selectedId} privateLeg/>}
     {privateOrigin && originTarget && !currentPrivateRoad && <p className={styles.srOnly} role="status">Private visual connector from your starting location to {originTarget.title}. No distance or travel time is inferred.</p>}
     {status === "ready" && <div className={styles.cameraControls}><button type="button" className={styles.resetMap} aria-label="Reset map to Singapore" title="Singapore" onClick={() => mapRef.current?.jumpTo({ center: SINGAPORE_CENTER, zoom: 11, bearing: 0, pitch: 0 })}><RotateCcw size={16} aria-hidden="true" /></button>{(places.length > 0 || mapPins.length > 0) && <button type="button" className={styles.resetMap} aria-label={places.length?"Fit trip":"Fit Pins"} title="Fit visible places" onClick={fitTrip}><Maximize size={16} aria-hidden="true" /></button>}<TripRouteReplay map={readyMap} road={roadEnabled && activeVisible ? estimate : undefined} points={eligiblePlaces} mode={roadMode} routeId={activeRoute?.id} hiddenIds={hiddenIds} /></div>}
-    <p className={styles.mapStatus} role="status">{status === "ready" ? "Map ready. No live location is shared." : status === "loading" ? "Loading map…" : ""}</p>
+    <p className={styles.mapStatus} role="status">{status === "ready" ? "Map ready. Locate does not automatically share your position." : status === "loading" ? "Loading map…" : ""}</p>
     {status !== "ready" && <div className={styles.emptyMap}>
       <MapIcon size={36} strokeWidth={1.25} aria-hidden="true" />
       <h1>{status === "loading" ? "Finding our bearings." : "Map unavailable"}</h1>

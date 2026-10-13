@@ -23,10 +23,13 @@ import { useToskerIdentity } from "./tosker-identity";
 import { TripCopyPlace } from "./trip-copy-place";
 import TripPointInspector from "./trip-point-inspector";
 import styles from "./room-map-workspace.module.css";
+import { useSharedLocation } from "./use-shared-location";
+import { SharedLocationControl, SharedLocationStatus } from "./shared-location-control";
+import { SharedLocationPeers } from "./shared-location-markers";
 
 type Preview = { candidate: PlaceCandidate; token: string; nearby?: Preview[] };
 type Pending = Parameters<typeof mutateTripAction>[0];
-export default function TripWorkspace({ roomSlug, conversationId }: { roomSlug: string; conversationId: string }) {
+export default function TripWorkspace({ roomSlug, conversationId, contextName }: { roomSlug: string; conversationId: string; contextName: string }) {
   const sandbox=roomSlug.startsWith("sandbox--");
   const [copyPlace,setCopyPlace]=useState<{id:string;revision:number}|null>(null);
   const [plan, setPlan] = useState<TripSnapshot | null>(null), [error, setError] = useState("");
@@ -37,6 +40,7 @@ export default function TripWorkspace({ roomSlug, conversationId }: { roomSlug: 
   const [archived, setArchived] = useState(false), [view, setView] = useState<"map" | "places">("map");
   const [commentId, setCommentId] = useState<string | null>(null);
   const localLocation = useLocalMapLocation();
+  const sharing = useSharedLocation(conversationId, localLocation.location, !sandbox && !!plan);
   const clearLocalLocation = localLocation.clear;
   const [originConsent,setOriginConsent]=useState<string|null>(null),[originQuestion,setOriginQuestion]=useState<string|null>(null);
   const [originAsked, setOriginAsked] = useState<string | null>(null);
@@ -245,17 +249,21 @@ export default function TripWorkspace({ roomSlug, conversationId }: { roomSlug: 
     <div className={styles.mobileViews} aria-label="Map view"><button aria-pressed={view === "map"} onClick={() => setView("map")}><MapIcon size={16} aria-hidden="true" />Map</button><button aria-pressed={view === "places"} onClick={() => setView("places")}><List size={16} aria-hidden="true" />Places ({places.length})</button></div>
     {error && <div className={styles.feedback} role="alert"><p>{error}</p>{pending ? <button disabled={busy} onClick={() => void write(pending)}>Retry same change</button> : <div className={styles.actions}><button onClick={() => void load()}>Refresh locations</button>{query.trim().length >= 3 && <button disabled={searching} onClick={() => setSearchAttempt(value => value+1)}>Retry search</button>}</div>}</div>}
     <div className={`${styles.mapPlane} ${view === "places" ? styles.mobileMapHidden : ""}`}>
+      <SharedLocationPeers value={sharing.peers}>
       <TripMapCanvas pings={pings.pings} privateOrigin={plan ? localLocation.origin : null} privateRoad={privateRoute.road} viewerAvatarUrl={identity?.avatarUrl} inspector={inspector} mapPins={[]} selectedPinId={null} onSelectPin={()=>{}} places={places} canMove={!disabled&&!moving&&!preview} onMove={(id,latitude,longitude)=>{if(plan)setMoving({id,latitude,longitude,revision:plan.revision});}} estimate={road?.estimate?road:undefined} roadFit={roadFit?.routeId === route?.id && roadFit?.key === road?.key ? roadFit?.sequence ?? 0 : 0} hiddenIds={preferences.hidden} activeVisible={!route || !preferences.hiddenRoutes.includes(route.id)} routes={mapRoutes} roads={roads} roadMode={roadMode} roadEnabled={roadEnabled} localLocation={plan ? localLocation.location : null} onDeselect={closeInspector} snapshotReady={!!plan} candidate={preview?.candidate ?? null} selectedId={selectedId} onSelect={select} onSelectGhost={(routeId, id) => { prefer({ ...preferences, activeId: routeId }); setArchived(false); select(id); }} pinMode={pinMode && !disabled} onPin={(lat, lon) => void pin(lat, lon)} />
+      </SharedLocationPeers>
     <div className={styles.searchPanel}>
       <div className={styles.toolbar}>
         <label className={styles.search}><Search size={18} aria-hidden="true" /><span className={styles.srOnly}>Search places worldwide</span><input aria-label="Search places" placeholder="Search places worldwide" maxLength={160} disabled={disabled} value={query} onChange={event => { request.current?.abort(); setSearching(false); setQuery(event.target.value); setResults([]); setSearched(false); setPinMode(false); setPreview(null); setNotice(""); }} /></label>
         <select aria-label="Travel mode" className={styles.control} value={roadEnabled ? roadMode : "planning"} onChange={e => { setRoadEnabled(e.target.value !== "planning"); if (e.target.value !== "planning") setRoadMode(e.target.value as RoadMode); }}><option value="planning">Order</option><option value="walk">Walk</option><option value="drive">Drive</option></select>
         <button className={styles.control} aria-label="Locate me" aria-pressed={!!localLocation.location || localLocation.busy} title="Locate · only on your map" disabled={disabled} onClick={() => { closeInspector(); if (localLocation.location || localLocation.busy) clearOrigin(); else localLocation.locate(); }}><LocateFixed size={17} aria-hidden="true" /><span className={styles.locationLabel}>Locate</span></button>
+        {!sandbox && <SharedLocationControl sharing={sharing} available={!disabled && !!localLocation.location} contextName={contextName}/>}
         <button className={styles.control} aria-pressed={pinMode} disabled={disabled} onClick={() => { request.current?.abort(); setSearching(false); setQuery(""); setResults([]); setSearched(false); setPreview(null); setSelectedId(null); setView("map"); setPinMode(value => !value); }}><MapPin size={16} aria-hidden="true" />{pinMode ? "Cancel" : "Pin"}</button>
       </div>
       {pings.error&&<p className={styles.helper} role="alert">{pings.error}</p>}
       {roadEnabled && <p className={styles.helper} role="status">{roadError || (roadBusy ? "Calculating route…" : road ? "" : "Choose 2–8 Singapore / southern Johor stops, or route privately from here to your first stop.")}{roadError && <button className="quiet-action" onClick={roadPreview.retry}>Retry route</button>}</p>}
-      {localLocation.status && plan && <p className={styles.helper} role="status">{localLocation.status}</p>}
+      {localLocation.status && plan && <p className={styles.helper} role="status">{sharing.lease ? "Locate is private. Only your separately shared snapshot is visible to peers." : localLocation.status}</p>}
+      {!sandbox && <SharedLocationStatus sharing={sharing}/>}
       {(searching || pinMode || (searched && !results.length)) && <p className={styles.helper} role="status">{searching ? "Looking up this place…" : pinMode ? "Click the map to preview a pin. Nothing is saved until you confirm." : "No results found. Try a fuller address or drop a pin."}</p>}
       {!!(results.length || localSuggestions.length || alias) && !preview && <ul className={styles.results} aria-label="Place search results">
         {alias && <li className={styles.searchHint}>Searching for {alias} · select a result to preview</li>}

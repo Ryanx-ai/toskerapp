@@ -38,7 +38,12 @@ async function main() {
       writeFileSync(path, JSON.stringify({at:new Date().toISOString(), hashes, data:retained}), {flag:"wx", mode:0o600});
     } else {
       const old = JSON.parse(readFileSync(path,"utf8"));
-      const changed = Object.keys(hashes).filter(t => JSON.stringify(hashes[t]) !== JSON.stringify(old.hashes[t]));
+      const added=Object.keys(hashes).filter(t=>!(t in old.hashes));
+      assert(added.every(t=>t==="location_shares"),"Unexpected new public table");
+      // Additive consent schema was rehearsed/applied separately. A release
+      // audit requires no retained non-QA consent; original baseline is immutable.
+      if(added.includes("location_shares"))assert.equal(retained.location_shares.length,0,"Unexpected retained sharing consent");
+      const changed = Object.keys(old.hashes).filter(t => JSON.stringify(hashes[t]) !== JSON.stringify(old.hashes[t]));
       const differences = changed.map(table => ({table, before:old.hashes[table]?.count, after:hashes[table].count, fields:[...new Set(retained[table].flatMap(row => {
         const previous = old.data[table].find((r:Record<string,unknown>) => row.id ? r.id===row.id : JSON.stringify(Object.entries(r).filter(([k])=>k.endsWith("_id")))===JSON.stringify(Object.entries(row).filter(([k])=>k.endsWith("_id"))));
         return Object.keys(row).filter(key=>JSON.stringify(row[key])!==JSON.stringify(previous?.[key]));

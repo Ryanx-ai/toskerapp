@@ -2,6 +2,14 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## MS7.4 FP3 — B/C WORKING CHECKPOINT, CONTINUE ACCEPTANCE — 13 October 2026 SGT
+
+Founder approved the18–26hour wave **through canonical deployment after green gates**, then separately approved bounded location snapshots (broad default; explicit precise choice; per-context consent; manual refresh; five-minute expiry; Stop; no background/history). This supersedes the older gate-stop below. Base implementation `16389a9`; read top [FP3 ledger](docs/MS7-4-FP3-EXECUTION.md) and [privacy gate](docs/MS7-4-FP3-LOCATION-PRIVACY-GATE.md).
+
+Global discovery/labels, Map canvas Expand, truthful presence-only Live layouts and initial sharing implementation saved. Additive consent-only migration0029 applied after backup/rehearsal;30 total migrations, no coordinates in new table. Private receipts `.git/ms74-fp3`. Synthetic service and initial actual local A/B API→Ably→peer/Stop checks pass using stub basemap/synthetic public landmark, zero Geoapify calls. TypeScript/targeted lint pass. D/E/full race/privacy/responsive/regression/build/security/provider gates remain; **not release-ready or deployed**. Latest protected-data audit matched write-once FP3 baseline; older FP2 differences remain qualified, never restore/rebaseline.
+
+Local `npm run dev` was started on3000 for testing; inspect surviving process rather than duplicating. Current browser tests have closed, ephemeral shares stopped; check exact QA metadata cleanup before final audit. No new Room. Preserve all three review Rooms and founder membership, unrelated Design/Art/Web WIP and older handoff hunks. No media procurement, old-key revocation, billing/permissions/quota changes. Next finish missing D/E gates, then scoped push/canonical/live verification and STOP for Founder Walk. MS7.3 LOCKED; FP2A canonical; FP3 working; MS7.4 UNLOCKED; MS8 NOT STARTED.
+
 ## MS7.4 FP3 — R/A SAVED / STOP AT EIGHT-HOUR GATE — 13 October 2026 SGT
 
 Latest founder FP3 brief read in full. [Recovery/execution ledger](docs/MS7-4-FP3-EXECUTION.md), [architecture and estimate](docs/MS7-4-FP3-ARCHITECTURE.md). **18–26 local engineering hours** exceeds the eight-hour gate: await explicit founder authorization before any implementation. Shared location additionally needs dedicated precision/consent/revocation approval and proof. No canonical deployment authority for FP3; older FP2A approval does not carry forward. No media procurement.

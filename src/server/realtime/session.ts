@@ -3,6 +3,7 @@ import { AuthenticationRequiredError, type AuthenticatedActor } from "@/server/a
 import type { ToskerDatabase } from "@/server/db/client";
 import { lockActorTokens } from "./access-lock";
 import { revokeActorRealtime } from "./provider";
+import { retireLocationLease } from "@/server/location-sharing/lifecycle";
 
 /** Recheck provider session under the issuance lock, not only a cached JWT.
  * No session metadata, IP address or device details are retained or returned. */
@@ -19,6 +20,7 @@ export async function endRealtimeSession(db: ToskerDatabase, actor: Authenticate
   await db.transaction(async tx => {
     await lockActorTokens(tx, actor.userId);
     await assertRealtimeSession(actor, sessionId);
+    await retireLocationLease(tx, actor.userId);
     // Existing clientId revocation also interrupts other devices for this actor.
     // Still-valid sessions can reauthorize. No other Clerk session is revoked.
     await revokeActorRealtime(actor.userId);

@@ -23,6 +23,23 @@ export const mapProviderUsage = pgTable("map_provider_usage", {
   lastAt: timestamp("last_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
+// Current consent only. Never coordinates, labels, payload hashes or location history.
+export const locationShares = pgTable("location_shares", {
+  userId: uuid("user_id").primaryKey().references(() => users.id, { onDelete:"cascade" }),
+  id: uuid("id").defaultRandom().notNull(),
+  conversationId: uuid("conversation_id").notNull().references(() => conversations.id, {onDelete:"cascade"}),
+  sessionId: text("session_id").notNull(),
+  precision: text("precision").notNull(),
+  createdAt: timestamp("created_at", {withTimezone:true}).defaultNow().notNull(),
+  expiresAt: timestamp("expires_at", {withTimezone:true}).notNull(),
+}, t => [
+  uniqueIndex("location_shares_lease_unique").on(t.id),
+  index("location_shares_context_idx").on(t.conversationId),
+  check("location_shares_precision_valid",sql`${t.precision} in ('area','precise')`),
+  check("location_shares_lifetime_valid",sql`${t.expiresAt} > ${t.createdAt} and ${t.expiresAt} <= ${t.createdAt} + interval '5 minutes'`),
+  check("location_shares_session_valid",sql`length(${t.sessionId}) between 1 and 200`),
+]);
+
 // A source conversation owns the canonical Pin; Sandbox memories are authorized views.
 // Intentionally no relation to trip_places/routes: their lifecycles are independent.
 export const mapPins = pgTable("map_pins", {

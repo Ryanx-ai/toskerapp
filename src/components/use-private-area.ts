@@ -9,9 +9,10 @@ export function usePrivateArea(location:LocalMapLocation,scope:string) {
   const request=useRef<AbortController|null>(null);
   useEffect(()=>{
     let active=true;
+    queueMicrotask(()=>{if(active&&request.current?.signal.aborted)setBusy(false);});
     // Same public file for everyone. No coordinates in request, URL or headers.
     dataset??=fetch(REGION_DATA_PATH).then(r=>{if(!r.ok)throw new Error();return r.json() as Promise<RegionData>;}).catch(()=>{dataset=undefined;throw new Error();});
-    void dataset.then(data=>{if(active)setResult({point:location,label:singaporeArea(data,location.latitude,location.longitude),source:"ura"});}).catch(()=>{});
+    void dataset.then(data=>{if(active){const label=singaporeArea(data,location.latitude,location.longitude);setResult(previous=>!label&&previous?.point===location?previous:{point:location,label,source:"ura"});}}).catch(()=>{});
     return()=>{active=false;request.current?.abort();};
   },[location]);
   const lookup=async()=>{

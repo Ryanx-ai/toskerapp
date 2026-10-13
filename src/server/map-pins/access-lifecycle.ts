@@ -6,6 +6,7 @@ import type { ToskerDatabase } from "@/server/db/client";
 import { connections, conversations, conversationParticipants, rooms, subrooms, subroomAccess } from "@/server/db/schema";
 import { lockActorTokens } from "@/server/realtime/access-lock";
 import { revokeActorRealtime, publishUserActivity } from "@/server/realtime/provider";
+import { retireLocationLease } from "@/server/location-sharing/lifecycle";
 
 /** Server lifecycle boundary for relationship withdrawal. No new unfriend UI in FP4B.
  * Tokens must be revoked before commit; provider failure rolls back the withdrawal.
@@ -16,11 +17,11 @@ export async function revokePinConnection(db:ToskerDatabase,actor:AuthenticatedA
     if (!before || ![before.requesterId,before.addresseeId].includes(actor.userId)) throw new AuthorizationDeniedError();
     const actors = [before.requesterId,before.addresseeId].sort();
     for (const id of actors) await lockActorTokens(tx,id);
-    await tx.select({id:conversations.id}).from(conversations).where(and(eq(conversations.kind,"personal"),eq(conversations.directKey,before.pairKey))).for("update");
+    const chats = await tx.select({id:conversations.id}).from(conversations).where(and(eq(conversations.kind,"personal"),eq(conversations.directKey,before.pairKey))).for("update");
     const [connection] = await tx.select().from(connections).where(eq(connections.id,connectionId)).for("update");
     if (!connection) throw new AuthorizationDeniedError();
     await tx.delete(connections).where(eq(connections.id,connectionId));
-    for (const id of actors) await revoke(id);
+    for (const id of actors) { await retireLocationLease(tx, id, chats.map(chat => chat.id)); await revoke(id); }
     return actors;
   });
   await Promise.all(ids.map(id=>notify(id)));
@@ -39,6 +40,7 @@ export async function revokePinSubroomAccess(db:ToskerDatabase,actor:Authenticat
     const chats = await tx.select({id:conversations.id}).from(conversations).where(eq(conversations.subroomId,subroomId));
     await tx.delete(subroomAccess).where(and(eq(subroomAccess.subroomId,subroomId),eq(subroomAccess.userId,userId)));
     for (const chat of chats) await tx.delete(conversationParticipants).where(and(eq(conversationParticipants.conversationId,chat.id),eq(conversationParticipants.userId,userId)));
+    await retireLocationLease(tx, userId, chats.map(chat => chat.id));
     await revoke(userId);
   });
   await notify(userId);

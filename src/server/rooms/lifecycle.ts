@@ -8,6 +8,7 @@ import { conversationParticipants, conversations, invites, roomMemberships, room
 import { normalizeRoomTags } from "@/lib/room-tags";
 import { lockActorTokens } from "@/server/realtime/access-lock";
 import { revokeActorRealtime } from "@/server/realtime/provider";
+import { retireLocationLease } from "@/server/location-sharing/lifecycle";
 
 export async function updateRoom(db: ToskerDatabase, actor: AuthenticatedActor, input: { roomId: string; name: string; tags: string[] }) {
   const name = input.name.trim().replace(/\s+/g, " ");
@@ -49,6 +50,7 @@ export async function withdrawRoomMember(db: ToskerDatabase, actor: Authenticate
     if (roomConversations.length) await tx.delete(conversationParticipants).where(and(inArray(conversationParticipants.conversationId, roomConversations.map((row) => row.id)), eq(conversationParticipants.userId, userId)));
     if (children.length) await tx.delete(subroomAccess).where(and(inArray(subroomAccess.subroomId, children.map((row) => row.id)), eq(subroomAccess.userId, userId)));
     await tx.delete(roomMemberships).where(and(eq(roomMemberships.roomId, roomId), eq(roomMemberships.userId, userId)));
+    await retireLocationLease(tx, userId, roomConversations.map(row => row.id));
     // Block new tokens until both provider invalidation and the DB commit finish.
     // If Ably is unavailable, roll back and report failure; do not claim removal.
     await revoke(userId);

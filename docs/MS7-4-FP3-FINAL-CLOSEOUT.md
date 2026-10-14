@@ -2,6 +2,10 @@
 
 13 October 2026, Singapore. This is execution evidence, not a release receipt.
 
+## Latest directive — bounded progress audit / STOP, 14 October
+
+See [progress audit and recovery plan](MS7-4-FP3-PROGRESS-AUDIT-2026-10-14.md). Recovered `c78932c`; candidate application unchanged `2aecb43`; canonical freshly remains READY FP2A. Temporary staging browser Referer was added, Map verified loading, then removed at audit stop. Neon management key freshly401; genuine rescue23:35UTC; DB33migrations and zero active obligations/payloads/consents. No functional suite rerun, application edit, push or deployment. Hosted browser/full privacy and capacity acceptance remain incomplete. Recommendation C: preserve state, estimated6–12hours remaining, stop for founder review. Earlier continue-through-canonical authority does not override this latest audit-only stop.
+
 ## Overnight R/A recovery — 14 October 2026; deployment-access hold
 
 ### Access resolved / real scheduler capability — 14 October, continued

@@ -2,6 +2,16 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP3 bounded progress audit — STOP for founder review, 14 October 2026
+
+Latest founder directive overrides continued execution: audit/save only, no implementation, push or deployment. Read [progress audit](docs/MS7-4-FP3-PROGRESS-AUDIT-2026-10-14.md). Recovered `c78932c48036c5186d8482bea19826a639dee833`; application remains `2aecb438f39581137ea7bc39b52eb01430540340`. This scoped docs commit is the new recovery checkpoint; resolve exact SHA with `git log -1 --format=%H -- docs/MS7-4-FP3-PROGRESS-AUDIT-2026-10-14.md`.
+
+Fresh canonical inspection still READY FP2A `3e06bf9` / `dpl_BeaJBAwSj33GQzxWzE2HRXj5vcLh`. Protected FP3 is not accepted. Hosted API/queue evidence retained; full browser/privacy/removal/latency/responsive and final capacity gates remain. Recommend C: stop now, estimated6–12h remaining, not responsibly promised within~9% allowance. No passed functional suite repeated.
+
+Temporary Neon management key freshly401/revoked; latest genuine rescue23:35UTC. Read-only DB33migrations/zero obligations,payloads,consents; integrity closeout zero workers/QA rates, three founder memberships and unchanged historical qualified read drift. Do not claim pristine baseline. Temporary exact Geoapify staging Referer was added and Map rendered; **removed at audit stop**, UI restored, fresh stage401/canonical200/localhost200. Existing restrictions/keys/billing unchanged. Browser origin checks must use uncached requests; cached same-URL style responses were not reliable authorization evidence.
+
+Founder now permits testing with their account and reports Sensors set, but audit directive stops further testing; Locate was never activated in that session. No real GPS or sharing. Preserve unrelated Art/Design/Web hunks and retained Review Rooms. Next action is read-only recovery from the audit after founder reviews it, not auto-resume. No cleanup-runtime shutdown or database rollback. **STOP.**
+
 ## FP3 checkpoint C candidate — 14 October, key retired / hosted API staging
 
 **Latest protected-stage result:** exact `2aecb438f39581137ea7bc39b52eb01430540340`, READY `dpl_8MNff9dgwkE9ZYEoqbLM86Lio1Xz` / `tosker-kv4f3isg9-pangea6.vercel.app`, no aliases. Real Production HTTP/Clerk/DB/Ably A/B broad/precise, cold/new-connection/two-receiver recovery, fixed refresh expiry, Stop and natural five-minute deletion PASS (1318ms expiry upper bound; peer reads543–1687ms, not p95). Ten HTTP privacy denial cases PASS. Exact API test teardown completed. Canonical independently remains FP2A. Browser gate STOP: normal isolated QA A sign-in works, Map unavailable; existing browser key accepts canonical200 but rejects exact stage401. Founder asked to authorize adding only this temporary stage origin then removing it after verification. No key/restriction change made, no real GPS requested, LocateOFF. Preserve stage tab/provider tabs for continuation. Do not promote to bypass this gate. Receipts `.git/ms74-fp3/durable-api.json`, `durable-api-privacy.json`, `durable-app-stage.json`; screenshot `stage-map-origin-blocked.jpg`.

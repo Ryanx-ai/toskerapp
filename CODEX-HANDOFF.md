@@ -2,6 +2,14 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP3 post-reset prime — PLANNING ONLY / STOP, 14 October 2026
+
+Newest founder attachment `8b8825ec-675e-4162-827b-6aa9f9267626` supersedes older continuation authority: recover/research/plan only. Read [next-wave plan](docs/MS7-4-FP3-NEXT-WAVE-PLAN-2026-10-14.md). Recovered HEAD `6ec0e3b1013580fc10d2b1ea51ba058dd6848924`; application remains `2aecb438f39581137ea7bc39b52eb01430540340`. Resolve this local documentation checkpoint with `git log -1 --format=%H -- docs/MS7-4-FP3-NEXT-WAVE-PLAN-2026-10-14.md`.
+
+Fresh authenticated canonical metadata: READY FP2A `3e06bf9e5c9ec09ee0c3dedb82e5e7088cc41161`, `dpl_BeaJBAwSj33GQzxWzE2HRXj5vcLh`. Fresh read-only DB: all33 migration hashes/timestamps match; zero location payload/consent/worker/obligation rows; one exact founder TID and three retained memberships; rescue heartbeat00:35UTC. Prior Neon management-key revocation and temporary staging Referer removal remain recorded; no provider change/retest. Preserve historical qualified founder read drift.
+
+Local server stopped. Development and local envs point at the same writable retained-data database: do not start a Founder Walk there. Surviving local build has29 client assets, missing configured browser key and retaining a runtime public-env reference; strong build/config lead, not a reproduced historical failure. MapLibre6.11.2 worker files byte-match dependencies. Recommend schema-only isolated review with separate identity/channel/cleanup checks, then only missing hosted/browser/privacy/capacity gates. Recommended B→A→E wave13–22 focused hours; explicit execution approval required. Current plan includes provider comparison, UX/copy debt, Hannan questions and milestone discrepancies. No application edit, schema change, server start, QA wave, push, deploy or README rewrite. Preserve unrelated Art/Design/Web WIP. **STOP.**
+
 ## FP3 bounded progress audit — STOP for founder review, 14 October 2026
 
 Latest founder directive overrides continued execution: audit/save only, no implementation, push or deployment. Read [progress audit](docs/MS7-4-FP3-PROGRESS-AUDIT-2026-10-14.md). Recovered `c78932c48036c5186d8482bea19826a639dee833`; application remains `2aecb438f39581137ea7bc39b52eb01430540340`. This scoped docs commit is the new recovery checkpoint; resolve exact SHA with `git log -1 --format=%H -- docs/MS7-4-FP3-PROGRESS-AUDIT-2026-10-14.md`.

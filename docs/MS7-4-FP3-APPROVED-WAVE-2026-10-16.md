@@ -13,6 +13,18 @@ Authority: founder's explicit post-reset authorization to start the 13–22-hour
 
 ## Gate state / next action
 
+### I.3 — authorized minimal identity + realtime isolation verified
+
+Founder approved only existing Clerk subject/exact TID linkage to a fresh isolated UUID with synthetic profile. Recovered `be1c914`; new application/test checkpoint `0d6616e`. Original database read-only transaction resolved exact founder TID uniquely, existing A/B subjects and UUID disjointness; no profile/content export. Review fixture `ms74-fp3-review-02eb7b4d` has three synthetic profiles, no avatars/messages/location rows, fresh empty Sandboxes, Room + selected/everyone Subrooms + A/B Personal context. Founder remains in the Room and selected Subroom; no new Clerk account. Preserve this retained isolated Founder Review Room. Private receipt `.git/ms74-fp3/review-fixture.json` prevents accidental recreation.
+
+Review-only bootstrap checks exact flag/project/DB hostname and rejects any Vercel runtime. It uses authenticated Clerk subject to resolve preseeded synthetic profile; does not call `currentUser()` or import provider avatar/name. Idempotent double bootstrap for all three actors leaves profiles unchanged; unknown subject and five mismatched environment cases denied. Normal unset-flag deployment path retained. Local worker admits these three only in review mode, retaining healthy-generation/fixture ownership/synthetic point fences; original worker admission remains two QA users.
+
+Six actual Ably tokens verified exact user/conversation/typing/live capabilities and fresh isolated client IDs; no wildcard or permission change. B denied selected Subroom, A Sandbox and nonexistent context. Receipt `.git/ms74-fp3/review-channels.json` at2026-10-16T12:15:50.264Z contains aggregate results only, no token/identity values.
+
+Optimized build/TypeScript PASS after correcting a test-only ProcessEnv fixture typing error. Scoped lint PASS. Dual server-secret scans815 source/owned files +43 client assets PASS; extra database-password scan PASS; public Map key inlined. Server started with Node24 and `scripts/ms74-fp3-review-runtime.mjs start` on localhost:3000, exact isolated database, no production queue/management credential. Browser Map/delivery acceptance remains outstanding, not inferred from tokens/build. No worker yet at this checkpoint, no push/deployment or provider configuration change.
+
+Next: local synthetic browser acceptance with supervised worker, missing HTTP/UI/privacy/reconnect/removal and capacity gates, then conditionally hosted release; never use ordinary default environment. Stop local server/worker with SIGINT (worker drains exact-run payloads); no DB migration rollback. Canonical remains exact FP2A; retain production cleanup/rescue/old consumers. Do not promote diagnostics or partially accepted FP3.
+
 ### I.2 — approved separate Free project provisioned; isolation acceptance pending
 
 **Latest continuation:** founder completed verification. Existing Neon GitHub sign-in reopened the approved project; Console confirms Free, one fresh root `br-morning-heart-b7c20j2x`, PostgreSQL18,0.25CU,6h history and initially zero usage. Vercel secret-copy still requested reauthentication, so no bypass was attempted; the already authenticated Neon connection dialog supplied the same project's existing credential. It was never printed and is held separately in mode0600 `.git/ms74-fp3/review-database.env`; original `.env.local` and `.env.development.local` hashes stayed unchanged.

@@ -145,7 +145,7 @@ export default function TripMapCanvas({ pings, inspector, viewerAvatarUrl, mapPi
           setReadyMap(instance);
         });
         instance.addControl(new NavigationControl({ showCompass: false }), "top-right");
-        instance.getCanvas().setAttribute("aria-label", "World planning map. Arrow keys pan; plus and minus zoom. No live location is shared.");
+        instance.getCanvas().setAttribute("aria-label", "World planning map. Arrow keys pan; plus and minus zoom.");
         observer = new ResizeObserver(() => instance?.resize());
         observer.observe(container.current);
         timer = setTimeout(fail, 20000);

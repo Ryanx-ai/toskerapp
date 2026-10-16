@@ -13,6 +13,20 @@ Authority: founder's explicit post-reset authorization to start the 13–22-hour
 
 ## Gate state / next action
 
+### C.8 — authorized isolated Playwright acceptance (in progress)
+
+Founder explicitly authorized the existing Playwright harness path: fresh isolated QA A/B contexts, normal Clerk Development email-code sign-in, synthetic GPS only, strict isolated review database; no founder browser/profile, real GPS, auth bypass, Production writes or installation. Recovered `9544b48d1ad44bf0f330e0d21ef04d60de17bcaa`. Fresh authenticated canonical metadata remains READY exact FP2A `3e06bf9`, deployment `dpl_BeaJBAwSj33GQzxWzE2HRXj5vcLh`. Strict review launcher/process and initial zero payloads/active consents/workers verified; bounded local worker started solely for these tests. Original envs and unrelated WIP preserved.
+
+Test-only checkpoint `23e5193fa34d9ebfd27ae6eaac1562d5c8845bc5` adds `scripts/browser-ms74-fp3-review.mjs`, adapting the existing browser/login helpers without running old retained-fixture/ephemeral scripts. Fresh browser input/sign-in succeeds, confirming a usable path around the prior DevTools conflict. Empty offline basemap prevents Geoapify tile/search/road requests; this is real auth/API/database/Ably/browser privacy evidence, **not final basemap visual acceptance**. No network traces, auth storage, coordinates or credential values retained in receipts.
+
+- Actual precise A→B, LocateOFF removal observed388ms using a browser DOM observer, not tool-roundtrip timing. Precise B→A, receiver network loss clears in9ms; reconnect after sender Stop does not restore the marker. Single transport and unchanged presence payload checks pass. Receipt `review-removal-1792161518748.json`.
+- Failed Stop503 shows deletion-unconfirmed wording, LocateOFF/private origin cleared, Locate retries real Stop without acquiring location, starting another consent or opening the prompt. Receipt `review-outage-1792161624470.json`.
+- Real fresh browser A session logout200 in2817ms; old bearer401; B peer marker removed351ms from observer setup. Receipt `review-session-1792161711769.json`.
+- Each completed run revoked its owned browser sessions and independently ended with0payloads/0active consents; supervised worker retained for subsequent cases. No canonical mutation. These individual timings are not a hosted p95/removal certification.
+- Initial delayed-response test failed its harness precondition because the previous peer display had already expired while the held real read completed. No stale disclosure demonstrated. Test corrected to accept safe prior absence and still require no resurrection after a response held beyond its five-second deadline; rerun pending. Initial receipt retained, not overwritten.
+
+TypeScript and scoped harness ESLint pass. Remaining local fault/context/reconnect/permission checks, hosted browser/capacity and exact-artifact release gates remain open. No push/deployment or final product-doc consolidation. Do not promote partially accepted FP3. If interrupted, inspect worker/listener and latest private receipts before resuming; stop the exact local worker gracefully and verify zero payloads/active consents/workers. Do not stop Production rescue or alter migrations.
+
 ### C.7 — recovered input, actual session revocation and current provider accounting
 
 Recovered `5350eb2542bbc5cddbafab67601db15f1d1e26a1`; strict review configuration passes, unrelated WIP preserved. Founder turned LocateOFF and closed DevTools. QA B has no own marker/origin and pointer disclosure input works immediately. This strengthens the DevTools/control-conflict diagnosis; no app/auth/privacy workaround or new device acquisition. QA A signed in through normal Development email-code UI; A/B actual Live roster agrees, including B after prior reload and A after logout/re-authentication. Both later leave safely to0participants.

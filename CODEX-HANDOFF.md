@@ -2,6 +2,12 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP3 C.8 — isolated Playwright path authorized; acceptance in progress
+
+Recovered `9544b48d1ad44bf0f330e0d21ef04d60de17bcaa`. Founder approved existing Playwright with fresh normal QA A/B sign-in and synthetic GPS only; never use the founder profile or old retained-fixture harness unchanged. Test checkpoint `23e5193fa34d9ebfd27ae6eaac1562d5c8845bc5` adds strict review harness. Completed actual browser tests: LocateOFF peer removal388ms, receiver network-loss removal9ms/reconnect no resurrection; truthful unconfirmed Stop and explicit retry; owned browser session logout200/old bearer401/peer removal351ms. Per-run DB0payloads/active consents. Individual local samples, not hosted p95. Initial late-response test had a harness precondition failure (marker already safely expired); correction/rerun in progress. See approved-wave ledger C.8 and private timestamped receipts.
+
+No application change, push/deployment, credential/configuration/migration mutation. Fresh canonical READY exact FP2A `3e06bf9`; original rescue retained. Strict isolated localhost3000 remains running; supervised30-minute local worker currently active for tests (inspect exact process/receipt before recovery, never default-launch root envs). Remaining local privacy/context/reconnect/permission, hosted/capacity/exact-artifact release and separate post-release docs gates must pass before promotion. Preserve unrelated Design/Art/Web WIP and all original receipts. If interrupted, gracefully stop only owned test processes and verify0payloads/active consents/workers. No automatic cleanup of Founder Review Rooms.
+
 ## FP3 C.7 — input recovered / owned-session revocation / fresh Free usage
 
 Recovered `5350eb2542bbc5cddbafab67601db15f1d1e26a1`. Founder turned QA B LocateOFF and closed DevTools; both state and working pointer input verified. No new device location acquired. Test-only checkpoint `57e05c7063fddeba2b8be086a2b8b0171322d972` adds real logout/old-bearer denial to the isolated HTTP peer helper. Actual Chrome B rendered A's synthetic precise snapshot; real logout200 (2888ms), exact helper Clerk session revoked, old token401, actor consents0, B marker/list removed. Coarse10820ms pre-request→observation is NOT five-second timing certification. QA A's separate browser session remained valid and its Live roster recovered; both browsers agreed on A+B then left to0people. TypeScript/scoped lint pass; no application change.

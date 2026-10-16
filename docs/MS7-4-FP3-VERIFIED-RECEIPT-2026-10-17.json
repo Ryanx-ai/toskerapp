@@ -98,6 +98,16 @@
   "neonManagementKeyPreviouslyRevoked": true,
   "oldGeoapifyKeyRevoked": false,
   "paidPlanOrBillingChanged": false,
+  "finalIndependentDrain": {
+    "observedAt": "2026-10-16T18:32:56.356Z",
+    "payloads": 0,
+    "consents": 0,
+    "workers": 0,
+    "reservations": 0,
+    "overdue": 0,
+    "laptopWorker": false
+  },
+  "documentationCheckpoint": "bb737fb7368c259a132d41aa0777f99051705973",
   "ms73": "LOCKED",
   "ms74": "UNLOCKED",
   "ms8": "NOT STARTED",

@@ -13,6 +13,12 @@ Authority: founder's explicit post-reset authorization to start the 13–22-hour
 
 ## Gate state / next action
 
+### F — final recovery / Founder Walk STOP
+
+Verified E `bb737fb7368c259a132d41aa0777f99051705973`; application still byte-identical to accepted `a166934`. Source/owned credential scan823files plus43local assets passes;65documentation links resolve, receipt JSON parses, historical README byte-equals its original. Scoped E changes contain only current-product docs/history pointers; unrelated WIP remains untouched. Canonical three harness modes and D evidence remain valid; no further implementation/testing wave.
+
+Independent18:32:56UTC read proves0payloads/consents/workers/reservations/overdue obligations. Hosted queue drained the three previously unexpired coordinate-free reservations; no manual deletion or laptop worker. Rescue remains healthy. Final deployment error/fatal30minute query returns no groups. Local review process/listener stopped and isolated DB0payloads/consents/workers; hosted cleanup remains running. Final post-push Git/alias/protection proof belongs in private `final-release-closeout-20261017.json`; preserve original auto-assignment:false, cancel only redundant own docs build. Report canonical Founder Walk andSTOP; MS7.4 remains unlocked.
+
 ### E — product documentation consolidated after verified canonical
 
 Previous release checkpoint `d1b6df9` verified. README now describes the actual map-native authenticated product, deployed versus deferred capabilities, privacy/retention/capacity and guarded isolated local workflow. Original README preserved verbatim at `history/README-MS2-PROTOTYPE.md`. `INDEX.md` links current evidence and retained incident/research history. VISION/ROADMAP have dated current sections; old milestone numbering and status headings explicitly historical, not deleted. Newest founder ordering retains MS13 as unresolved rather than inventing scope. Original13October failed-release JSON remains untouched; the dated17October verified receipt is separate.

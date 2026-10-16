@@ -2,6 +2,18 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP3 F — Founder Walk / STOP DEVELOPMENT, 17 October 2026
+
+**Canonical verified:** <https://toskerapp.vercel.app>, application `a166934b6d348dd84ab9c78f35a73e9ce6f661b1`, READY `dpl_9NhdBjGXUkTpFzVyhhjJqe9NKP23`. [Current report/rollback](docs/MS7-4-FP3-RELEASE-2026-10-17.md), [receipt](docs/MS7-4-FP3-VERIFIED-RECEIPT-2026-10-17.json), [docs index](docs/INDEX.md). D checkpoint `d1b6df9`; separate E documentation checkpoint `bb737fb7368c259a132d41aa0777f99051705973`. Resolve this F commit with `git log -1 --format=%H -- CODEX-HANDOFF.md`; final private post-push verification receipt is `.git/ms74-fp3/final-release-closeout-20261017.json`.
+
+All mandatory FP3 engineering acceptance passed at the layers qualified in the report; no outstanding implementation. Canonical A/B broad/precise/Stop/reload/reconnect, real Live Join/Leave and actual Map responsive/attribution/authentication/27asset secret scans pass. Independent final18:32:56UTC state0payloads/consents/workers/reservations/overdue obligations: hosted jobs drained without a laptop worker.33migration checks and qualified founder preservation pass; manual founder14October test rows remain unchanged. No retained Room/content cleanup.
+
+Temporary staging browser-key referrer and Vercel trust removed; original restrictions/protection and manual auto-assignment:false restored. Existing Free quotas, production rescue/old consumers and six-hour history retained. Capacity attestation expires20October18:49:57UTC (21October02:49:57SG); renew only after a fresh authorized capacity review, never automatically. Old server-key retirement remains separately gated. Local isolated server/worker stopped; synthetic review database/fixtures retained. All unrelated Art/Design/Web WIP untouched/unstaged.
+
+README and current VISION/ROADMAP aligned after verification; original README copied verbatim to history, old ledgers/failed receipt preserved with current pointers. MS7.3 LOCKED; MS7.4 FP3 CANONICAL VERIFIED; FP2B RESEARCH ONLY; MS7.4 UNLOCKED; MS8 NOT STARTED. **STOP ALL DEVELOPMENT for Founder Walk.** No media, movement or later milestone work. Review Rooms and exact rollback instructions are in the release report.
+
+Recovery only: `git status --short`, `git log -5 --oneline`, inspect final receipt and fresh canonical alias. Do not rerun passed QA or start default local env (retained writable main). Authorized future isolated review starts with `node scripts/ms74-fp3-review-runtime.mjs check`; no process restart is required now. Final closeout must confirm remote main matches the F checkpoint while canonical remains exact accepted application; cancel only its redundant unaliased Git build, never the accepted deployment.
+
 ## FP3 D — CANONICAL VERIFIED, 17 October 2026
 
 Application `a166934b6d348dd84ab9c78f35a73e9ce6f661b1`; READY `dpl_9NhdBjGXUkTpFzVyhhjJqe9NKP23`; fresh exact canonical alias lookup verified. [Release evidence, limitations and rollback](docs/MS7-4-FP3-RELEASE-2026-10-17.md), [machine receipt](docs/MS7-4-FP3-VERIFIED-RECEIPT-2026-10-17.json). Recovered pre-release `e287a3b8dec264e3aaf66a1847eb59971c967ea8`. Canonical privacy, real Live A/B, actual Map six-width/attribution and27served-asset scans PASS; sessions closed,0payloads/consents/workers. Qualified founder preservation and33migration hashes/catalog PASS. Original historical read drift and founder-confirmed manual-test entries preserved, not erased/rebaselined.

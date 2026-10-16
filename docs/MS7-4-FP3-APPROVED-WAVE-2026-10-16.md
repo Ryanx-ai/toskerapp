@@ -13,6 +13,22 @@ Authority: founder's explicit post-reset authorization to start the 13–22-hour
 
 ## Gate state / next action
 
+### I — STOP: provider rejects schema-only isolation
+
+After checkpoint R `0c5dbef`, submitted the approved schema-only form. First response returned to the form without a persistent error; canceled/refreshed and verified only original main remained. One controlled retry after clean reload and explicit form input captured the provider alert:
+
+> Request failed: project with a legacy web access role do not support schema-only branches; role:"anonymous"
+
+No review branch was created. Canceled the form; refreshed inventory still shows one branch. This is a project compatibility restriction, not insufficient Free storage or evidence that MapLibre is defective. No role was removed, no credential created/changed, no founder data copied, no default branch changed, no paid resource enabled. The Neon provider tab is retained for continuation. The original founder staging tab was not operated.
+
+**Stop at the founder's isolation safety gate.** Do not delete/rename/revoke the legacy role merely to make schema-only cloning succeed; dependency and permission effects are unverified. Do not use ordinary data branching, restore-from-main, or shared writable local configuration as a workaround. No local server, synthetic fixture, migration, provider-intensive QA, application edit, push or deployment occurred.
+
+Recommended revised approach, requiring founder direction: an **empty separate Neon Free review project/database**, initialized solely from the checked-in schema/migration chain plus explicitly owned synthetic fixtures, never a copy of retained data. First verify Vercel-managed Free eligibility, resource/compute allowance, no billing activation and least-scope credential handling. If unavailable without paid provisioning, stop; do not upgrade. This changes the approved same-project schema-only provisioning path and is not silently authorized by the failed attempt. An empty independent root branch in the current project could be evaluated as an alternative if the provider supports it without copying legacy roles; it has not been verified and no API workaround was attempted.
+
+Source-only isolation observation: current Ably channel names and client IDs derive from database user/conversation UUIDs. Fresh isolated UUIDs may avoid canonical channel/token-revocation collisions without a new provider permission, while retaining exact Clerk identity linkage/TID. This is a hypothesis for explicit disjoint-ID tests, not isolation acceptance. Founder identity is a minimal isolated projection of the uniquely resolved existing account, never a duplicate Clerk account; all founder session/profile actions remain forbidden during automated QA. Existing local worker admits exactly two QA actors, so full founder-sharing review requires a separately reviewed admission plan, not disabling the guard.
+
+Remaining gate status: R complete; I blocked; C/D/E/F pending. Candidate and canonical SHAs unchanged. Estimate remains13–22h subject to the revised isolation path; no false acceptance progress credited. Resume only after founder chooses the safe alternate isolation path, then recover this checkpoint and verify actual state again. Keep retained review rooms, retired management key, six-hour history and production rescue unchanged.
+
 R verified. I (isolated review) in progress; C (missing acceptance), D (canonical/live smoke), E (documentation consolidation), F (Founder Walk handoff) not complete. Reuse the detailed acceptance matrix in the next-wave plan; do not rerun accepted provider/queue investigations.
 
 Next: create only the approved schema-only review branch within Free; verify empty schema/data boundary and branch-specific least-scope credential. Audit Clerk identity/bootstrap and Ably user/context channels before app start. Existing Development configuration must not be overwritten. No localhost Founder Walk against retained writable main. Use synthetic positions only. Resolve founder exact TID for each owned fixture, preserve normal founder account and membership.

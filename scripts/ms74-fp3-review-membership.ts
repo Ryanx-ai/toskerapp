@@ -7,7 +7,10 @@ import { isIsolatedReview } from "../src/server/accounts/isolated-review";
 import { withdrawRoomMember } from "../src/server/rooms/lifecycle";
 import { resolveQaActors } from "./lib/ms73-fixtures";
 
-const db = getDatabase(), path = ".git/ms74-fp3/review-membership-test.json";
+// A separate browser-timing run must preserve the original restored receipt.
+const receiptTag = process.argv[3];
+assert(!receiptTag || /^browser-[0-9]{13}$/.test(receiptTag));
+const db = getDatabase(), path = `.git/ms74-fp3/review-membership-test${receiptTag ? `-${receiptTag}` : ""}.json`;
 async function main() {
   assert(isIsolatedReview());
   const mode = process.argv[2]; assert(mode === "--remove-b" || mode === "--restore-b");

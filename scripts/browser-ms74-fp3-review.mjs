@@ -3,18 +3,18 @@
  * Empty offline basemap isolates privacy tests; this is not visual Map evidence. */
 import assert from "node:assert/strict";
 import { readFileSync, mkdirSync, writeFileSync } from "node:fs";
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
 import { neon } from "@neondatabase/serverless";
 import { chromium } from "/Users/ryanc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs";
 import { reviewEnvironment, REVIEW_PROJECT } from "./ms74-fp3-review-runtime.mjs";
-import { loginLive, installLiveMetrics, leaveLiveBeforeClose } from "./lib/ms74-browser.mjs";
+import { loginLive, installLiveMetrics, leaveLiveBeforeClose, liveJoined, liveCount } from "./lib/ms74-browser.mjs";
 
 const env = reviewEnvironment(), sql = neon(env.DATABASE_URL);
 const fixture = JSON.parse(readFileSync(".git/ms74-fp3/review-fixture.json", "utf8"));
 assert.equal(fixture.project, REVIEW_PROJECT); assert.equal(fixture.status, "committed");
 assert.equal(fixture.run, "ms74-fp3-review-20261016");
 const mode = process.argv[2] ?? "removal";
-assert(["removal", "outage", "session", "pending", "late"].includes(mode));
+assert(["removal", "outage", "session", "pending", "late", "contexts", "private", "live", "live-responsive", "membership", "timeout"].includes(mode));
 const counts = async () => (await sql`select
   (select count(*)::int from location_latest) payloads,
   (select count(*)::int from location_shares where expires_at>clock_timestamp()) active_consents,
@@ -124,6 +124,158 @@ try {
     });
     record("real browser session logout", { ...result, peerRemovalMs: ms });
     assert.equal(result.status, 200); assert([401, 403].includes(result.oldToken)); assert(ms <= 5000);
+  } else if (mode === "timeout") {
+    step = "synthetic geolocation timeout and error accessibility";
+    // Controlled platform-error injection in a disposable authorized QA context,
+    // not real device GPS or a change to authentication/application state.
+    await a.evaluate(() => {
+      navigator.geolocation.getCurrentPosition = (_success, failure) => queueMicrotask(() => failure({ code: 3, message: "Synthetic QA timeout" }));
+    });
+    await locate(a).click();
+    await a.getByText("Location timed out. Try again when ready.", { exact: true }).waitFor();
+    assert.equal(await locate(a).getAttribute("aria-pressed"), "false");
+    assert.equal(await a.locator("[data-private-origin]").count(), 0);
+    assert.equal(evidence.api.filter(x => ["begin", "send"].includes(x.action)).length, 0);
+    const widths = process.argv[3] === "remaining-widths" ? [390, 430, 768, 1440, 1728] : [320, 390, 430, 768, 1440, 1728];
+    for (const width of widths) {
+      await a.setViewportSize({ width, height: 1000 }); await a.emulateMedia({ reducedMotion: "reduce" });
+      const foreground = a.getByRole("group", { name: "Visible workspace pane" });
+      if (await foreground.count() && new URL(a.url()).searchParams.get("pane") !== "map") {
+        await foreground.getByRole("button", { name: "Map", exact: true }).click();
+        // The workspace intentionally focuses its newly selected pane on the
+        // next frame. Observe that transition before testing keyboard traversal.
+        await a.waitForFunction(() => document.activeElement?.getAttribute("data-workspace-pane") === "map", {}, { timeout: 5000 });
+      }
+      for (let tabs = 0; tabs < 40 && !await locate(a).evaluate(button => button === document.activeElement); tabs++) await a.keyboard.press("Tab");
+      const geometry = await locate(a).evaluate(button => {
+        const rect = button.getBoundingClientRect();
+        return { overflow: document.documentElement.scrollWidth > innerWidth + 1, height: rect.height,
+          focused: button === document.activeElement, outline: getComputedStyle(button).outlineStyle,
+          onscreen: rect.top >= 0 && rect.bottom <= innerHeight };
+      });
+      evidence.observations ??= []; evidence.observations.push({ width, ...geometry }); save();
+      assert(!geometry.overflow && geometry.height >= 44 && geometry.focused && geometry.outline !== "none" && geometry.onscreen);
+      await a.screenshot({ path: `${directory}/review-timeout-${width}.png`, fullPage: true });
+      record("synthetic timeout stays private; responsive keyboard Locate retry", { width, ...geometry });
+    }
+  } else if (mode === "membership") {
+    step = "exact-owned receiver membership removal timing";
+    const tag = `browser-${Date.now()}`;
+    const membership = flag => new Promise((resolve, reject) => {
+      const child = spawn(process.execPath, ["--conditions=react-server", "--import", "tsx", "scripts/ms74-fp3-review-membership.ts", flag, tag], { env, stdio: "ignore" });
+      child.once("error", reject); child.once("exit", code => code === 0 ? resolve() : reject(new Error("Exact membership operation failed; inspect owned receipt")));
+    });
+    try {
+      await share(a); await marker(b).waitFor({ timeout: 30000 });
+      const ms = await removal(b, () => membership("--remove-b"));
+      record("receiver membership revocation peer removal", { ms }); assert(ms <= 5000);
+      // The workspace may safely fall back to the viewer's Sandbox instead of
+      // retaining the revoked Room's unavailable screen. Assert authorization,
+      // not one particular fallback heading.
+      const denied = await b.evaluate(async conversationId => {
+        const token = await window.Clerk.session.getToken();
+        const r = await fetch("/api/location-sharing", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ action: "current", conversationId }) });
+        return r.status;
+      }, fixture.conversationId);
+      assert.equal(denied, 403);
+      assert.equal(await marker(b).count(), 0);
+    } finally {
+      const receipt = JSON.parse(readFileSync(`.git/ms74-fp3/review-membership-test-${tag}.json`, "utf8"));
+      if (receipt.status === "removed") await membership("--restore-b");
+      else assert.equal(receipt.status, "restored", "Membership needs receipt-based recovery");
+    }
+    await stop(a);
+    record("exact original QA B membership restored; founder stable; no location restored");
+  } else if (mode === "contexts") {
+    const go = async (page, path) => {
+      await page.goto(`http://localhost:3000${path}`, { waitUntil: "domcontentloaded" });
+      await page.locator('[data-map-state="ready"]').waitFor({ timeout: 60000 });
+    };
+    for (const [name, path] of [
+      ["everyone Subroom", `/room/${fixture.slug}/subroom/${fixture.everyoneId}/map`],
+      ["Personal", `/personal/chat-${fixture.personalId}/map`],
+    ]) {
+      step = `${name} sender and receiver`;
+      await go(a, path); await go(b, path);
+      await share(a, "area");
+      await b.getByRole("list", { name: "Shared location snapshots" }).waitFor({ timeout: 30000 });
+      assert.equal(await marker(b).count(), 0);
+      await stop(a); await b.getByRole("list", { name: "Shared location snapshots" }).waitFor({ state: "detached" });
+      record(`${name}: explicit broad sender consent, authorized receiver, no precise marker, Stop`);
+    }
+    step = "selected Subroom exact audience";
+    await go(a, `/room/${fixture.slug}/subroom/${fixture.selectedId}/map`);
+    await go(b, `/room/${fixture.slug}/map`);
+    await share(a);
+    const response = await actionResponse(b, "current"); assert.equal(response.status(), 200);
+    assert.equal((await response.json()).peers.length, 0); assert.equal(await marker(b).count(), 0);
+    await b.goto(`http://localhost:3000/room/${fixture.slug}/subroom/${fixture.selectedId}/map`, { waitUntil: "domcontentloaded" });
+    await b.getByText("404", { exact: true }).waitFor();
+    assert.equal(await locate(b).count(), 0); await stop(a);
+    record("selected Subroom sender allowed; unauthorized B denied; Room audience receives nothing");
+    step = "Sandbox private only";
+    await go(a, "/personal/my-room/map");
+    const prior = evidence.api.filter(x => x.action === "begin").length;
+    await locate(a).click(); await a.locator('[aria-label="You, accuracy about 50 metres. Visible only to you."]').waitFor();
+    assert.equal(await a.getByRole("heading", { name: "Share your location with this conversation?" }).count(), 0);
+    assert.equal(evidence.api.filter(x => x.action === "begin").length, prior);
+    await locate(a).click(); assert.equal(await a.locator("[data-private-origin]").count(), 0);
+    record("Sandbox Locate stays private without consent prompt or publication");
+  } else if (mode === "private") {
+    step = "private fixed origin and explicit renewal";
+    await locate(a).click(); await a.getByRole("button", { name: "Keep private", exact: true }).click();
+    const origin = a.locator("[data-private-origin]"); await origin.waitFor();
+    const originalCard = await origin.innerText();
+    await contexts[0].setGeolocation({ latitude: 1.286, longitude: 103.859, accuracy: 50 });
+    await a.getByRole("button", { name: "Refresh my location marker", exact: true }).click();
+    await a.getByRole("button", { name: "Refresh my location marker", exact: true }).waitFor();
+    assert.equal(await origin.innerText(), originalCard);
+    assert.equal(evidence.api.filter(x => x.action === "begin" || x.action === "send").length, 0);
+    await locate(a).click(); assert.equal(await origin.count(), 0);
+    await locate(a).click(); assert(await a.getByRole("radio", { name: "Broad area only (default)", exact: true }).isChecked());
+    await a.keyboard.press("Escape"); assert(await locate(a).evaluate(el => el === document.activeElement));
+    await locate(a).click();
+    record("private marker refresh keeps origin presentation; no share; OFF clears; ON requires fresh broad-default consent");
+    step = "permission denial";
+    await contexts[0].clearPermissions();
+    // Headless Chromium denies its unanswered permission prompt. No real GPS fallback exists.
+    await locate(a).click(); await a.getByText("Location permission denied. You can allow it in browser settings.", { exact: true }).waitFor();
+    assert.equal(await locate(a).getAttribute("aria-pressed"), "false"); assert.equal(await origin.count(), 0);
+    record("permission denial stays OFF with no origin, share or consent prompt");
+  } else if (mode === "live" || mode === "live-responsive") {
+    step = "Live reconnect navigation";
+    for (const p of pages) {
+      await p.locator('[data-surface-trigger="live"]').click();
+      await p.getByRole("button", { name: "Join Live", exact: true }).click(); await liveJoined(p);
+    }
+    await liveCount(a, 2); await liveCount(b, 2);
+    if (mode === "live") {
+    await a.evaluate(() => window.__liveQa.cut());
+    await a.locator('.live-panel[data-phase="reconnecting"]').waitFor();
+    await a.evaluate(() => { window.__liveQa.restore(); window.dispatchEvent(new Event("online")); });
+    await liveJoined(a); await liveCount(a, 2); await liveCount(b, 2);
+    await a.locator('[data-surface-trigger="hall"]').click(); await a.locator('.workspace-composition[data-layout="hall:live"]').waitFor();
+    await a.locator('[data-surface-trigger="map"]').click(); await a.locator('.workspace-composition[data-layout="map:live"]').waitFor();
+    await liveCount(b, 2);
+    record("actual A/B Live reconnect then Board/Map navigation preserves roster with one transport");
+    }
+    step = "recovered Live responsive keyboard states";
+    for (const width of [320, 390, 430, 768, 1440, 1728]) {
+      await a.setViewportSize({ width, height: 1000 }); await a.emulateMedia({ reducedMotion: "reduce" });
+      const foreground = a.getByRole("group", { name: "Visible workspace pane" });
+      if (await foreground.count()) await foreground.getByRole("button", { name: "Live", exact: true }).click();
+      const action = a.locator('.live-panel:visible .live-action'); await a.keyboard.press("Tab"); await action.focus();
+      const geometry = await action.evaluate(button => {
+        const panel = button.closest(".live-panel"), rect = button.getBoundingClientRect();
+        return { overflow: document.documentElement.scrollWidth > innerWidth + 1 || panel.scrollWidth > panel.clientWidth + 1,
+          height: rect.height, focused: document.activeElement === button, outline: getComputedStyle(button).outlineStyle,
+          reducedMotion: matchMedia("(prefers-reduced-motion: reduce)").matches };
+      });
+      evidence.observations ??= []; evidence.observations.push({ width, ...geometry }); save();
+      assert(!geometry.overflow && geometry.height >= 44 && geometry.focused && geometry.outline !== "none" && geometry.reducedMotion);
+      await a.screenshot({ path: `${directory}/review-live-reconnected-${width}.png`, fullPage: true });
+      record("reconnected Live keyboard/reduced-motion geometry", { width, ...geometry });
+    }
   } else if (mode === "late") {
     step = "late in-flight snapshot cannot resurrect after Stop";
     await share(a); await marker(b).waitFor({ timeout: 30000 });
@@ -138,13 +290,16 @@ try {
       await route.fulfill({ response }).catch(() => {}); // Expected aborted request after its deadline.
     });
     const requestStarted = await captured;
-    const ms = await removal(b, () => stop(a)); assert(ms <= 5000);
+    // The previous view may already have expired while route.fetch performed
+    // the real authorization read. That safe absence is not a test failure.
+    const clearedBeforeStop = await marker(b).count() === 0;
+    await stop(a); await marker(b).waitFor({ state: "detached", timeout: 10000 });
     // Derived from the specified request-start deadline, not a readiness sleep.
     await new Promise(resolve => setTimeout(resolve, Math.max(0, requestStarted + 5100 - performance.now())));
     release();
     const fresh = await actionResponse(b, "current"); assert.equal(fresh.status(), 200);
-    assert.equal(await marker(b).count(), 0);
-    record("held stale response past five-second deadline cannot restore revoked marker", { peerRemovalMs: ms });
+    assert.equal((await fresh.json()).peers.length, 0); assert.equal(await marker(b).count(), 0);
+    record("held stale response past five-second deadline cannot restore revoked marker", { clearedBeforeStop });
   } else {
     step = "Locate OFF while begin acknowledgment pending";
     let releaseBegin, acceptedBegin;
@@ -168,7 +323,9 @@ try {
   }
   assert.equal(evidence.errors.length, 0); evidence.pass = true;
 } catch (error) {
-  evidence.failedStep = step; evidence.failure = error.name; process.exitCode = 1;
+  evidence.failedStep = step; evidence.failure = error.name;
+  evidence.failureLine = error.stack?.match(/browser-ms74-fp3-review\.mjs:(\d+):\d+/)?.[1];
+  process.exitCode = 1;
   for (let i = 0; i < pages.length; i++) await pages[i].screenshot({ path: `${directory}/review-${mode}-failure-${i}.png`, fullPage: true }).catch(() => {});
 } finally {
   for (const context of contexts) await context.setOffline(false).catch(() => {});

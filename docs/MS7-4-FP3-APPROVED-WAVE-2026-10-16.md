@@ -13,6 +13,16 @@ Authority: founder's explicit post-reset authorization to start the 13–22-hour
 
 ## Gate state / next action
 
+### I.2 — approved separate Free project provisioned; isolation acceptance pending
+
+Founder explicitly approved the empty separate Neon Free review project, schema and synthetic fixtures only, recovering `acce660b06b3de2920c76c0a8fa452e0bcac5c29`. This supersedes the alternate-provisioning approval stop below, not the privacy/isolation gates.
+
+Authenticated existing Vercel CLI provisioned exactly one resource: `tosker-fp3-review-20261016`, resource `store_kfug3pI722z13pVn`, Neon project `falling-mode-50310792`, existing installation `icfg_ipXxpAIi6qMYtfr44He4eemI`. Flags explicitly selected `free_v3`, `region=iad1`, `auth=false`, `realtime=false`, `--no-connect --no-env-pull --no-claim`. Fresh resource inspection by name confirms available/owned, Free and zero connected projects. Dashboard confirms Free, Auth False, Realtime False, 100 CU-hours/project and 1 GB storage/project. No billing, canonical linkage, original environment overwrite or founder-data copy.
+
+Neon Console SSO now requires email verification to link the existing Vercel Marketplace identity. Founder has been asked to complete that sign-in; no credential supplied in chat and no authentication workaround. Do not provision another resource. Database empty-state, credential isolation, schema, identity/channel isolation, synthetic fixtures and app-start gates are still pending. No schema or fixture has been written yet. CLI installed provider guidance as new untracked `.agents/skills/neon`, `.agents/skills/neon-postgres` and `skills-lock.json`; these task-owned additions are not application changes and are excluded from this documentation checkpoint.
+
+Next: finish authorized existing-account sign-in; obtain only this review database's connection safely into a separate ignored review configuration; prove empty state and endpoint disjointness before applying the existing migration chain. Preserve original environment files, revoked management-key status and production cleanup. App candidate remains `2aecb43`; verified canonical remains FP2A `3e06bf9`. No push/deploy. Older I STOP below is preserved as historical evidence.
+
 ### I — STOP: provider rejects schema-only isolation
 
 After checkpoint R `0c5dbef`, submitted the approved schema-only form. First response returned to the form without a persistent error; canceled/refreshed and verified only original main remained. One controlled retry after clean reload and explicit form input captured the provider alert:

@@ -2,6 +2,10 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP3 separate Free review project — provisioned, isolation pending, 16 October 2026
+
+Recovered `acce660b06b3de2920c76c0a8fa452e0bcac5c29`. Founder approved the separate empty Free review project. Created exactly `tosker-fp3-review-20261016` / Neon `falling-mode-50310792` / Vercel `store_kfug3pI722z13pVn`; fresh inspection confirms Free, available, zero connected projects, Auth/Realtime disabled. No env pull, schema, fixtures, app start, founder-data copy, billing, push or deploy. Console requires email verification for existing Vercel Marketplace identity; founder asked to finish sign-in. Do not create another resource. [Wave ledger I.2](docs/MS7-4-FP3-APPROVED-WAVE-2026-10-16.md) records exact configuration and next safety gates. Original schema-only rejection below is historical. Canonical remains FP2A; app candidate remains `2aecb43`. Preserve unrelated WIP and new CLI-installed provider skill files separately. Next: review-only credentials/empty-state proof → checked-in schema → synthetic identity/channel isolation → missing acceptance → conditional canonical → separate docs → STOP.
+
 ## FP3 post-reset execution AUTHORIZED — checkpoint R, 16 October 2026
 
 **ISOLATION STOP after R `0c5dbef`:** Neon rejects schema-only creation in this existing project because of legacy web-access role `anonymous`. Refreshed inventory remains one branch; no review resource created. Do not alter the legacy role or clone retained data. No code/server/fixture/migration/push/deploy change. [Approved-wave ledger](docs/MS7-4-FP3-APPROVED-WAVE-2026-10-16.md) records provider error and recommends a separate empty Free Neon review database/project, schema plus synthetic data only, subject to founder approval and actual Free eligibility. R passed; I blocked; C/D/E/F pending. Canonical remains exact FP2A. Recover this local documentation checkpoint before any approved alternate provisioning.

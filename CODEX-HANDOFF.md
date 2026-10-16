@@ -2,6 +2,14 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP3 acceptance recovery — Keep private / consent fit / membership revocation
+
+Recovered `0b56a71cd75d77a1c13dd86562f91eabf5cc7fe0`; test-tool checkpoint `046b767c29deed6e30e425cdb7cd9f11deb3d39a` adds exact-owned isolated QA B membership removal/restoration. Actual lifecycle removal made B's Room unavailable and removed peer marker/list; exact original membership/participant/access rows restored, founder membership stable throughout. Private receipt status restored. No canonical/founder-data mutation. Functional revocation passes; observation about6.36s after acknowledgment is NOT a five-second SLA proof. Synthetic API begin5.127s/send7.579s/Stop2.580s remain latency evidence, not p95 acceptance.
+
+Actual synthetic QA B Keep private closes consent, returns focus to Locate, retains only private origin; DB0payloads/active consents. Broad default and consent native dialog fit verified at320/390/430/768/1440/1728 with44px actions/no horizontal overflow. Browser input stalled again after reload, including native inspection; reconnecting browser controls recovered harmless keyboard help interaction. Never infer failed automation is an app defect or use real GPS. LocateOFF at recovery; restart supervised worker only for synthetic tests. Final teardown check0payloads/0active consents/0workers; helper session revoked. Strict isolated local server remains running. No push/deploy; last verified canonical remains FP2A3e06bf9.
+
+Next command: `node scripts/ms74-fp3-review-runtime.mjs check`. Continue only missing browser/privacy/reconnect/removal/capacity gates; do not repeat passed provider investigations. Do not rerun membership removal over existing restored receipt. Rollback remains untouched canonical; no migration rollback/production cleanup shutdown. Preserve unrelated WIP. See approved-wave ledger C.4.
+
 ## FP3 acceptance checkpoint — precise UI expiry passed; Chrome input hold
 
 Recovery follows application Live checkpoint `a166934` and docs `b131441`; test-only visual harness `bbc4cde2480a33e743073e11086f727b52be3db9` uses real LivePanel/built CSS with no auth/DB/transport and CSP connect-src none. Both layouts at six widths wrap80-character synthetic names without overflow, equal card-row heights; disconnected presentation/disabled Join verified. This is presentation evidence, not transport reconnect certification. Harness stopped/closed; no canonical UI or provider added. The earlier attempted isolated QA A name variant hit the fixed-name bootstrap guard; exact original name restored and verified, no founder profile touched or guard weakened.

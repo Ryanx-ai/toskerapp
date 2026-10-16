@@ -13,6 +13,12 @@ Authority: founder's explicit post-reset authorization to start the 13–22-hour
 
 ## Gate state / next action
 
+### E — product documentation consolidated after verified canonical
+
+Previous release checkpoint `d1b6df9` verified. README now describes the actual map-native authenticated product, deployed versus deferred capabilities, privacy/retention/capacity and guarded isolated local workflow. Original README preserved verbatim at `history/README-MS2-PROTOTYPE.md`. `INDEX.md` links current evidence and retained incident/research history. VISION/ROADMAP have dated current sections; old milestone numbering and status headings explicitly historical, not deleted. Newest founder ordering retains MS13 as unresolved rather than inventing scope. Original13October failed-release JSON remains untouched; the dated17October verified receipt is separate.
+
+No application, migration, credential or infrastructure change during consolidation. All unrelated Art/Design/Web material remains unstaged. Next scoped documentation commit/push under restored manual assignment, exact canonical recheck, final F recovery and STOP. No further feature work or milestone lock.
+
 ### D — canonical verified, 17 October 2026
 
 Recovered D.2 `e287a3b8dec264e3aaf66a1847eb59971c967ea8`. Fast-forward pushed application `a166934` to main, canceled redundant own Git build, promoted exact accepted `dpl_9NhdBjGXUkTpFzVyhhjJqe9NKP23` without rebuild. Fresh alias API independently binds canonical to that READY SHA. Original auto-assignment false restored after promotion; temporary trust/referrer allowances already restored. [Release report](MS7-4-FP3-RELEASE-2026-10-17.md) and [dated verified receipt](MS7-4-FP3-VERIFIED-RECEIPT-2026-10-17.json) are current; old13October failure receipt remains historical.

@@ -1,5 +1,17 @@
 # Tosker Vision
 
+## Current product direction — 17 October 2026
+
+**Create a group → Plan together → Go together → Stay connected.** Tosker is a map-native social coordination product with Rooms as its social foundation. Map is the flagship planning surface; Chat, Board and presence-only Live support the same authorized context. Sandbox remains private, Personal Chats stay bounded, and Subrooms must never silently broaden access.
+
+Current verified FP3 delivers optional, short-lived location sharing through a single Locate entry and explicit broad/precise audience consent. It does not deliver continuous movement, voice/video or background tracking. [Current release evidence](MS7-4-FP3-RELEASE-2026-10-17.md) distinguishes accepted behavior, retention limitations and small founder-review capacity. MS7.4 remains unlocked pending Founder Walk.
+
+Rooms own identity, membership and durable collaboration; adapters/renderers/providers do not. Independent Map Pins and Route-owned Locations remain distinct. Discovery requires choice, preview and explicit save. No future extensibility, marketplace, translation or media research should be read as an implemented runtime or procurement decision.
+
+The earlier vision below records the evolution from the MS1/MS2 prototype. Its local-only, prototype-TID, Hall/Add and no-backend statements are historical. Today's Board and persistent authenticated collaboration are described in [README](../README.md); current milestone ordering lives at the top of [ROADMAP](ROADMAP.md).
+
+## Historical vision and exploratory directions
+
 Notifications are a durable attention surface inside the communication shell, not a transient popover and not a claim of backend capability. The bell is the single entry point for notification and activity prototype content.
 
 ## Living communication spaces

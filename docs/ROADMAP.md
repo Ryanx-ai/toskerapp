@@ -1,5 +1,31 @@
 # Tosker roadmap — canonical founder direction
 
+## Current authority — 17 October 2026
+
+**MS7.4 FP3 is canonical verified at application `a166934`; MS7.4 remains UNLOCKED for Founder Walk. STOP development.** [Exact release and qualifications](MS7-4-FP3-RELEASE-2026-10-17.md). FP3 adds accepted latest-state temporary sharing and bounded Live participant cards to the prior workspace foundation. Presence is not voice; temporary manual sharing is not continuous movement. No media procurement, provider migration or MS8 overhaul occurred.
+
+The latest founder roadmap alignment recorded in the [approved-wave plan](MS7-4-FP3-NEXT-WAVE-PLAN-2026-10-14.md#9-future-movement-and-milestone-alignment) supersedes the older numbering below. Future rows are direction, not execution authorization.
+
+| Milestone | Current state / direction |
+| --- | --- |
+| MS1–MS7.3 | Locked; retained historical receipts apply. |
+| MS7.4 | Live Coordination foundation; FP1/FP2A history retained, FP3 canonical verified, awaiting Founder Walk. FP2B media research only. |
+| MS7.5 | Notifications; not started by this wave. |
+| MS7.6 | Settings/customization/uploads/account controls and functional completeness; not started by this wave. |
+| MS8 | Full visual/UIUX pass; NOT STARTED. |
+| MS9 | Private Alpha. |
+| MS10 / MS11 | Mobile / desktop. |
+| MS12 | Public Beta preparation, provider procurement and capacity. |
+| MS13 | Exact scope awaits founder roadmap confirmation; do not reuse an obsolete label. |
+| MS14 | Commercial Foundation; reassess plan eligibility earlier if commercial activity begins. |
+| MS15 | Later production-launch priming, not current certification. |
+
+Movement and media require their own consent, lifecycle, retention, budget and procurement gates. MapLibre/provider replaceability remains. No founder milestone lock is inferred from technical deployment success.
+
+## Historical roadmap chronology
+
+All dated entries below, including headings formerly labeled CURRENT, are preserved history. They are not current release status or permission to restart development.
+
 ## MS7.4 FP3 recovery / architecture gate — 13 October 2026 (CURRENT)
 
 FP2A canonical freshly remains `3e06bf9`, READY exact canonical alias. FP3 [recovery](MS7-4-FP3-EXECUTION.md) and [proposed architecture](MS7-4-FP3-ARCHITECTURE.md) saved: worldwide discovery, reliable area labels, separately gated shared snapshots, Map controls and truthful presence-only Live layouts. Estimate **18–26 local engineering hours** exceeds eight-hour gate; **STOP for founder authorization before implementation**. Shared-location privacy/authorization gate and separate canonical deployment approval remain mandatory. No procurement or media implementation. Preserve newer retained data and audit qualifications. MS7.3 LOCKED; FP2B research complete/awaiting approval; MS7.4 UNLOCKED; MS8 NOT STARTED. Older current headings below are historical.

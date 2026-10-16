@@ -1,5 +1,13 @@
 # FP3 durable cleanup decision — 13 October 2026
 
+## Current disposition — 17 October 2026
+
+The approved queue-first/hourly-rescue architecture is now operational and accepted for the bounded FP3 Founder Walk. [Canonical release and measured evidence](MS7-4-FP3-RELEASE-2026-10-17.md) supersedes the historical unimplemented status below, not its privacy/outage/backup distinctions. Exact-artifact natural expiry and hosted active-row deletion passed; scheduled rescue, management-key retirement and33migration checks are preserved in the execution ledgers. No laptop runtime is required for Production cleanup.
+
+Current caps are100consents/day,2000reads/day and30session checks/10seconds, with an unrenewed seven-day capacity attestation expiring20October18:49:57UTC. Healthy deletion target60seconds is not an outage/all-copy erasure guarantee; six-hour Neon recovery history remains. Preserve consumers/rescue during rollback. MS7.4 is unlocked; development stopped for Founder Walk.
+
+## Historical decision and implementation evolution
+
 Status: researched recommendation, **not operational or accepted**. Founder pre-authorizes existing Free-plan mechanisms; hosted eligibility and real failure/recovery evidence remain gates. Prior R checkpoint `2c44367ca493b3c5b5f6c313031952a0dd8d85b8` verified before this decision. No new provider, plan change, credential, function, queue, trigger or migration has been created.
 
 ## 14 October eligibility clarification

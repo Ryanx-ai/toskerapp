@@ -1,5 +1,7 @@
 # FP3 latest-state implementation wave
 
+> Current status,17October2026: [FP3 canonical verified release](MS7-4-FP3-RELEASE-2026-10-17.md), application `a166934`; MS7.4 remains unlocked. The dated entries below are preserved historical evidence, including superseded approval/stop states. Current recovery is [CODEX-HANDOFF](../CODEX-HANDOFF.md). Development is stopped for Founder Walk.
+
 ## 14 October continuation
 
 Founder non-commercial hosting declaration resolves the prior eligibility clarification; no upgrade/billing change. Fresh recovery and local cleanup-policy preparation saved (`abaf1f7`, `7f0edee`); see [closeout ledger](MS7-4-FP3-FINAL-CLOSEOUT.md) for exact evidence. Hosted cleanup remains unimplemented; current Free usage/function access needs dashboard sign-in, since Vercel CLI usage returned 404. No canonical change or critical-gate bypass. Historical eligibility holds below are superseded, not the retention/privacy/capacity requirements.

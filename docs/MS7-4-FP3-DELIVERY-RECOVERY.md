@@ -1,5 +1,7 @@
 # FP3 delivery recovery / location architecture
 
+> Current status,17October2026: [FP3 canonical verified release](MS7-4-FP3-RELEASE-2026-10-17.md), application `a166934`; MS7.4 remains unlocked. The dated entries below are preserved historical evidence, including superseded approval/stop states. Current recovery is [CODEX-HANDOFF](../CODEX-HANDOFF.md). Development is stopped for Founder Walk.
+
 13 October 2026. Recovery base `b5f270a`. Research and bounded diagnostics, not release acceptance.
 
 ## R — recovered

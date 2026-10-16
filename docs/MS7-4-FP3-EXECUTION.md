@@ -1,5 +1,7 @@
 # MS7.4 FP3 — recovery and execution ledger
 
+> Current status,17October2026: [FP3 canonical verified release](MS7-4-FP3-RELEASE-2026-10-17.md), application `a166934`; MS7.4 remains unlocked. The dated entries below are preserved historical evidence, including superseded approval/stop states. Current recovery is [CODEX-HANDOFF](../CODEX-HANDOFF.md). Development is stopped for Founder Walk.
+
 13 October 2026 SGT. Authority: founder FP3 directive, attachment `642e531a-55e9-40ed-ac9b-e23c92308bf0/Pasted text.txt`, read in full. This directive supersedes older wave continuation/deployment authority for FP3.
 
 ## Gate status

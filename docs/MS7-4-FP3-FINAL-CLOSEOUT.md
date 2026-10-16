@@ -1,5 +1,7 @@
 # FP3 final closeout — stepped recovery ledger
 
+> Current status,17October2026: [FP3 canonical verified release](MS7-4-FP3-RELEASE-2026-10-17.md), application `a166934`; MS7.4 remains unlocked. The dated entries below are preserved historical evidence, including superseded approval/stop states. Current recovery is [CODEX-HANDOFF](../CODEX-HANDOFF.md). Development is stopped for Founder Walk.
+
 13 October 2026, Singapore. This is execution evidence, not a release receipt.
 
 ## Latest directive — bounded progress audit / STOP, 14 October

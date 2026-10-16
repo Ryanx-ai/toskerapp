@@ -2,6 +2,14 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP3 acceptance checkpoint — UI Stop / cold receiver / context isolation; input hold
+
+Recovery `39faaf7` follows test-tool `046b767`; application remains Live UI `a166934`. No application changes in this continuation. Synthetic QA B precise consent via keyboard→actual A passes. LocateOFF→A peer absence observed2174ms from action start; B origin/marker removed and DB0payloads/active consents. One observed bound, not p95. Broad snapshot survives A cold reload, remains absent from selected Subroom/Personal Map/Sandbox, and appears after returning to Room and in a second A tab. Both receiver documents were visible. Broad row has no coordinates. B reload retires sharing on both receiver tabs; B remains LocateOFF. Reload tool plus observation6942ms is not five-second removal certification. Extra A tab closed.
+
+Chrome pointer input still times out; keyboard works until another reload, then B Join timed out too. A joined/left safely, B remained unjoined; final B0participants/LocateOFF/0peer lists. Do not mark full Live reconnect or remaining browser gates passed. No browser bypass/real GPS. Worker stopped gracefully, exact-run deletion; independent DB0payloads/0active consents/0workers. QA membership remains restored. Strict isolated localhost3000 server remains running, A/B tabs retained. Screenshot consent-320.png is accepted consent-fit proof; review-safe-handoff.jpg caught Map loading and is not final Map visual acceptance.
+
+Next: restore reliable QA B input on the existing synthetic Sensors tab before remaining session/error/reconnect/context-sender/removal-latency gates. Review `docs/MS7-4-FP3-APPROVED-WAVE-2026-10-16.md` C.5 and run strict review check before worker start. No push/deploy; last verified canonical FP2A3e06bf9 unchanged. Hosted capacity/acceptance and final docs remain open; no partial promotion. Preserve original envs, historical evidence, founder data and unrelated WIP.
+
 ## FP3 acceptance recovery — Keep private / consent fit / membership revocation
 
 Recovered `0b56a71cd75d77a1c13dd86562f91eabf5cc7fe0`; test-tool checkpoint `046b767c29deed6e30e425cdb7cd9f11deb3d39a` adds exact-owned isolated QA B membership removal/restoration. Actual lifecycle removal made B's Room unavailable and removed peer marker/list; exact original membership/participant/access rows restored, founder membership stable throughout. Private receipt status restored. No canonical/founder-data mutation. Functional revocation passes; observation about6.36s after acknowledgment is NOT a five-second SLA proof. Synthetic API begin5.127s/send7.579s/Stop2.580s remain latency evidence, not p95 acceptance.

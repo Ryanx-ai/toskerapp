@@ -13,6 +13,18 @@ Authority: founder's explicit post-reset authorization to start the 13–22-hour
 
 ## Gate state / next action
 
+### C.5 — actual UI Stop, cold receiver and multi-tab/context isolation
+
+Recovered scoped docs `39faaf7`; no application/source changes. Browser-control reconnect restored harmless keyboard input, then synthetic QA B accuracy50m verified. Pointer check on precise radio still timed out; inspected unchanged state, used documented keyboard Space to explicitly select precise and Enter to confirm. Actual IAB A rendered precise snapshot. LocateOFF then receiver list absence observed2174ms from action initiation, sender Locate false/origin absent, independent DB0payloads/active consents. This is one local UI timing sample, not p95 or hosted SLA.
+
+Second explicit broad snapshot established for reload/isolation. Sender's Sending state resolved to Sharing broad area only; the tool's early wait deadline was not treated as an app failure. Cold receiver reload recovered broad snapshot without republishing. Selected Subroom, Personal Map and Sandbox showed zero Room peers after settled navigation; returning to Room recovered the same active snapshot. Second isolated A browser tab also rendered it; both documents reported visible. Independent read:1payload/0coordinate payloads. This verifies receiver context separation, not sender consent in each context or complete authorization matrix.
+
+Sender B reload retired sharing on both receiver tabs; B returned LocateOFF, no automatic restart. Reload plus tool observation6942ms includes page loading and is NOT five-second revocation certification. Extra receiver tab closed. A Live rejoin after navigation succeeded, but Chrome B Join keyboard input timed out again after reload; cannot claim full A/B reconnect acceptance. A left safely, B remained unjoined; final B controls Ready to join/0people, Locate false, no peers. No real device location or founder session used, no hidden browser-state writes, no provider search/reverse/road tests.
+
+Bounded worker stopped gracefully and deleted exact-run payloads. Independent teardown0payloads/0active consents/0workers. Membership restoration from C.4 remains preserved. Strict local server remains running and A/B browser tabs retained for specific input recovery. `review-safe-handoff.jpg` caught Map loading; do not count it as settled Map visual acceptance. `consent-320.png` remains accepted narrow consent evidence.
+
+Stop at unresolved browser-input boundary before remaining sender/session/error/reconnect/bounded-removal/capacity/hosted gates. Do not retest passed provider investigations or deploy partially accepted FP3. No push/deployment/infra change; last verified canonical remains FP2A3e06bf9. Rollback unchanged; never default-launch original writable envs or stop production rescue. Next execution begins strict isolated launcher check, reliable synthetic QA input recovery, then only missing gates. This checkpoint records partial acceptance, not final closeout.
+
 ### C.4 — Keep private, consent geometry and actual membership revocation
 
 Recovered `0b56a71cd75d77a1c13dd86562f91eabf5cc7fe0`; test-tool checkpoint `046b767c29deed6e30e425cdb7cd9f11deb3d39a`. TypeScript, scoped ESLint and diff check pass. No application change or new migration. New exact-owned review harness backs up B's original membership/participant/access rows before calling actual `withdrawRoomMember`; all mutations restricted to isolated review project/fixture, founder membership checked before/after, restoration exact and no location state restored. Receipt `.git/ms74-fp3/review-membership-test.json` is now restored; do not overwrite/re-run it.

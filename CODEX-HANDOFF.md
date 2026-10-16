@@ -2,6 +2,16 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP3 D.0 — temporary protected access / exact artifact staged (17 October)
+
+Recovered `9751bc48cf2af757b7870a8a50e404371bfbe3ce`. Founder expressly approved temporary same-project Development→protected Production access, with original-rule restoration after QA. Original `trustedSources:null` and unchanged `all_except_custom_domains` protection are saved privately in `.git/ms74-fp3/trusted-sources-before-20261017.json`. Only the exact self-project pair was added alongside four default pairs; fresh Development OIDC reached the protected app200. Active-rule receipt is adjacent. **Restoration remains mandatory:** compare current rule with receipt, PATCH original null, independently verify protection unchanged and Development access denied again. Never disable Vercel Authentication.
+
+Clean Git archive of application `a166934b6d348dd84ab9c78f35a73e9ce6f661b1` staged as `dpl_9NhdBjGXUkTpFzVyhhjJqe9NKP23`, `https://tosker-q9zhxkxl5-pangea6.vercel.app`, READY Production with **no aliases**. Build/TypeScript passed. Per-deployment durable gate and existing unrenewed capacity attestation `2026-10-13T18:49:57.000Z`; no project-wide flag change. Exact intent/receipt `.git/ms74-fp3/final-stage*-20261017.json`. Clean source `/tmp/tosker-fp3-release.yjlXup`; credential-free token-launch scratch `/tmp/tosker-fp3-access.eofUv4`. Never load root expired OIDC over a fresh token or expose headers to third parties.
+
+Canonical remains FP2A `3e06bf9`. No promotion/push. New strict hosted browser harness is test-only: normal isolated QA A/B, synthetic GPS, exact retained FP1 Founder Review Room, no direct DB writes or founder session. Hosted acceptance in progress; receipt `.git/ms74-fp3/browser/hosted-stage-*.json`. Offline basemap means privacy tests do not certify actual provider Map rendering. Requested separate temporary exact new staging origin permission; no Geoapify restriction change yet. Restore any approved temporary origin after real Map checks.
+
+Outstanding: hosted browser/privacy and bounded latency, current cleanup/capacity and qualified full founder fingerprint, actual client artifact scan, original trust restoration, conditional canonical promotion/live smoke, separate README/milestone closeout and final Founder Walk STOP. Preserve all historical evidence and unrelated Art/Design/Web WIP. No migration, provider-plan or media change. On interruption, recover fresh QA session receipts and stop only owned snapshots/sessions; preserve Rooms and hosted cleanup. Do not promote partial acceptance.
+
 ## FP3 C.9 — local browser gates saved / protected-host access approval
 
 Recovered `66fe0929a4c3f17b5e35024e610a640188289cfa`; test checkpoint `c63a4930ce97148003cb43881c88870ef1e47ba8`. Application remains `a166934b6d348dd84ab9c78f35a73e9ce6f661b1`. Founder now explicitly authorizes fresh Playwright QA A/B + synthetic GPS on the exact protected candidate and, after promotion, canonical, limited to retained owned FP1 Founder Review Room; only temporary snapshots/presence/read state, no founder session/new fixtures/auth weakening/key restrictions/paid resources. This does not authorize new access-control rules.

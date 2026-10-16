@@ -2,6 +2,14 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP3 D.2 — staged acceptance complete / temporary access restored
+
+Recovered `6827862`; application remains exact `a166934b6d348dd84ab9c78f35a73e9ce6f661b1`. Protected Production artifact `dpl_9NhdBjGXUkTpFzVyhhjJqe9NKP23` passed the remaining hosted gates. Natural five-minute expiry: peer first absence548ms after expiry, physical payload deletion observed1304ms after expiry, no laptop cleanup. Real Map readiness-aware six-width recapture passed; all six images visually inspected. Actual served27client assets passed secret scan. Earlier Live receipt's global-empty failure was concurrent owned expiry work, not a Live failure; later expiry/Map teardown and independent preservation audit confirm0payloads/consents/workers. Preserve all failed/qualified receipts.
+
+Temporary exact Geoapify staging referrer removed; original three remain. Vercel Trusted Sources restored to original null; protection unchanged and fresh Development OIDC is denied403 again. No server credential/plan/billing change. Founder explicitly confirmed the two14October08:33SG manual-test rate rows: preserved unchanged, audit qualifies only that exact delta plus previously recorded Sandbox read drift. All34 historical protected tables otherwise match original immutable baseline within original owned-fixture exclusions; three founder review memberships intact.
+
+Canonical still FP2A `3e06bf9`; no promotion yet. Next: fresh health/capacity check → non-force application push while original auto-assignment is paused → promote this exact accepted Production artifact (no rebuild) → verify canonical A/B and runtime/integrity → separate product-doc closeout → STOP. Promotion re-enables automatic assignment; restore its original false value before docs push so unvalidated Git builds cannot replace the accepted artifact. Preserve production rescue/old consumers and unrelated WIP. Rollback is exact verified FP2A deployment without database rollback.
+
 ## FP3 D.0 — temporary protected access / exact artifact staged (17 October)
 
 Recovered `9751bc48cf2af757b7870a8a50e404371bfbe3ce`. Founder expressly approved temporary same-project Development→protected Production access, with original-rule restoration after QA. Original `trustedSources:null` and unchanged `all_except_custom_domains` protection are saved privately in `.git/ms74-fp3/trusted-sources-before-20261017.json`. Only the exact self-project pair was added alongside four default pairs; fresh Development OIDC reached the protected app200. Active-rule receipt is adjacent. **Restoration remains mandatory:** compare current rule with receipt, PATCH original null, independently verify protection unchanged and Development access denied again. Never disable Vercel Authentication.

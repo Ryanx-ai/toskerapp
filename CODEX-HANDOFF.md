@@ -2,6 +2,14 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP3 C.6 — browser-input isolation / synthetic delivery / receiver logout
+
+Recovered `53cf07dcbac01fd9a0c1c697d3927d386b3f9e87`; application unchanged at `a166934`. Fresh canonical metadata remains READY exact FP2A `3e06bf9e5c9ec09ee0c3dedb82e5e7088cc41161`. Fresh Chrome works across reload until DevTools/Sensors is opened; then input stalls, with later debugger-detachment evidence. No proof of application/authentication failure or resource exhaustion. Actual A/B Live roster and B reload leave pass. Founder manually shared approved synthetic precise fix; own and peer marker both confirm50m. Receiver must show Map pane (was narrow Live pane). Actual receiver Account logout and direct Room denial pass; no timed session/in-flight claim. See approved-wave ledger C.6.
+
+Review worker stopped gracefully; independent0payloads/0active consents/0workers. Retained-main qualified closeout passes, known Sandbox read drift unchanged and three founder memberships preserved; no full new fingerprint claimed. Production rescue retained; original Neon Free usage18.64CUh and6h history freshly observed. Ably final headroom awaits existing-account sign-in. No app edit/push/deployment/provider configuration change. Local isolated server remains localhost3000. Founder asked to turn QA B LocateOFF and close DevTools without acquiring another location; private marker may remain until that action, but sharing expired. Browser A is signed out. Do not use real GPS or default root envs.
+
+Next: `node scripts/ms74-fp3-review-runtime.mjs check`, recover browser handoffs and finish only outstanding acceptance/capacity gates. Restart bounded worker only when needed; preserve exact QA fixture/founder membership and unrelated WIP. No partial canonical promotion. Rollback is unchanged verified FP2A; leave production rescue/old consumers intact. Final README/milestone consolidation remains after verified release.
+
 ## FP3 acceptance checkpoint — UI Stop / cold receiver / context isolation; input hold
 
 Recovery `39faaf7` follows test-tool `046b767`; application remains Live UI `a166934`. No application changes in this continuation. Synthetic QA B precise consent via keyboard→actual A passes. LocateOFF→A peer absence observed2174ms from action start; B origin/marker removed and DB0payloads/active consents. One observed bound, not p95. Broad snapshot survives A cold reload, remains absent from selected Subroom/Personal Map/Sandbox, and appears after returning to Room and in a second A tab. Both receiver documents were visible. Broad row has no coordinates. B reload retires sharing on both receiver tabs; B remains LocateOFF. Reload tool plus observation6942ms is not five-second removal certification. Extra A tab closed.

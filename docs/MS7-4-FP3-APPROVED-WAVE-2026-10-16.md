@@ -13,6 +13,22 @@ Authority: founder's explicit post-reset authorization to start the 13–22-hour
 
 ## Gate state / next action
 
+### C.2 — Live UI refinement checkpoint / synthetic broad UI delivery
+
+Recovered `a63b0480ba7794e3e9ba4a72b08c309c6f93608a`. Separate application checkpoint **`a166934b6d348dd84ab9c78f35a73e9ce6f661b1`**. Founder explicitly added bounded Live refinement, equal product priority without weakening location gates. Read UI/UX, frontend-design, repository design rules and React-review skills; retained Tosker tokens, semantic indicators and native controls. Estimate reported before edit: additional3–5 focused hours, revised total16–27h excluding delays. No media controls, provider configuration or transport changes.
+
+Live now uses avatar-led bounded cards, consistent100px minimum card height, responsive expanded grid and compact companion stack, concise empty state, single atomic status announcement and Join/Leave, one truthful capability line and collapsed lifecycle explanation. Expanded panel is content-sized instead of stretching into a large empty box. Unique heading IDs; full wrapping names;44px controls/visible focus. Existing LiveSession ownership, authorization, handlers and subscription lifecycle unchanged.
+
+Evidence:
+- Actual isolated A/B Join gives roster2 in both browsers. Map+Live→Live alone→Live+Chat retains participants. B Leave removes only B from A; A subsequently leaves. Keyboard Join/Leave and help disclosure pass; computed focus outline2px solid.
+- 320/390/430/768/1440/1728 compact/narrow-foreground and expanded checks: document width equals viewport; normal-name cards remain100px tall without inner horizontal overflow. Screenshots `.git/ms74-fp3/live-companion-*.png`, `live-expanded-*.png`. Viewport-only desktop screenshots were physically cropped by the capture surface; full-page captures and DOM geometry confirm no layout overflow. Final content-sized empty panel326.5px at900px viewport; `live-final-empty.png`.
+- Pure presentation test10 state/layout combinations includes long synthetic names, disconnected notice and no fake media buttons. Existing lifecycle12 cases and composition648 checks pass. This is not browser long-name/disconnect/reconnect acceptance; those variants remain open.
+- Optimized strict-review build, TypeScript, scoped ESLint and diff check pass. Dual retained/review credential scans817source/owned files and43client assets pass; no credentials emitted. No schema changes. React review: derived presentation state only; unchanged external-store subscription; no effect/fetch/media dependency added.
+
+Location progress (separate from Live): founder reverified exact QA B Sensors; observed acquisition now50m, resolving prior72m input hold. Broad mode default and isolated Room audience visible. Before consent read-only DB count0shares/0payloads. Explicit broad confirmation rendered Singapore Central on actual IAB A; broad DB payload had zero non-null latitude/longitude. Screenshot `review-broad-ui-b-to-a.png`. LocateOFF cleared B origin/marker and A peer display. Supervised review worker then stopped and deleted exact-run payload. No coordinates logged. Prior reverse-direction uncertainty is superseded for this actual broad UI path only, not cold/reconnect/precise acceptance.
+
+Canonical freshly inspected READY/exact FP2A `3e06bf9e5c9ec09ee0c3dedb82e5e7088cc41161`; no push/deploy. Review server left running through strict launcher; both browsers LocateOFF/Live left at checkpoint, worker stopped. All retained data/fixtures/original provider restrictions unchanged. Full privacy/retention/auth/capacity/hosted/live-canonical gates remain mandatory. Resume missing browser variants rather than repeat passed provider investigations. Rollback remains untouched canonical; never default-launch root envs or roll back migrations.
+
 ### C.1 — partial browser acceptance; synthetic input must be reverified
 
 Recovered `54b16bb`; application/test checkpoint `16eb2f3f8abed617efc94e9f3c699f996c350439`. This adds a bounded review-only synthetic HTTP peer harness and removes the false universal “No live location is shared” Map accessibility claim. Separate status/audience/privacy disclosures remain. The harness creates/revokes only its own QA session, saves private recovery intent, has a12-minute bound, and attempts session revocation even if Stop fails. Normal application behavior otherwise unchanged.

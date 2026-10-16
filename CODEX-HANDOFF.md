@@ -2,6 +2,14 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP3 Live UI checkpoint — 16 October 2026
+
+Separate application checkpoint `a166934b6d348dd84ab9c78f35a73e9ce6f661b1` refines Live presentation only: bounded avatar cards, one compact status, truthful presence capability, content-sized expanded panel, keyboard disclosure and unchanged Join/Leave/transport. Founder addendum accepted; revised estimate reported before implementation: adds3–5h, total16–27h excluding delays. Actual isolated A/B Join/Leave and Map→Live alone→Live+Chat continuity pass; six-width geometry no horizontal overflow. Pure presentation10 states/layouts, lifecycle12 cases, composition648, TypeScript, scoped lint, optimized build and dual secret scan817files/43assets pass. Long-name and disconnected visual variants still need browser evidence; unit coverage is not visual acceptance. See approved-wave ledger C.2. No push/deployment.
+
+Sensors hold below is superseded: after founder reverified exact Chrome QA B override, actual acquisition returned expected50m. Broad-default consent UI→B share→actual IAB A broad label passed; pre-consent DB had0shares/0payloads, broad payload retained no latitude/longitude. LocateOFF cleared sender origin/marker and peer display. Supervised review worker stopped cleanly, exact-run payload deleted. No real founder location used. Full precise/expiry/revocation/reconnect/capacity acceptance remains open; do not promote.
+
+Local server is strict isolated Node24 review launcher on localhost:3000; inspect listener before stopping. Both QA browsers left Live and LocateOFF at checkpoint; worker stopped. Review project/fixtures unchanged. Canonical remains READY FP2A `3e06bf9`, authenticated metadata verified this turn. Preserve unrelated WIP and original envs. Resume strict review check→remaining browser/privacy/capacity gates→conditional canonical→separate docs→Founder Walk STOP.
+
 ## FP3 isolated browser checkpoint — 16 October 2026, synthetic Sensors gate
 
 Application/test checkpoint `16eb2f3f8abed617efc94e9f3c699f996c350439` follows `54b16bb`. Minimal founder identity isolation remains verified; retained synthetic Room `ms74-fp3-review-02eb7b4d`. Local Map renders; actual A/B Live Join/Leave, panel continuity/draft preservation, six-width baseline geometry, API A→browser B broad/precise and Stop pass at their stated layers. Map accessibility label no longer falsely says location is never shared. Build/typecheck/scoped lint and dual secret scans816source/43assets pass. Full consent/revocation/reconnect/capacity acceptance remains incomplete; see approved-wave ledger C.1.

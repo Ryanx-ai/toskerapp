@@ -8,6 +8,7 @@ import { getDatabase } from "../src/server/db/client";
 import { locationCleanupWorkers } from "../src/server/db/schema";
 import { LOCAL_LOCATION_WORKER_FILE, type LocalLocationWorker } from "../src/server/location-sharing/local-qa";
 import { resolveQaActors } from "./lib/ms73-fixtures";
+import { isIsolatedReview } from "../src/server/accounts/isolated-review";
 const db = getDatabase(), runId = randomUUID();
 // A session advisory lock MUST NOT travel through transaction-mode PgBouncer.
 // Use the already configured direct endpoint for this one bounded owner only.
@@ -37,8 +38,9 @@ async function main() {
     stage = "exact QA fixture admission";
     const config = await db.transaction(async tx => {
       const actors = await resolveQaActors(tx);
-      const fixture = JSON.parse(readFileSync(".git/ms74-recovery/fixture.json", "utf8"));
-      assert.equal(fixture.run, "ms74-fp1-20261010"); assert.equal(fixture.status, "committed");
+      const review = isIsolatedReview();
+      const fixture = JSON.parse(readFileSync(review ? ".git/ms74-fp3/review-fixture.json" : ".git/ms74-recovery/fixture.json", "utf8"));
+      assert.equal(fixture.run, review ? "ms74-fp3-review-20261016" : "ms74-fp1-20261010"); assert.equal(fixture.status, "committed");
       const rows = (await tx.execute(sql`select id from rooms where id=${fixture.roomId}::uuid and slug=${fixture.slug} and owner_id=${actors.a.userId}::uuid and created_at=${fixture.createdAt}::timestamptz`)).rows;
       assert.equal(rows.length, 1);
       assert.equal((await tx.execute(sql`select 1 from room_memberships where room_id=${fixture.roomId}::uuid and user_id=${actors.founder.userId}::uuid`)).rows.length, 1);
@@ -49,7 +51,7 @@ async function main() {
       await tx.delete(locationCleanupWorkers);
       const now = new Date(), endsAt = new Date(now.getTime() + minutes * 60000);
       await tx.insert(locationCleanupWorkers).values({ slot: 1, runId, startedAt: now, lastSweepAt: now, endsAt });
-      return { runId, userIds: [actors.a.userId, actors.b.userId], conversationIds: contexts, endsAt: endsAt.getTime() } satisfies LocalLocationWorker;
+      return { runId, userIds: [actors.a.userId, actors.b.userId, ...(review ? [actors.founder.userId] : [])], conversationIds: contexts, endsAt: endsAt.getTime() } satisfies LocalLocationWorker;
     });
     stage = "worker configuration";
     const tmp = `${LOCAL_LOCATION_WORKER_FILE}.${runId}`;

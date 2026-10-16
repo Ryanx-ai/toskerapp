@@ -6,6 +6,7 @@ import type { ToskerTransaction } from "@/server/db/client";
 import { locationCleanupWorkers } from "@/server/db/schema";
 import { isConversationId } from "@/lib/realtime-contract";
 import { validSnapshotPoint } from "@/lib/shared-location-contract";
+import { isIsolatedReview } from "@/server/accounts/isolated-review";
 
 export const LOCAL_LOCATION_WORKER_FILE = resolve(process.cwd(), ".git/ms74-fp3/latest-worker.json");
 export const WORKER_HEALTH_MS = 15000;
@@ -18,7 +19,7 @@ export async function localLocationWorker(userId: string, conversationId?: strin
   let config: LocalLocationWorker;
   try { config = JSON.parse(await readFile(LOCAL_LOCATION_WORKER_FILE, "utf8")); }
   catch { throw new Error("Supervised cleanup worker unavailable."); }
-  if (!isConversationId(config.runId) || !Array.isArray(config.userIds) || config.userIds.length !== 2
+  if (!isConversationId(config.runId) || !Array.isArray(config.userIds) || config.userIds.length !== (isIsolatedReview() ? 3 : 2)
     || !config.userIds.every(isConversationId) || !config.userIds.includes(userId)
     || !Array.isArray(config.conversationIds) || !config.conversationIds.every(isConversationId)
     || (conversationId !== undefined && !config.conversationIds.includes(conversationId))

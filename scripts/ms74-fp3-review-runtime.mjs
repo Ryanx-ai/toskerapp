@@ -47,6 +47,7 @@ export function reviewEnvironment() {
     POSTGRES_USER: decodeURIComponent(pooled.username), POSTGRES_PASSWORD: decodeURIComponent(pooled.password),
     NEON_API_KEY: "", NEON_AUTH_BASE_URL: "", VITE_NEON_AUTH_URL: "", VERCEL_OIDC_TOKEN: "",
     NODE_ENV: "production", WS_NO_BUFFER_UTIL: "1", NEXT_PUBLIC_LOCATION_QA_UI: "",
+    TOSKER_ISOLATED_REVIEW: "ms74-fp3-20261016",
     TOSKER_LOCATION_DURABLE_ENABLED: "", TOSKER_LOCATION_CAPACITY_VERIFIED_AT: "",
   });
   return env;

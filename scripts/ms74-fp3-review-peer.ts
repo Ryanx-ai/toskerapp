@@ -20,6 +20,7 @@ const receipt: { role?: string; startedAt: string; sessionId?: string; leaseId?:
 };
 function save() { writeFileSync(receiptPath, JSON.stringify(receipt), { mode: 0o600 }); }
 let revision = 0;
+let sessionRevoked = false;
 async function request(body: Record<string, unknown>) {
   assert(receipt.sessionId);
   const jwt = await clerk.sessions.getToken(receipt.sessionId);
@@ -47,9 +48,33 @@ async function main() {
   assert.equal((await db.select().from(locationShares).where(eq(locationShares.userId, actors[role].userId))).length, 0);
   receipt.sessionId = (await clerk.sessions.createSession({ userId: actors[role].authSubject })).id;
   receipt.status = "active"; save();
-  console.log("Review peer ready: area | precise | refresh | current | stop | quit; synthetic only, 12-minute bound.");
+  console.log("Review peer ready: area | precise | refresh | current | stop | logout | quit; synthetic only, 12-minute bound.");
   for await (const command of lines) {
     if (command === "quit") break;
+    if (command === "logout") {
+      // Exercise the real endpoint while a receiver can still display this
+      // helper's snapshot. Never revoke a browser/founder session by inference.
+      const jwt = await clerk.sessions.getToken(receipt.sessionId);
+      const headers = { Origin: origin, Authorization: `Bearer ${jwt.jwt}`, "Content-Type": "application/json" };
+      const started = performance.now();
+      const response = await fetch(origin + "/api/realtime/logout", {
+        method: "POST", headers, signal: AbortSignal.timeout(15000),
+      });
+      const check = { action: "logout", status: response.status, ms: Math.round(performance.now() - started) };
+      receipt.checks.push(check); save(); console.log(JSON.stringify(check));
+      assert.equal(response.status, 200);
+      const session = await clerk.sessions.getSession(receipt.sessionId);
+      assert.equal(session.status, "revoked"); sessionRevoked = true;
+      assert.equal((await db.select().from(locationShares).where(eq(locationShares.userId, actors[role].userId))).length, 0);
+      receipt.leaseId = undefined; revision = 0; save();
+      const denied = await fetch(origin + "/api/location-sharing", {
+        method: "POST", headers, body: JSON.stringify({ action: "current", conversationId: fixture.conversationId }),
+        signal: AbortSignal.timeout(15000),
+      });
+      assert([401, 403].includes(denied.status));
+      console.log(JSON.stringify({ logoutRevokedOwnedSession: true, oldBearerDenied: denied.status, remainingActorConsents: 0 }));
+      break;
+    }
     if (command === "stop") { await stop(); continue; }
     if (command === "current") {
       const view = await request({ action: "current", conversationId: fixture.conversationId });
@@ -80,7 +105,7 @@ main().catch(error=>{ console.error(JSON.stringify({ reviewPeer: "FAIL", type: e
     } catch { cleanupFailed = true; }
     // A failed Stop must not prevent revoking this harness-owned session.
     try {
-      if (receipt.sessionId) await clerk.sessions.revokeSession(receipt.sessionId);
+      if (receipt.sessionId && !sessionRevoked) await clerk.sessions.revokeSession(receipt.sessionId);
     } catch { cleanupFailed = true; }
     receipt.status = cleanupFailed ? "cleanup-required" : "closed"; save();
     if (cleanupFailed) { process.exitCode=1; console.error("Review peer cleanup needs receipt-based recovery."); }

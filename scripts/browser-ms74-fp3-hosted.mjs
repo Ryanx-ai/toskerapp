@@ -112,6 +112,12 @@ function instrument(page) {
   });
 }
 try {
+  if (mode === "map") {
+    const denied = await fetch(`${origin}/api/location-sharing`, {method:"POST",headers:{"Content-Type":"application/json",Origin:origin,...(oidc?{"x-vercel-trusted-oidc-idp-token":oidc}:{})},body:JSON.stringify({action:"current",conversationId:fixture.conversationId}),redirect:"error"});
+    assert.equal(denied.status,401);
+    const body=await denied.json(); assert(!("peers" in body));
+    record("Vercel access does not bypass application authentication");
+  }
   for (const [index, actor] of (mode === "map" ? ["a"] : ["a", "b"]).entries()) {
     const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, geolocation: { latitude: 1.2834, longitude: 103.8607, accuracy: 50 }, permissions: ["geolocation"], serviceWorkers: "block" });
     contexts.push(context); await installLiveMetrics(context);
@@ -203,6 +209,7 @@ try {
       if (await pane.count()) await pane.getByRole("button",{name:"Map",exact:true}).click();
       // A breakpoint may remount the canvas. Observe the new renderer's load
       // signal rather than capturing its intentionally empty loading frame.
+      await a.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
       await a.locator('[data-map-state="ready"]').waitFor({timeout:30000});
       await a.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
       const geometry = await a.evaluate(() => ({overflow:document.documentElement.scrollWidth>innerWidth+1, attribution:!!document.querySelector(".maplibregl-ctrl-attrib") }));
@@ -253,7 +260,11 @@ try {
   for (let index = 0; index < pages.length; index++) {
     const page = pages[index];
     if (page.isClosed()) continue;
-    if (await locate(page).getAttribute("aria-pressed").catch(() => null) === "true") await stop(page).catch(() => {});
+    // A naturally expired share can still have a private Locate marker. Clear
+    // that UI without incorrectly requiring a new server Stop request.
+    if (await locate(page).getAttribute("aria-pressed").catch(() => null) === "true") {
+      await locate(page).click({timeout:10000}).catch(() => {});
+    }
     await leaveLiveBeforeClose(page).catch(() => {});
     const closed = await page.evaluate(async () => {
       if (window.Clerk?.session?.status !== "active") return true;

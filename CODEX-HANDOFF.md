@@ -2,6 +2,12 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP3 post-reset execution AUTHORIZED — checkpoint R, 16 October 2026
+
+Founder explicitly started the approved13–22h wave; older freeze/planning stops below are historical. Read [approved-wave ledger](docs/MS7-4-FP3-APPROVED-WAVE-2026-10-16.md) and its acceptance-plan link. Recovered `abacd49ab74f5437976a56df0c95c5dd55552483`; FP3 application remains `2aecb43`. Fresh canonical READY/exact FP2A `3e06bf9e5c9ec09ee0c3dedb82e5e7088cc41161`; no release change. Fresh33migration hashes/timestamps match, zero location state/obligations, one founder identity/three review memberships, current rescue heartbeat. Free Neon18.42CUh/one branch; schema-only review form prepared but not submitted at R. No app server/QA started. Preserve unrelated WIP and qualified historical read drift.
+
+Proceed isolation→missing acceptance→conditional canonical/live verification→separate docs→Founder Walk STOP. No paid resources, provider migration, movement, media, MS8 or unrelated refactoring. Never use shared writable main for local review. Resolve this documentation checkpoint SHA via `git log -1 --format=%H -- docs/MS7-4-FP3-APPROVED-WAVE-2026-10-16.md`; no routine approval needed, explicit safety gates remain.
+
 ## FP3 post-reset prime — PLANNING ONLY / STOP, 14 October 2026
 
 Newest founder attachment `8b8825ec-675e-4162-827b-6aa9f9267626` supersedes older continuation authority: recover/research/plan only. Read [next-wave plan](docs/MS7-4-FP3-NEXT-WAVE-PLAN-2026-10-14.md). Recovered HEAD `6ec0e3b1013580fc10d2b1ea51ba058dd6848924`; application remains `2aecb438f39581137ea7bc39b52eb01430540340`. Resolve this local documentation checkpoint with `git log -1 --format=%H -- docs/MS7-4-FP3-NEXT-WAVE-PLAN-2026-10-14.md`.

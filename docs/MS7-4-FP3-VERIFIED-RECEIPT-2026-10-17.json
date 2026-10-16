@@ -1,0 +1,106 @@
+{
+  "observedAt": "2026-10-16T18:28:09.302Z",
+  "applicationSha": "a166934b6d348dd84ab9c78f35a73e9ce6f661b1",
+  "deploymentId": "dpl_9NhdBjGXUkTpFzVyhhjJqe9NKP23",
+  "canonicalUrl": "https://toskerapp.vercel.app",
+  "immutableUrl": "https://tosker-q9zhxkxl5-pangea6.vercel.app",
+  "projectId": "prj_cxYhH8ypeFmuPOiEBC0gf0Rbzmau",
+  "target": "production",
+  "readyState": "READY",
+  "exactAliasAndShaVerified": true,
+  "releaseMethod": "Promoted exact staged Production artifact; no rebuild",
+  "acceptance": "VERIFIED — bounded Founder Walk, not milestone lock",
+  "sourceFilesMatched": 443,
+  "clientAssetsScanned": 27,
+  "canonicalTests": {
+    "broadAndPreciseBothDirections": true,
+    "reloadAndTwoReceiverTabs": true,
+    "stopFirstAbsenceMs": 1006,
+    "networkLossFirstAbsenceMs": 24,
+    "reconnectNoStaleMarker": true,
+    "liveJoinLeave": true,
+    "mapWidths": [
+      320,
+      390,
+      430,
+      768,
+      1440,
+      1728
+    ],
+    "anonymousLocationApiStatus": 401,
+    "boundedNonemptyReadSample": {
+      "n": 20,
+      "p95Ms": 835,
+      "maxMs": 877,
+      "betaLoadCertification": false
+    }
+  },
+  "sameArtifactStagedExpiry": {
+    "naturalExpiryFirstAbsenceMs": 548,
+    "activeRowDeletionObservedMs": 1304,
+    "laptopCleanup": false
+  },
+  "retention": {
+    "consentSeconds": 300,
+    "peerDisplayAuthorizationSeconds": 5,
+    "healthyDeletionTargetSeconds": 60,
+    "rescueCadence": "hourly",
+    "neonRecoveryHistoryHours": 6,
+    "outageDeletionDeadlineGuaranteed": false
+  },
+  "cleanup": {
+    "payloads": 0,
+    "consents": 0,
+    "workers": 0,
+    "pendingCoordinateFreeReservations": 3,
+    "overdueReservations": 0,
+    "allOwnedBrowserSessionsClosed": true,
+    "roomsDeleted": 0
+  },
+  "temporaryAccess": {
+    "geoapifyStageReferrerRemoved": true,
+    "originalReferrersPreserved": true,
+    "trustedSourcesRestoredToNull": true,
+    "freshDevelopmentOidcStatus": 403,
+    "originalAutoAssignCustomDomainsFalseRestored": true
+  },
+  "preservation": {
+    "qualifiedPass": true,
+    "pristineFullDatabaseHash": false,
+    "baselineRewritten": false,
+    "historicalTables": 34,
+    "knownSandboxReadDriftUnchanged": true,
+    "founderConfirmedManualRateRowsPreserved": 2,
+    "retainedFounderRoomMemberships": 3
+  },
+  "capacity": {
+    "newConsentsPerDay": 100,
+    "readsPerDay": 2000,
+    "sessionChecksPer10Seconds": 30,
+    "attestedAt": "2026-10-13T18:49:57.000Z",
+    "expiresAt": "2026-10-20T18:49:57.000Z",
+    "dailyReadsAtCloseout": 658,
+    "dailyConsentsAtCloseout": 7,
+    "countersReset": false
+  },
+  "migrations": {
+    "count": 33,
+    "tables": 41,
+    "columns": 290,
+    "constraints": 153,
+    "enums": 15,
+    "changedDuringRelease": false
+  },
+  "runtimeErrorFatalQuery": {
+    "window": "30m",
+    "groupsReturned": 0
+  },
+  "neonManagementKeyPreviouslyRevoked": true,
+  "oldGeoapifyKeyRevoked": false,
+  "paidPlanOrBillingChanged": false,
+  "ms73": "LOCKED",
+  "ms74": "UNLOCKED",
+  "ms8": "NOT STARTED",
+  "next": "Founder Walk; STOP development",
+  "report": "MS7-4-FP3-RELEASE-2026-10-17.md"
+}

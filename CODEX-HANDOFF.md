@@ -2,6 +2,14 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP3 D — CANONICAL VERIFIED, 17 October 2026
+
+Application `a166934b6d348dd84ab9c78f35a73e9ce6f661b1`; READY `dpl_9NhdBjGXUkTpFzVyhhjJqe9NKP23`; fresh exact canonical alias lookup verified. [Release evidence, limitations and rollback](docs/MS7-4-FP3-RELEASE-2026-10-17.md), [machine receipt](docs/MS7-4-FP3-VERIFIED-RECEIPT-2026-10-17.json). Recovered pre-release `e287a3b8dec264e3aaf66a1847eb59971c967ea8`. Canonical privacy, real Live A/B, actual Map six-width/attribution and27served-asset scans PASS; sessions closed,0payloads/consents/workers. Qualified founder preservation and33migration hashes/catalog PASS. Original historical read drift and founder-confirmed manual-test entries preserved, not erased/rebaselined.
+
+Temporary Geoapify and Vercel trust allowances restored. Original autoAssignCustomDomains:false restored after promotion; docs pushes must not replace the accepted artifact. Application is already pushed to main; redundant Git build canceled. Local isolated server stopped gracefully; review DB0payloads/consents/workers. Hosted rescue/queue consumers remain. Final read-only state18:28UTC has3unexpired coordinate-free cleanup reservations, none overdue; do not delete them or call them coordinate history. They drain through hosted expiry. No Rooms scheduled for deletion.
+
+Remaining only E/F: separate README/current product/milestone documentation consolidation, scoped docs commit/push with alias recheck, final recovery handoff and STOP. No more implementation. Capacity attestation expires20October18:49:57UTC; do not auto-renew or bypass. MS7.4 remains unlocked. Preserve unrelated Art/Design/Web WIP and all historical evidence.
+
 ## FP3 D.2 — staged acceptance complete / temporary access restored
 
 Recovered `6827862`; application remains exact `a166934b6d348dd84ab9c78f35a73e9ce6f661b1`. Protected Production artifact `dpl_9NhdBjGXUkTpFzVyhhjJqe9NKP23` passed the remaining hosted gates. Natural five-minute expiry: peer first absence548ms after expiry, physical payload deletion observed1304ms after expiry, no laptop cleanup. Real Map readiness-aware six-width recapture passed; all six images visually inspected. Actual served27client assets passed secret scan. Earlier Live receipt's global-empty failure was concurrent owned expiry work, not a Live failure; later expiry/Map teardown and independent preservation audit confirm0payloads/consents/workers. Preserve all failed/qualified receipts.

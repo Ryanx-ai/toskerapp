@@ -13,6 +13,12 @@ Authority: founder's explicit post-reset authorization to start the 13–22-hour
 
 ## Gate state / next action
 
+### D — canonical verified, 17 October 2026
+
+Recovered D.2 `e287a3b8dec264e3aaf66a1847eb59971c967ea8`. Fast-forward pushed application `a166934` to main, canceled redundant own Git build, promoted exact accepted `dpl_9NhdBjGXUkTpFzVyhhjJqe9NKP23` without rebuild. Fresh alias API independently binds canonical to that READY SHA. Original auto-assignment false restored after promotion; temporary trust/referrer allowances already restored. [Release report](MS7-4-FP3-RELEASE-2026-10-17.md) and [dated verified receipt](MS7-4-FP3-VERIFIED-RECEIPT-2026-10-17.json) are current; old13October failure receipt remains historical.
+
+Canonical three serial harness modes PASS: privacy broad/precise bidirectional,20nonempty read sample p95835ms/max877ms, cold reload/two tabs, Stop1006ms, network loss24ms/reconnect clean; Live roster2/Join/Leave/one transport; real Map six widths and attribution/auth401. Each scans27served assets and closes own sessions with0payloads/consents/cleanup errors. Final independent preserved-main audit passes with disclosed exact historical qualifications,33migrations/catalog unchanged, no error/fatal groups in30minute deployment query. At18:28UTC7/100consents,658/2000reads;3unexpired coordinate-free cleanup reservations,0overdue, no payloads/consents/workers. Hosted rescue healthy; no reset. Local isolated server stopped gracefully and review state also0payloads/consents/workers. E/F documentation and final STOP remain; no further implementation.
+
 ### D.2 — hosted acceptance complete; release authorization gates satisfied
 
 Test checkpoint `6827862` changes only harness readiness/teardown, no application code. `hosted-stage-expiry-1792174269962.json` PASS: natural five-minute peer removal548ms after expiry, hosted queue physical deletion observed1304ms after expiry; no early Stop/local sweep. `hosted-stage-map-1792174613193.json` PASS: actual provider basemap at320/390/430/768/1440/1728, no overflow, preserved attribution, all six images visually reviewed; anonymous app API401 despite valid infrastructure access;27served assets secret scan. Both runs close every owned session,0payloads/active consents,0cleanup errors/JS errors. Earlier scoped Live assertions passed; aggregate false caused by concurrent owned expiry state, now independently resolved by subsequent zero-state runs and read-only preservation audit. Original failed receipts remain unchanged, not relabeled PASS.

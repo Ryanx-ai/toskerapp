@@ -2,6 +2,14 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP3 acceptance checkpoint — precise UI expiry passed; Chrome input hold
+
+Recovery follows application Live checkpoint `a166934` and docs `b131441`; test-only visual harness `bbc4cde2480a33e743073e11086f727b52be3db9` uses real LivePanel/built CSS with no auth/DB/transport and CSP connect-src none. Both layouts at six widths wrap80-character synthetic names without overflow, equal card-row heights; disconnected presentation/disabled Join verified. This is presentation evidence, not transport reconnect certification. Harness stopped/closed; no canonical UI or provider added. The earlier attempted isolated QA A name variant hit the fixed-name bootstrap guard; exact original name restored and verified, no founder profile touched or guard weakened.
+
+Actual QA B50m synthetic fix: Escape keeps private with0shares/payloads; explicit precise selection+confirmation→actual A marker passes. No refresh; after real five-minute expiry B shows sharing ended, A removes marker/list, review DB0payloads/0active consents. This proves natural browser expiry and healthy local deletion, not a new hosted latency bound. Precise receiver geometry/screenshot evidence retained. Chrome keyboard input then timed out repeatedly on Locate and Clear; reload safely cleared private origin, LocateOFF verified. Asked founder to foreground exact QA B tab/click page outside DevTools, retaining Sensors and LocateOFF. Do not use real location or mark remaining consent/revocation checks passed. Review worker stopped with exact-run payload deletion; DB0workers. Strict local server remains running; no push/deploy; canonical remains FP2A.
+
+Next: restore Chrome input and verify state, restart bounded review worker only for synthetic tests, finish missing privacy/revocation/reconnect/responsive/capacity gates, then conditional canonical and separate docs. Preserve unrelated WIP. This is an explicit test-input hold, not a request for generic scope approval.
+
 ## FP3 Live UI checkpoint — 16 October 2026
 
 Separate application checkpoint `a166934b6d348dd84ab9c78f35a73e9ce6f661b1` refines Live presentation only: bounded avatar cards, one compact status, truthful presence capability, content-sized expanded panel, keyboard disclosure and unchanged Join/Leave/transport. Founder addendum accepted; revised estimate reported before implementation: adds3–5h, total16–27h excluding delays. Actual isolated A/B Join/Leave and Map→Live alone→Live+Chat continuity pass; six-width geometry no horizontal overflow. Pure presentation10 states/layouts, lifecycle12 cases, composition648, TypeScript, scoped lint, optimized build and dual secret scan817files/43assets pass. Long-name and disconnected visual variants still need browser evidence; unit coverage is not visual acceptance. See approved-wave ledger C.2. No push/deployment.

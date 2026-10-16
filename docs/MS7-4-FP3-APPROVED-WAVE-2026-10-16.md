@@ -13,6 +13,18 @@ Authority: founder's explicit post-reset authorization to start the 13–22-hour
 
 ## Gate state / next action
 
+### C.3 — precise sender UI/natural expiry; bounded browser-input hold
+
+Test checkpoint `bbc4cde2480a33e743073e11086f727b52be3db9` adds a local presentation-only Live harness, explicit --serve on localhost3001,20-minute maximum, no credentials/DB/auth/transport, CSP blocks connections. Actual LivePanel with built CSS verifies80-character unbroken names at320/390/430/768/1440/1728 in both layouts: no horizontal overflow, name scrollWidth equals clientWidth, equal row heights. Compact disconnected state has disabled Join and retained error notice. `live-long-companion-390.png` is settled visual evidence; first320 capture was compositor-incomplete, not accepted evidence. TypeScript/scoped lint pass. Test server/tab stopped/closed. Live transport evidence remains separate real A/B from C.2.
+
+Before that harness, a precisely targeted isolated QA A display-name change was attempted for real-layout coverage. The existing fixed-name synthetic bootstrap guard correctly rejected it. Restored exact original name under compare-and-swap, verified restoration and unchanged synthetic Founder Review/null avatar. No canonical/Clerk profile changed. Do not relax the identity guard for cosmetic QA.
+
+Actual Chrome QA B acquisition again returned expected50m. Escape closed consent but retained private marker; read-only DB0shares/0payloads. OFF→ON reopened broad-default consent, separate precise radio selected, explicit Share precise position clicked. Actual IAB QA A rendered B precise marker and temporary snapshot disclosure. Persisted payload was precise with a point; no values printed. Provider area lookup not required (local URA).
+
+Both browsers remained visible; no refresh or accelerated timer. At real five-minute expiry, sender showed “Sharing ended after five minutes,” receiver marker/list disappeared, subsequent DB showed0payloads and0active consents. Healthy supervised local cleanup, not a new production deletion SLA/latency percentile. Responsive receiver geometry had no horizontal overflow at six widths; transient remount capture at1440 replaced with settled visible-marker evidence. Screenshot `review-precise-ui-b-to-a.png`, `precise-ui-expired.png`, `precise-receiver-1440-settled.png`.
+
+**Input hold:** after expiry, Chrome press actions timed out for both visible/enabled Locate and Clear controls; state reads/reload still work. Reload cleared private origin and LocateOFF was verified. A second input attempt after reload also timed out; do not classify it as application failure or an accepted interaction. Asked founder to foreground exact QA B local tab and click page outside DevTools with Sensors retained. No real GPS, normal founder session or input workaround used. Worker stopped cleanly with exact-run deletion; final read0payloads/0active consents/0workers, restored QA A and unchanged synthetic founder. No push/deploy/provider change; canonical FP2A unchanged. Remaining location UI/error/revocation/reconnect/capacity/hosted gates stay open.
+
 ### C.2 — Live UI refinement checkpoint / synthetic broad UI delivery
 
 Recovered `a63b0480ba7794e3e9ba4a72b08c309c6f93608a`. Separate application checkpoint **`a166934b6d348dd84ab9c78f35a73e9ce6f661b1`**. Founder explicitly added bounded Live refinement, equal product priority without weakening location gates. Read UI/UX, frontend-design, repository design rules and React-review skills; retained Tosker tokens, semantic indicators and native controls. Estimate reported before edit: additional3–5 focused hours, revised total16–27h excluding delays. No media controls, provider configuration or transport changes.

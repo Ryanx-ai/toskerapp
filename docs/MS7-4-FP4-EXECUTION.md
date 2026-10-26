@@ -2,6 +2,18 @@
 
 26 October 2026, Singapore. **Founder approved the bounded 30–44-hour existing-role wave. R recovered; A.1 local composition foundation verified. No deployment.** MS7.4 remains unlocked.
 
+## A.2 — full-background canvas and measured overlay geometry
+
+Application `62d5062`, recovered from A.1 `d4c6f0d` / documentation `5349834`. Full shell canvas sits beneath navigation and companion surfaces. Geometry is presentation-only: resize/child observation updates CSS insets; inspector repositions when overlays change; Fit uses bounded available-space padding. Installed MapLibre6.11.2 already consumes fit padding without retaining it (`Camera._fitInternal`); unsupported `retainPadding` was removed rather than cast past TypeScript. No consent, authorization, location or camera reset is coupled to panel layout.
+
+Independent screenshot review found short-landscape toolbar/control overlap despite in-bounds rectangles. Fixed compact header/default-collapsed tray, added hit testing. Final isolated A/B evidence `.git/ms74-fp4/browser/composition-1793011660192.json` passes loaded-route/message readiness, original canvas and unsent draft, keyboard focus, old Live URL fallback, no Live channels, and320/390/430/768/1440/1728 plus844×390 controls/search/tray/attribution visibility and uncovered center hit tests. Earlier evidence remains, with its narrower claims. No GPS acquired, no provider calls, no retained database mutations.
+
+97 pure inset checks,864 composition checks, TypeScript, scoped lint, isolated production build and43client-asset secret scan passed. Scanner's initial invocation correctly refused an incomplete environment; rerun loaded both existing local env files in-process, emitted no values and passed838source/owned files. Unrelated Art/Web WIP not staged.
+
+Provider boundary now selects Geoapify `osm-bright-smooth`, supported by [official Map Tiles documentation](https://apidocs.geoapify.com/docs/maps). Removed dark application text/halo overrides from geography. **Actual geographic rendering, route contrast and live provider attribution remain outstanding**; offline style screenshots are composition evidence only. No style-selector UI or provider migration. Max two styles in bounded real-provider comparison after permitted localhost origin and current usage are confirmed.
+
+B implementation currently uncommitted: function-only0033 migration permits exact same-context intentional route transfer while preserving identity/comments and compatibility projection; ordinary protocol4 remains compatible. Same-plan source/destination reauthorization, stale/retry checks, duplicate and affected-lock rejection added. Shadow rehearsal is isolated and transaction-rolled-back; no retained migration is authorized merely by a successful local rehearsal. Release requires complete service/browser concurrency/security and preservation gates.
+
 ## A.1 — local composition foundation (not integrated release acceptance)
 
 Recovered R.1 `a2bbe63`; application checkpoint **`d4c6f0d`**. Implemented presentation flags, Map-default composition, Chat/Board toggles, expand/minimize/close, persistent canvas, covered-canvas inert/focus handling, and disabled Beta Live navigation/deep-link activation/background presence-channel attachment. Existing Live server authorization, transport implementation and retained data remain. No new authorization capability or feature flag can grant access.
@@ -88,6 +100,23 @@ Recommendation: keep FP4 on existing real Owner/Member authorization; record Adm
 **40–60 hours provisionally** if real Admin permissions and general Room deletion are also intended, subject to defining their policies first. That is material authorization/data-lifecycle expansion, not visual polish, and invokes the brief's explicit stop gate. No new provider is proposed.
 
 ## Bounded implementation plan after decisions
+
+### A/D composition design before implementation
+
+One spatial canvas, not three equal dashboard columns. Keep existing Night `#080D10`, Ivory `#F4EFE6`, Gold `#C89C5D`, Pink `#FF4F91`, Yellow `#FFD84D`; use the provider's light/neutral geography rather than recoloring application identity. Mermaid remains identity/display, Inter controls/body. Left-aligned Room identity and card text; controls aligned to measured unobstructed edges.
+
+```text
+┌──────────────── full-viewport Map ───────────────────┐
+│ floating navigation │ Room identity       Chat Board│
+│                     │ Map controls   │ companion    │
+│                     │ open Map       │ Chat / Board │
+│                     │ search + tools │              │
+│                     │ Routes + Cards │              │
+│                     │ visible provider attribution  │
+└─────────────────────────────────────────────────────┘
+```
+
+Reject the alternative of merely brightening the old nested Map card: it does not meet the full-background reference. Sidebar/header/tray/companion float above the same mounted Map; measured insets protect controls, focus, selection and Fit. No camera reset on panel toggle. On narrow screens, companion covers the available workspace with a clear close/minimize action; underlying Map becomes inert, not unmounted. Route tray remains collapsible and bounded; no horizontal document overflow. Opaque fallback is primary, blur progressive. Keep a separate real-basemap visual gate; offline composition screenshots cannot certify geography/contrast.
 
 | Checkpoint | Required work / exit evidence |
 | --- | --- |

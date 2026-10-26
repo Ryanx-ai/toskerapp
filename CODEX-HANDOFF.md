@@ -2,6 +2,12 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP4 A.2 — full-canvas overlay checkpoint, 26 October 2026
+
+Application `62d5062` follows `d4c6f0d` / evidence `5349834`. Map now spans the shell beneath floating sidebar/header/Chat/Board/search/tray. Measured insets protect controls, selection and Fit without resetting the camera on panel changes; short landscape defaults to collapsed tray and compact header. 97 inset checks,864 composition checks, TypeScript/scoped lint/isolated production build and43asset secret scan PASS. Fresh isolated A/B receipt `.git/ms74-fp4/browser/composition-1793011660192.json` verifies loaded data, drafts/canvas, panel focus, no Live traffic and seven viewport hit tests, not only overflow. Basemap mocked: `osm-bright-smooth` configured from official provider docs but actual geography/contrast NOT yet certified. Current guarded server3001; no provider calls from harness.
+
+B work in progress: new forward-only0033 migration and Move service remain uncommitted, isolated shadow rehearsal underway. No migration applied to review/public or retained DB yet. Inspect latest private rehearsal receipts before continuing; never run migration with root retained env. All E–G gates remain; no canonical/push/provider/security change. Capacity remains expired, fresh Ably dashboard sign-in and explicit renewal approval pending. Preserve unrelated WIP and existing retained Founder Review fixture. Full recovery/evidence in [FP4 ledger](docs/MS7-4-FP4-EXECUTION.md).
+
 ## FP4 A.1 — isolated composition foundation, 26 October 2026
 
 Recovered R.1 `a2bbe63`; application checkpoint `d4c6f0d`: Map-default/Chat–Board toggles/expand/minimize and Live Beta activation gate implemented locally. 864 new +648 legacy model checks, scoped lint, TypeScript, production build and43asset secret scan pass. Fresh isolated A/B browser evidence verifies retained canvas/draft, focus, safe old Live URL, zero Live channel traffic and seven viewport switches. Offline basemap only; no GPS/provider calls or claim of integrated acceptance. [FP4 ledger](docs/MS7-4-FP4-EXECUTION.md) A.1 has exact evidence and remaining gates.

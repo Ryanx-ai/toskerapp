@@ -22,10 +22,20 @@ export function useLocalMapLocation() {
   useEffect(() => {
     if (!expiresAt) return;
     // A one-shot reading is not live tracking. Expire it rather than route from stale coordinates.
-    const expire = () => { if (Date.now() >= expiresAt) { clear(); setStatus("Your location expired. Use Locate for a fresh reading."); } };
-    const timer = setTimeout(expire, Math.max(0, expiresAt - Date.now()));
+    let ended = false;
+    const expire = () => {
+      if (ended) return;
+      clearTimeout(timer);
+      const remaining = expiresAt - Date.now();
+      // An early wake must re-arm the same absolute deadline, never strand a
+      // stale position or start a new five-minute lifetime.
+      if (remaining > 0) { timer = setTimeout(expire, remaining); return; }
+      ended = true;
+      clear(); setStatus("Your location expired. Use Locate for a fresh reading.");
+    };
+    let timer = setTimeout(expire, Math.max(0, expiresAt - Date.now()));
     document.addEventListener("visibilitychange", expire);
-    return () => { clearTimeout(timer); document.removeEventListener("visibilitychange", expire); };
+    return () => { ended = true; clearTimeout(timer); document.removeEventListener("visibilitychange", expire); };
   }, [expiresAt, clear]);
   useEffect(() => {
     let active = true, permission: PermissionStatus | undefined;

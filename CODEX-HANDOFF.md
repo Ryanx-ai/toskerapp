@@ -2,6 +2,16 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP4 B.2/C.1 — verified access/concurrency checkpoint; release gates open
+
+Application `7a7878fbaf6235376a5405cfd242939cbe1fd8f6`, recovered B.1 docs `31ace1a`. Atomic Move concurrent stale/replay, copy/Nuke independence and projection tests PASS in a separately owned shadow schema, removed afterward with public trip data unchanged. Room/Subroom/Personal/Sandbox authorization and transaction-rolled-back member revocation PASS; founder membership stable. Room settings owner/member controls, unsaved draft, six widths and loaded invitation recovery pass at the layers documented in [FP4 ledger](docs/MS7-4-FP4-EXECUTION.md). Latest build/TypeScript/scoped lint and846source/43client-asset secret scan PASS. Offline cased routes render without errors; actual provider geography remains unverified. Historical failed browser receipts preserved.
+
+Fresh authenticated canonical alias/deployment still FP3 `a166934b6d348dd84ab9c78f35a73e9ce6f661b1`, READY `dpl_9NhdBjGXUkTpFzVyhhjJqe9NKP23`. No push/deploy/retained-main migration or provider configuration changes. Migration0033 exists only in isolated review; main remains33. Owned isolated Founder Review `ms74-fp4-review-4b169a91` retained, with exact-TID founder and A/B. Local guarded3001 server stopped gracefully at this checkpoint; unrelated ryancdesign3000 untouched. No GPS/shared snapshot created in this FP4 browser wave.
+
+External gates: Ably dashboard sign-in for fresh Free totals; permission to release unrelated port3000 (or another explicitly approved provider-referrer path) for real basemap checks. Sharing capacity remains expired/disabled. Complete assessment and request exact unchanged-limit renewal separately before enabling; no automatic renewal. Full lifecycle/privacy/retention/responsive/provider and release gates remain open, not blocked solely on visual polish. Hosted rescue monitoring26October18:35:01SG reported successful zero-row cleanup; not a substitute for fresh integrated cleanup acceptance.
+
+Next safe command: `git status --short` then `node scripts/ms74-fp3-review-runtime.mjs check`. Read B.2/C.1 ledger before running only remaining tests; do not replay fixture/seed/migration apply. Never default-start root envs (retained writable main). Application rollback uses a separate prior-source worktree and compatible forward review migration, not migration-history edits. Canonical needs no rollback. Preserve unrelated Art/Web WIP and all historical evidence. This is a gated checkpoint, not FP4 completion or Founder Walk release.
+
 ## FP4 B.1 — isolated atomic Move and card actions, 26 October 2026
 
 Application checkpoint `1b08a09`, recovered A.2 documentation `346ba8c`. Eight primary card actions implemented; secondary tools preserved under Info; Nuke red and Cancel focused. Atomic same-context Move preserves identity/comments, refuses duplicates/affected locks, reauthorizes scope, and preserves protocol4 compatibility. Forward-only function migration0033 rehearsed in a rolled-back isolated shadow schema, backed up and applied **only** to review project `falling-mode-50310792`;34 migration/catalog checks PASS. Retained main remains33. Never replay apply/seed scripts.

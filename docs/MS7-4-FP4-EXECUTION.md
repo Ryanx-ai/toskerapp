@@ -1,6 +1,37 @@
 # MS7.4 FP4 — Map-first Beta consolidation
 
-26 October 2026, Singapore. **Founder approved the bounded 30–44-hour existing-role wave. A.2 and B.1 local checkpoints verified to the limits below. No deployment.** MS7.4 remains unlocked.
+26 October 2026, Singapore. **Founder approved the bounded 30–44-hour existing-role wave. B.2/C.1 local checkpoints verified to the limits below. No deployment.** MS7.4 remains unlocked.
+
+## B.2/C.1 — concurrency, authorization and Room hierarchy
+
+Application checkpoint `7a7878fbaf6235376a5405cfd242939cbe1fd8f6`; preceding documentation `31ace1a`. This is a local partial-acceptance checkpoint, not all-green release certification.
+
+| Gate | Evidence and qualification |
+| --- | --- |
+| Concurrent Move | `.git/ms74-fp4/migration/concurrency-1793013354959.json` PASS. Real concurrent service transactions in a uniquely owned isolated shadow schema: competing same-base moves yield one success/one conflict/one revision; identical request yields one commit/one replay. Comments, one projection and immutable identity preserved; archived source/destination denied; Copy creates distinct identity and Nuke of copy leaves source. Exact shadow schema removed afterward, public trip data byte-equal. No retained Room deletion. |
+| Authorization | `.git/ms74-fp4/boundaries-1793013812949.json` PASS. Exact TID/fixture ownership and three members verified. Owner-only management; Room Map/Pins/Chat/Board for authorized members. Selected Subroom denies B, permits explicitly included founder. Sandbox private; accepted Personal A/B denies unrelated founder. Transaction-local B removal denies reads/mutations despite stale conversation participants; founder access stable. Rollback restores exact membership rows. Expired/absent capacity and disabled durable flag stay closed. |
+| Room/settings | `.git/ms74-fp4/browser/settings-1793013582761.json` PASS: normal A/B owner/member controls, no Admin/general deletion, selected Subroom visibility, private mute disclosure, unsaved draft recovery, six widths320/390/430/768/1440/1728. No settings saved. Room details/workspace labels and controls-before-help improve hierarchy; underlying permissions unchanged. |
+| Recovery / fully loaded invitations | A later settings screenshot run `settings-1793013947339.json` failed during login with database-unavailable bootstrap; retained as failed. Read-only database check succeeded. Focused `audit-smoke-1793014225874.json` PASS after guarded server restart, without auth/config changes: normal A sign-in, loaded Room invitations,390px dismissal, populated Map layers with no page errors. No proven root cause of transient failure; not silently relabelled passed. |
+| Route contrast | Narrow steel casing added beneath active/ghost/private-origin lines, same sources and physical dash lengths. Offline populated geometry validates layers/WebGL, not actual geographic contrast. No additional provider request or new data flow. |
+| Build/security | Latest guarded production build, TypeScript, scoped ESLint PASS;846 source/owned files and43client assets secret scan PASS. React review preserves scoped focus/effect cleanup and existing transport, with Beta fallback Live link also gated. No dependencies/fonts added. |
+
+All browser tests above block Geoapify, acquire no GPS, and run against isolated review only. Normal QA read/presence state is not a claim of zero database writes; no retained founder content/profile/settings were used or changed. Safe synthetic point2 remains moved to Day2QA and skipped from B.1. Do not rerun the non-idempotent full card harness or fixture/seed/apply commands.
+
+### Fresh infrastructure observations and unresolved gates
+
+Authenticated canonical alias and deployment rechecked at this checkpoint: `toskerapp.vercel.app` still points to `dpl_9NhdBjGXUkTpFzVyhhjJqe9NKP23`, READY Production, application `a166934b6d348dd84ab9c78f35a73e9ce6f661b1`. No push/deploy or main migration. Current review migration34 remains isolated; main33 unchanged from read-only recovery.
+
+Read-only main Neon function monitoring shows `toskerfp3rescue` with existing trigger `tosker-fp3-rescue`;26October18:35:00SG start and18:35:01SG successful cleanup, zero expired consents/obligations/old counters. No manual invocation or configuration change. This is a successful scheduled observation, not fresh full cleanup/retention acceptance or aggregate function-usage proof. Free-plan totals and historical six-hour backup policy remain as recorded above; fresh Ably account totals still unavailable while signed out.
+
+Existing capacity is **not renewed**. Proposed assessment must retain100new consents/day,2000latest reads/day,30session checks/10seconds, seven-day attestation; those are limits to assess, not enabled authorization.2000reads at three-second polling provides only about1.67aggregate viewer-hours/day, not200simultaneous users. No approval request until fresh headroom/cleanup checks support an exact proposal, then obtain founder approval before enabling. Stop/expiry safety must remain independent of admission.
+
+Real basemap gate: browser credential allows existinglocalhost3000/127.0.0.1:3000/canonical referrers, not3001. Unrelated ryancdesign owns3000; permission to stop it was requested and remains unanswered. No referrer spoofing, key restriction weakening or takeover. Ably sign-in also requested. These are concrete access gates, not routine proceed approvals.
+
+### Recovery / remaining work
+
+Guarded isolated3001 server stopped gracefully for this gated checkpoint; unrelated3000 process untouched. Review database, Founder Review Room and all receipts retained. Next: `git status --short`, `node scripts/ms74-fp3-review-runtime.mjs check`, resolve access gates, then only missing tests. Do not use default root envs, which target retained writable data. Migration0033 compatible with prior protocol4; local rollback uses a separate prior-source worktree, never resets unrelated work or rewrites migration history. Canonical remains accepted FP3 and needs no rollback.
+
+Outstanding: actual light-basemap Singapore/JB/global/Walk/Drive/contrast; populated Board/Chat/history/camera/selection/reload and complete interaction regressions; disposable invitation/member lifecycle and exact cleanup;200% text/reduced motion; fresh capacity approval followed by location privacy/retention/revocation A/B; main backup/rehearsal/preservation/migration; all-critical-green protected artifact and canonical A/B/runtime/cleanup; separate final README/milestone closeout. Protected candidate exceptions, if necessary, need exact new authorization rather than historical FP3 permission. No partial release. Existing30–44hour scope remains; no new architecture or capacity increase proposed.
 
 ## B.1 — atomic route transfer / eight actions
 

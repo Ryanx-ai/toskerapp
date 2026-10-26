@@ -1,6 +1,20 @@
 # MS7.4 FP4 — Map-first Beta consolidation
 
-26 October 2026, Singapore. **Founder approved the bounded 30–44-hour existing-role wave. R recovered; A.1 local composition foundation verified. No deployment.** MS7.4 remains unlocked.
+26 October 2026, Singapore. **Founder approved the bounded 30–44-hour existing-role wave. A.2 and B.1 local checkpoints verified to the limits below. No deployment.** MS7.4 remains unlocked.
+
+## B.1 — atomic route transfer / eight actions
+
+Application `1b08a09`; preceding A.2 documentation `346ba8c`. Move reauthorizes the existing context, locks its root, validates active source/destination in the same plan, rejects affected locked source slots and active/archived duplicate places, then moves the same card identity and its comments. Private Hide remains keyed to card identity; shared Skip/Star/notes survive. No merge, cross-context transfer, provider call or new authorization role.
+
+Function-only forward migration0033 replaces the compatibility projection trigger with an exact intentional-transfer marker, retaining context/identity immutability and ordinary protocol4 writes. Shadow rehearsal passed: byte-for-byte data preservation; locks, replay/stale retry, active/archived duplicates, cross-context/nonmember/selected-Subroom denial, failed transaction rollback, old-protocol/projection guards and source-route Nuke independence. Private receipts in `.git/ms74-fp4/migration/`; initial SQL parameter-shape failure retained and corrected. Verified private pre-migration backup includes projection function and synthetic trip data. Applied **only** to isolated review public schema;34 history checks and41tables/290columns/153constraints/15enums PASS. Retained main remains33; no production migration. Concurrency and full lifecycle matrix remain outstanding.
+
+Exact-owned retained isolated Room seeded once with three routes/four safe synthetic points and one synthetic comment; receipt `.git/ms74-fp4/review-content.json`. Do not replay seed. `FP4 synthetic point 2` now belongs to `Day 2 QA` and is skipped, following A/B test; not accidental drift. Browser receipt `.git/ms74-fp4/browser/cards-1793012480529.json` passes eight actions, red Nuke entry, viewer-private Hide, A-to-B Move preserving ID/comment, shared Skip and Info tools. It failed Cancel focus; no destructive delete occurred. Explicit cancellable animation-frame focus repaired it. Remaining-only receipt `menu-1793013120446.json` passes Cancel focus/red confirmation/cancel preservation and320/390/430/768/1440/1728 keyboard Home/End/Escape without document overflow. Failed receipts preserved, not relabelled green.
+
+React review: focus effect cleans up its frame; no new subscription/provider initialization; transfer form derives source/routes, requires explicit destination and preserves retry/revision contract. No dependencies or fonts added. Latest guarded production build/TypeScript/scoped lint PASS; source/owned842files and43client assets secret scan PASS. These are local checkpoint results, not complete release acceptance.
+
+Read-only26October provider evidence: review Neon Free1.46CUh,34.29MBstorage,327.51kBhistory,10.27MBnetwork,6hretention. Geoapify today53requests/29credits of3000 (50Map requests13credits;2geocode2credits;1routing14credits); monthly545requests550credits. Browser key existing HTTP Referers are exactlocalhost3000,127.0.0.1:3000 and canonical regex; no3001 or staging. No restrictions edited or credentials printed. Offline browser harness stays blocked from real provider on3001. Fresh Ably totals still require sign-in; capacity authorization remains expired and cannot be auto-renewed.
+
+Recovery: inspect Git/status and B.1 receipts, verify guarded runtime, then continue missing concurrency/lifecycle/Room UI and integrated gates without replaying completed Move or seeding. Current process is guardedlocalhost3001. Do not default-start rootenv (retained database). Application rollback, if locally needed, uses the prior committed source in a separate worktree and the compatible forward migration; no migration-history rollback. Canonical remains FP3 `a166934` READY deployment `dpl_9NhdBjGXUkTpFzVyhhjJqe9NKP23`, unchanged. Local application/docs commits remain separate; unrelated WIP preserved.
 
 ## A.2 — full-background canvas and measured overlay geometry
 

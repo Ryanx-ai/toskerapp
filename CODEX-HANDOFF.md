@@ -2,6 +2,14 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP4 B.1 — isolated atomic Move and card actions, 26 October 2026
+
+Application checkpoint `1b08a09`, recovered A.2 documentation `346ba8c`. Eight primary card actions implemented; secondary tools preserved under Info; Nuke red and Cancel focused. Atomic same-context Move preserves identity/comments, refuses duplicates/affected locks, reauthorizes scope, and preserves protocol4 compatibility. Forward-only function migration0033 rehearsed in a rolled-back isolated shadow schema, backed up and applied **only** to review project `falling-mode-50310792`;34 migration/catalog checks PASS. Retained main remains33. Never replay apply/seed scripts.
+
+Owned isolated Room `ms74-fp4-review-4b169a91` retains founder+A/B and synthetic routes/cards. Browser receipt `cards-1793012480529.json` passes A/B Move/comment/private Hide/shared Skip but failed safe Nuke focus; fix verified by `menu-1793013120446.json` (six widths, keyboard, red confirmation, Cancel focus). Both retained under `.git/ms74-fp4/browser/`. No browser Nuke deletion, provider calls or GPS. Production build/TypeScript/scoped lint and842file/43asset secret scan PASS. Concurrent mutation, full authorization/privacy/retention, actual Map style and integrated release gates remain open.
+
+Guarded production-mode local server3001 uses isolated config; current build includes B.1. Browser key read-only inspection confirms exact localhost3000/127.0.0.1:3000 and canonical referrers, not3001; provider requests remain blocked. Unrelated ryancdesign owns3000, not stopped. Fresh review Free usage1.46CUh/34.29MB/10.27MBnetwork/6hhistory; Geoapify26Oct53requests/29credits of3000. Ably sign-in and separate capacity renewal approval remain pending; no sharing enabled. Canonical still FP3 `a166934`; no push/deploy/retained migration/provider change. See latest ledger section for recovery/rollback. Older no-migration statements below are historical.
+
 ## FP4 A.2 — full-canvas overlay checkpoint, 26 October 2026
 
 Application `62d5062` follows `d4c6f0d` / evidence `5349834`. Map now spans the shell beneath floating sidebar/header/Chat/Board/search/tray. Measured insets protect controls, selection and Fit without resetting the camera on panel changes; short landscape defaults to collapsed tray and compact header. 97 inset checks,864 composition checks, TypeScript/scoped lint/isolated production build and43asset secret scan PASS. Fresh isolated A/B receipt `.git/ms74-fp4/browser/composition-1793011660192.json` verifies loaded data, drafts/canvas, panel focus, no Live traffic and seven viewport hit tests, not only overflow. Basemap mocked: `osm-bright-smooth` configured from official provider docs but actual geography/contrast NOT yet certified. Current guarded server3001; no provider calls from harness.

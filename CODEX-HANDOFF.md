@@ -2,6 +2,16 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP4 R — recovery / architecture and preservation gate, 26 October 2026
+
+Read the full new founder brief; [FP4 ledger](docs/MS7-4-FP4-EXECUTION.md) records scope, estimate, current evidence and exact remaining decisions. Recovered local/remote `1c1cbac2769eacc73b91e02d244ec54e787e217b`; fresh canonical alias and READY deployment still resolve to application `a166934b6d348dd84ab9c78f35a73e9ce6f661b1`, `dpl_9NhdBjGXUkTpFzVyhhjJqe9NKP23`. All33 migration hashes/catalog pass. Exact founder TID resolves once; three retained review memberships/FP1 ownership receipt intact; zero location payloads. Isolated runtime configuration check passes; no server launched.
+
+**Do not implement yet:** the brief requires real Admin QA but actual schema/auth only supports Owner/Member. General Room deletion also has no existing product workflow; distinguish exact-owned disposable fixture cleanup from introducing retained-Room deletion policy. Recommended bounded scope needs founder amendment for unsupported Admin; otherwise define new permissions/lifecycle and revised scope. Estimate30–44focused hours existing-role scope;40–60provisional with real Admin/general deletion, policy-dependent.
+
+Historical preservation is not PASS: strict FP3 audit stops on new read state; separate read-only comparison found additional invitations, one retained Location Card, trip receipts/revision, notifications and read/mute changes. Preserve everything; do not overwrite original baseline, reset data, or silently qualify new differences. Ask founder attribution before a separate FP4 baseline. Recorded sharing capacity attestation expired21October02:49:57SG; no renewal or security/provider change performed. Fresh capacity review/authorized renewal and permitted protected-stage access remain release gates.
+
+Only recovery documentation changed. Preserve all unrelated Art/Design/Web WIP, including ten historical handoff additions. No push/deploy, application edit, migration, fixture, credential, infrastructure or billing mutation. Resolve this local R commit with `git log -1 --format=%H -- docs/MS7-4-FP4-EXECUTION.md`. Next: current Git check → ledger → founder decisions → resume A only after R gates pass. Canonical FP3 remains; MS7.4 UNLOCKED. No later milestone work.
+
 ## FP3 F — Founder Walk / STOP DEVELOPMENT, 17 October 2026
 
 **Canonical verified:** <https://toskerapp.vercel.app>, application `a166934b6d348dd84ab9c78f35a73e9ce6f661b1`, READY `dpl_9NhdBjGXUkTpFzVyhhjJqe9NKP23`. [Current report/rollback](docs/MS7-4-FP3-RELEASE-2026-10-17.md), [receipt](docs/MS7-4-FP3-VERIFIED-RECEIPT-2026-10-17.json), [docs index](docs/INDEX.md). D checkpoint `d1b6df9`; separate E documentation checkpoint `bb737fb7368c259a132d41aa0777f99051705973`. Resolve this F commit with `git log -1 --format=%H -- CODEX-HANDOFF.md`; final private post-push verification receipt is `.git/ms74-fp3/final-release-closeout-20261017.json`.

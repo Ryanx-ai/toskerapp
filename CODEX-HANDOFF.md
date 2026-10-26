@@ -2,6 +2,12 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP4 R.1 — bounded wave approved / local implementation, 26 October 2026
+
+Founder approved30–44hours: existing Owner/Member only, Admin deferred, Room deletion only exact-owned disposable QA fixtures, no GODMODE. Recover `474da197262042c183decd876bc7326b44aa6ed6`; fresh canonical alias remains FP3 `a166934` / `dpl_9NhdBjGXUkTpFzVyhhjJqe9NKP23`. [FP4 ledger](docs/MS7-4-FP4-EXECUTION.md) R.1 records new read-only provenance checks: invitations and Map receipts correlate to founder-authenticated26October17:18/17:22SG activity, read/notification fields align; no removed protected rows. Current membership does not prove historical authorization, and mute/read fields have no independent action audit. Preserve all records and both original evidence and new private hash-only FP4 fingerprint. No historical baseline rewritten.
+
+Local A implementation is authorized and underway; do not deploy incomplete work. Capacity assessment is read-only and renewal still requires a separate explicit founder approval after headroom checks—never auto-renew or raise quotas. Existing root envs target retained data; only guarded isolated review for interactive QA. No fixture/server/DB/infrastructure change in R.1. Preserve unrelated Art/Design/Web WIP. Continue A–G without routine approval within scope; stop if over44hours or a different security/privacy architecture is required.
+
 ## FP4 R — recovery / architecture and preservation gate, 26 October 2026
 
 Read the full new founder brief; [FP4 ledger](docs/MS7-4-FP4-EXECUTION.md) records scope, estimate, current evidence and exact remaining decisions. Recovered local/remote `1c1cbac2769eacc73b91e02d244ec54e787e217b`; fresh canonical alias and READY deployment still resolve to application `a166934b6d348dd84ab9c78f35a73e9ce6f661b1`, `dpl_9NhdBjGXUkTpFzVyhhjJqe9NKP23`. All33 migration hashes/catalog pass. Exact founder TID resolves once; three retained review memberships/FP1 ownership receipt intact; zero location payloads. Isolated runtime configuration check passes; no server launched.

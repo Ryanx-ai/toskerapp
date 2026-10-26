@@ -1,6 +1,18 @@
 # MS7.4 FP4 — Map-first Beta consolidation
 
-26 October 2026, Singapore. **R recovery saved; implementation paused at the brief's architectural/safety gate. No FP4 product change or deployment.** MS7.4 remains unlocked.
+26 October 2026, Singapore. **Founder approved the bounded 30–44-hour existing-role wave. R recovered; local A implementation underway. No deployment.** MS7.4 remains unlocked.
+
+## R.1 — architecture approved / provenance reconciled with limitations
+
+Founder explicitly approved deferring Admin, retaining Owner/Member, exact-owned disposable QA Room deletion only, and server-resolved founder membership without GODMODE. No general Room deletion or new authorization model. The 40–60-hour expanded alternative is not authorized. Capacity assessment is read-only; even unchanged limits require a proposed renewal and separate founder approval before enabling.
+
+Recovered `474da197262042c183decd876bc7326b44aa6ed6`. Fresh alias remains the exact FP3 deployment. A read-only repeatable-read provenance tool (`scripts/audit-ms74-fp4-provenance.mjs`) uses catalog primary keys, not assumed generic IDs. All observed historical differences are additions/updates, no removed rows under original protected-data exclusions. No DB write, test fixture or provider call made by reconciliation.
+
+Evidence at `2026-10-26T10:06:45.891Z`: five invitations authored by founder, in an existing founder-owned Room with current founder membership, created26October09:18:16–18UTC (17:18SG). Four invitation notifications share the transaction timestamps and have existing QA/other retained recipients. Three new trip receipts identify the authenticated founder actor at09:22:15/29/38UTC; the added card is referenced by the09:22:29 receipt at revision55 and has an existing same-plan Route. Plan update timestamp aligns with the last receipt. Four changed read records belong to founder,09:17–09:32UTC; three existing notification read changes concern founder recipients. Known14October founder and16October QA rate metadata remains, alongside26October founder entries. This corroborates subsequent Founder Walk activity, not a guarantee of who physically used the authenticated session.
+
+Remaining provenance limitation: read/mute state has no independent action history, and current membership is not a historical authorization log. Keep that qualification explicit; never certify a pristine FP3 baseline. All records preserved. Original baseline unchanged. Separate immutable, private current row-key/row-content hashes captured as `.git/ms74-fp4/preservation-fingerprints-1793009205896.json`, with matching sanitized provenance receipt; no raw content, coordinates or credential values persisted in these new files. Future preservation compares this FP4 starting state without erasing historical differences. No unexplained deletion or foreign actor Map mutation found in this comparison.
+
+R.1 permits isolated local implementation, not canonical release or capacity renewal. Checkpoint A model tests are provisional until browser/lifecycle acceptance. Outstanding: fresh usage/cleanup assessment and renewal request; guarded isolated schema/fixtures; A–G implementation/acceptance. Preserve all previous sections below as historical recovery findings superseded only where explicitly stated here.
 
 ## Authority and source
 
@@ -78,4 +90,4 @@ This checkpoint is documentation only. No FP4 application rollback or database r
 
 Next safe command, from the actual repository: `git status --short`, then `git log -3 --oneline`, read this ledger and current handoff. Resolve this recovery commit with `git log -1 --format=%H -- docs/MS7-4-FP4-EXECUTION.md`. Do not push this checkpoint or deploy to save state. Root env files target retained writable data; only the guarded isolated runtime may be used after recovery gates pass. Preserve hosted cleanup/rescue, old consumers, review DB, all retained Rooms and evidence. Never replay old cleanup commands against newly resolved objects.
 
-**STOP pending the specific role/lifecycle decision and retained-data attribution.** R is a saved investigation checkpoint, not a passed preservation gate. A–G are not started. No partial release or lock claim.
+Historical R stop was resolved to the extent stated in R.1. Do not mistake the original FP3 hash failure for a pass; current-data preservation uses the separately recorded FP4 fingerprint. No partial release or lock claim.

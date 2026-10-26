@@ -11,6 +11,7 @@ import "./ms73-search.css";
 import "./ms73-fp1.css";
 import "./ms73-fp2.css";
 import "./ms73-fp3.css";
+import "./ms74-fp4.css";
 
 // Official Inter 4.1, bundled under SIL OFL; no external font request.
 const inter = localFont({ src: "./fonts/InterVariable.woff2", weight: "100 900", style: "normal", variable: "--font-inter", display: "swap" });

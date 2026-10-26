@@ -1,6 +1,7 @@
 "use client";
 import { ContextSearch } from "./context-search";
 import LivePanel from "./live-panel";
+import { LIVE_BETA_ENABLED, MAP_FIRST_BETA } from "@/lib/beta-features";
 import { useChatCompanion } from "./use-chat-companion";
 import { CompositionNavigation, WorkspacePanels, useLiveParticipation } from "./workspace-composition";
 import { composeWorkspace, isWorkspaceSurface, normalizeComposition, surfaceIsVisible, type CompositionAction } from "@/lib/workspace-composition";
@@ -1403,17 +1404,17 @@ export function MessagingApp({
           ? conversations[0]
           : undefined));
   const surfaceQuery = workspaceQuery.get("surface");
-  const requested = isWorkspaceSurface(surfaceQuery) ? surfaceQuery : requestedSurface ?? (selected?.kind === "my-room" && !workspaceQuery.get("message") ? "map" : "chat");
+  const requested = isWorkspaceSurface(surfaceQuery) ? surfaceQuery : requestedSurface ?? (selected && hasRoomMap(selected) && !workspaceQuery.get("message") ? "map" : "chat");
   const [companionEnabled] = useChatCompanion(identity?.userId, selected?.databaseId);
-  const capabilities = { map: !!identity && !!selected && hasRoomMap(selected), live: !!identity && !!selected && hasRoomMap(selected) && selected.kind !== "my-room" };
-  const composition = normalizeComposition(resolveWorkspaceSurface(requested, selected), workspaceQuery.get("companion") ?? (selected?.databaseId && companionEnabled && capabilities.map ? "chat" : null), capabilities);
+  const capabilities = { map: !!identity && !!selected && hasRoomMap(selected), live: LIVE_BETA_ENABLED && !!identity && !!selected && hasRoomMap(selected) && selected.kind !== "my-room", mapFirst: MAP_FIRST_BETA };
+  const composition = normalizeComposition(resolveWorkspaceSurface(requested, selected), workspaceQuery.get("companion") ?? (!MAP_FIRST_BETA && selected?.databaseId && companionEnabled && capabilities.map ? "chat" : null), capabilities);
   const surface = composition.primary;
   const foreground = workspaceQuery.get("pane") === composition.companion ? composition.companion ?? surface : surface;
   const chatVisible = surfaceIsVisible(composition, "chat", companionWidth, foreground);
   const pendingFocus = useRef<{ surface: WorkspaceSurface; trigger: boolean } | null>(null);
   const updateComposition = (action: CompositionAction) => {
     const next = composeWorkspace(composition, action, capabilities);
-    const closing = composition.companion === action.surface && action.type === "choose";
+    const closing = (composition.companion === action.surface || composition.primary === action.surface) && action.type === "choose" && next.primary === "map" && !next.companion;
     const pane = next.companion === action.surface ? action.surface : next.primary;
     if (next.primary === composition.primary && next.companion === composition.companion && pane === foreground) return;
     const url = new URL(window.location.href);
@@ -1468,7 +1469,7 @@ export function MessagingApp({
   };
   return (
     <ToskerIdentityProvider identity={identity}><NamecardProvider key={identity?.userId ?? "demo"} enabled={Boolean(identity)}><main
-      className={`messaging-app fp3-shell ${selected ? "has-selection" : "list-only"} ${collapsed ? "sidebar-collapsed" : ""}`}
+      className={`messaging-app fp3-shell ${composition.mapCanvas ? "map-first-beta" : ""} ${selected ? "has-selection" : "list-only"} ${collapsed ? "sidebar-collapsed" : ""}`}
     >
       <WorkspaceTooltips />
       <AppSidebar

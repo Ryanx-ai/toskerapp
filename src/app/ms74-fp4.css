@@ -1,0 +1,14 @@
+/* FP4 composition foundation. Opaque first; blur is progressive enhancement. */
+.workspace-composition.has-map-canvas { position:relative; display:block; isolation:isolate; }
+.has-map-canvas > .workspace-pane[data-workspace-pane="map"] { position:absolute; inset:0; z-index:0; }
+.has-map-canvas > .workspace-pane:not([data-workspace-pane="map"]) { position:absolute; inset:0; z-index:2; border:1px solid var(--border); border-radius:18px; background:var(--surface); box-shadow:var(--depth-raised); }
+.has-map-canvas.has-companion > .workspace-pane.is-companion { left:auto; width:clamp(320px,30%,420px); }
+.has-map-canvas > .workspace-pane[aria-hidden="true"] { pointer-events:none; }
+.has-map-canvas > .workspace-pane:not([data-workspace-pane="map"]) .hall-surface { overflow:auto; padding:16px; }
+.has-map-canvas .workspace-pane-actions { border-bottom:1px solid var(--border); }
+@supports (backdrop-filter:blur(12px)) {
+  .has-map-canvas > .workspace-pane:not([data-workspace-pane="map"]) { background:color-mix(in srgb,var(--surface) 94%,transparent); backdrop-filter:blur(12px); }
+}
+@media(max-width:1099px) {
+  .has-map-canvas > .workspace-pane:not([data-workspace-pane="map"]) { border-radius:12px; }
+}

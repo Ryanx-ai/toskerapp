@@ -34,7 +34,7 @@ export function WorkspaceRealtimeProvider({ children }: { children: ReactNode })
     };
   }, [owner]);
   if ((sessionChanged || sessionMismatch || transportFailed) && session) return <main className="auth-page"><section className="auth-card" role="alert">
-    <h1>Refresh your workspace</h1><p>{transportFailed ? "Live updates stopped safely. Reload to reconnect; you will need to join Live again." : "Your session changed. Reload to continue with your Tosker identity."}</p>
+    <h1>Refresh your workspace</h1><p>{transportFailed ? "Updates stopped safely. Reload to reconnect." : "Your session changed. Reload to continue with your Tosker identity."}</p>
     <button className="button button-primary" onClick={() => window.location.reload()}>Reload workspace</button>
   </section></main>;
   return <OwnerContext.Provider value={owner}>{children}</OwnerContext.Provider>;

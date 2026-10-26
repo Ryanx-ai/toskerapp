@@ -4,6 +4,7 @@ import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } fro
 import { useSession } from "@clerk/nextjs";
 import { useWorkspaceRealtimeOwner } from "./workspace-realtime-provider";
 import { LiveSession } from "@/lib/live-session";
+import { LIVE_BETA_ENABLED } from "@/lib/beta-features";
 import { liveChannel, REALTIME_SIGNOUT, type LiveParticipant } from "@/lib/live-contract";
 import { communicationTiming, deliveryTrace } from "@/lib/communication-performance";
 import { PROFILE_CHANGED, PROFILE_REFRESH } from "@/lib/realtime-contract";
@@ -42,7 +43,7 @@ export function useConversationRealtime(conversationId: string | undefined, user
     };
     const release = owner.acquire({ userId, sessionId, conversationId, token: sessionToken, denied }, realtime => {
       setConnected(false); setTypingCount(0);
-      const presence = conversationId ? realtime.channels.get(liveChannel(conversationId)) : undefined;
+      const presence = LIVE_BETA_ENABLED && conversationId ? realtime.channels.get(liveChannel(conversationId)) : undefined;
       let observing = false;
       const unbindLive = presence && conversationId ? live.bind({
         connected: () => realtime.connection.state === "connected",

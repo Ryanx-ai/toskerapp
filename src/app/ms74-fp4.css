@@ -35,3 +35,9 @@
   .map-first-beta .conversation-header .header-identity-zone { flex:1; }
   .map-first-beta .conversation-header .surface-tabs { flex:0 0 auto; width:auto; }
 }
+/* Room settings: controls precede scoped supporting information. */
+.scoped-settings-section[data-help-after] > .settings-scope:last-child {
+  margin: 16px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}

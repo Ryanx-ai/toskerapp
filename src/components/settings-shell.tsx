@@ -5,8 +5,9 @@ import { ChevronDown, X } from "lucide-react";
 import { ModalLayer } from "./modal-layer";
 import { RevealName } from "./reveal-name";
 
-export function SettingsSection({ title, description, children }: { title: string; description?: string; children: ReactNode }) {
-  return <section className="scoped-settings-section"><h3>{title}</h3>{description ? <p className="settings-scope">{description}</p> : null}{children}</section>;
+export function SettingsSection({ title, description, children, helpAfter = false }: { title: string; description?: string; children: ReactNode; helpAfter?: boolean }) {
+  const help = description ? <p className="settings-scope">{description}</p> : null;
+  return <section className="scoped-settings-section" data-help-after={helpAfter || undefined}><h3>{title}</h3>{!helpAfter && help}{children}{helpAfter && help}</section>;
 }
 export function SettingsDangerSection({ children }: { children: ReactNode }) {
   return <div className="scoped-settings-danger">{children}</div>;

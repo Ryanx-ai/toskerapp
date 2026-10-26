@@ -1,6 +1,7 @@
 "use client";
 import { RevealName } from "./reveal-name";
 import { hasRoomMap, type WorkspaceSurface } from "@/lib/workspace-surfaces";
+import { LIVE_BETA_ENABLED } from "@/lib/beta-features";
 import { PersonalChatSettings } from "./personal-chat-settings";
 import { NamecardButton } from "./namecard-context";
 import { EditMessageDialog } from "./edit-message-dialog";
@@ -199,7 +200,7 @@ export function SurfaceHeader({
         >
           <LayoutDashboard size={16} aria-hidden="true" />Board<AttentionMark count={hallUnread} label="new Board activities" />
         </Link>
-        {identity && conversation.kind !== "my-room" && hasRoomMap(conversation) ? <Link className={surface === "live" ? "active" : ""} aria-current={surface === "live" ? "page" : undefined} href={surface === "live" ? `${baseHref(conversation)}?surface=chat` : `${baseHref(conversation)}/live`} prefetch={false}><Radio size={16} aria-hidden="true" />Live</Link> : null}
+        {LIVE_BETA_ENABLED && identity && conversation.kind !== "my-room" && hasRoomMap(conversation) ? <Link className={surface === "live" ? "active" : ""} aria-current={surface === "live" ? "page" : undefined} href={surface === "live" ? `${baseHref(conversation)}?surface=chat` : `${baseHref(conversation)}/live`} prefetch={false}><Radio size={16} aria-hidden="true" />Live</Link> : null}
         {onToggleChatCompanion ? <button className={chatCompanionOpen ? "active" : ""} aria-pressed={!!chatCompanionOpen} onClick={onToggleChatCompanion}><MessageCircle size={16} aria-hidden="true" />Chat<AttentionMark count={chatUnread} label="new messages" /></button> : <Link className={surface === "chat" ? "active" : ""} aria-current={surface === "chat" ? "page" : undefined} href={`${baseHref(conversation)}?surface=chat`}><MessageCircle size={16} aria-hidden="true" />Chat<AttentionMark count={chatUnread} label="new messages" /></Link>}
         </>}
       </nav>

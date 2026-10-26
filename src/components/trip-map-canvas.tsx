@@ -256,7 +256,11 @@ export default function TripMapCanvas({ pings, inspector, viewerAvatarUrl, mapPi
     if (source) source.setData(data);
     else {
       map.addSource("tosker-planning", { type: "geojson", data });
+      // A narrow dark edge separates Tosker route colors from light roads/parks.
+      // Matching physical dash lengths keeps ghost routes visibly dashed.
+      map.addLayer({ id: "tosker-planning-ghost-edge", type: "line", source: "tosker-planning", filter: ["==",["get","ghost"],true], paint: { "line-color": "#344450", "line-width": 4, "line-dasharray": [1.5,1], "line-opacity": ["get","opacity"] } });
       map.addLayer({ id: "tosker-planning-ghost", type: "line", source: "tosker-planning", filter: ["==",["get","ghost"],true], paint: { "line-color": ["get","color"], "line-width": 2, "line-dasharray": [3,2], "line-opacity": ["get","opacity"] } });
+      map.addLayer({ id: "tosker-planning-active-edge", type: "line", source: "tosker-planning", filter: ["==",["get","ghost"],false], paint: { "line-color": "#344450", "line-width": ["+",["get","width"],3], "line-opacity": ["get","opacity"] } });
       map.addLayer({ id: "tosker-planning-active", type: "line", source: "tosker-planning", filter: ["==",["get","ghost"],false], paint: { "line-color": ["get","color"], "line-width": ["get","width"], "line-opacity": ["get","opacity"] } });
     }
   }, [status, routes, hiddenIds, roads, roadMode, roadEnabled, selectedId]);
@@ -289,9 +293,11 @@ export default function TripMapCanvas({ pings, inspector, viewerAvatarUrl, mapPi
     if (source) source.setData(data);
     else {
       map.addSource("tosker-local-origin", { type: "geojson", data });
+      map.addLayer({ id: "tosker-local-origin-edge", type: "line", source: "tosker-local-origin", paint: { "line-color": "#344450", "line-width": 4, "line-opacity": .7, "line-dasharray": [.5,1.5] } });
       map.addLayer({ id: "tosker-local-origin", type: "line", source: "tosker-local-origin", paint: { "line-color": getComputedStyle(container.current).getPropertyValue("--text-secondary").trim(), "line-width": 2, "line-opacity": .7, "line-dasharray": [1, 3] } });
     }
     map.setPaintProperty("tosker-local-origin","line-dasharray",currentPrivateRoad?[4,2]:[1,3]);
+    map.setPaintProperty("tosker-local-origin-edge","line-dasharray",currentPrivateRoad?[2,1]:[.5,1.5]);
     if(currentPrivateRoad){const rendered=()=>markMapPhase("origin-render");map.once("render",rendered);return()=>{map.off("render",rendered);};}
     // Separate private source. Never part of shared geometry/order/totals or realtime.
   }, [privateOrigin, originTarget, currentPrivateRoad, status]);

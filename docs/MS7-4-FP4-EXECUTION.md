@@ -1,6 +1,39 @@
 # MS7.4 FP4 — Map-first Beta consolidation
 
-26 October 2026, Singapore. **Founder approved the bounded 30–44-hour existing-role wave. B.2/C.1 local checkpoints verified to the limits below. No deployment.** MS7.4 remains unlocked.
+26 October 2026, Singapore. **Founder approved the bounded 30–44-hour existing-role wave. C.2 partial local acceptance and conservative QA-budget safety hold. No deployment.** MS7.4 remains unlocked.
+
+## C.2 — actual Map, capacity renewal, partial privacy; safety hold
+
+Recovered `e80631f2a2385d44c84444770a46abd4bcccc8df`; application/test checkpoint `082e731f6b5c6d8cc5296548e0c9d2ab20340ea3`. No further product privacy behavior changed. This checkpoint does not certify full FP4 acceptance.
+
+### Capacity and exact bounds
+
+Founder approved seven days under unchanged100new consents/day,2,000latest reads/day,30session checks/10seconds, plus isolated QA20consent/800read attempts/day. [Exact approval, dated usage and constraints](MS7-4-FP4-CAPACITY-2026-10-26.md). Attestation conservatively fixed to assessment `2026-10-26T12:05:21.406Z`; expires2November20:05:21SG. No Production environment or provider rule changed. Fresh signed-in Ably Limits5,820/6Mmessages, peaks5/200connections15/200channels; Free plan unchanged.
+
+**Budget accounting gap / hold:** six privacy receipts record9consent attempts and651latest-read attempts. Earlier Map/composition harnesses did not count background location reads, and privacy teardown initially removed request interception before final logout. Therefore651 is a lower bound, not proof that daily traffic stayed below800. Do not certify compliance, reset counters, or assume149reads remain. Stop further sharing QA today, preserve every receipt, and conservatively reserve the rest of26October. Private `qa-budget-hold.json` blocks common FP4 login, worker and privacy entrypoints; tested to fail before browser launch/network work. Instrument a single durable shared counter across all harnesses before next-day execution; preserve previous-day totals and fixed seven-day expiry. No capacity increase requested or applied.
+
+### Evidence
+
+All receipts below are private under `.git/ms74-fp4/browser/`; they contain sanitized statuses/timing, not credentials or actual location history. GPS was explicitly synthetic1.2834/103.8607/50m, isolated QA accounts only.
+
+| Gate | Result / exact evidence |
+| --- | --- |
+| Real basemap | `real-map-1793017059601.json` PASS: approved localhost3000, `osm-bright-smooth` style and44vector/glyph resources200;52provider requests in this run. Across three real attempts156requests, not52total. No server-key/origin change. SG geography only; JB/global/Walk/Drive remain open |
+| Overlay geometry | Same receipt verifies1440×1000,390×844,844×390: Reset/Fit/Zoom/search/tray/attribution inside viewport and unobscured; original canvas survives Chat. Actual screenshot inspection found landscape route summary covering camera controls; three-line scoped CSS fix verified. `real-map-1793016909229.json` also PASS offline. Earlier failures preserved; hoverable tooltip dismissed via Escape before persistent-layout measurements, not disabled |
+| A/B delivery / Stop / reconnect | `privacy-1793016867936.json` overall FAIL on later expiry assertion, but preceding recorded gates pass: broad A→B has no precise DB fields/marker; companion/draft continuity; explicit precise B→A; Locate OFF peer removal2007ms; authorized reload/reconnect; network loss marker removal9ms; no resurrection after Stop. Do not label whole receipt PASS |
+| Session revocation | `privacy-1793018099904.json` PASS: actual logout200, old token401, peer removed1950ms; zero payloads/active shares at teardown.18reads,1consent. Rejected Stop401 after revoked token remains in receipt; no authorization bypass |
+| Natural expiry | `privacy-1793017203180.json` and `privacy-1793017670640.json` FAIL at sender assertions after actual five-minute waiting. Peer absence and zero active payload passed before the combined Locate/origin assertion. First attempt assumed Locate stayed on; second assumed it was off. Neither establishes sender state correctness. Later receipt also observed transient early fail-closed peer absence, so uninterrupted visibility is not certified. Do not infer a proven timer defect from the combined assertion. New diagnostics record each state separately; no product privacy fix yet |
+| Membership browser attempt | `privacy-1793018177085.json` FAIL before any withdrawal: begin503, no send,55reads. Worker had insufficient remaining lifetime for a full five-minute consent; admission correctly failed closed. No membership receipt/withdrawal/restore occurred. Existing server-side boundary evidence remains valid, but real current-wave browser removal remains open |
+| Worker cleanup |30minute synthetic-only worker exactFP4fixture/founder guards; graceful TERM before expiry. Worker confirms exact-run payload cleanup. Independent isolated query afterward0payloads/active shares/workers. This is **not** hosted queue/rescue evidence |
+| Static/build/security | Latest guarded isolated production build includes landscape fix; scoped ESLint/TypeScript PASS. Secret scan initially refused missing environment bindings; rerun with existing Development+local bindings and review-value variant both PASS850source/owned files,43client assets. No credential output/commit. Final budget hold fail-closed tests PASS. New Board/context/membership modes are syntax/type checked only, not acceptance-passed |
+
+### Cleanup, release and recovery
+
+Founder-authorized stop of unrelated ryancdesign3000 was scoped to validated PID48364/cwd`/Users/ryanc/Developer/ryancdesign`; no file change. Tosker guarded localhost3000 started only against isolated review; now stopped gracefully along with worker. Do not default-start root env files, which target writable retained main. Do not restart worker while budget hold exists. Preserve owned isolated Founder Review `ms74-fp4-review-4b169a91` and exact-TID founder+A/B memberships. New Board harness has not created a note; no fixture deleted.
+
+Fresh authenticated canonical alias and deployment check at closeout: exact FP3 `a166934b6d348dd84ab9c78f35a73e9ce6f661b1`, READY`dpl_9NhdBjGXUkTpFzVyhhjJqe9NKP23`. No FP4 push, deployment, retained-main migration, credential or infrastructure changes. Existing33main/34review migration state unchanged from previous verified checkpoint; not a new migration audit. All original founder data and qualified provenance preserved; no new main data write in this continuation.
+
+Outstanding: budget reconciliation/shared harness accounting; sender expiry/consent renewal; actual browser member/context isolation; populated Board/Chat checks; full six-width/reflow/reduced-motion lifecycle; bounded search/global/JB/Walk/Drive; invite lifecycle/exact disposable cleanup; main backup/migration/integrity rehearsal; protected hosted privacy/cleanup acceptance; canonical promotion/live A/B and documentation closeout. No generic proceed approval needed within scope, but do not cross the daily budget or critical release gates. Next safe command `git status --short` then `node scripts/ms74-fp3-review-runtime.mjs check`. Diagnose before rerunning expensive tests. Roll back local source via separate worktree at`7a7878f` if needed; preserve forward-compatible review migration/history. Canonical unchanged and needs no rollback. Keep unrelated WIP unstaged.
 
 ## B.2/C.1 — concurrency, authorization and Room hierarchy
 

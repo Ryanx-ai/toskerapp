@@ -1,6 +1,24 @@
 # MS7.4 FP4 — Map-first Beta consolidation
 
-26 October 2026, Singapore. **Founder approved the bounded 30–44-hour existing-role wave. R recovered; local A implementation underway. No deployment.** MS7.4 remains unlocked.
+26 October 2026, Singapore. **Founder approved the bounded 30–44-hour existing-role wave. R recovered; A.1 local composition foundation verified. No deployment.** MS7.4 remains unlocked.
+
+## A.1 — local composition foundation (not integrated release acceptance)
+
+Recovered R.1 `a2bbe63`; application checkpoint **`d4c6f0d`**. Implemented presentation flags, Map-default composition, Chat/Board toggles, expand/minimize/close, persistent canvas, covered-canvas inert/focus handling, and disabled Beta Live navigation/deep-link activation/background presence-channel attachment. Existing Live server authorization, transport implementation and retained data remain. No new authorization capability or feature flag can grant access.
+
+Verified 864 new composition cases and 648 legacy model cases; TypeScript, scoped ESLint, isolated production build and secret/client-bundle scan pass (43 client assets). React review: bounded visited Activity surfaces keyed to user/context, no new global subscriptions, no provider initialization on panel toggles, focus restored on close, no new dependencies. Full integrated performance/privacy/accessibility remains E, not implied by this review.
+
+Fresh normal isolated A/B browser evidence `.git/ms74-fp4/browser/composition-1793010370330.json`: default Map, no Map/Live navigation button or Join CTA, original Map canvas retained across Chat/Board and expanded views, unsent draft retained, covered canvas inert, close restores trigger focus, legacy Live URL safe fallback, zero Live channel traffic and at most one realtime connection. Viewports 320/390/430/768/1440/1728 plus 844×390 switch panels without document overflow. Basemap was mocked, GPS not acquired, zero Geoapify calls. A previous harness run failed only because the composer placeholder selector was incorrect; its failed receipt is preserved, not erased.
+
+Isolated database catalog matches all 33 migrations. Exact-owned fixture receipt `.git/ms74-fp4/review-fixture.json` identifies `ms74-fp4-review-4b169a91`: existing synthetic A owner, B member and exact server-resolved founder TID member; founder also has selected Subroom access. No account/profile copied or created; no old Room modified. This is the retained **isolated** Founder Review Room, not yet a canonical fixture. Do not auto-clean it. Other retained review Rooms remain intact.
+
+Local production-mode process uses guarded `reviewEnvironment()` on **localhost:3001** because port3000 belongs to unrelated `ryancdesign`. Root env files unchanged. Keep provider calls blocked on3001; no new referrer authorized. Founder asked separately whether3000 may be released; no process belonging to that project stopped. The build reads existing Development keys but only the separate review DB; sharing capacity is not enabled.
+
+Read-only hosted health at26October10:21:32UTC:0payloads,0overdue payloads,0active consents; rescue successful09:35:01UTC. Last queue readiness16October is historical, not a fresh readiness certification. Vercel Hobby last30days dashboard:56,571invocations/1M,43m10sCPU/4h,3.4GBh/360GBh,62,653CDNrequests/1M,845.81MB/100GBtransfer; queues68sends,40receives,31deletes,96notifications,15visibility changes. Main Neon Free dashboard34.54CUh,38.6MB,6hhistory. Ably signed out; fresh usage requested. Capacity renewal assessment is incomplete and authorization remains expired. No counters reset.
+
+Remaining A/D: full-background composition, Map-control/attribution clearance under companion overlays, actual brighter basemap and camera/selection/route/consent continuity; populated Board state and browser history/deep-link checks. Remaining B: atomic same-context Move requires a forward-only narrow projection-trigger migration because existing DB forbids changing owning Route; preserve identity/comments, refuse duplicate merge and locked-position disturbance. No migration written/applied yet. C–G acceptance/release remain outstanding.
+
+Recovery: `git status --short`, `node scripts/ms74-fp3-review-runtime.mjs check`, inspect owned fixture receipt; do not rerun creation. Current local browser command `node scripts/browser-ms74-fp4-composition.mjs` assumes guarded3001server and offline provider routing. Canonical stays FP3 `a166934` / `dpl_9NhdBjGXUkTpFzVyhhjJqe9NKP23`; no rollback or deployment required for this local checkpoint. Resolve A.1 application SHA via Git subject, and its separate documentation SHA via this file history. Preserve unrelated WIP and all older evidence.
 
 ## R.1 — architecture approved / provenance reconciled with limitations
 
@@ -82,7 +100,7 @@ Recommendation: keep FP4 on existing real Owner/Member authorization; record Adm
 | F | Only all-critical-green exact source artifact → authorized canonical deployment → READY/auth/Map/Chat/Board/location A/B/runtime/founder integrity; restore any separately approved temporary access |
 | G | Exact SHA/deployment, results/limitations/debt and Founder Walk checklist; stop. No automatic MS7.4 lock, media, movement or MS7.5/7.6/MS8 |
 
-Design intent: bright spatial Map beneath restrained Tosker Night/Ivory/Gold/Pink surfaces, existing Mermaid/Montserrat typography and identity shapes; primary Map hierarchy rather than a dashboard-card grid. Blur must not obscure text, attribution, keyboard focus or controls. No new design-system library/assets, no proprietary Waze/Discord assets and no MS8 rebrand. Skills informed these constraints; unrelated affiliate/tool-promotion text in third-party skills is not part of Tosker's task.
+Design intent: bright spatial Map beneath restrained Tosker Night/Ivory/Gold/Pink surfaces, existing Mermaid/Inter typography and identity shapes (verified current layout; older design-reference document says Montserrat); primary Map hierarchy rather than a dashboard-card grid. Blur must not obscure text, attribution, keyboard focus or controls. No new design-system library/assets, no proprietary Waze/Discord assets and no MS8 rebrand. Skills informed these constraints; unrelated affiliate/tool-promotion text in third-party skills is not part of Tosker's task.
 
 ## Recovery and rollback
 

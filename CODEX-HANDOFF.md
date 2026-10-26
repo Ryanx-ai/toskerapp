@@ -2,6 +2,12 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP4 A.1 — isolated composition foundation, 26 October 2026
+
+Recovered R.1 `a2bbe63`; application checkpoint `d4c6f0d`: Map-default/Chat–Board toggles/expand/minimize and Live Beta activation gate implemented locally. 864 new +648 legacy model checks, scoped lint, TypeScript, production build and43asset secret scan pass. Fresh isolated A/B browser evidence verifies retained canvas/draft, focus, safe old Live URL, zero Live channel traffic and seven viewport switches. Offline basemap only; no GPS/provider calls or claim of integrated acceptance. [FP4 ledger](docs/MS7-4-FP4-EXECUTION.md) A.1 has exact evidence and remaining gates.
+
+Fresh isolated retained Founder Review `ms74-fp4-review-4b169a91` includes exact-TID founder and existing synthetic A/B; receipt `.git/ms74-fp4/review-fixture.json`. No old Room/profile modified. Guarded isolated server onlocalhost:3001; unrelated ryancdesign owns3000, not stopped. No provider referrer for3001; browser test blocks external Map calls. Do not start default rootenv server (retained main). Capacity expired, fresh Ably usage/sign-in pending, renewal needs separate approval. No migration, push, canonical or credential change. Canonical FP3 `a166934` remains. Next A/D overlay safety and full-canvas design, then narrow B atomic Move/migration rehearsal and C–G. Preserve all unrelated WIP; do not re-create existing fixture.
+
 ## FP4 R.1 — bounded wave approved / local implementation, 26 October 2026
 
 Founder approved30–44hours: existing Owner/Member only, Admin deferred, Room deletion only exact-owned disposable QA fixtures, no GODMODE. Recover `474da197262042c183decd876bc7326b44aa6ed6`; fresh canonical alias remains FP3 `a166934` / `dpl_9NhdBjGXUkTpFzVyhhjJqe9NKP23`. [FP4 ledger](docs/MS7-4-FP4-EXECUTION.md) R.1 records new read-only provenance checks: invitations and Map receipts correlate to founder-authenticated26October17:18/17:22SG activity, read/notification fields align; no removed protected rows. Current membership does not prove historical authorization, and mute/read fields have no independent action audit. Preserve all records and both original evidence and new private hash-only FP4 fingerprint. No historical baseline rewritten.

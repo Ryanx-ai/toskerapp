@@ -1,6 +1,42 @@
 # MS7.4 FP4 — Map-first Beta consolidation
 
-26 October 2026, Singapore. **Founder approved the bounded 30–44-hour existing-role wave. C.2 partial local acceptance and conservative QA-budget safety hold. No deployment.** MS7.4 remains unlocked.
+27 October 2026, Singapore. **Founder approved the bounded 30–44-hour existing-role wave. C.3 offline expiry repair; live QA remains held by an unverifiable same-day budget. No deployment.** MS7.4 remains unlocked.
+
+## C.3 — authorized recovery and offline deterministic expiry repair
+
+Recovered exact `6992334e1de6173f5742a134ad8b999d47e2b928` with only previously recorded unrelated WIP. Application checkpoint `4df882b06ca7b1c6d19d2d50775ee74c60fe2400`. Founder renewed continuation authority, not limits; provider-consuming tests must stop if remaining capacity cannot be verified.
+
+### Expiry evidence and bounded repair
+
+New `scripts/verify-ms74-fp4-local-expiry.mjs` extracts and executes the **actual effect body** from `use-local-map-location.ts` in an offline deterministic VM clock. It refuses to run if the source boundary no longer matches. It does not mock a successful server or claim browser rendering/React lifecycle acceptance.
+
+Before repair, four of six scheduling assertions passed; an early wake at299999ms stranded the timer, and repeated visibility notifications after expiry repeated the clear callback. Fix re-arms the remaining time to the original absolute deadline, never starts a fresh five-minute lifetime, and guards repeated/cancelled callbacks. After repair all six pass: exact deadline, early wake/rearm, repeated early visibility with one deadline, late wake, repeated post-deadline visibility, unmount cancellation. Existing private-position refresh test passes: marker refresh does not move origin or slide expiry. Zero provider/DB/browser calls in these tests.
+
+This is a deterministically demonstrated defect and a narrow corrective change, not proof that it caused C.2's combined sender assertion. Browser Locate/origin removal, fresh consent default, peer delivery and hosted physical deletion still require the outstanding targeted acceptance. Do not relabel old failed receipts. Prior passed Map/layout/auth/session evidence remains preserved and was not rerun.
+
+Scoped ESLint, TypeScript and guarded isolated production build PASS; new build includes the timer fix. Existing configured-secret scan PASS851source/owned files and43client assets, including server Geoapify/retired management values without printing them. No auth, sharing consent, five-minute TTL, background acquisition, storage or provider architecture change.
+
+### Reconciled lower bound and exact blocker
+
+| Original private privacy receipt suffix | Consent attempts | Latest-read attempts |
+| --- | ---: | ---: |
+|1793016867936|4|66|
+|1793017058614|1|30|
+|1793017203180|1|236|
+|1793017670640|1|246|
+|1793018099904|1|18|
+|1793018177085|1|55|
+|**Total**|**9**|**651**|
+
+All receipts retained unchanged. No exact count exists in these artifacts for earlier non-privacy background requests or uninstrumented teardown. Source trace shows local `latestLocationService.read` does not reserve the hosted durable-read counter. A read-only isolated query returned0`location:reads:day` counter rows,0payloads/active shares/workers and databaseUTCday`2026-10-26`. Those zero counter rows **cannot** prove zero missing traffic. No counters written, reset or normalized.
+
+At recovery host clock16:03:39UTC26October corresponds to00:03:39Singapore27October. Both recorded QA receipt days and hosted daily bucket use UTC. Hence remaining26October allowance is still unverifiable; no149read balance inferred. Existing `.git/ms74-fp4/qa-budget-hold.json` remains intact. **No browser, worker or server started; no provider-consuming QA.** The new UTC period begins27October08:00SGT, but before resuming, implement and deterministically test shared durable request accounting across every harness and teardown. Preserve26October as unknown/conservatively exhausted rather than reset it. Verify fresh period and account headroom, then reserve enough budget/worker lifetime for complete targeted modes. Seven-day attestation stays fixed, expiring2November20:05SGT. A calendar rollover does not by itself remove the hold or authorize a quota increase.
+
+### Release decision / recovery
+
+Fresh authenticated Vercel alias/deployment still project`prj_cxYhH8ypeFmuPOiEBC0gf0Rbzmau`, READY`dpl_9NhdBjGXUkTpFzVyhhjJqe9NKP23`, exact FP3`a166934b6d348dd84ab9c78f35a73e9ce6f661b1`. No push/deploy, environment/credential/billing change, migration or retained data write. Unrelated WIP preserved. This continuation did not repeat the previously passed main migration/founder audit; full final release integrity remains outstanding.
+
+Critical live privacy/capacity gate cannot currently be satisfied. Stop at this durable checkpoint as directed; do not deploy partially accepted FP4. C.2 remaining gates carry forward unchanged, plus shared accounting. Next safe commands: `git status --short`, `node scripts/verify-ms74-fp4-local-expiry.mjs`; inspect the hold and UTC date before any later live command. Rollback local application via separate source worktree at`082e731`; no DB rollback or migration-history edit. Canonical needs no rollback. Final Founder Walk checklist is not yet a release certificate; MS7.4 UNLOCKED.
 
 ## C.2 — actual Map, capacity renewal, partial privacy; safety hold
 

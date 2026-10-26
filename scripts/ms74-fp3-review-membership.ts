@@ -10,11 +10,13 @@ import { resolveQaActors } from "./lib/ms73-fixtures";
 // A separate browser-timing run must preserve the original restored receipt.
 const receiptTag = process.argv[3];
 assert(!receiptTag || /^browser-[0-9]{13}$/.test(receiptTag));
-const db = getDatabase(), path = `.git/ms74-fp3/review-membership-test${receiptTag ? `-${receiptTag}` : ""}.json`;
+const fp4=process.argv[4]==="--fp4";assert(process.argv[4]===undefined||fp4);
+const db = getDatabase(), path = `.git/${fp4?"ms74-fp4":"ms74-fp3"}/review-membership-test${receiptTag ? `-${receiptTag}` : ""}.json`;
 async function main() {
   assert(isIsolatedReview());
   const mode = process.argv[2]; assert(mode === "--remove-b" || mode === "--restore-b");
-  const fixture = JSON.parse(readFileSync(".git/ms74-fp3/review-fixture.json", "utf8"));
+  const fixture = JSON.parse(readFileSync(fp4?".git/ms74-fp4/review-fixture.json":".git/ms74-fp3/review-fixture.json", "utf8"));
+  if(fp4)assert.equal(fixture.run,"ms74-fp4-20261026");
   assert.equal(fixture.project, "falling-mode-50310792"); assert.equal(fixture.status, "committed");
   const { a, b, founder } = await resolveQaActors(db);
   assert.equal(fixture.ownerId, a.userId); assert(fixture.qaUserIds.includes(b.userId));

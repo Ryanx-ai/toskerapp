@@ -1,7 +1,7 @@
 /** Supervised local synthetic-QA sweeper. Never deploy/schedule this script. */
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
-import { readFileSync, writeFileSync, renameSync, unlinkSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync, renameSync, unlinkSync } from "node:fs";
 import { eq, sql } from "drizzle-orm";
 import { Pool } from "@neondatabase/serverless";
 import { getDatabase } from "../src/server/db/client";
@@ -23,7 +23,17 @@ const ownerPool = new Pool({ connectionString: directUrl, max: 1, connectionTime
 // v2 is direct-session-only. No v1 process/config/payload remained at cutover.
 const ownershipKey = "tosker-local-location-worker-v2-direct";
 const minutes = Number(process.argv[2] ?? 60);
+const fp4 = process.argv[3] === "--fp4";
+assert(process.argv[3] === undefined || fp4);
 assert(!process.env.VERCEL && Number.isInteger(minutes) && minutes >= 10 && minutes <= 120);
+if (fp4) {
+  assert(isIsolatedReview(), "FP4 worker requires isolated review");
+  assert(!existsSync(".git/ms74-fp4/qa-budget-hold.json"), "Reconcile the saved FP4 QA budget hold; never reset counters");
+  const approval = JSON.parse(readFileSync(".git/ms74-fp4/capacity-approval.json", "utf8"));
+  assert.equal(approval.approvedAt, "2026-10-26T12:05:21.406Z");
+  assert.equal(approval.expiresAt, "2026-11-02T12:05:21.406Z");
+  assert(Date.now() >= Date.parse(approval.approvedAt) && Date.now() + minutes * 60000 < Date.parse(approval.expiresAt));
+}
 let stopped = false, wake: (() => void) | undefined, stage = "connect";
 for (const signal of ["SIGINT", "SIGTERM"] as const) process.once(signal, () => { stopped = true; wake?.(); });
 
@@ -39,8 +49,15 @@ async function main() {
     const config = await db.transaction(async tx => {
       const actors = await resolveQaActors(tx);
       const review = isIsolatedReview();
-      const fixture = JSON.parse(readFileSync(review ? ".git/ms74-fp3/review-fixture.json" : ".git/ms74-recovery/fixture.json", "utf8"));
-      assert.equal(fixture.run, review ? "ms74-fp3-review-20261016" : "ms74-fp1-20261010"); assert.equal(fixture.status, "committed");
+      const fixture = JSON.parse(readFileSync(fp4 ? ".git/ms74-fp4/review-fixture.json" : review ? ".git/ms74-fp3/review-fixture.json" : ".git/ms74-recovery/fixture.json", "utf8"));
+      assert.equal(fixture.run, fp4 ? "ms74-fp4-20261026" : review ? "ms74-fp3-review-20261016" : "ms74-fp1-20261010"); assert.equal(fixture.status, "committed");
+      if (fp4) {
+        assert.equal(fixture.project, "falling-mode-50310792");
+        const [state] = (await tx.execute(sql`select (select count(*) from location_latest)::int payloads,
+          (select count(*) from location_cleanup_workers)::int workers,
+          (select count(*) from location_shares where expires_at>clock_timestamp())::int active`)).rows;
+        assert.deepEqual(state, {payloads:0,workers:0,active:0}, "Do not replace another review run");
+      }
       const rows = (await tx.execute(sql`select id from rooms where id=${fixture.roomId}::uuid and slug=${fixture.slug} and owner_id=${actors.a.userId}::uuid and created_at=${fixture.createdAt}::timestamptz`)).rows;
       assert.equal(rows.length, 1);
       assert.equal((await tx.execute(sql`select 1 from room_memberships where room_id=${fixture.roomId}::uuid and user_id=${actors.founder.userId}::uuid`)).rows.length, 1);

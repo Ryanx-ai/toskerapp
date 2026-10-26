@@ -401,6 +401,9 @@
 @media(max-height:500px) {
   :global(.has-map-canvas) .workspace .cards { max-height:calc(100% - var(--map-overlay-top) - 192px); }
   :global(.has-map-canvas) .workspace .cameraControls { flex-direction:row; }
+  :global(.has-map-canvas) .workspace .routeSummary { top:var(--map-overlay-top); bottom:auto; left:calc(var(--map-overlay-left) + 164px); right:calc(var(--map-overlay-right) + 156px); width:auto; max-width:none; max-height:calc(100% - var(--map-overlay-top) - var(--map-overlay-bottom) - 8px); }
+  :global(.has-map-canvas) .workspace .routeSummary summary { min-height:44px; padding:6px 8px; gap:0; }
+  :global(.has-map-canvas) .workspace .routeSummary summary span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   :global(.has-map-canvas) .workspace .localPingControl { top:var(--map-overlay-top); right:calc(var(--map-overlay-right) + 104px); }
   :global(.has-map-canvas) .canvasRegion :global(.maplibregl-ctrl-group) { display:flex; }
   :global(.has-map-canvas) .workspace .expandMap { top:calc(var(--map-overlay-top) + 52px); right:var(--map-overlay-right); }

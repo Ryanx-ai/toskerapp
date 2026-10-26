@@ -351,3 +351,50 @@
 .mapPing{display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:var(--text-primary);color:var(--shell-plane);border:3px solid var(--shell-plane);box-shadow:0 0 0 3px var(--text-primary);font-size:24px;font-weight:800;pointer-events:auto;animation:pingHalo 1s ease-out 3}
 @keyframes pingHalo{50%{box-shadow:0 0 0 10px color-mix(in srgb,var(--text-primary) 20%,transparent)}}
 @media(prefers-reduced-motion:reduce){.mapPing{animation:none}}
+
+/* FP4 canvas composition. Explicit overrides are scoped to the Beta owner. */
+:global(.has-map-canvas) .workspace { position:relative; display:block; height:100%; overflow:hidden; padding:0; }
+:global(.has-map-canvas) .workspace .mapPlane { position:absolute; inset:0; min-height:0; border:0; border-radius:0; background:transparent; }
+:global(.has-map-canvas) .workspace .canvasRegion { position:absolute; inset:0; height:100%; min-height:0; border-radius:0; }
+:global(.has-map-canvas) .workspace .searchPanel {
+  position:absolute; left:var(--map-overlay-left); right:var(--map-overlay-right);
+  bottom:calc(var(--map-tray-height) + 44px); max-height:calc(100% - var(--map-overlay-top) - var(--map-tray-height) - 60px);
+  overflow:auto; z-index:2; border:1px solid var(--border); border-radius:16px;
+  background:var(--surface); box-shadow:var(--depth-raised);
+}
+:global(.has-map-canvas) .workspace .cards {
+  position:absolute; bottom:32px; left:var(--map-overlay-left); right:var(--map-overlay-right);
+  height:auto; min-height:68px; max-height:32%; padding:12px; overflow:auto;
+  border-radius:16px; background:var(--surface); box-shadow:var(--depth-raised);
+}
+:global(.has-map-canvas) .workspace[data-tray-collapsed="true"] .cards { height:68px; min-height:68px; }
+:global(.has-map-canvas) .workspace[data-tray-collapsed="true"] .cards :is(.cardStrip,.cardsEmpty,.libraryState) { display:none; }
+:global(.has-map-canvas) .workspace .trayToggle { display:flex; }
+:global(.has-map-canvas) .workspace .cardStrip { flex-direction:row; overflow-x:auto; align-items:stretch; }
+:global(.has-map-canvas) .workspace .placeCard { flex:0 0 208px; width:208px; }
+:global(.has-map-canvas) .workspace .cardsEmpty { padding:8px 0; }
+:global(.has-map-canvas) .workspace .cameraControls { top:var(--map-overlay-top); left:var(--map-overlay-left); }
+:global(.has-map-canvas) .workspace .expandMap { top:var(--map-overlay-top); right:calc(var(--map-overlay-right) + 56px); }
+:global(.has-map-canvas) .workspace .localPingControl { top:calc(var(--map-overlay-top) + 104px); right:var(--map-overlay-right); max-width:calc(100% - var(--map-overlay-left) - var(--map-overlay-right)); }
+:global(.has-map-canvas) .canvasRegion :global(.maplibregl-ctrl-top-right) { top:var(--map-overlay-top); right:var(--map-overlay-right); }
+:global(.has-map-canvas) .canvasRegion :global(.maplibregl-ctrl-top-right .maplibregl-ctrl) { margin:0; }
+:global(.has-map-canvas) .canvasRegion :global(.maplibregl-ctrl-bottom-right) { left:var(--map-overlay-left); right:var(--map-overlay-right); max-width:none; }
+:global(.has-map-canvas) .canvasRegion :global(.maplibregl-ctrl-attrib) { margin:0; max-width:100%; font-size:11px; border-radius:8px 8px 0 0; }
+:global(.has-map-canvas) .workspace .routeSummary { left:var(--map-overlay-left); bottom:var(--map-overlay-bottom); max-width:calc(100% - var(--map-overlay-left) - var(--map-overlay-right) - 8px); }
+:global(.has-map-canvas) .workspace > .feedback { position:absolute; top:var(--map-overlay-top); left:calc(var(--map-overlay-left) + 56px); right:calc(var(--map-overlay-right) + 56px); max-height:35%; overflow:auto; z-index:4; background:var(--surface); border:1px solid var(--border); border-radius:12px; }
+@supports(backdrop-filter:blur(12px)) {
+  :global(.has-map-canvas) .workspace :is(.searchPanel,.cards) { background:color-mix(in srgb,var(--surface) 94%,transparent); backdrop-filter:blur(12px); }
+}
+@media(max-width:768px) {
+  :global(.has-map-canvas) .workspace .cards { padding:8px; max-height:30%; }
+  :global(.has-map-canvas) .workspace .toolbar { flex-wrap:wrap; }
+  :global(.has-map-canvas) .workspace .toolbar .search { flex:1 1 100%; max-width:none; }
+  :global(.has-map-canvas) .workspace .cameraControls { flex-direction:column; }
+}
+@media(max-height:500px) {
+  :global(.has-map-canvas) .workspace .cards { max-height:calc(100% - var(--map-overlay-top) - 192px); }
+  :global(.has-map-canvas) .workspace .cameraControls { flex-direction:row; }
+  :global(.has-map-canvas) .workspace .localPingControl { top:var(--map-overlay-top); right:calc(var(--map-overlay-right) + 104px); }
+  :global(.has-map-canvas) .canvasRegion :global(.maplibregl-ctrl-group) { display:flex; }
+  :global(.has-map-canvas) .workspace .expandMap { top:calc(var(--map-overlay-top) + 52px); right:var(--map-overlay-right); }
+}

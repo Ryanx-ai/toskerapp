@@ -23,6 +23,7 @@ import { TripRouteReplay } from "./trip-route-replay";
 import { markMapPhase } from "@/lib/maps/performance";
 import { mapCoordinate, planningSegments } from "@/lib/maps/world-geometry";
 import { SharedLocationMarkers } from "./shared-location-markers";
+import { boundedMapInsets } from "@/lib/maps/viewport-insets";
 
 type Status = "loading" | "ready" | "unavailable" | "failed";
 type PlanningRoute = TripRoute & { ghost: boolean; places: (TripPlace & { isStop: boolean })[] };
@@ -55,13 +56,20 @@ export default function TripMapCanvas({ pings, inspector, viewerAvatarUrl, mapPi
   const selectedMemory = useEffectEvent((id:string)=>onSelectPin(id));
   const selectedGhost = useEffectEvent((routeId: string, id: string) => onSelectGhost(routeId, id));
   const clicked = useEffectEvent((latitude: number, longitude: number) => { if (pinMode) onPin(latitude, longitude); else onDeselect(); });
+  const viewportInsets = () => {
+    const node=container.current,width=node?.clientWidth??320,height=node?.clientHeight??300;
+    const style=node?getComputedStyle(node):null;
+    const inset=(side:string,fallback:number)=>{const value=parseFloat(style?.getPropertyValue(`--map-overlay-${side}`)??"");return Number.isFinite(value)?value+12:fallback;};
+    return boundedMapInsets(width,height,{top:inset("top",64),left:inset("left",48),right:inset("right",48),bottom:inset("bottom",100)});
+  };
   const fitTrip = () => {
     if ((!places.length && !mapPins.length) || !mapRef.current) return;
     const active=routes.find(r=>!r.ghost),road=active?roads[active.id]:undefined;
     const extras=[...mapPins,...(localLocation?[localLocation]:[]),...(privateOrigin?[privateOrigin]:[]),...(currentPrivateRoad?currentPrivateRoad.segments.flat().map(p=>({latitude:p[1],longitude:p[0]})):[])];
     const bounds=routeBounds(places.filter(p=>!p.skipped),roadEnabled&&road?.mode===roadMode?road:undefined,extras);
-    const side=Math.min(64,Math.max(32,(container.current?.clientWidth??320)/8));
-    if(bounds)mapRef.current.fitBounds(bounds, { padding:{top:64,left:side,right:side,bottom:Math.min(120,(container.current?.clientHeight??300)*.4)}, maxZoom: 14, duration: 0 });
+    // MapLibre fitBounds consumes padding when calculating center/zoom; it does
+    // not retain it as camera padding (see Camera._fitInternal).
+    if(bounds)mapRef.current.fitBounds(bounds, { padding:viewportInsets(), maxZoom: 14, duration: 0 });
   };
   const fitInitialTrip = useEffectEvent(fitTrip);
   const privateFitKey=currentPrivateRoad?.key;
@@ -134,12 +142,8 @@ export default function TripMapCanvas({ pings, inspector, viewerAvatarUrl, mapPi
         instance.once("load", () => {
           if (disposed || !instance) return;
           clearTimeout(timer);
-          const tokens = getComputedStyle(container.current!);
-          for (const layer of instance.getStyle().layers) {
-            if (layer.type !== "symbol" || !layer.layout?.["text-field"]) continue;
-            instance.setPaintProperty(layer.id, "text-color", tokens.getPropertyValue("--text-secondary").trim());
-            instance.setPaintProperty(layer.id, "text-halo-color", tokens.getPropertyValue("--shell-plane").trim());
-          }
+          // Preserve the basemap's coordinated text/halo colors. Application
+          // dark-panel tokens are not appropriate for light geography.
           setStatus("ready");
           markMapPhase("map-ready");
           setReadyMap(instance);
@@ -298,7 +302,10 @@ export default function TripMapCanvas({ pings, inspector, viewerAvatarUrl, mapPi
     const selection = candidate ? `preview:${candidate.latitude}:${candidate.longitude}` : selectedId;
     if (selectionCamera.current === selection) return;
     selectionCamera.current = selection;
-    if (point && mapRef.current) mapRef.current.easeTo({ center: mapCoordinate(point.longitude, point.latitude), offset: [(container.current?.clientWidth ?? 320) >= 560 ? -140 : 0, 0], zoom: Math.max(14, mapRef.current.getZoom()), duration: 0 });
+    if (point && mapRef.current) {
+      const insets=viewportInsets(),freeWidth=(container.current?.clientWidth??320)-insets.left-insets.right;
+      mapRef.current.easeTo({ center: mapCoordinate(point.longitude, point.latitude), offset:[(insets.left-insets.right)/2-(freeWidth>=560?140:0),(insets.top-insets.bottom)/2], zoom: Math.max(14, mapRef.current.getZoom()), duration:0 });
+    }
     // Camera reacts only to this viewer's selection, never a peer's snapshot.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [candidate, selectedId, status]);
@@ -325,19 +332,23 @@ export default function TripMapCanvas({ pings, inspector, viewerAvatarUrl, mapPi
     const position = () => {
       const canvas = container.current; if (!canvas) return;
       const region=canvas.getBoundingClientRect();
-      const visibleTop=Math.max(8,8-region.top),visibleBottom=Math.min(canvas.clientHeight-32,window.innerHeight-region.top-8);
+      const safe=viewportInsets();
+      const visibleTop=Math.max(safe.top,8-region.top),visibleBottom=Math.min(canvas.clientHeight-safe.bottom,window.innerHeight-region.top-8);
       element.style.maxHeight=`${Math.max(80,visibleBottom-visibleTop)}px`;
+      element.style.maxWidth=`${Math.max(160,canvas.clientWidth-safe.left-safe.right)}px`;
       const point = map && status === "ready" ? map.project(mapCoordinate(inspectorPoint.longitude, inspectorPoint.latitude)) : { x: canvas.clientWidth / 2, y: canvas.clientHeight / 2 };
       const width = element.offsetWidth, height = element.offsetHeight;
-      const side = point.x + width + 36 <= canvas.clientWidth ? point.x + 28 : point.x - width - 28 >= 8 ? point.x - width - 28 : point.x - width / 2;
-      const x = Math.max(8, Math.min(canvas.clientWidth - width - 8, side));
+      const side = point.x + width + 36 <= canvas.clientWidth-safe.right ? point.x + 28 : point.x - width - 28 >= safe.left ? point.x - width - 28 : point.x - width / 2;
+      const x = Math.max(safe.left, Math.min(canvas.clientWidth - safe.right - width, side));
       const y = Math.max(visibleTop, Math.min(visibleBottom-height, point.y - height / 2));
       element.style.left = `${x}px`; element.style.top = `${y}px`;
     };
     position(); const observer = new ResizeObserver(position); observer.observe(element);
+    const workspace=container.current?.closest(".workspace-composition");
+    workspace?.addEventListener("tosker:map-overlay-layout",position);
     map?.on("move", position); map?.on("resize", position);
     window.addEventListener("scroll",position,true);window.addEventListener("resize",position);
-    return () => { observer.disconnect(); map?.off("move", position); map?.off("resize", position);window.removeEventListener("scroll",position,true);window.removeEventListener("resize",position); };
+    return () => { observer.disconnect(); workspace?.removeEventListener("tosker:map-overlay-layout",position); map?.off("move", position); map?.off("resize", position);window.removeEventListener("scroll",position,true);window.removeEventListener("resize",position); };
   }, [inspectorPoint, inspectorKey, status]);
 
   return <div className={styles.canvasRegion} data-map-state={status}>

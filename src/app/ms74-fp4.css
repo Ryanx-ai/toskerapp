@@ -1,14 +1,37 @@
-/* FP4 composition foundation. Opaque first; blur is progressive enhancement. */
-.workspace-composition.has-map-canvas { position:relative; display:block; isolation:isolate; }
+/* FP4: one permanent canvas beneath floating, measured interaction surfaces. */
+.messaging-app.map-first-beta { position:relative; min-height:0; isolation:isolate; background:#dce8e4; }
+.map-first-beta > .working-surface { position:static; background:none; }
+.map-first-beta > .messenger-sidebar { z-index:4; }
+.map-first-beta .working-surface > .conversation-header { position:relative; z-index:4; }
+.workspace-composition.has-map-canvas {
+  --map-overlay-left:8px; --map-overlay-top:88px; --map-overlay-right:8px;
+  --map-overlay-bottom:320px; --map-tray-height:236px;
+  position:absolute; inset:0; display:block; isolation:isolate; overflow:hidden; z-index:0;
+}
 .has-map-canvas > .workspace-pane[data-workspace-pane="map"] { position:absolute; inset:0; z-index:0; }
-.has-map-canvas > .workspace-pane:not([data-workspace-pane="map"]) { position:absolute; inset:0; z-index:2; border:1px solid var(--border); border-radius:18px; background:var(--surface); box-shadow:var(--depth-raised); }
-.has-map-canvas.has-companion > .workspace-pane.is-companion { left:auto; width:clamp(320px,30%,420px); }
+.has-map-canvas > .workspace-pane:not([data-workspace-pane="map"]) { position:absolute; inset:var(--map-overlay-top) 12px 12px var(--map-overlay-left); z-index:2; border:1px solid var(--border); border-radius:18px; background:var(--surface); box-shadow:var(--depth-raised); }
+.has-map-canvas.has-companion > .workspace-pane.is-companion { left:auto; width:clamp(320px,28vw,400px); }
 .has-map-canvas > .workspace-pane[aria-hidden="true"] { pointer-events:none; }
 .has-map-canvas > .workspace-pane:not([data-workspace-pane="map"]) .hall-surface { overflow:auto; padding:16px; }
 .has-map-canvas .workspace-pane-actions { border-bottom:1px solid var(--border); }
 @supports (backdrop-filter:blur(12px)) {
-  .has-map-canvas > .workspace-pane:not([data-workspace-pane="map"]) { background:color-mix(in srgb,var(--surface) 94%,transparent); backdrop-filter:blur(12px); }
+  .has-map-canvas > .workspace-pane:not([data-workspace-pane="map"]),
+  .map-first-beta > .messenger-sidebar,
+  .map-first-beta .working-surface > .conversation-header { background:color-mix(in srgb,var(--surface) 94%,transparent); backdrop-filter:blur(12px); }
 }
 @media(max-width:1099px) {
   .has-map-canvas > .workspace-pane:not([data-workspace-pane="map"]) { border-radius:12px; }
+}
+@media(max-width:640px) {
+  .messaging-app.map-first-beta { position:fixed; }
+  .map-first-beta > .working-surface { padding:8px; }
+  .map-first-beta .conversation-header { border:1px solid var(--border); border-radius:14px; background:var(--surface); box-shadow:var(--depth-raised); }
+  .has-map-canvas > .workspace-pane:not([data-workspace-pane="map"]) { right:8px; bottom:8px; }
+  .map-first-beta > .mobile-app-nav { z-index:4; }
+  .workspace-composition.has-map-canvas { bottom:calc(var(--mobile-nav-height,0px) + env(safe-area-inset-bottom)); }
+}
+@media(max-height:500px) and (min-width:641px) {
+  .map-first-beta .conversation-header { display:flex; flex-wrap:nowrap; gap:8px; min-height:64px; height:64px; padding:0 12px; }
+  .map-first-beta .conversation-header .header-identity-zone { flex:1; }
+  .map-first-beta .conversation-header .surface-tabs { flex:0 0 auto; width:auto; }
 }

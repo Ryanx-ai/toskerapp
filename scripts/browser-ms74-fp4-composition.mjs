@@ -24,7 +24,7 @@ try {
     const context=await browser.newContext({viewport:{width:1440,height:1000}});contexts.push(context);
     await installLiveMetrics(context);
     await context.route("**/*geoapify.com/**",route=>new URL(route.request().url()).pathname.endsWith("style.json")
-      ?route.fulfill({json:{version:8,sources:{},layers:[{id:"qa-offline",type:"background",paint:{"background-color":"#dce8e4"}}]}}):route.abort());
+      ?route.fulfill({json:{version:8,sources:{qa:{type:"geojson",data:{type:"FeatureCollection",features:[]},attribution:"Offline QA attribution — not real Map evidence"}},layers:[{id:"qa-offline",type:"background",paint:{"background-color":"#dce8e4"}},{id:"qa-source",type:"circle",source:"qa"}]}}):route.abort());
     const page=await context.newPage();pages.push(page);
     page.on("pageerror",error=>evidence.errors.push(error.name));
     await page.goto(`${origin}/app`,{waitUntil:"domcontentloaded"});
@@ -39,6 +39,9 @@ try {
     await page.getByRole("button",{name:"Open your Namecard",exact:true}).waitFor({timeout:60000});
     await page.goto(`${origin}/room/${fixture.slug}`,{waitUntil:"domcontentloaded"});
     await page.locator('[data-map-state="ready"]').waitFor({timeout:60000});
+    await page.getByText("Loading routes…",{exact:true}).waitFor({state:"hidden",timeout:60000});
+    await page.getByRole("button",{name:"Pin",exact:true}).waitFor();
+    assert.equal(await page.getByRole("button",{name:"Pin",exact:true}).isEnabled(),true);
     assert.equal(await page.locator('[data-surface-trigger="map"], [data-surface-trigger="live"]').count(),0);
     assert.equal(await page.getByRole("button",{name:"Join Live",exact:true}).count(),0);
     assert.equal(await page.locator('[data-workspace-pane="chat"]:visible').count(),0);
@@ -50,6 +53,7 @@ try {
   const map=await a.locator('.maplibregl-canvas').elementHandle();assert(map);
   await a.locator('[data-surface-trigger="chat"]').click();
   const chat=a.locator('[data-workspace-pane="chat"]');await chat.waitFor();
+  await chat.getByText("Loading messages…",{exact:true}).waitFor({state:"hidden",timeout:60000});
   const draft=chat.getByPlaceholder("Message…",{exact:true});
   await draft.fill("Synthetic FP4 draft — do not send");
   await a.locator('[data-surface-trigger="hall"]').click();
@@ -70,6 +74,7 @@ try {
   step="legacy Live URL";
   await a.goto(`${origin}/room/${fixture.slug}/live`,{waitUntil:"domcontentloaded"});
   await a.locator('[data-map-state="ready"]').waitFor({timeout:60000});
+  await a.getByText("Loading routes…",{exact:true}).waitFor({state:"hidden",timeout:60000});
   assert.equal(await a.locator('.live-panel').count(),0);
   for(const page of pages){
     const metrics=await page.evaluate(()=>window.__liveQa.snapshot());
@@ -81,6 +86,18 @@ try {
   step="responsive composition";
   for(const [width,height] of [[320,800],[390,844],[430,932],[768,1024],[1440,1000],[1728,1100],[844,390]]){
     await a.setViewportSize({width,height});
+    await a.waitForFunction(()=>{
+      const root=document.querySelector('.workspace-composition'), header=document.querySelector('.conversation-header');
+      if(!root||!header)return false;
+      return parseFloat(getComputedStyle(root).getPropertyValue('--map-overlay-top'))>=header.getBoundingClientRect().bottom-root.getBoundingClientRect().top+11;
+    });
+    await a.screenshot({path:`${directory}/canvas-${width}x${height}.png`});
+    const geometry=await a.evaluate(()=>{
+      const selectors=['.maplibregl-ctrl-zoom-in','.maplibregl-ctrl-zoom-out','[data-map-overlay="search"]','[data-map-overlay="tray"]','.maplibregl-ctrl-attrib'];
+      return selectors.map(selector=>{const el=document.querySelector(selector),r=el?.getBoundingClientRect();const hit=r&&document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);return {selector,visible:!!el?.checkVisibility(),inside:!!r&&r.left>=0&&r.top>=0&&r.right<=innerWidth+1&&r.bottom<=innerHeight+1,uncovered:!!el&&!!hit&&el.contains(hit)};});
+    });
+    assert(geometry.every(item=>item.visible&&item.inside),`Map overlays inside ${width}x${height}`);
+    assert(geometry.every(item=>item.uncovered),`Map controls are not covered ${width}x${height}`);
     await a.locator('[data-surface-trigger="chat"]').click();
     await a.locator('[data-workspace-pane="chat"]').waitFor();
     assert(await a.getByRole("button",{name:"Close Chat companion",exact:true}).isVisible());
@@ -88,7 +105,7 @@ try {
     await a.screenshot({path:`${directory}/composition-${width}x${height}.png`});
     await a.getByRole("button",{name:"Close Chat companion",exact:true}).click();
   }
-  record("Seven viewport sizes: panel switching/close and no document overflow");
+  record("Seven viewport sizes: Map controls/tray/search/attribution inside viewport; panel switching/close; no document overflow");
   assert.deepEqual(evidence.errors,[]);
   evidence.pass=true;
 }catch(error){evidence.failedStep=step;evidence.failureType=error.name;console.error(JSON.stringify({pass:false,step,errorType:error.name}));process.exitCode=1;

@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { MapPin, Search, List, Map as MapIcon, ChevronDown, ChevronUp } from "lucide-react";
 import { readTripAction, mutateTripAction } from "@/server/trips/actions";
 import { ACTIVITY_REFRESH, CONVERSATION_ACCESS_LOST, TRIP_REFRESH } from "@/lib/realtime-contract";
@@ -21,6 +21,7 @@ import { TripComments } from "./trip-comments";
 import { useLocalMapLocation } from "./use-local-map-location";
 import { useToskerIdentity } from "./tosker-identity";
 import { TripCopyPlace } from "./trip-copy-place";
+import { MAP_FIRST_BETA } from "@/lib/beta-features";
 import TripPointInspector from "./trip-point-inspector";
 import styles from "./room-map-workspace.module.css";
 import { useSharedLocation } from "./use-shared-location";
@@ -29,6 +30,8 @@ import { SharedLocationPeers } from "./shared-location-markers";
 
 type Preview = { candidate: PlaceCandidate; token: string; nearby?: Preview[] };
 type Pending = Parameters<typeof mutateTripAction>[0];
+const shortViewport=()=>window.matchMedia("(max-height:500px)").matches;
+const subscribeViewport=(notify:()=>void)=>{const media=window.matchMedia("(max-height:500px)");media.addEventListener("change",notify);return()=>media.removeEventListener("change",notify);};
 export default function TripWorkspace({ roomSlug, conversationId, contextName }: { roomSlug: string; conversationId: string; contextName: string }) {
   const sandbox=roomSlug.startsWith("sandbox--");
   const [copyPlace,setCopyPlace]=useState<{id:string;revision:number}|null>(null);
@@ -47,7 +50,9 @@ export default function TripWorkspace({ roomSlug, conversationId, contextName }:
   const [originAsked, setOriginAsked] = useState<string | null>(null);
   const [roadEnabled, setRoadEnabled] = useState(false);
   const [roadMode, setRoadMode] = useState<RoadMode>("walk");
-  const [collapsed,setCollapsed]=useState(false);
+  const short=useSyncExternalStore(subscribeViewport,shortViewport,()=>false);
+  const [trayChoice,setTrayChoice]=useState<boolean|null>(null);
+  const collapsed=trayChoice??(MAP_FIRST_BETA&&short);
   const [moving,setMoving]=useState<{id:string;latitude:number;longitude:number;revision:number}|null>(null);
   const [preferences, setPreferences] = useState<{ activeId: string | null; ghosts: string[]; hidden: string[]; hiddenRoutes: string[] }>({ activeId: null, ghosts: [], hidden: [], hiddenRoutes: [] });
   const identity = useToskerIdentity();
@@ -247,13 +252,13 @@ export default function TripWorkspace({ roomSlug, conversationId, contextName }:
   const closeInspector = () => { if (busy) return; request.current?.abort(); setSearching(false); setPreview(null); setSelectedId(null); setNotice(""); };
   const inspector = (preview || selectedPlace) && <TripPointInspector key={preview ? `preview:${preview.candidate.latitude}:${preview.candidate.longitude}:${route?.id}` : selectedPlace?.id} candidate={preview?.candidate} nearby={preview?.nearby?.map(p=>p.candidate)} chooseNearby={index=>{const choice=preview?.nearby?.[index];if(choice){setPreview(choice);setNotice("Review this known place at its own position. Nothing is saved until Add to Route.");}}} place={selectedPlace} title={previewTitle ?? selectedPlace?.title ?? "Place"} routeName={route?.name} revision={plan?.revision ?? 0} disabled={disabled} ready={!!preview?.token} busy={busy} close={closeInspector} add={() => { if (preview?.token) void change({ type:"add", token:preview.token, routeId:route?.id ?? null }); }} comments={() => { if(selectedPlace)setCommentId(selectedPlace.id); }} change={change} />;
   return <section className={styles.workspace} data-tray-collapsed={collapsed} aria-label="Trip Map" data-trip-revision={plan?.revision} onClick={event => { if (!(event.target as Element).closest('button, a, input, textarea, select, summary, [role="dialog"], [data-place-id], [data-map-inspector], .maplibregl-map')) setSelectedId(null); }}>
-    <div className={styles.mobileViews} aria-label="Map view"><button aria-pressed={view === "map"} onClick={() => setView("map")}><MapIcon size={16} aria-hidden="true" />Map</button><button aria-pressed={view === "places"} onClick={() => setView("places")}><List size={16} aria-hidden="true" />Places ({places.length})</button></div>
+    {!MAP_FIRST_BETA && <div className={styles.mobileViews} aria-label="Map view"><button aria-pressed={view === "map"} onClick={() => setView("map")}><MapIcon size={16} aria-hidden="true" />Map</button><button aria-pressed={view === "places"} onClick={() => setView("places")}><List size={16} aria-hidden="true" />Places ({places.length})</button></div>}
     {error && <div className={styles.feedback} role="alert"><p>{error}</p>{pending ? <button disabled={busy} onClick={() => void write(pending)}>Retry same change</button> : <div className={styles.actions}><button onClick={() => void load()}>Refresh locations</button>{query.trim().length >= 3 && <button disabled={searching} onClick={() => setSearchAttempt(value => value+1)}>Retry search</button>}</div>}</div>}
-    <div className={`${styles.mapPlane} ${view === "places" ? styles.mobileMapHidden : ""}`}>
+    <div data-map-plane className={`${styles.mapPlane} ${!MAP_FIRST_BETA && view === "places" ? styles.mobileMapHidden : ""}`}>
       <SharedLocationPeers value={sharing.peers}>
       <TripMapCanvas pings={pings.pings} privateOrigin={plan ? localLocation.origin : null} privateRoad={privateRoute.road} viewerAvatarUrl={identity?.avatarUrl} inspector={inspector} mapPins={[]} selectedPinId={null} onSelectPin={()=>{}} places={places} canMove={!disabled&&!moving&&!preview} onMove={(id,latitude,longitude)=>{if(plan)setMoving({id,latitude,longitude,revision:plan.revision});}} estimate={road?.estimate?road:undefined} roadFit={roadFit?.routeId === route?.id && roadFit?.key === road?.key ? roadFit?.sequence ?? 0 : 0} hiddenIds={preferences.hidden} activeVisible={!route || !preferences.hiddenRoutes.includes(route.id)} routes={mapRoutes} roads={roads} roadMode={roadMode} roadEnabled={roadEnabled} localLocation={plan ? localLocation.location : null} onDeselect={closeInspector} snapshotReady={!!plan} candidate={preview?.candidate ?? null} selectedId={selectedId} onSelect={select} onSelectGhost={(routeId, id) => { prefer({ ...preferences, activeId: routeId }); setArchived(false); select(id); }} pinMode={pinMode && !disabled} onPin={(lat, lon) => void pin(lat, lon)} />
       </SharedLocationPeers>
-    <div className={styles.searchPanel}>
+    <div data-map-overlay="search" className={styles.searchPanel}>
       <div className={styles.toolbar}>
         <label className={styles.search}><Search size={18} aria-hidden="true" /><span className={styles.srOnly}>Search places worldwide</span><input aria-label="Search places" placeholder="Search places worldwide" maxLength={160} disabled={disabled} value={query} onChange={event => { request.current?.abort(); setSearching(false); setQuery(event.target.value); setResults([]); setSearched(false); setPinMode(false); setPreview(null); setNotice(""); }} /></label>
         <select aria-label="Travel mode" className={styles.control} value={roadEnabled ? roadMode : "planning"} onChange={e => { setRoadEnabled(e.target.value !== "planning"); if (e.target.value !== "planning") setRoadMode(e.target.value as RoadMode); }}><option value="planning">Order</option><option value="walk">Walk</option><option value="drive">Drive</option></select>
@@ -274,8 +279,8 @@ export default function TripWorkspace({ roomSlug, conversationId, contextName }:
       <p className={styles.attribution}><a href="https://www.geoapify.com/" target="_blank" rel="noopener noreferrer">Search by Geoapify</a></p>
     </div>
     </div>
-    <section className={`${styles.cards} ${view === "map" ? styles.mobileMapHidden : ""}`} aria-label="Trip places">
-      <button className={styles.trayToggle} aria-label={collapsed?"Expand locations":"Collapse locations"} title={collapsed?"Expand locations":"Collapse locations"} aria-expanded={!collapsed} onClick={()=>setCollapsed(value=>!value)}>{collapsed?<ChevronUp size={18} aria-hidden="true"/>:<ChevronDown size={18} aria-hidden="true"/>}</button>
+    <section data-map-overlay="tray" className={`${styles.cards} ${!MAP_FIRST_BETA && view === "map" ? styles.mobileMapHidden : ""}`} aria-label="Trip places">
+      <button className={styles.trayToggle} aria-label={collapsed?"Expand locations":"Collapse locations"} title={collapsed?"Expand locations":"Collapse locations"} aria-expanded={!collapsed} onClick={()=>setTrayChoice(!collapsed)}>{collapsed?<ChevronUp size={18} aria-hidden="true"/>:<ChevronDown size={18} aria-hidden="true"/>}</button>
       {archived && <div className={styles.libraryState}><span>Archived locations in {route?.name}</span><button className={styles.control} onClick={() => { setArchived(false); }}>Back to route</button></div>}
       {plan && <TripRouteControls scope={roomSlug} plan={plan} activeId={route?.id ?? null} ghosts={preferences.ghosts} hiddenRoutes={preferences.hiddenRoutes} showArchive={() => { setArchived(true); }} disabled={disabled} activate={id => { prefer({ ...preferences, activeId: id }); setArchived(false); setSelectedId(null); }} ghost={id => prefer(id === route?.id ? { ...preferences, hiddenRoutes: preferences.hiddenRoutes.includes(id) ? preferences.hiddenRoutes.filter(r => r !== id) : [...preferences.hiddenRoutes,id] } : { ...preferences, ghosts: preferences.ghosts.includes(id) ? preferences.ghosts.filter(g => g !== id) : [...preferences.ghosts,id], hiddenRoutes: preferences.hiddenRoutes.filter(r => r !== id) })} change={change} />}
       {!plan ? <p className={styles.helper} role="status">Loading routes…</p> : <>

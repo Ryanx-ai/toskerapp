@@ -8,6 +8,7 @@ import type { WorkspaceSurface } from "@/lib/workspace-surfaces";
 import { surfaceAvailable, surfaceIsVisible, surfaceNames, workspaceSurfaces, type CompositionAction, type SurfaceCapabilities, type WorkspaceComposition } from "@/lib/workspace-composition";
 import { AttentionMark } from "./attention-mark";
 import { MapWorkspaceActions } from "./map-workspace-actions";
+import { useMapOverlayLayout } from "./use-map-overlay-layout";
 
 const icons = { map: MapIcon, hall: LayoutDashboard, live: Radio, chat: MessageCircle };
 export function CompositionNavigation({ composition, capabilities, choose, chatUnread, hallUnread }: {
@@ -43,6 +44,7 @@ export function WorkspacePanels({ composition, foreground, wide, choose, focusSu
   const [visited, setVisited] = useState<WorkspaceSurface[]>(visible);
   if (visible.some(surface => !visited.includes(surface))) setVisited([...new Set([...visited, ...visible])]);
   const root = useRef<HTMLDivElement>(null);
+  useMapOverlayLayout(root, !!composition.mapCanvas, wide && !!composition.companion);
   const [mapCompanion, setMapCompanion] = useState<"chat" | "hall" | "live" | null>(null);
   const mapActions = composition.primary === "map" && (composition.companion || mapCompanion) ? {
     expanded: !composition.companion,

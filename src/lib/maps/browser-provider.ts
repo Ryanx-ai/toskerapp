@@ -13,7 +13,7 @@ export function getBrowserMapProvider(key = process.env.NEXT_PUBLIC_GEOAPIFY_MAP
   if (!key || !/^[A-Za-z0-9_-]{16,128}$/.test(key)) return null;
   return {
     id: "geoapify",
-    styleUrl: `https://maps.geoapify.com/v1/styles/dark-matter/style.json?apiKey=${encodeURIComponent(key)}`,
+    styleUrl: `https://maps.geoapify.com/v1/styles/osm-bright-smooth/style.json?apiKey=${encodeURIComponent(key)}`,
     attribution: '<a href="https://www.geoapify.com/" target="_blank" rel="noopener noreferrer">Geoapify</a> | <a href="https://openmaptiles.org/" target="_blank" rel="noopener noreferrer">OpenMapTiles</a> | <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap contributors</a>',
   };
 }

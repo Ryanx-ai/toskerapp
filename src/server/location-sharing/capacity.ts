@@ -2,9 +2,12 @@ import "server-only";
 import { sql } from "drizzle-orm";
 import type { ToskerDatabase } from "../db/client";
 import { CleanupPolicyError } from "./cleanup-policy";
+import { isIsolatedReview } from "../accounts/isolated-review";
 
 export const LOCATION_DAILY_READS = 2000;
 export const LOCATION_SESSION_CHECKS_PER_WINDOW = 30;
+export const LOCATION_REVIEW_DAILY_READS = 800;
+export const LOCATION_REVIEW_DAILY_CONSENTS = 20;
 const CAPACITY_REVIEW_MS = 7 * 24 * 60 * 60 * 1000;
 
 /** Operator attestation after actual account headroom checks, not a permanent
@@ -15,27 +18,47 @@ export function locationCapacityVerified(now=Date.now(), value=process.env.TOSKE
   return Number.isFinite(at)&&at<=now&&now-at<CAPACITY_REVIEW_MS;
 }
 
-/** Two anonymous global counters reuse the existing distributed budget store.
- * No actor/context/location fields and no per-read history. These exact scope
- * names never touch Geoapify's counters. Charge outside the read transaction:
- * an auth/provider failure must not refund spent capacity. Partial admission
- * charges are deliberately conservative. Stop/expiry never call this function. */
-export async function reserveLocationRead(db:Pick<ToskerDatabase,"execute">,sessionChecks:number){
-  if(!Number.isInteger(sessionChecks)||sessionChecks<1||sessionChecks>LOCATION_SESSION_CHECKS_PER_WINDOW)throw new CleanupPolicyError();
-  const r=await db.execute(sql`with clock as materialized(select clock_timestamp() t),
-    buckets as (
-      select 'location:reads:day'::text scope,to_char(t at time zone 'UTC','YYYY-MM-DD') bucket_window,1 cost,t from clock
-      union all
-      select 'location:session-checks:10s',floor(extract(epoch from t)/10)::bigint::text,${sessionChecks},t from clock
-    ), admitted as (
+/** Autocommit reservation, before service work. Call with the root DB, never
+ * the request's transaction: later errors/rollbacks must not refund it.
+ * Same rows as FP3, so rolling deployment cannot open a second allowance. */
+export async function reserveLocationRequest(db:Pick<ToskerDatabase,"execute">,action:"current"|"begin") {
+  const review=isIsolatedReview();
+  const eligible=sql`(${!review} or to_char(t at time zone 'UTC','YYYY-MM-DD')>'2026-10-26')`;
+  // Unknown historical review traffic is held, NOT invented as zero usage.
+  if(action==="begin") {
+    const r=await db.execute(sql`with clock as materialized(select clock_timestamp() t)
+      insert into location_cleanup_budget(day,reserved)
+      select to_char(t at time zone 'UTC','YYYY-MM-DD'),1 from clock where ${eligible}
+      on conflict(day) do update set reserved=location_cleanup_budget.reserved+1
+      where location_cleanup_budget.reserved<${review?LOCATION_REVIEW_DAILY_CONSENTS:100}
+      returning reserved`);
+    if(r.rows.length!==1)throw new CleanupPolicyError();
+    return;
+  }
+  const r=await db.execute(sql`with clock as materialized(select clock_timestamp() t), admitted as (
       insert into map_provider_usage(scope,"window",used,last_at)
-      select scope,bucket_window,cost,t from buckets order by scope
+      select 'location:reads:day',to_char(t at time zone 'UTC','YYYY-MM-DD'),1,t from clock where ${eligible}
       on conflict(scope) do update set "window"=excluded."window",
         used=case when map_provider_usage."window"=excluded."window" then map_provider_usage.used+excluded.used else excluded.used end,
         last_at=excluded.last_at
-      where (case when map_provider_usage."window"=excluded."window" then map_provider_usage.used+excluded.used else excluded.used end)
-        <=case when excluded.scope='location:reads:day' then ${LOCATION_DAILY_READS}::integer else ${LOCATION_SESSION_CHECKS_PER_WINDOW}::integer end
+      where map_provider_usage."window"<=excluded."window" and
+        (case when map_provider_usage."window"=excluded."window" then map_provider_usage.used+1 else 1 end)<=${review?LOCATION_REVIEW_DAILY_READS:LOCATION_DAILY_READS}
       returning 1
     ) select count(*)::int n from admitted`);
-  if(Number(r.rows[0]?.n)!==2)throw new CleanupPolicyError();
+  if(Number(r.rows[0]?.n)!==1)throw new CleanupPolicyError();
+}
+
+/** Charge immediately before external session validation. Safety-only Stop
+ * remains exempt so a capacity outage cannot trap a shared snapshot. */
+export async function reserveLocationSessionChecks(db:Pick<ToskerDatabase,"execute">,cost=1) {
+  if(!Number.isInteger(cost)||cost<1||cost>LOCATION_SESSION_CHECKS_PER_WINDOW)throw new CleanupPolicyError();
+  const r=await db.execute(sql`with clock as materialized(select clock_timestamp() t)
+    insert into map_provider_usage(scope,"window",used,last_at)
+    select 'location:session-checks:10s',floor(extract(epoch from t)/10)::bigint::text,${cost},t from clock
+    on conflict(scope) do update set "window"=excluded."window",
+      used=case when map_provider_usage."window"=excluded."window" then map_provider_usage.used+excluded.used else excluded.used end,last_at=excluded.last_at
+    where map_provider_usage."window"::bigint<=excluded."window"::bigint and
+      (case when map_provider_usage."window"=excluded."window" then map_provider_usage.used+excluded.used else excluded.used end)<=${LOCATION_SESSION_CHECKS_PER_WINDOW}
+    returning used`);
+  if(r.rows.length!==1)throw new CleanupPolicyError();
 }

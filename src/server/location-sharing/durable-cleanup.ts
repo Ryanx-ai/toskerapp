@@ -11,13 +11,11 @@ export type CleanupPublisher = (message: unknown, options: { retentionSeconds: n
 const queue = new QueueClient({ region: "iad1", telemetry: { isEnabled: false } });
 const publish: CleanupPublisher = (message, options) => queue.send(LOCATION_CLEANUP_TOPIC, message, options);
 
-/** Call only AFTER actor/session/context checks and per-actor rate admission.
- * Failed attempts consume capacity too; retry never resets the global budget. */
+/** The service already charged the consent attempt outside this transaction.
+ * Do not increment it again when creating its cleanup reservation. */
 export async function reserveCleanup(tx: ToskerTransaction): Promise<CleanupReservation> {
-  const counters = (await tx.execute(sql`insert into location_cleanup_budget(day,reserved)
-    values(to_char(clock_timestamp() at time zone 'UTC','YYYY-MM-DD'),1)
-    on conflict(day) do update set reserved=location_cleanup_budget.reserved+1
-    where location_cleanup_budget.reserved<100 returning reserved`)).rows;
+  const counters = (await tx.execute(sql`select reserved from location_cleanup_budget
+    where day=to_char(clock_timestamp() at time zone 'UTC','YYYY-MM-DD') and reserved between 1 and 100`)).rows;
   if(counters.length!==1) throw new CleanupPolicyError();
   const id=randomUUID(), nonce=randomUUID();
   const r=(await tx.execute(sql`with clock as (select date_trunc('milliseconds',clock_timestamp()) t)

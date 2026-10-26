@@ -15,8 +15,10 @@ import { contextualName } from "@/server/profiles/context-name";
 import { approvedAvatarUrl } from "@/lib/identity-visual";
 import { lockLocalLocationActors, lockLocationReadContext } from "./read-scope";
 import { assertSyntheticLocationPoint, localLocationWorker, lockHealthyLocationWorker, WORKER_HEALTH_MS } from "./local-qa";
+import { reserveLocationRequest, reserveLocationSessionChecks } from "./capacity";
 
-type Dependencies = { session: typeof assertRealtimeSession; notify: (conversationId: string) => Promise<void> };
+type Dependencies = { session: typeof assertRealtimeSession; notify: (conversationId: string) => Promise<void>;
+  readBudget:(db:ToskerDatabase)=>Promise<void>;consentBudget:(db:ToskerDatabase)=>Promise<void>;sessionBudget:typeof reserveLocationSessionChecks };
 export class LocationRevisionConflict extends Error {}
 const lease = (r: typeof locationShares.$inferSelect): LocationLease => ({ id: r.id, conversationId: r.conversationId, userId: r.userId, precision: r.precision as LocationPrecision, expiresAt: r.expiresAt.getTime() });
 const snapshot = (consent: typeof locationShares.$inferSelect, r: typeof locationLatest.$inferSelect): LatestLocationSnapshot => ({
@@ -37,10 +39,12 @@ async function rate(tx: ToskerTransaction, userId: string, operation: string) {
 
 /** Local synthetic-QA candidate. No payload enters Ably, a queue or a log. */
 export function latestLocationService(db: ToskerDatabase, overrides: Partial<Dependencies> = {}) {
-  const deps: Dependencies = { session: assertRealtimeSession, notify: notifyLocationChanged, ...overrides };
+  const deps: Dependencies = { session: assertRealtimeSession, notify: notifyLocationChanged,
+    readBudget:db=>reserveLocationRequest(db,"current"),consentBudget:db=>reserveLocationRequest(db,"begin"),sessionBudget:reserveLocationSessionChecks,...overrides };
+  const session=async(actor:AuthenticatedActor,id:string)=>{await deps.sessionBudget(db);await deps.session(actor,id);};
   const notify = async (contexts: string[]) => { await Promise.allSettled([...new Set(contexts)].map(id => deps.notify(id))); };
   async function current(tx: ToskerTransaction, actor: AuthenticatedActor, sessionId: string, id: string) {
-    await lockActorTokens(tx, actor.userId); await deps.session(actor, sessionId);
+    await lockActorTokens(tx, actor.userId); await session(actor, sessionId);
     const [row] = await tx.select().from(locationShares).where(and(eq(locationShares.id, id), eq(locationShares.userId, actor.userId)));
     if (!row || row.sessionId !== sessionId || row.expiresAt.getTime() <= Date.now()) throw new AuthorizationDeniedError();
     await localLocationWorker(actor.userId, row.conversationId);
@@ -49,11 +53,12 @@ export function latestLocationService(db: ToskerDatabase, overrides: Partial<Dep
   }
   return {
     async begin(actor: AuthenticatedActor, sessionId: string, conversationId: string, precision: LocationPrecision) {
+      await deps.consentBudget(db);
       if (!isConversationId(conversationId) || !["area", "precise"].includes(precision)) throw new TypeError();
       const config = await localLocationWorker(actor.userId, conversationId);
       const result = await db.transaction(async tx => {
         await lockHealthyLocationWorker(tx, config, LOCATION_TTL);
-        await lockActorTokens(tx, actor.userId); await deps.session(actor, sessionId);
+        await lockActorTokens(tx, actor.userId); await session(actor, sessionId);
         await context(tx, actor, conversationId);
         const audience = (await tx.execute(sql`select u.id from conversations c cross join users u where c.id=${conversationId}::uuid and ${authorizedContext(sql`u.id`)} limit 51`)).rows;
         if (!audience.length || audience.length > 50) throw new AuthorizationDeniedError();
@@ -111,13 +116,14 @@ export function latestLocationService(db: ToskerDatabase, overrides: Partial<Dep
       await notify(retired.map(r => r.conversationId));
     },
     async read(actor: AuthenticatedActor, sessionId: string, conversationId: string): Promise<LocationCurrentView> {
+      await deps.readBudget(db);
       if (!isConversationId(conversationId)) throw new TypeError();
       const config = await localLocationWorker(actor.userId, conversationId);
       return db.transaction(async tx => {
         await tx.execute(sql`set local statement_timeout='4s'`);
         const worker = await lockHealthyLocationWorker(tx, config);
         await lockLocalLocationActors(tx, config.userIds);
-        await deps.session(actor, sessionId); await lockLocationReadContext(tx, conversationId);
+        await session(actor, sessionId); await lockLocationReadContext(tx, conversationId);
         // A fresh post-lock statement authorizes the viewer AND every source.
         // Start from the context so an authorized empty view has one null peer
         // row, whereas an unauthorized context has zero rows (and is denied).
@@ -133,7 +139,7 @@ export function latestLocationService(db: ToskerDatabase, overrides: Partial<Dep
         for (const row of rows) {
           if (!row.consent || !row.payload || !row.user || !row.profileUserId) continue;
           try {
-            await deps.session({ userId: row.user.id, authProvider: row.user.authProvider, authSubject: row.user.authSubject }, row.consent.sessionId);
+            await session({ userId: row.user.id, authProvider: row.user.authProvider, authSubject: row.user.authSubject }, row.consent.sessionId);
             if (row.consent.expiresAt.getTime() > Date.now()) permitted.push({ ...row, consent: row.consent, payload: row.payload, user: row.user });
           } catch { /* A revoked/unverifiable source is omitted, never cached. */ }
         }

@@ -232,6 +232,13 @@
       "when": 1791913394255,
       "tag": "0032_ms74_fp3_durable_location_fence",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1793011595252,
+      "tag": "0033_ms74_fp4_atomic_route_move",
+      "breakpoints": true
     }
   ]
 }

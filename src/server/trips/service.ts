@@ -35,7 +35,7 @@ function normalize(input: TripMutation): TripMutation {
   const c = input.command;
   switch (c.type) {
     case "add": return { ...base, command: { type: c.type, candidate: validateCandidate(c.candidate), routeId: c.routeId === null ? null : uuid(c.routeId) } };
-    case "copy-place": return { ...base, command: { type:c.type, placeId:uuid(c.placeId), routeId:uuid(c.routeId) } };
+    case "copy-place": case "move-place": return { ...base, command: { type:c.type, placeId:uuid(c.placeId), routeId:uuid(c.routeId) } };
     case "copy-route": {
       if(!Number.isSafeInteger(c.sourceRevision)||c.sourceRevision<0||c.sourceScope===base.roomSlug)return invalid();
       return {...base,command:{type:c.type,sourceScope:text(c.sourceScope,150),sourceRevision:c.sourceRevision,routeId:uuid(c.routeId)}};
@@ -174,6 +174,21 @@ export async function mutateTrip(db: ToskerDatabase, actor: AuthenticatedActor, 
       const created=await makeRoute(name,sourceRoute.color as TripColor);
       if(active.length)await tx.insert(tripPlaces).values(active.map((p,position)=>({planId:plan.id,routeId:created.id,position,...copyPlaceFields(p)})));
       resultId=created.id;
+    } else if (c.type === "move-place") {
+      const source=await requirePlace(c.placeId);
+      if(source.archivedAt||source.routeId===c.routeId)return invalid();
+      const sourceRoute=await requireRoute(source.routeId);
+      await requireRoute(c.routeId);
+      const original=await members(source.routeId),destination=await members(c.routeId);
+      if(original.some(p=>p.position>=source.position&&sourceRoute.lockedPositions.includes(p.position)))
+        throw new TripError("invalid","Unlock the affected source positions before moving this location.");
+      if(destination.some(p=>(source.provider&&source.providerId&&p.provider===source.provider&&p.providerId===source.providerId)||(Math.abs(p.latitude-source.latitude)<0.000001&&Math.abs(p.longitude-source.longitude)<0.000001)))
+        throw new TripError("invalid","This place already exists in the destination, including archived places. Nothing was moved or merged.");
+      await tx.execute(sql`select set_config('tosker.trip_move',${`${source.id}:${c.routeId}`},true)`);
+      await tx.update(tripPlaces).set({routeId:c.routeId,position:destination.length,updatedAt:new Date()}).where(placeScope(source.id));
+      await tx.execute(sql`select set_config('tosker.trip_move','',true)`);
+      await orderCards(source.routeId,original.filter(p=>p.id!==source.id).map(p=>p.id));
+      resultId=source.id;
     } else if (c.type === "copy-place") {
       const source = await requirePlace(c.placeId);
       if (source.archivedAt || source.routeId === c.routeId) return invalid();

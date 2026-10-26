@@ -55,13 +55,13 @@ export default function TripRouteControls({ scope, plan, activeId, ghosts, hidde
         <button disabled={disabled || visible.at(-1)?.id === menuRoute.id} onClick={() => { const i=visible.findIndex(r=>r.id===menuRoute.id); if(i<visible.length-1)move(menuRoute.id,visible[i+1].id); }}><ArrowRight size={16} aria-hidden="true" />Move later</button>
         <button disabled={disabled||menuRoute.archived} onClick={() => {setMenu(null);setShare({id:menuRoute.id,name:menuRoute.name,revision:plan.revision});}}><Share2 size={16} aria-hidden="true" />Share</button>
         <button disabled={disabled} onClick={async () => { if(await change({type:"archive-route",routeId:menuRoute.id,archived:true}))setMenu(null); }}><Archive size={16} aria-hidden="true" />Archive</button>
-        <button className="fp3-nuke-action" disabled={disabled} onClick={()=>{setNuke({id:menuRoute.id,name:menuRoute.name,revision:plan.revision});setMenu(null);}}><Trash2 size={16} aria-hidden="true" />Nuke route</button>
+        <button className={styles.dangerAction} disabled={disabled} onClick={()=>{setNuke({id:menuRoute.id,name:menuRoute.name,revision:plan.revision});setMenu(null);}}><Trash2 size={16} aria-hidden="true" />Nuke route</button>
       </> : <>{plan.routes.filter(r=>r.archived).map(r=><button key={r.id} disabled={disabled} onClick={async()=>{if(await change({type:"archive-route",routeId:r.id,archived:false})){activate(r.id);setMenu(null);}}}>Restore {r.name}</button>)}</>}
     </div></InteractionPopover>}
     {nuke && <ModalLayer onClose={()=>{if(!disabled)setNuke(null);}}><section className={`creation-panel ${styles.placeDialog}`} aria-label="Nuke route confirmation">
-      <h2>Nuke {nuke.name}?</h2><p>This removes the route and all its locations and comments for everyone. This cannot be undone.</p>
+      <h2>Nuke {nuke.name}?</h2><p>This removes the route and all its locations and comments for everyone. Independent Map Pins stay unchanged. This cannot be undone.</p>
       {nuke.revision!==plan.revision && <p role="alert">The trip changed. Cancel and review it before removing.</p>}
-      <div className={styles.actions}><button className="quiet-action" disabled={disabled} onClick={()=>setNuke(null)}>Cancel</button><button className="primary-action fp3-nuke-action" disabled={disabled||nuke.revision!==plan.revision} onClick={async()=>{if(await change({type:"nuke-route",routeId:nuke.id},nuke.revision)){setNuke(null);setProposal(null);}}}>Nuke route</button></div>
+      <div className={styles.actions}><button autoFocus className={styles.control} disabled={disabled} onClick={()=>setNuke(null)}>Cancel</button><button className={styles.dangerConfirm} disabled={disabled||nuke.revision!==plan.revision} onClick={async()=>{if(await change({type:"nuke-route",routeId:nuke.id},nuke.revision)){setNuke(null);setProposal(null);}}}>Nuke route</button></div>
     </section></ModalLayer>}
     {share && <TripShareRoute source={scope} routeId={share.id} name={share.name} revision={share.revision} currentRevision={plan.revision} close={()=>setShare(null)}/>}
     {(editing || proposal) && <ModalLayer onClose={() => {if(!disabled){setEditing(null);setProposal(null);}}}><section className={`creation-panel ${styles.placeDialog}`}>

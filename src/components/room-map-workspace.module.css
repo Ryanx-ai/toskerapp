@@ -232,6 +232,13 @@
 .cardMenu > button { display:flex; align-items:center; gap:10px; min-height:44px; padding:10px 12px; border:0; border-radius:10px; background:transparent; color:var(--text-primary); font:inherit; font-size:13px; text-align:left; cursor:pointer; }
 .cardMenu > button:hover { background:var(--surface-hover); }
 .cardMenu > button:disabled { opacity:.5; cursor:not-allowed; }
+.cardMenu > hr { margin:0 6px; border:0; border-top:1px solid var(--border); }
+.cardMenu > .dangerAction { color:#ff9cae; background:#382029; }
+.cardMenu > .dangerAction:hover:not(:disabled) { background:#492631; }
+.dangerConfirm { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:44px; padding:10px 16px; border:1px solid #e16b80; border-radius:10px; background:#a11e3b; color:#fff; font:600 14px/1.4 var(--font-inter),sans-serif; cursor:pointer; }
+.dangerConfirm:hover:not(:disabled) { background:#b52444; }
+.dangerConfirm:disabled { opacity:.5; cursor:not-allowed; }
+.infoActions { display:grid; gap:12px; margin:16px 0; padding-top:16px; border-top:1px solid var(--border); }
 .cardMenu fieldset { max-height:180px; overflow:auto; }
 .placeDialog { width:min(520px,calc(100vw - 24px)); padding:28px; }
 .placeDialog h2 { padding-right:40px; overflow-wrap:anywhere; }

@@ -17,6 +17,7 @@ export type TripSnapshot = { revision: number; places: TripPlace[]; routes: Trip
 export type TripCommand =
   | { type: "add"; candidate: PlaceCandidate; routeId: string | null }
   | { type: "copy-place"; placeId: string; routeId: string }
+  | { type: "move-place"; placeId: string; routeId: string }
   | { type: "copy-route"; sourceScope: string; sourceRevision: number; routeId: string }
   | { type: "edit-place"; placeId: string; title: string; note: string }
   | { type: "rename-checkpoint"; placeId: string; title: string }

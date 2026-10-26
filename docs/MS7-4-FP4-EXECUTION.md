@@ -1,6 +1,16 @@
 # MS7.4 FP4 — Map-first Beta consolidation
 
-27 October 2026, Singapore. **Founder approved the bounded 30–44-hour existing-role wave. C.3 offline expiry repair; live QA remains held by an unverifiable same-day budget. No deployment.** MS7.4 remains unlocked.
+27 October 2026, Singapore. **Final authorization A/B: server accounting implemented and shadow verification passed. Live QA remains held by unverifiable26OctoberUTC usage. No deployment.** MS7.4 remains unlocked.
+
+## Final authorization A / B — server accounting and verified hard stop
+
+Recovered`8084aad`, read-only R checkpoint`89583a6`; application/test checkpoint **`db3018e0a87bd9bdb5aac6b87d5d761dbe0101b8`**. [Accounting contract and evidence](MS7-4-FP4-REQUEST-ACCOUNTING.md) records exact paths, scopes, tests, remaining gates and rollback.
+
+Both local and hosted latest-state service entrypoints now atomically reserve reads and consent attempts outside subsequent transactions; existing counters/caps reused. Actual session checks are metered; authenticated Stop/expiry/deletion remain independent. Three-worker concurrency, rollback/failure persistence, restart, UTC rollover/backwards-clock rejection, no double consent charge, review800/20 and hosted2000/100 caps PASS in uniquely owned shadow tables. Real counters unchanged; both shadows removed. TypeScript/scoped lint/guarded build/855source43asset secret scans PASS. No migration or provider request.
+
+Actual database clock at the new read-only budget audit is`2026-10-26T16:36:18.566Z`; absent counter rows cannot certify missing historical usage. Remaining allowance remains UNVERIFIABLE; original9/651lower-bound evidence and hold preserved. Zero isolated payloads/active shares/workers. No browser/server/worker start. **Stop live/provider-consuming QA under the founder's explicit capacity gate, not a routine approval request.** NextUTCwindow begins27October08:00SGT; independently audit it before any later QA and replace legacy blanket hold checks with safe server-budget preflight without deleting history.
+
+Fresh authenticated canonical stays READY FP3`a166934b6d348dd84ab9c78f35a73e9ce6f661b1`/`dpl_9NhdBjGXUkTpFzVyhhjJqe9NKP23`. No push/deploy/configuration change. R founder/migration integrity evidence retained; unrelated Art/Design/Web WIP untouched. C–F acceptance/release remain open. Next command `node scripts/audit-ms74-fp4-budget.mjs`; no default root-env startup. Separate-worktree local rollback`89583a6`, no DB rollback or counter reset. This docs checkpoint is resolvable with `git log -1 --format=%H -- docs/MS7-4-FP4-REQUEST-ACCOUNTING.md`.
 
 ## C.3 — authorized recovery and offline deterministic expiry repair
 

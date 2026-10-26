@@ -2,6 +2,14 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP4 final authorization A/B — accounting passed; UTC capacity hard stop
+
+Application/test **`db3018e0a87bd9bdb5aac6b87d5d761dbe0101b8`**, R`89583a6`, recovered`8084aad`. Server-authoritative atomic read/consent accounting now covers local and hosted service paths, including failed/retried/background calls, with persistent existing counters and unchanged caps. Real concurrent shadow tests PASS for3workers,2actors,exhaustion,restart,rollback,UTCrollover,session cap and no double consent debit; public counters unchanged and shadows removed. Scoped lint/TypeScript/guarded build/secret scans PASS. Exact evidence and semantics: [accounting ledger](docs/MS7-4-FP4-REQUEST-ACCOUNTING.md).
+
+**Hard stop persists:** databaseUTC`2026-10-26` at16:36UTC/00:36SGT27October; historical9consents/651reads plus unknown background activity cannot establish remaining allowance. No counters reset, allowance inferred or hold deleted. No live QA/server/worker started; isolated0payloads/active shares/workers. NextUTCday starts27October08:00SGT, but verify actualDBwindow/counters before live tests. Preserve fixed capacity expiry2November20:05SGT. Old harness/worker hold checks still block intentionally; adapt to verified server-budget preflight only after safe later-window proof, retaining historical evidence.
+
+Canonical freshly READY exact FP3`a166934b6d348dd84ab9c78f35a73e9ce6f661b1`/`dpl_9NhdBjGXUkTpFzVyhhjJqe9NKP23`. No push/deploy/main migration/configuration change. Founder/protected fingerprints and33main/34review migration evidence passed at R; unrelated WIP preserved. C–F privacy/UI/hosted/canonical gates remain open; not Founder Walk release-ready. Next safe command `git status --short` then `node scripts/audit-ms74-fp4-budget.mjs`. Root envs target retained main: never default-start. Local rollback via separate worktree`89583a6`, no DB rollback/reset. This separate docs SHA: `git log -1 --format=%H -- docs/MS7-4-FP4-REQUEST-ACCOUNTING.md`. MS7.4 remains UNLOCKED.
+
 ## FP4 C.3 — deterministic expiry fix; same UTC-day capacity blocker
 
 27 October2026 Singapore (26OctoberUTC). Recovered `6992334e1de6173f5742a134ad8b999d47e2b928`; application `4df882b06ca7b1c6d19d2d50775ee74c60fe2400`. Offline test executes the actual private-expiry effect with a deterministic clock. Before fix, early wake lost the timer; repeated post-deadline visibility also repeated expiry. Narrow fix re-arms the same absolute deadline and makes expiry/cancellation idempotent. Six scheduling cases plus existing fixed-origin/refresh contract PASS; scoped lint/TypeScript/guarded optimized build/851source43asset secret scan PASS. This demonstrates a real scheduling defect, **not proof of the earlier browser failure's cause or full end-to-end acceptance**. No privacy consent/TTL/auth/provider architecture changed.

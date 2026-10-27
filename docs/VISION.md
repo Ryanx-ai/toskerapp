@@ -1,10 +1,10 @@
 # Tosker Vision
 
-## Current product direction — 17 October 2026
+## Current product direction — 27 October 2026
 
-**Create a group → Plan together → Go together → Stay connected.** Tosker is a map-native social coordination product with Rooms as its social foundation. Map is the flagship planning surface; Chat, Board and presence-only Live support the same authorized context. Sandbox remains private, Personal Chats stay bounded, and Subrooms must never silently broaden access.
+**Create a group → Plan together → Go together → Stay connected.** Tosker is a fun, map-native trip coordination product with Rooms as its social foundation. Map is the permanent workspace background; Chat and Board are optional translucent companion panels. Live is deferred from Beta, not erased from retained data or authorization. Sandbox remains private, Personal Chats stay bounded, and Subrooms must never silently broaden access.
 
-Current verified FP3 delivers optional, short-lived location sharing through a single Locate entry and explicit broad/precise audience consent. It does not deliver continuous movement, voice/video or background tracking. [Current release evidence](MS7-4-FP3-RELEASE-2026-10-17.md) distinguishes accepted behavior, retention limitations and small founder-review capacity. MS7.4 remains unlocked pending Founder Walk.
+Current verified FP4 preserves optional, short-lived location sharing through a single Locate entry and explicit broad/precise audience consent, with atomic request accounting. It does not deliver continuous movement, voice/video or background tracking. [Current release evidence](MS7-4-FP4-RELEASE-2026-10-27.md) distinguishes accepted behavior, retention limitations and small founder-review capacity. MS7.4 remains unlocked pending Founder Walk; MS7.5 Notifications is research only.
 
 Rooms own identity, membership and durable collaboration; adapters/renderers/providers do not. Independent Map Pins and Route-owned Locations remain distinct. Discovery requires choice, preview and explicit save. No future extensibility, marketplace, translation or media research should be read as an implemented runtime or procurement decision.
 

@@ -2,21 +2,22 @@
 
 **Create a group → Plan together → Go together → Stay connected.**
 
-Tosker is a map-native social coordination app. Rooms provide the shared identity, membership and conversation; Map is the flagship planning surface, with Chat, Board and presence-only Live alongside it. Sandbox stays private, while Personal Chats and authorized Subrooms retain their own boundaries.
+Tosker is a fun, map-native trip coordination app. Rooms provide shared identity and membership; Map is the permanent workspace background, with optional Chat and Board panels. Live is deferred from Beta, with its data and authorization retained. Sandbox stays private, while Personal Chats and authorized Subrooms retain their own boundaries.
 
 ## Current release
 
-[Canonical Founder Walk](https://toskerapp.vercel.app) — **MS7.4 FP3 verified**, application `a166934`, 17 October 2026 Singapore. MS7.3 is locked; **MS7.4 remains unlocked pending founder acceptance**. This is a bounded, personal non-commercial development deployment, not production-launch or beta-scale certification.
+[Canonical Founder Walk](https://toskerapp.vercel.app) — **MS7.4 FP4 verified**, application `a5a4eff`, 27 October 2026 Singapore. MS7.3 is locked; **MS7.4 remains unlocked pending founder acceptance**. This is a bounded, personal non-commercial development deployment, not production-launch or beta-scale certification.
 
-[Release evidence and rollback](docs/MS7-4-FP3-RELEASE-2026-10-17.md) · [Exact receipt](docs/MS7-4-FP3-VERIFIED-RECEIPT-2026-10-17.json) · [Current documentation index](docs/INDEX.md) · [Recovery handoff](CODEX-HANDOFF.md)
+[Release evidence and rollback](docs/MS7-4-FP4-RELEASE-2026-10-27.md) · [Exact receipt](docs/MS7-4-FP4-VERIFIED-RECEIPT-2026-10-27.json) · [Founder lock review](docs/MS7-4-LOCK-CANDIDATE-2026-10-27.md) · [Current documentation index](docs/INDEX.md) · [Recovery handoff](CODEX-HANDOFF.md)
 
 | Capability | Current boundary |
 | --- | --- |
 | Chat, Rooms, Personal, Sandbox, Board | Authenticated persistent collaboration with context authorization; not the old local-storage-only prototype. |
 | Map planning | Collaborative routes, Route-owned Location Cards, independent Map Pins, comments, shared Skip versus private Hide. Users select, preview and explicitly confirm saved places. |
 | Search and roads | Worldwide discovery with provider provenance and fallbacks; Walk/Drive remain bounded by implemented region/provider support. Not navigation-safety or worldwide-routing guarantees. |
-| Workspace | Map/Board primary surfaces with supported Chat/Live companions and single-surface layouts; responsive focused panes. |
-| Live | Avatar-led participant cards, Join/Leave and connection state. **Presence only**—no microphone, camera or Push-to-Talk. |
+| Workspace | Permanent Map; Chat and Board toggles, Expand/Minimize/Close, preserved drafts/state and explicit mobile return-to-Map. |
+| Location Card actions | Info, Star, Copy to Route, Move to Route, Lock, Hide, Skip, Nuke. Move preserves same-context card identity/comments; Nuke is red and explicitly confirmed. |
+| Live | Removed from Beta interface; historical presence-only architecture and data retained. No microphone, camera or Push-to-Talk. |
 | Optional location | Single Locate entry, private by default until explicit sharing confirmation; broad default, separately selected precise position, context audience, five-minute expiry and Stop. |
 | Future media/movement | FP2B research only. No voice/video integration or continuous/background movement sharing. |
 
@@ -26,7 +27,7 @@ Location delivery uses an authorized latest-state API plus content-free Ably not
 
 Durable Vercel Queue cleanup is backed by an independent hourly Neon rescue. Active-row deletion targets 60 seconds after expiry **while infrastructure is healthy**. Outages can delay physical deletion; SQL deletion is not erasure from Neon recovery history/WAL or recipients' devices. The existing six-hour recovery window is disclosed, not silently disabled. [Full retention contract](docs/MS7-4-FP3-DURABLE-CLEANUP.md).
 
-Founder-review caps: 100 new sharing consents/day, 2,000 latest-state reads/day and 30 session checks/10 seconds. At one read per three seconds, this is about **1.67 aggregate viewer-hours/day**, not a 200-user beta. The current capacity attestation expires **21 October 2026, 02:49:57 Singapore**; renewal requires a fresh account-capacity review. Do not reset limits or bypass fail-closed admission.
+Founder-review caps: 100 new sharing consents/day, 2,000 latest-state reads/day and 30 session checks/10 seconds. Atomic server accounting includes retries/background traffic across users/tabs/workers; failed admitted attempts are not refunded. At one read per three seconds, this is about **1.67 aggregate viewer-hours/day**, not a 200-user beta. The current capacity approval expires **2 November 2026, 20:05:21 Singapore**; renewal requires fresh account-capacity review and founder approval. Do not reset limits or bypass fail-closed admission. Historical unknown usage is preserved, not invented as zero.
 
 All providers remain on the existing Free/Hobby allowances. Reassess hosting eligibility at MS14 Commercial Foundation, or immediately if actual commercial activity starts earlier. No permanent production-provider commitment is implied.
 
@@ -71,4 +72,4 @@ Git documentation commits can be newer than the application SHA. Automatic domai
 
 The local review server is stopped. Retained Founder Walk Rooms remain available on canonical; their purpose and preservation qualifications are in the release report. **Development is stopped for Founder Walk.**
 
-Historical [MS2 README](docs/history/README-MS2-PROTOTYPE.md) is preserved verbatim. Early local-only, no-auth and milestone-order statements describe that prototype, not today's deployed product.
+Historical [MS2 README](docs/history/README-MS2-PROTOTYPE.md) and [FP3 README](docs/history/README-FP3-2026-10-17.md) are preserved verbatim. Early local-only, no-auth and milestone-order statements describe that prototype, not today's deployed product. The sidebar's FP3 Development label is known cosmetic debt; the exact release receipt identifies FP4. [MS7.5 notifications research](docs/MS7-5-NOTIFICATIONS-ARCHITECTURE-2026-10-27.md) is complete, but implementation remains unapproved.

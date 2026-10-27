@@ -1,5 +1,9 @@
 # MS7.4 FP4 — Map-first Beta consolidation
 
+## Current release — 27 October 2026
+
+**FP4 canonical verified at `a5a4eff`; MS7.4 UNLOCKED; STOP for Founder Walk.** [Release / rollback](MS7-4-FP4-RELEASE-2026-10-27.md), [final ledger](MS7-4-FP4-FINAL-2026-10-27.md), [lock candidate](MS7-4-LOCK-CANDIDATE-2026-10-27.md). The blocked/no-deployment entries below remain chronological evidence, not current instructions. Fixed capacity ends2November20:05SGT. Original failed receipts and historical unknown26October usage are preserved.
+
 27 October 2026, Singapore. **Final authorization A/B: server accounting implemented and shadow verification passed. Live QA remains held by unverifiable26OctoberUTC usage. No deployment.** MS7.4 remains unlocked.
 
 ## Final authorization A / B — server accounting and verified hard stop

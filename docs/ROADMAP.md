@@ -1,16 +1,16 @@
 # Tosker roadmap — canonical founder direction
 
-## Current authority — 17 October 2026
+## Current authority — 27 October 2026
 
-**MS7.4 FP3 is canonical verified at application `a166934`; MS7.4 remains UNLOCKED for Founder Walk. STOP development.** [Exact release and qualifications](MS7-4-FP3-RELEASE-2026-10-17.md). FP3 adds accepted latest-state temporary sharing and bounded Live participant cards to the prior workspace foundation. Presence is not voice; temporary manual sharing is not continuous movement. No media procurement, provider migration or MS8 overhaul occurred.
+**MS7.4 FP4 is canonical verified at application `a5a4eff`; MS7.4 remains UNLOCKED for Founder Walk. STOP development.** [Exact release and qualifications](MS7-4-FP4-RELEASE-2026-10-27.md). Permanent Map, optional Chat/Board panels, simplified eight Location actions and atomic request accounting preserve FP3's explicit temporary sharing/privacy. Live is deferred from Beta with architecture/data retained. No media procurement, provider migration or MS8 overhaul occurred. [Lock candidate](MS7-4-LOCK-CANDIDATE-2026-10-27.md) requires explicit founder acceptance.
 
 The latest founder roadmap alignment recorded in the [approved-wave plan](MS7-4-FP3-NEXT-WAVE-PLAN-2026-10-14.md#9-future-movement-and-milestone-alignment) supersedes the older numbering below. Future rows are direction, not execution authorization.
 
 | Milestone | Current state / direction |
 | --- | --- |
 | MS1–MS7.3 | Locked; retained historical receipts apply. |
-| MS7.4 | Live Coordination foundation; FP1/FP2A history retained, FP3 canonical verified, awaiting Founder Walk. FP2B media research only. |
-| MS7.5 | Notifications; not started by this wave. |
+| MS7.4 | FP1/FP2A/FP3 history retained; FP4 Map-first Beta canonical verified, awaiting Founder Walk/lock. FP2B media research only; Live deferred from Beta. |
+| MS7.5 | Notifications [architecture handoff](MS7-5-NOTIFICATIONS-ARCHITECTURE-2026-10-27.md) complete; implementation NOT STARTED, awaiting authorization after lock review. |
 | MS7.6 | Settings/customization/uploads/account controls and functional completeness; not started by this wave. |
 | MS8 | Full visual/UIUX pass; NOT STARTED. |
 | MS9 | Private Alpha. |

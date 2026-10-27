@@ -1,0 +1,118 @@
+{
+  "version": 1,
+  "date": "2026-10-27",
+  "status": "CANONICAL_VERIFIED",
+  "milestoneLocked": false,
+  "applicationSha": "a5a4efff443a25afcde44b2be1dadff4251b2710",
+  "canonical": {
+    "url": "https://toskerapp.vercel.app",
+    "privacy": true,
+    "expiry": true,
+    "map": true,
+    "clientAssetsScanned": 27,
+    "stopPeerRemovalMs": 1182,
+    "logoutPeerRemovalMs": 1294,
+    "offlinePeerRemovalMs": 10,
+    "expiryDeletionObservedWithinMs": 6193,
+    "expiryQueueLog": "2026-10-27T06:22:04.833Z",
+    "expirySenderStopBlocked": true
+  },
+  "deploymentId": "dpl_5Nf6NUnsy7w2wxRTKo9HgiEmpoPW",
+  "projectId": "prj_cxYhH8ypeFmuPOiEBC0gf0Rbzmau",
+  "readyState": "READY",
+  "target": "production",
+  "sameTestedArtifact": true,
+  "prePromotionCheckpoint": "0f6c2a1",
+  "promotedCheckpoint": "b27ad747e9fb2796ba0733dbf69f1a5def1db259",
+  "migrationCount": {
+    "main": 34,
+    "review": 34
+  },
+  "capacity": {
+    "approvedAt": "2026-10-26T12:05:21.406Z",
+    "expiresAt": "2026-11-02T12:05:21.406Z",
+    "mainReads": 691,
+    "mainConsents": 13,
+    "mainReadCap": 2000,
+    "mainConsentCap": 100,
+    "reviewReads": 490,
+    "reviewConsents": 5,
+    "sessionChecksPer10s": 30,
+    "noCounterReset": true
+  },
+  "access": {
+    "trustedSources": null,
+    "developmentToProtectedProduction": 403,
+    "temporaryGeoReferrerRemoved": true,
+    "removedStageTileStatus": 401,
+    "canonicalTileStatus": 200,
+    "localhostTileStatus": 200,
+    "styleResponseNotUsedAsRestrictionProof": true,
+    "autoAssignCustomDomains": false,
+    "legacyServerKeyRetired": true
+  },
+  "preservation": {
+    "qualified": true,
+    "qualifiedQaRateRows": 4,
+    "originalBaselinesRetained": true,
+    "founderTidResolvedServerSide": true,
+    "retainedRoomsPreserved": true,
+    "finalPayloads": 0,
+    "finalConsents": 0,
+    "finalWorkers": 0,
+    "finalReservations": 0,
+    "overdue": 0
+  },
+  "localServerStopped": true,
+  "limitations": [
+    "Finite QA samples, not beta scale/physical-device certification",
+    "Five-second request-start peer freshness, not recall of already disclosed coordinates",
+    "Healthy 60-second active-row deletion target; six-hour recovery history and outage limitations remain",
+    "Sidebar label still FP3 Development",
+    "MS7.4 requires Founder Walk; no Jenn acceptance inferred"
+  ],
+  "rollback": {
+    "applicationSha": "a166934b6d348dd84ab9c78f35a73e9ce6f661b1",
+    "deploymentId": "dpl_9NhdBjGXUkTpFzVyhhjJqe9NKP23",
+    "databaseRollback": false,
+    "preserveCleanupConsumers": true,
+    "requiresFreshCompatibility": true
+  },
+  "evidence": [
+    {
+      "path": ".git/ms74-fp4/browser/hosted-canonical-privacy-1793081598948.json",
+      "sha256": "a4650881fc620d9840075ce63cda7f2dd65592619acf081c5f7ab185ff721286",
+      "pass": true
+    },
+    {
+      "path": ".git/ms74-fp4/browser/hosted-canonical-expiry-1793081786891.json",
+      "sha256": "0cad3126378c8d831da3ab3e19a83b168f51d1a74443498493085297b29af315",
+      "pass": true
+    },
+    {
+      "path": ".git/ms74-fp4/browser/hosted-canonical-map-1793082175789.json",
+      "sha256": "5e6da8009e85321572d02dc16a21e1d7e27c5d43b00ae2a0871f31cd27a3743d",
+      "pass": true
+    },
+    {
+      "path": ".git/ms74-fp4/recovery-1793082178711.json",
+      "sha256": "f5f9c70b53aa531c304c30e7197cd31b684053114b2efacdd3c34771bee36a07",
+      "pass": true
+    },
+    {
+      "path": ".git/ms74-fp4/final-state-1793082183740.json",
+      "sha256": "c5d365c022b23dc77cdd2342f19e90260b1deb5fb30842aa4a75834928957995",
+      "pass": true
+    },
+    {
+      "path": ".git/ms74-fp4/geo-tile-restoration-proof.json",
+      "sha256": "8595d26be2057a37da95cff51a18cfc34c60113c3eb2a85f1a75010ca60b920e",
+      "pass": true
+    },
+    {
+      "path": ".git/ms74-fp4/vercel-access-restored-independent.json",
+      "sha256": "4ae670276af83c15f886bd29441bd8dd3518dfa3d7e5ba552e405450f6332e11",
+      "pass": true
+    }
+  ]
+}

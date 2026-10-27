@@ -1,5 +1,9 @@
 # FP3 durable cleanup decision — 13 October 2026
 
+## Current continuation — 27 October 2026 FP4
+
+[FP4 canonical release](MS7-4-FP4-RELEASE-2026-10-27.md) independently reverified five-minute expiry and hosted physical deletion with sender Stop blocked; no laptop worker. Capacity renewal is explicitly anchored26October12:05:21.406UTC and ends2November12:05:21.406UTC (20:05SGT), same100/2000/30caps; server-authoritative accounting now covers local/hosted paths. This supersedes the expired17October capacity heading below without erasing it. Six-hour backup/outage distinctions and healthy60second active-deletion target are unchanged.34migrations verified; temporary management credential remains revoked. Retain consumers/rescue; MS7.4 unlocked, STOP for Founder Walk.
+
 ## Current disposition — 17 October 2026
 
 The approved queue-first/hourly-rescue architecture is now operational and accepted for the bounded FP3 Founder Walk. [Canonical release and measured evidence](MS7-4-FP3-RELEASE-2026-10-17.md) supersedes the historical unimplemented status below, not its privacy/outage/backup distinctions. Exact-artifact natural expiry and hosted active-row deletion passed; scheduled rescue, management-key retirement and33migration checks are preserved in the execution ledgers. No laptop runtime is required for Production cleanup.

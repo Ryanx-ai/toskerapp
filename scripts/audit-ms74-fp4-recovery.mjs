@@ -13,8 +13,10 @@ const names=Object.keys(baseline.fingerprints),migrations=readMigrationFiles({mi
 assert(names.every(n=>/^[a-z_]+$/.test(n)));
 const env={...dotenv.parse(readFileSync(".env.local")),...dotenv.parse(readFileSync(".env.development.local"))};
 const hash=x=>createHash("sha256").update(JSON.stringify(x)??"undefined").digest("hex");
-const result={pass:false,at:new Date().toISOString(),readOnly:true,checks:[],differences:[]};
+const result={pass:false,at:new Date().toISOString(),readOnly:true,checks:[],differences:[],qualifiedQaChanges:[]};
 const afterMigration=process.argv.includes('--after-migration');
+const afterHosted=process.argv.includes('--after-hosted');
+if(afterHosted){const proof=JSON.parse(readFileSync('.git/ms74-fp4/browser/hosted-stage-privacy-1793079941405.json'));assert(proof.pass&&proof.sha==='a5a4efff443a25afcde44b2be1dadff4251b2710');}
 if(afterMigration){const proof=JSON.parse(readFileSync('.git/ms74-fp4/migration/main-apply-1793078746083.json'));assert(proof.pass&&proof.mode==='--apply');assert.equal(proof.migrationHash,migrations.at(-1).hash);}
 try{
  const q=neon(env.DATABASE_URL);
@@ -33,10 +35,18 @@ try{
   const actual=Object.fromEntries(retained.map(r=>[hash(JSON.stringify(primary.map(k=>r[k]))),hash(r)]));
   const before=baseline.fingerprints[name];
   const added=Object.keys(actual).filter(k=>!(k in before)).length,removed=Object.keys(before).filter(k=>!(k in actual)).length,changed=Object.keys(actual).filter(k=>k in before&&before[k]!==actual[k]).length;
-  if(added||removed||changed)result.differences.push({table:name,added,removed,changed});
+  if(added||removed||changed){
+   let qualified=false;
+   if(afterHosted&&name==='invite_rate_limits'&&added===0&&removed===0&&changed===4){
+    const rows=retained.filter(r=>before[hash(JSON.stringify(primary.map(k=>r[k])))]!==hash(r));
+    qualified=rows.every(r=>qa.includes(r.user_id)&&['location-consent','location-snapshot'].includes(r.operation)&&Date.parse(r.window_start)>=1793079726798&&Date.parse(r.window_start)<=Date.now()&&Number.isInteger(r.attempts)&&r.attempts>=1&&r.attempts<=6);
+    if(qualified)result.qualifiedQaChanges.push({table:name,changed:4,columns:['window_start','attempts'],reason:'Exact existing QA A/B location-consent and location-snapshot rate rows; current authorized hosted-run timestamps. Original primary keys preserved; no founder rate-row exclusion.'});
+   }
+   if(!qualified)result.differences.push({table:name,added,removed,changed});
+  }
  }
  assert.equal(result.differences.length,0,"Retained changes require provenance reconciliation; never restore the baseline");
- result.checks.push(`${history.length} retained migration hashes/timestamps match; exact founder resolves; protected FP4 fingerprints unchanged under original exclusions`);
+ result.checks.push(`${history.length} retained migration hashes/timestamps match; exact founder resolves; protected FP4 fingerprints match except explicitly qualified QA rate-row changes (if listed); original baseline retained`);
  const review=neon(reviewEnvironment().DATABASE_URL);
  const rows=await review.transaction([review`select hash,created_at from drizzle.__drizzle_migrations order by created_at`,review`select (select count(*)::int from location_latest) payloads,(select count(*)::int from location_shares where expires_at>clock_timestamp()) active,(select count(*)::int from location_cleanup_workers) workers`],{readOnly:true,isolationLevel:"RepeatableRead"});
  assert.equal(rows[0].length,34);rows[0].forEach((r,i)=>{assert.equal(r.hash,migrations[i].hash);assert.equal(Number(r.created_at),migrations[i].folderMillis);});assert.deepEqual(rows[1][0],{payloads:0,active:0,workers:0});

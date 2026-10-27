@@ -2,6 +2,12 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP4 D/E preparation — a5a4eff, main0033 applied, canonical still FP3
+
+Application `a5a4efff443a25afcde44b2be1dadff4251b2710`: narrow search-result clipping fix; seven-width offline keyboard/preview and real SG/JB/global previews plus Walk/Drive PASS. Build/TypeScript/scoped lint/server-secret/retired-key scans PASS. Exact private receipts in latest [final ledger](docs/MS7-4-FP4-FINAL-2026-10-27.md). Main0033 function-only migration **applied** with backup and retained-trip byte equality; independent audit34main/34review and original protected fingerprints PASS. Never replay apply or disposable cleanup. Canonical remains FP3`a166934`, forward-compatible with0033; rollback application only, no journal/data rewind. Legacy server key is retired401, replacement canonical200.
+
+Exact application archive prepared `/tmp/tosker-fp4-release.EXeubI` for protected staged Production **without aliasing canonical**. Hosted privacy/reliability/cleanup/deployed-asset/runtime/A/B gates still pending. Temporary project Development→Production trust approved, restore null afterQA; exact new Geoapify browser origin not yet approved. Capacity fixed expiry2November20:05SGT, no reset/auto-renew. Next: `git status --short`, stage/verify exact receipt, then only remaining hosted gates. Isolated localhost3000 running fresh build; no default root-env start. Preserve unrelated WIP, founder data, prior evidence. MS7.4 UNLOCKED.
+
 ## FP4 C/D — legacy key retired; search acceptance repair pending
 
 Recovered `b31f4e296602a94efc7a145493c1a66c24640723`; app source/build `a5a5548`. Exact legacy Geoapify server key retired with founder approval after replacement/canonical200 checks; post-retirement legacy401 and canonical200 PASS. Browser/replacement keys, restrictions and Free plan unchanged. See latest section of [final ledger](docs/MS7-4-FP4-FINAL-2026-10-27.md) for exact private receipts/security incident qualification. Never restore the exposed old key.

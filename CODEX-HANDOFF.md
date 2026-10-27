@@ -2,6 +2,10 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP4 E promoted — canonical verification in progress
+
+Recovered `0f6c2a1`; exact application `a5a4eff` fast-forward pushed and accepted Production artifact`dpl_5Nf6NUnsy7w2wxRTKo9HgiEmpoPW` promoted without rebuild. Fresh canonical alias/SHA/READY verified; **live acceptance still in progress**. Original auto-assignment:false restored, temporary trust/referrer already removed. Redundant Git build canceled. Canonical harness receipts and `.git/ms74-fp4/canonical-target.json` are authoritative. Preserve actor lock/owned sessions; never run parallel QA actors. Next finish canonical privacy/expiry/Map, final runtime/fingerprints, then docs/lock-candidate/research/STOP. No new feature or migration. Rollback retained FP3 deployment with current schema/replacement key, no retained-data rollback. MS7.4 UNLOCKED.
+
 ## FP4 D accepted — temporary access restored; ready for conditional promotion
 
 Recovered test checkpoint `b298fab`; application remains exact `a5a4efff443a25afcde44b2be1dadff4251b2710`, READY protected Production `dpl_5Nf6NUnsy7w2wxRTKo9HgiEmpoPW`. Canonical still FP3 `a166934`; no push/promotion yet. Hosted privacy, precise continuity, Stop/retry/renewal, reload/two tabs/reconnect/logout, actual tiles/responsive/attribution and served-client secret scans passed. Natural five-minute expiry and independent hosted deletion passed with sender Stop deliberately blocked; the original expiry receipt later failed a renewal test precondition, closed by a separate passing recovery receipt. Do not relabel failed receipts or repeat passed suites. Details in the final ledger.

@@ -27,7 +27,10 @@ mkdirSync(directory,{recursive:true,mode:0o700});
 async function run(){
  const history=await db.execute(sql`select hash,created_at from drizzle.__drizzle_migrations order by created_at`);
  history.rows.forEach((r,i)=>{assert.equal(r.hash,migrations[i]?.hash);assert.equal(Number(r.created_at),migrations[i]?.folderMillis);});
- assert.equal(history.rows.length,33,"Recover existing application state; do not replay migration");
+ // A fresh shadow rehearsal may verify the already-migrated isolated review
+ // source; applying to public still requires exactly 33 and never replays 0033.
+ if(mode==="--rehearse")assert([33,34].includes(history.rows.length));
+ else assert.equal(history.rows.length,33,"Recover existing application state; do not replay migration");
  if(mode==="--apply-review"){
   const evidence=JSON.parse(readFileSync(`${directory}/rehearsal-pass.json`,"utf8"));
   assert(evidence.pass);assert.equal(evidence.migrationHash,migration.hash);assert.equal(evidence.implementationHash,implementationHash);

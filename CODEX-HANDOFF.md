@@ -2,6 +2,12 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP4 final founder directive — 27 October R/A/B in progress
+
+Recovered`1902993`; application/test`a5a5548e5968345cd70ce6fc3588935f2117cf79`. New complete directive removes Map tab (already absent in local FP4), requires Chat|Board toggles and true panel collapse/return to Map; refine controls without altering transport/privacy. Read [final execution ledger](docs/MS7-4-FP4-FINAL-2026-10-27.md). Fresh read-only recovery fingerprints/founder/migrations PASS; actual databaseUTC27October confirmed. Authoritative new-window preflight initially800reads/20consents; historical26October hold preserved, not deleted/reset. Fixed approval expires2November20:05SGT. Existing shared accounting proof retained.
+
+Guarded isolated localhost3000 and60minute synthetic worker now running for targeted expiry; browser composition is non-sharing and blocks location requests locally. Inspect exact processes/receipts before recovery; never default-start root envs. Build/TypeScript/lint/864composition PASS; actual browser gates in progress, not accepted. Canonical freshly READY FP3`a166934`/`dpl_9NhdBjGXUkTpFzVyhhjJqe9NKP23`, unchanged. No push/deploy/main migration. Preserve unrelated WIP and all original evidence. After all critical gates: canonical/live verification, lock-candidate report, research-onlyMS7.5handoff, STOP. Separate-worktree local rollback`1902993`, no DB/counter rollback. MS7.4 UNLOCKED.
+
 ## FP4 final authorization A/B — accounting passed; UTC capacity hard stop
 
 Application/test **`db3018e0a87bd9bdb5aac6b87d5d761dbe0101b8`**, R`89583a6`, recovered`8084aad`. Server-authoritative atomic read/consent accounting now covers local and hosted service paths, including failed/retried/background calls, with persistent existing counters and unchanged caps. Real concurrent shadow tests PASS for3workers,2actors,exhaustion,restart,rollback,UTCrollover,session cap and no double consent debit; public counters unchanged and shadows removed. Scoped lint/TypeScript/guarded build/secret scans PASS. Exact evidence and semantics: [accounting ledger](docs/MS7-4-FP4-REQUEST-ACCOUNTING.md).

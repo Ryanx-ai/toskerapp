@@ -2,6 +2,14 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP4 D accepted — temporary access restored; ready for conditional promotion
+
+Recovered test checkpoint `b298fab`; application remains exact `a5a4efff443a25afcde44b2be1dadff4251b2710`, READY protected Production `dpl_5Nf6NUnsy7w2wxRTKo9HgiEmpoPW`. Canonical still FP3 `a166934`; no push/promotion yet. Hosted privacy, precise continuity, Stop/retry/renewal, reload/two tabs/reconnect/logout, actual tiles/responsive/attribution and served-client secret scans passed. Natural five-minute expiry and independent hosted deletion passed with sender Stop deliberately blocked; the original expiry receipt later failed a renewal test precondition, closed by a separate passing recovery receipt. Do not relabel failed receipts or repeat passed suites. Details in the final ledger.
+
+Vercel temporary trust restored to null; fresh Development OIDC403 independently verified. Geoapify exact temporary referrer removed; original3 remain. Actual tiles reject removed stage401 and accept canonical/localhost200. Style.json remains200 and is not restriction proof. Legacy server key remains retired. Main totals380reads/8consents on27OctoberUTC, review490/5; recheck before canonical smoke. Original preservation audit qualifies only4 exact A/B consent/snapshot rate rows, no founder exclusions;34main/34review migrations,0payloads/active shares. No local cleanup worker. Guarded isolated server remains running.
+
+Next: verify target/project/manual alias state → normal fast-forward push exact app SHA to main → promote this accepted Production artifact without rebuilding → restore auto-assignment false → canonical A/B/Map/expiry/runtime/integrity → separate docs/lock-candidate/notifications research → STOP. Never replay0033 or disposable cleanup. Rollback exact FP3 deployment with current forward-compatible database and replacement server credential, no journal/data/counter rollback. Preserve unrelated WIP and all historical evidence. Capacity expires2November20:05SGT, no renewal. MS7.4 UNLOCKED.
+
 ## FP4 D/E staged — protected QA in progress, canonical unchanged
 
 Applicationa5a4eff READY protected Production`dpl_5Nf6NUnsy7w2wxRTKo9HgiEmpoPW` at`https://tosker-rn1724qy4-pangea6.vercel.app`, no aliases. Canonical still FP3a166934/dpl_9NhdBjGXUkTpFzVyhhjJqe9NKP23. Main0033 already verified34history; never replay migration/cleanup. Exact source/target and gates in [final ledger](docs/MS7-4-FP4-FINAL-2026-10-27.md).

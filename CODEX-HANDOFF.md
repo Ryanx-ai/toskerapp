@@ -2,6 +2,12 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP4 C/D — legacy key retired; search acceptance repair pending
+
+Recovered `b31f4e296602a94efc7a145493c1a66c24640723`; app source/build `a5a5548`. Exact legacy Geoapify server key retired with founder approval after replacement/canonical200 checks; post-retirement legacy401 and canonical200 PASS. Browser/replacement keys, restrictions and Free plan unchanged. See latest section of [final ledger](docs/MS7-4-FP4-FINAL-2026-10-27.md) for exact private receipts/security incident qualification. Never restore the exposed old key.
+
+Fresh isolated and retained-main **rollback** migration rehearsals PASS; main still33, review34, no Production migration applied. Exact isolated disposable lifecycle Room deleted with scoped backup/integrity PASS; retained Founder Review untouched. Do not replay cleanup. Geography receipt1793078046357 confirms provider200 but UI selection timeout; suspected result-list clipping by new scrollable search overlay. Diagnose offline and repair narrowly, then rebuild affected source and verify missing gates. No shared GPS/new payloads. Last review counters490reads/5consents must be rechecked before sharing. Project trust remainsnull; enable approved temporary pair only when protected QA needs it, restore afterward. Canonical unchanged FP3`a166934`/`dpl_9NhdBjGXUkTpFzVyhhjJqe9NKP23`; no push/deploy. Next safe command: `git status --short`, then read ledger/receipts. Preserve unrelated WIP and all historical evidence. Guarded isolated localhost3000 running; never default-start root env. Remaining hosted reliability/privacy/cleanup/release gates mandatory; MS7.4 UNLOCKED.
+
 ## FP4 final founder directive — 27 October C/D release preparation
 
 Recovered`1902993`; application/test`a5a5548e5968345cd70ce6fc3588935f2117cf79`. New complete directive removes Map tab (already absent in local FP4), requires Chat|Board toggles and true panel collapse/return to Map; refine controls without altering transport/privacy. Read [final execution ledger](docs/MS7-4-FP4-FINAL-2026-10-27.md). Fresh read-only recovery fingerprints/founder/migrations PASS; actual databaseUTC27October confirmed. Authoritative new-window preflight initially800reads/20consents; historical26October hold preserved, not deleted/reset. Fixed approval expires2November20:05SGT. Existing shared accounting proof retained.

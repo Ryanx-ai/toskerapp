@@ -2,6 +2,12 @@
 
 Repository and Git are authoritative. Read this file first when resuming development.
 
+## FP4 D/E staged — protected QA in progress, canonical unchanged
+
+Applicationa5a4eff READY protected Production`dpl_5Nf6NUnsy7w2wxRTKo9HgiEmpoPW` at`https://tosker-rn1724qy4-pangea6.vercel.app`, no aliases. Canonical still FP3a166934/dpl_9NhdBjGXUkTpFzVyhhjJqe9NKP23. Main0033 already verified34history; never replay migration/cleanup. Exact source/target and gates in [final ledger](docs/MS7-4-FP4-FINAL-2026-10-27.md).
+
+Temporary founder-approved self-project Development→Production trust ACTIVE (original four pairs preserved; authentication unchanged); restore null afterQA. Exact Geoapify browser candidate-host referrer ACTIVE, preserving3original entries; remove afterQA. Neither changes server keys/Free quotas. First hosted broad/Stop/auth passed; precise DOM0–4ms replacement transitions need frame-level continuity verification, follow-up serial harness in progress. No application/privacy relaxation. First main totals58reads/2consents, final0payloads/active; recheck counters before tests, no resets. Recover actor lock/process and latest private hosted receipt before another suite. No push/canonical promotion. Preserve unrelated WIP/founder/history. Next safe command`git status --short`, inspect latest hosted receipt. Remaining hosted privacy/expiry/cleanup/security/Map, canonical and final reports mandatory. MS7.4 UNLOCKED.
+
 ## FP4 D/E preparation — a5a4eff, main0033 applied, canonical still FP3
 
 Application `a5a4efff443a25afcde44b2be1dadff4251b2710`: narrow search-result clipping fix; seven-width offline keyboard/preview and real SG/JB/global previews plus Walk/Drive PASS. Build/TypeScript/scoped lint/server-secret/retired-key scans PASS. Exact private receipts in latest [final ledger](docs/MS7-4-FP4-FINAL-2026-10-27.md). Main0033 function-only migration **applied** with backup and retained-trip byte equality; independent audit34main/34review and original protected fingerprints PASS. Never replay apply or disposable cleanup. Canonical remains FP3`a166934`, forward-compatible with0033; rollback application only, no journal/data rewind. Legacy server key is retired401, replacement canonical200.

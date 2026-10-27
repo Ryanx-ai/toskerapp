@@ -10,7 +10,7 @@ import { installLiveMetrics } from "./lib/ms74-browser.mjs";
 reviewEnvironment();
 const fixture=JSON.parse(readFileSync(".git/ms74-fp4/review-fixture.json","utf8"));
 assert.equal(fixture.project,REVIEW_PROJECT); assert.equal(fixture.status,"committed");
-const origin="http://localhost:3001", directory=".git/ms74-fp4/browser";
+const origin="http://localhost:3000", directory=".git/ms74-fp4/browser";
 mkdirSync(directory,{recursive:true,mode:0o700});
 const receipt=`${directory}/composition-${Date.now()}.json`;
 const evidence={pass:false,sha:execFileSync("git",["rev-parse","HEAD"],{encoding:"utf8"}).trim(),
@@ -23,6 +23,7 @@ try {
   for(const actor of ["a","b"]){
     const context=await browser.newContext({viewport:{width:1440,height:1000}});contexts.push(context);
     await installLiveMetrics(context);
+    await context.route("**/api/location-sharing",r=>r.fulfill({status:503,json:{error:"Location QA disabled in non-sharing composition check."}}));
     await context.route("**/*geoapify.com/**",route=>new URL(route.request().url()).pathname.endsWith("style.json")
       ?route.fulfill({json:{version:8,sources:{qa:{type:"geojson",data:{type:"FeatureCollection",features:[]},attribution:"Offline QA attribution — not real Map evidence"}},layers:[{id:"qa-offline",type:"background",paint:{"background-color":"#dce8e4"}},{id:"qa-source",type:"circle",source:"qa"}]}}):route.abort());
     const page=await context.newPage();pages.push(page);
@@ -64,9 +65,13 @@ try {
   assert(await map.evaluate(el=>el.isConnected));
   record("Chat draft and original Map canvas survive Chat ↔ Board toggles");
   step="expand minimize close";
-  await a.getByRole("button",{name:"Open Chat alone",exact:true}).click();
+  await a.getByRole("button",{name:"Expand Chat",exact:true}).click();
   assert.equal(await a.locator('[data-workspace-pane="map"]').getAttribute("inert"),"");
   await a.getByRole("button",{name:"Minimize Chat",exact:true}).click();
+  await a.waitForFunction(()=>document.activeElement?.getAttribute('data-surface-trigger')==='chat');
+  assert.equal(await chat.isVisible(),false);
+  await a.locator('[data-surface-trigger="chat"]').click();
+  assert.equal(await draft.inputValue(),"Synthetic FP4 draft — do not send");
   await a.getByRole("button",{name:"Close Chat companion",exact:true}).click();
   await a.waitForFunction(()=>document.activeElement?.getAttribute('data-surface-trigger')==='chat');
   assert(await map.evaluate(el=>el.isConnected));
@@ -101,9 +106,10 @@ try {
     await a.locator('[data-surface-trigger="chat"]').click();
     await a.locator('[data-workspace-pane="chat"]').waitFor();
     assert(await a.getByRole("button",{name:"Close Chat companion",exact:true}).isVisible());
+    if(width<1100)assert(await a.getByRole("button",{name:"Return to Map from Chat",exact:true}).isVisible());
     assert(await a.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
     await a.screenshot({path:`${directory}/composition-${width}x${height}.png`});
-    await a.getByRole("button",{name:"Close Chat companion",exact:true}).click();
+    await a.getByRole("button",{name:width<1100?"Return to Map from Chat":"Close Chat companion",exact:true}).click();
   }
   record("Seven viewport sizes: Map controls/tray/search/attribution inside viewport; panel switching/close; no document overflow");
   assert.deepEqual(evidence.errors,[]);

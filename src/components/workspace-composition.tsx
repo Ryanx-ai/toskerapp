@@ -61,9 +61,10 @@ export function WorkspacePanels({ composition, foreground, wide, choose, focusSu
     {workspaceSurfaces.map(surface => visited.includes(surface) && <Activity key={surface} mode={visible.includes(surface) ? "visible" : "hidden"}>
       <section className={`workspace-pane ${surface === composition.companion ? "is-companion" : "is-primary"}`} data-workspace-pane={surface} aria-label={`${surfaceNames[surface]} workspace`} tabIndex={-1} inert={surface === "map" && mapCovered} aria-hidden={surface === "map" && mapCovered || undefined}>
         {surface !== "map" && <div className="workspace-pane-actions">
-          <span>{surfaceNames[surface]}</span>
-          {composition.companion && <button type="button" className="action-icon" aria-label={`Open ${surfaceNames[surface]} alone`} title={`Open ${surfaceNames[surface]} alone`} onClick={() => choose({ type: "alone", surface })}><Maximize2 size={16} aria-hidden="true" /></button>}
-          {composition.mapCanvas && composition.primary === surface && <button type="button" className="action-icon" aria-label={`Minimize ${surfaceNames[surface]}`} title={`Minimize ${surfaceNames[surface]}`} onClick={() => choose({ type: "compact", surface })}><Minimize2 size={16} aria-hidden="true" /></button>}
+          <span className="workspace-pane-title">{surfaceNames[surface]}</span>
+          {composition.mapCanvas && <button type="button" className="workspace-return-map quiet-action" aria-label={`Return to Map from ${surfaceNames[surface]}`} onClick={() => choose({ type: "choose", surface })}><ArrowLeft size={16} aria-hidden="true" />Map</button>}
+          {composition.companion && <button type="button" className="action-icon" aria-label={`Expand ${surfaceNames[surface]}`} title={`Expand ${surfaceNames[surface]}`} onClick={() => choose({ type: "alone", surface })}><Maximize2 size={16} aria-hidden="true" /></button>}
+          {composition.mapCanvas && <button type="button" className="action-icon" aria-label={`Minimize ${surfaceNames[surface]}`} title={`Minimize ${surfaceNames[surface]}`} onClick={() => choose({ type: "choose", surface })}><Minimize2 size={16} aria-hidden="true" /></button>}
           {(surface === composition.companion || composition.mapCanvas) && <button type="button" className="action-icon" aria-label={`Close ${surfaceNames[surface]} companion`} title={`Close ${surfaceNames[surface]} companion`} onClick={() => choose({ type: "choose", surface })}><X size={16} aria-hidden="true" /></button>}
         </div>}
         {surface === "map" ? <MapWorkspaceActions.Provider value={mapActions}>{children[surface]}</MapWorkspaceActions.Provider> : children[surface]}

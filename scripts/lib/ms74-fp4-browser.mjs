@@ -1,15 +1,18 @@
 import assert from "node:assert/strict";
-import {existsSync} from "node:fs";
+import {fp4Budget} from "./ms74-fp4-budget.mjs";
 import {installLiveMetrics} from "./ms74-browser.mjs";
 export const fp4Origin="http://localhost:3001";
 export async function fp4Context(browser){
  const context=await browser.newContext({viewport:{width:1440,height:1000}});
  await installLiveMetrics(context);
+ // Non-sharing UI checks must not spend location-read capacity in the background.
+ // Explicit503, never a fabricated successful empty sharing response.
+ await context.route("**/api/location-sharing",r=>r.fulfill({status:503,json:{error:"Location QA disabled in this non-sharing UI check."}}));
  await context.route("**/*geoapify.com/**",route=>new URL(route.request().url()).pathname.endsWith("style.json")?route.fulfill({json:{version:8,sources:{qa:{type:"geojson",data:{type:"FeatureCollection",features:[]},attribution:"Offline QA attribution"}},layers:[{id:"qa-background",type:"background",paint:{"background-color":"#dce8e4"}},{id:"qa-source",type:"circle",source:"qa"}]}}):route.abort());
  return context;
 }
 export async function loginFp4(page,actor,fixture,origin=fp4Origin){
- assert(!existsSync(".git/ms74-fp4/qa-budget-hold.json"),"FP4 browser QA held for budget reconciliation; preserve previous counters and evidence");
+ await fp4Budget();
  assert(["a","b"].includes(actor));
  assert([fp4Origin,"http://localhost:3000"].includes(origin));
  await page.goto(`${origin}/app`,{waitUntil:"domcontentloaded"});

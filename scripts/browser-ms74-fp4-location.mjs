@@ -1,6 +1,7 @@
 /** Current-wave isolated A/B, synthetic GPS, bounded budget; never hosted/founder browser. */
 import assert from "node:assert/strict";
-import {existsSync,readFileSync,readdirSync,writeFileSync} from "node:fs";
+import {readFileSync,writeFileSync} from "node:fs";
+import {fp4Budget} from "./lib/ms74-fp4-budget.mjs";
 import {neon} from "@neondatabase/serverless";
 import {spawn} from "node:child_process";
 import {chromium} from "/Users/ryanc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs";
@@ -11,13 +12,10 @@ const env=reviewEnvironment(),sql=neon(env.DATABASE_URL),origin="http://localhos
 const mode=process.argv[2]??"all";assert(["all","expiry","session","membership","contexts"].includes(mode));
 const fixture=JSON.parse(readFileSync(".git/ms74-fp4/review-fixture.json","utf8"));assert.equal(fixture.project,REVIEW_PROJECT);assert.equal(fixture.run,"ms74-fp4-20261026");
 const approval=JSON.parse(readFileSync(".git/ms74-fp4/capacity-approval.json","utf8"));assert(Date.now()<Date.parse(approval.expiresAt));
-const directory=".git/ms74-fp4/browser",day=new Date().toISOString().slice(0,10),receipt=`${directory}/privacy-${Date.now()}.json`;
-const prior=readdirSync(directory).filter(f=>/^privacy-\d+\.json$/.test(f)).map(f=>JSON.parse(readFileSync(`${directory}/${f}`,"utf8"))).filter(r=>r.day===day);
-const used={begin:prior.reduce((n,r)=>n+(r.requests?.begin??0),0),current:prior.reduce((n,r)=>n+(r.requests?.current??0),0)};
-assert(!existsSync(".git/ms74-fp4/qa-budget-hold.json"),"Reconcile the saved QA budget hold before another browser run; do not reset counters");
 const reserve=mode==="all"?500:mode==="expiry"?350:150;
-assert(used.begin+4<=20&&used.current+reserve<=800,"Insufficient remaining QA budget for this complete mode");
-const evidence={pass:false,mode,day,at:new Date().toISOString(),isolated:true,synthetic:true,mockedBasemap:true,requests:{begin:0,current:0,send:0,stop:0},responseStatuses:{},cases:[],errors:[],cleanupErrors:0};
+const budget=await fp4Budget({reads:reserve,consents:4,minutes:15}),{day,used}=budget;
+const directory=".git/ms74-fp4/browser",receipt=`${directory}/privacy-${Date.now()}.json`;
+const evidence={pass:false,mode,day,budgetBefore:budget,at:new Date().toISOString(),isolated:true,synthetic:true,mockedBasemap:true,requests:{begin:0,current:0,send:0,stop:0},responseStatuses:{},cases:[],errors:[],cleanupErrors:0};
 const save=()=>writeFileSync(receipt,JSON.stringify(evidence,null,2),{mode:0o600});const record=(name,values={})=>{evidence.cases.push({name,...values});save();console.log(JSON.stringify({gate:name,...values}));};
 const counts=async()=> (await sql`select (select count(*)::int from location_latest) payloads,(select count(*)::int from location_shares where expires_at>clock_timestamp()) active,(select count(*)::int from location_cleanup_workers where ends_at>clock_timestamp()) workers`)[0];
 assert.deepEqual(await counts(),{payloads:0,active:0,workers:1});
@@ -82,5 +80,5 @@ finally{
  for(const c of contexts)await c.setOffline(false).catch(()=>{});
  // Keep request accounting installed through teardown; Stop/logout are never budget-blocked.
  for(const p of pages){if(await locate(p).getAttribute("aria-pressed").catch(()=>null)==="true")await stop(p).catch(()=>{});await p.evaluate(async()=>{if(window.Clerk?.session?.status==="active"){const r=await fetch("/api/realtime/logout",{method:"POST"});if(![200,401,403].includes(r.status))throw Error("QA logout failed");await window.Clerk.signOut();}}).catch(()=>evidence.cleanupErrors++);}
- await browser.close();evidence.finalCounts=await counts();if(evidence.cleanupErrors||evidence.finalCounts.payloads||evidence.finalCounts.active){evidence.pass=false;process.exitCode=1;}save();console.log(JSON.stringify({...evidence,receipt}));
+ await browser.close();evidence.finalCounts=await counts();evidence.budgetAfter=await fp4Budget();if(evidence.cleanupErrors||evidence.finalCounts.payloads||evidence.finalCounts.active){evidence.pass=false;process.exitCode=1;}save();console.log(JSON.stringify({...evidence,receipt}));
 }

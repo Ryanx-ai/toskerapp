@@ -1,7 +1,7 @@
 /** Supervised local synthetic-QA sweeper. Never deploy/schedule this script. */
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
-import { existsSync, readFileSync, writeFileSync, renameSync, unlinkSync } from "node:fs";
+import { readFileSync, writeFileSync, renameSync, unlinkSync } from "node:fs";
 import { eq, sql } from "drizzle-orm";
 import { Pool } from "@neondatabase/serverless";
 import { getDatabase } from "../src/server/db/client";
@@ -28,7 +28,7 @@ assert(process.argv[3] === undefined || fp4);
 assert(!process.env.VERCEL && Number.isInteger(minutes) && minutes >= 10 && minutes <= 120);
 if (fp4) {
   assert(isIsolatedReview(), "FP4 worker requires isolated review");
-  assert(!existsSync(".git/ms74-fp4/qa-budget-hold.json"), "Reconcile the saved FP4 QA budget hold; never reset counters");
+  // The historical hold stays on disk; only a verified later DBUTC window may run.
   const approval = JSON.parse(readFileSync(".git/ms74-fp4/capacity-approval.json", "utf8"));
   assert.equal(approval.approvedAt, "2026-10-26T12:05:21.406Z");
   assert.equal(approval.expiresAt, "2026-11-02T12:05:21.406Z");
@@ -38,6 +38,7 @@ let stopped = false, wake: (() => void) | undefined, stage = "connect";
 for (const signal of ["SIGINT", "SIGTERM"] as const) process.once(signal, () => { stopped = true; wake?.(); });
 
 async function main() {
+  if(fp4){const {fp4Budget}=await import("./lib/ms74-fp4-budget.mjs");await fp4Budget({reads:150,consents:1,minutes});}
   const owner = await ownerPool.connect();
   owner.on("error", () => { stopped = true; process.exitCode = 1; wake?.(); });
   let owns = false;

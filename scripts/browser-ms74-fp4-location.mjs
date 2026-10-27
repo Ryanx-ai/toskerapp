@@ -9,7 +9,7 @@ import {reviewEnvironment,REVIEW_PROJECT} from "./ms74-fp3-review-runtime.mjs";
 import {loginFp4} from "./lib/ms74-fp4-browser.mjs";
 import {installLiveMetrics} from "./lib/ms74-browser.mjs";
 const env=reviewEnvironment(),sql=neon(env.DATABASE_URL),origin="http://localhost:3000";
-const mode=process.argv[2]??"all";assert(["all","expiry","session","membership","contexts"].includes(mode));
+const mode=process.argv[2]??"all";assert(["all","expiry","session","membership","contexts","freshness"].includes(mode));
 const fixture=JSON.parse(readFileSync(".git/ms74-fp4/review-fixture.json","utf8"));assert.equal(fixture.project,REVIEW_PROJECT);assert.equal(fixture.run,"ms74-fp4-20261026");
 const approval=JSON.parse(readFileSync(".git/ms74-fp4/capacity-approval.json","utf8"));assert(Date.now()<Date.parse(approval.expiresAt));
 const reserve=mode==="all"?500:mode==="expiry"?350:150;
@@ -22,6 +22,7 @@ assert.deepEqual(await counts(),{payloads:0,active:0,workers:1});
 const [worker]=await sql`select ends_at>clock_timestamp()+interval '10 minutes' as enough from location_cleanup_workers`;
 assert(worker?.enough,"Start only when the supervised worker has enough time for sign-in, consent and cleanup");
 const browser=await chromium.launch({headless:true}),contexts=[],pages=[];let step="normal sign-in";
+const readTimings=[],diagnostics=[];
 const memberTag=`browser-${Date.now()}`;let memberRemoved=false;
 const membership=action=>new Promise((resolve,reject)=>{const c=spawn(process.execPath,["--conditions=react-server","--import","tsx","scripts/ms74-fp3-review-membership.ts",action,memberTag,"--fp4"],{env,stdio:["ignore","pipe","pipe"]});c.on("error",reject);c.on("exit",code=>code===0?resolve():reject(Error("Membership helper failed; inspect exact receipt")));});
 const locate=p=>p.getByRole("button",{name:"Locate",exact:true}),marker=p=>p.locator('[aria-label*="shared a temporary position"]'),peers=p=>p.getByRole("list",{name:"Shared location snapshots"});
@@ -34,9 +35,16 @@ try{
   await c.addInitScript(()=>{window.__fp4LocationLifecycle=[];const record=(type,extra={})=>{if(window.__fp4LocationLifecycle.length<128)window.__fp4LocationLifecycle.push({type,at:Math.round(performance.now()),...extra});};window.addEventListener("tosker:location-health",e=>record("health",{ready:!!e.detail?.ready}));window.addEventListener("tosker:location-clear",()=>record("clear"));document.addEventListener("visibilitychange",()=>record("visibility",{hidden:document.hidden}));});
   await c.route("**/*geoapify.com/**",r=>new URL(r.request().url()).pathname.endsWith("style.json")?r.fulfill({json:{version:8,sources:{},layers:[{id:"qa",type:"background",paint:{"background-color":"#dce8e4"}}]}}):r.abort());
   await c.route("**/api/location-sharing",r=>{const action=r.request().postDataJSON()?.action;if(!(action in evidence.requests))return r.continue();if((action==="begin"&&used.begin+evidence.requests.begin>=20)||(action==="current"&&used.current+evidence.requests.current>=800))return r.abort();evidence.requests[action]++;save();return r.continue();});
-  const p=await c.newPage();pages.push(p);p.on("pageerror",e=>evidence.errors.push(e.name));p.on("response",r=>{if(new URL(r.url()).pathname==="/api/location-sharing"){const key=`${r.request().postDataJSON()?.action}:${r.status()}`;evidence.responseStatuses[key]=(evidence.responseStatuses[key]??0)+1;}});await loginFp4(p,actor,fixture,origin);assert.equal(await locate(p).getAttribute("aria-pressed"),"false");assert.equal(await p.getByRole("button",{name:"Share location",exact:true}).count(),0);
+  const p=await c.newPage();pages.push(p);p.on("pageerror",e=>evidence.errors.push(e.name));p.on("response",r=>{if(new URL(r.url()).pathname==="/api/location-sharing"){const key=`${r.request().postDataJSON()?.action}:${r.status()}`;evidence.responseStatuses[key]=(evidence.responseStatuses[key]??0)+1;
+   if(mode==="freshness"&&r.request().postDataJSON()?.action==="current")diagnostics.push((async()=>{try{const value=await r.json(),timing=r.request().timing();readTimings.push({participant:actor,status:r.status(),durationMs:Math.round(timing.responseEnd),peerCount:Array.isArray(value.peers)?value.peers.length:null,validForMs:Number.isFinite(value.validForMs)?value.validForMs:null});}catch{/* No response body/coordinate logging. */}})());
+  }});await loginFp4(p,actor,fixture,origin);assert.equal(await locate(p).getAttribute("aria-pressed"),"false");assert.equal(await p.getByRole("button",{name:"Share location",exact:true}).count(),0);
  }
  const [a,b]=pages;record("Normal isolated A/B sign-in; single Locate; explicit synthetic GPS; bounded requests");
+ if(mode==="freshness"){
+  step="bounded read-freshness diagnosis";await share(b,"precise");await marker(a).waitFor({timeout:30000});
+  const observation=await a.evaluate(()=>new Promise(resolve=>{const started=performance.now(),events=[];let previous=true;const observer=new MutationObserver(()=>{const present=!!document.querySelector('[aria-label*="shared a temporary position"]');if(present!==previous){events.push({atMs:Math.round(performance.now()-started),present});previous=present;}});observer.observe(document.body,{childList:true,subtree:true});setTimeout(()=>{observer.disconnect();resolve(events);},45000);}));
+  record("45-second bounded anonymous read-freshness observation; diagnostic, not continuous-visibility acceptance",{observation});await stop(b);await marker(a).waitFor({state:"detached",timeout:10000});
+ }
  if(mode==="all"){
  step="broad delivery and companion continuity";await share(a,"area");await peers(b).waitFor({timeout:30000});assert.equal(await marker(b).count(),0);
  const area=await sql`select latitude is null and longitude is null and accuracy is null as coarse from location_latest`;assert(area.length===1&&area[0].coarse);
@@ -82,5 +90,5 @@ finally{
  for(const c of contexts)await c.setOffline(false).catch(()=>{});
  // Keep request accounting installed through teardown; Stop/logout are never budget-blocked.
  for(const p of pages){if(await locate(p).getAttribute("aria-pressed").catch(()=>null)==="true")await stop(p).catch(()=>{});await p.evaluate(async()=>{if(window.Clerk?.session?.status==="active"){const r=await fetch("/api/realtime/logout",{method:"POST"});if(![200,401,403].includes(r.status))throw Error("QA logout failed");await window.Clerk.signOut();}}).catch(()=>evidence.cleanupErrors++);}
- await browser.close();evidence.finalCounts=await counts();evidence.budgetAfter=await fp4Budget();if(evidence.cleanupErrors||evidence.finalCounts.payloads||evidence.finalCounts.active){evidence.pass=false;process.exitCode=1;}save();console.log(JSON.stringify({...evidence,receipt}));
+ await browser.close();await Promise.all(diagnostics);if(mode==="freshness")evidence.readTimings=readTimings;evidence.finalCounts=await counts();evidence.budgetAfter=await fp4Budget();if(evidence.cleanupErrors||evidence.finalCounts.payloads||evidence.finalCounts.active){evidence.pass=false;process.exitCode=1;}save();console.log(JSON.stringify({...evidence,receipt}));
 }

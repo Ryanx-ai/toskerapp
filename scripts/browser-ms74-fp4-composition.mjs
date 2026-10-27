@@ -6,8 +6,10 @@ import { execFileSync } from "node:child_process";
 import { chromium } from "/Users/ryanc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs";
 import { REVIEW_PROJECT, reviewEnvironment } from "./ms74-fp3-review-runtime.mjs";
 import { installLiveMetrics } from "./lib/ms74-browser.mjs";
+import {acquireFp4QaActors} from "./lib/ms74-fp4-browser-lock.mjs";
 
 reviewEnvironment();
+acquireFp4QaActors();
 const fixture=JSON.parse(readFileSync(".git/ms74-fp4/review-fixture.json","utf8"));
 assert.equal(fixture.project,REVIEW_PROJECT); assert.equal(fixture.status,"committed");
 const origin="http://localhost:3000", directory=".git/ms74-fp4/browser";

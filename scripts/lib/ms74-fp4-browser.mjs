@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import {fp4Budget} from "./ms74-fp4-budget.mjs";
+import {acquireFp4QaActors} from "./ms74-fp4-browser-lock.mjs";
 import {installLiveMetrics} from "./ms74-browser.mjs";
 export const fp4Origin="http://localhost:3001";
 export async function fp4Context(browser){
@@ -12,6 +13,7 @@ export async function fp4Context(browser){
  return context;
 }
 export async function loginFp4(page,actor,fixture,origin=fp4Origin){
+ acquireFp4QaActors();
  await fp4Budget();
  assert(["a","b"].includes(actor));
  assert([fp4Origin,"http://localhost:3000"].includes(origin));

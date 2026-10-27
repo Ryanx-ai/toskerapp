@@ -369,6 +369,12 @@
   overflow:auto; z-index:2; border:1px solid var(--border); border-radius:16px;
   background:var(--surface); box-shadow:var(--depth-raised);
 }
+/* Keep choices inside the bounded, scrollable overlay. The legacy absolute
+   dropdown above it is clipped by this panel's overflow containment. */
+:global(.has-map-canvas) .workspace .results {
+  position:static; margin:0 8px 8px; max-height:none; overflow:visible;
+  box-shadow:none;
+}
 :global(.has-map-canvas) .workspace .cards {
   position:absolute; bottom:32px; left:var(--map-overlay-left); right:var(--map-overlay-right);
   height:auto; min-height:68px; max-height:32%; padding:12px; overflow:auto;

@@ -5,13 +5,14 @@ import {chromium} from "/Users/ryanc/.cache/codex-runtimes/codex-primary-runtime
 import {reviewEnvironment,REVIEW_PROJECT} from "./ms74-fp3-review-runtime.mjs";
 import {fp4Context,loginFp4} from "./lib/ms74-fp4-browser.mjs";
 reviewEnvironment();const fixture=JSON.parse(readFileSync('.git/ms74-fp4/review-fixture.json','utf8'));assert.equal(fixture.project,REVIEW_PROJECT);
+const textOnly=process.argv[2]==='--text-only';assert(process.argv[2]===undefined||textOnly);
 const stamp=Date.now(),path=`.git/ms74-fp4/browser/a11y-${stamp}.json`,evidence={pass:false,cases:[],errors:[],providerCalls:0,sharingCalls:0,textMethod:'200% computed text-size override; not browser zoom or native Dynamic Type'};
 const browser=await chromium.launch({headless:true}),context=await fp4Context(browser),page=await context.newPage();let step='sign-in';
 page.on('pageerror',e=>evidence.errors.push(e.name));await page.emulateMedia({reducedMotion:'reduce'});
 async function geometry(){return page.evaluate(()=>{const selectors=['[data-surface-trigger="chat"]','[data-surface-trigger="hall"]','[aria-label="Return to Map from Chat"]','[aria-label="Return to Map from Board"]'];return{overflow:document.documentElement.scrollWidth>innerWidth+1,controls:selectors.flatMap(selector=>{const e=document.querySelector(selector);if(!e||!e.checkVisibility())return[];const r=e.getBoundingClientRect(),hit=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);return[{selector,width:r.width,height:r.height,inside:r.left>=0&&r.top>=0&&r.right<=innerWidth+1&&r.bottom<=innerHeight+1,uncovered:!!hit&&e.contains(hit)}];})};});}
 try{
  await loginFp4(page,'a',fixture,'http://localhost:3000');assert(await page.evaluate(()=>matchMedia('(prefers-reduced-motion: reduce)').matches));
- for(const width of [375,1440]){
+ for(const width of textOnly?[]:[375,1440]){
   step=`keyboard ${width}`;await page.setViewportSize({width,height:900});
   for(const [surface,name] of [['chat','Chat'],['hall','Board']]){
    const trigger=page.locator(`[data-surface-trigger="${surface}"]`);await trigger.focus();
@@ -22,15 +23,21 @@ try{
    await page.waitForFunction(surface=>document.activeElement===document.querySelector(`[data-workspace-pane="${surface}"]`),surface);
    const focus=await page.locator(`[data-workspace-pane="${surface}"]`).evaluate(e=>{const s=getComputedStyle(e);return{focused:document.activeElement===e,outline:s.outlineStyle,width:parseFloat(s.outlineWidth)};});
    evidence.cases.push({width,surface,paneFocus:focus});assert(focus.focused&&focus.outline!=='none'&&focus.width>=2);
-   const minimize=page.getByRole('button',{name:`Minimize ${name}`,exact:true});await minimize.focus();await page.keyboard.press('Enter');await page.locator(`[data-workspace-pane="${surface}"]`).waitFor({state:'hidden'});assert(await trigger.evaluate(e=>document.activeElement===e));
+   const minimize=page.getByRole('button',{name:`Minimize ${name}`,exact:true});await minimize.focus();await page.keyboard.press('Enter');await page.locator(`[data-workspace-pane="${surface}"]`).waitFor({state:'hidden'});
+   await page.waitForFunction(surface=>document.activeElement===document.querySelector(`[data-surface-trigger="${surface}"]`),surface);
   }
   evidence.cases.push({width,keyboardToggleCollapseFocus:true,reducedMotion:true});
  }
  step='double text';await page.setViewportSize({width:390,height:900});
- // Snapshot sizes first so nested inheritance cannot compound the override.
- await page.evaluate(()=>{const elements=[...document.querySelectorAll('body *')].filter(e=>e instanceof HTMLElement),sizes=elements.map(e=>parseFloat(getComputedStyle(e).fontSize));elements.forEach((e,i)=>{if(Number.isFinite(sizes[i]))e.style.setProperty('font-size',`${sizes[i]*2}px`,'important');});});
  for(const [surface,name] of [['chat','Chat'],['hall','Board']]){
-  step=`double text ${name}`;await page.locator(`[data-surface-trigger="${surface}"]`).click();await page.locator(`[data-workspace-pane="${surface}"]`).waitFor();
+  step=`double text ${name}`;
+  await page.goto(`http://localhost:3000/room/${fixture.slug}`,{waitUntil:'domcontentloaded'});
+  await page.locator('[data-map-state="ready"]').waitFor({timeout:60000});
+  await page.locator(`[data-surface-trigger="${surface}"]`).click();await page.locator(`[data-workspace-pane="${surface}"]`).waitFor();
+  if(surface==='hall')await page.locator('[data-workspace-pane="hall"]').getByText('FP4 shared planning note 0cef2287',{exact:true}).waitFor({timeout:60000});
+  else await page.getByText('Loading messages…',{exact:true}).waitFor({state:'hidden',timeout:60000});
+  // Snapshot populated sizes before any writes; fresh navigation avoids compounded scaling.
+  await page.evaluate(()=>{const elements=[...document.querySelectorAll('body *')].filter(e=>e instanceof HTMLElement),sizes=elements.map(e=>parseFloat(getComputedStyle(e).fontSize));elements.forEach((e,i)=>{if(Number.isFinite(sizes[i]))e.style.setProperty('font-size',`${sizes[i]*2}px`,'important');});});
   const measured=await geometry();evidence.cases.push({surface,doubleText:measured});assert(!measured.overflow);assert(measured.controls.every(c=>c.inside&&c.uncovered&&c.width>=44&&c.height>=44));
   await page.screenshot({path:`.git/ms74-fp4/browser/a11y-${stamp}-${surface}-390.png`});await page.getByRole('button',{name:`Return to Map from ${name}`,exact:true}).click();
  }
